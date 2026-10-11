@@ -227,7 +227,9 @@ describe('BlockCard', () => {
     expect(screen.queryByText('No image chosen')).not.toBeInTheDocument();
   });
 
-  it('draws the raw type for a block no one registered, and reports it', () => {
+  /** No definition means no editor, so the card offers no way into one. It used to show
+   *  an Edit button that opened an empty card the author had to press Escape to leave. */
+  it('draws the raw type for a block no one registered, reports it, and offers no editor', () => {
     const onError = vi.fn();
     renderCanvas(
       <BlockCard block={{ id: 'x', type: 'REMOVED', data: {} }} index={0} onUpdate={vi.fn()} />,
@@ -235,17 +237,18 @@ describe('BlockCard', () => {
       onError,
     );
     expect(screen.getByText('REMOVED')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Edit block 1' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Edit block 1' })).not.toBeInTheDocument();
     expect(onError).toHaveBeenCalledTimes(1);
   });
 
-  it('renders nothing while editing a type no one registered', () => {
+  it('still draws the type, rather than nothing, when asked to edit one no one registered', () => {
     renderCanvas(
       <BlockCard block={{ id: 'x', type: 'REMOVED', data: {} }} index={0} editingByDefault onUpdate={vi.fn()} />,
       richBlocks,
       vi.fn(),
     );
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(screen.getByText('REMOVED')).toBeInTheDocument();
   });
 
   it('draws an image through the host resolveAssetUrl, handing it the storage key', () => {

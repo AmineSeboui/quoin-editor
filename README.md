@@ -22,6 +22,10 @@ yarn add quoin-editor
 
 Quoin needs React 18.2 or later (React 19 is supported) and TypeScript 5.4 or later if you use TypeScript. The block registry relies on the built-in `NoInfer` utility type, which arrived in 5.4.
 
+**Tailwind is not required, and either major version works.** See [Tailwind, or no Tailwind](#tailwind-or-no-tailwind) for the one thing a v4 host has to do.
+
+The package is around 200 kB packed. It depends on `@dnd-kit` for dragging, five Radix primitives, `cmdk` for the slash palette, `lucide-react` for the icons, and `clsx`, `tailwind-merge` and `class-variance-authority` for class composition. That is the price of the canvas: the cards, the drag gutter, the inserters, the palette and the dialogs. If you want the text editing and none of the UI, [`quoin-editor/headless`](#headless) has no component or UI library dependency at all.
+
 ## Quickstart
 
 ```tsx
@@ -70,8 +74,9 @@ import { useState } from 'react';
 import { BlockCanvas, useAutosave, type QuoinBlock } from 'quoin-editor';
 import 'quoin-editor/styles.css';
 
-async function saveDocument(blocks: QuoinBlock[]): Promise<void> {
-  await fetch('/api/document', { method: 'PUT', body: JSON.stringify(blocks) });
+async function saveDocument(blocks: QuoinBlock[]) {
+  const response = await fetch('/api/document', { method: 'PUT', body: JSON.stringify(blocks) });
+  return response.json() as Promise<{ revision: number }>;
 }
 
 export function AutosavingEditor({ initial }: { initial: QuoinBlock[] }) {
@@ -90,6 +95,8 @@ export function AutosavingEditor({ initial }: { initial: QuoinBlock[] }) {
   );
 }
 ```
+
+`save` may return anything, so a mutation, an axios call or a `fetch` that resolves to a body goes straight in with no wrapper to discard the value. A save fails by rejecting, or by resolving to an explicit `{ ok: false }`; everything else, `undefined` included, is a success. `status` moves `idle` to `saving` to `saved`, or to `retrying` while it backs off, and `retry()` tries again at once.
 
 ### Loading, undoing and discarding
 
@@ -264,13 +271,50 @@ A definition has these fields:
 | `type` | yes | The string stored on each block. It is how the registry finds the definition. |
 | `label` | yes | The name shown in menus and the slash palette. |
 | `icon` | yes | A [lucide](https://lucide.dev) icon component. Quoin depends on `lucide-react@^1`; add that same major to your own dependencies to import icons, so you do not end up with a second copy and mismatched icon types. |
-| `editor` | yes | The editing surface. It receives `data` and `onChange`. Call `onChange` with the whole next `data`, not a patch. |
-| `preview` | no | What the block shows when it is not being edited. Omit it for an edit-only block. |
+| `editor` | one of the two | The editing surface. It receives `data` and `onChange`. Call `onChange` with the whole next `data`, not a patch. Omit it for a block that is never editable here. |
+| `preview` | one of the two | What the block shows when it is not being edited. Omit it for an edit-only block. |
 | `initialData` | no | Seeds `data` when a block of this type is inserted. It is checked against the editor's data type. |
 | `inSlashPalette` | no | Set to `false` to keep the type out of the slash palette and the inserter. Defaults to `true`. |
 | `alwaysEditing` | no | Renders the editor permanently instead of a preview you click to edit. |
 
-A definition that sets `alwaysEditing` should also supply a `preview`. A `readOnly` canvas draws the preview and never the editor, so without a preview the block's content is invisible there.
+Supply `editor`, `preview` or both. Omitting both is a type error, because such a block could only ever draw its own label.
+
+**Omit `editor` for a block that is not yours to edit** here: content that belongs to a server-side record, a generated summary, an audit trail. The card then offers no way in, with no edit button and no click target, and `preview` becomes required because it is the only thing left that can draw the block.
+
+```tsx
+import { ShieldCheck } from 'lucide-react';
+import { defineBlock } from 'quoin-editor';
+
+const audit = defineBlock<{ approver: string }>({
+  type: 'AUDIT',
+  label: 'Audit trail',
+  icon: ShieldCheck,
+  preview: ({ data }) => <p>Signed off by {data.approver}</p>,
+});
+```
+
+**Omit `preview` only for a block you never show read-only.** A `readOnly` canvas draws previews and never editors, so such a block shows nothing there but its own label. Quoin warns once per type in the console when that happens, naming the type. The same applies to `alwaysEditing`, which is also an editor and is also not drawn on a read-only canvas.
+
+### What the core blocks store
+
+Each core block keeps its content under its own keys. A host that persists blocks reads and writes these, so they are exported as types: import them rather than retyping the shapes.
+
+| Type | `data` | Exported as |
+| --- | --- | --- |
+| `MARKDOWN` | `markdown: string` | `MarkdownBlockData` |
+| `CALLOUT` | `tone: string`, `body: string` | `CalloutBlockData` |
+| `CODE` | `language: string`, `code: string` | `CodeBlockData` |
+| `IMAGE` | `storageKey: string`, `alt: string`, `caption?: string`, `width?: number`, `height?: number` | `ImageBlockData` |
+| `FILE` | `storageKey: string`, `filename: string`, `size?: number` | `FileBlockData` |
+
+`CoreBlockData` maps each `type` string to its shape, for a host writing one function over all five.
+
+Two of these are worth saying out loud, because both have been guessed wrong:
+
+- **The callout's prose is `body`, not `text`.** The label over the field reads "Callout text", which is what the author sees; `body` is what the block stores.
+- **Markdown blocks store markdown source, not rendered HTML.** Quoin edits and stores the source and renders it as plain text; supply a `preview` if you want it rendered.
+
+The optional fields are written after a block's first save: an image's `caption` when the author types one, its `width` and `height` once the uploaded bytes have been measured, a file's `size` when the upload reports it. `src/blocks/data.test.ts` reads the keys back out of each editor's source and fails if one drifts from the table above.
 
 ### Reaching uploads from a custom block
 
@@ -422,6 +466,8 @@ export function Reader({ blocks }: { blocks: QuoinBlock[] }) {
 
 `readOnly` renders each block's `preview` with no inserters, menus, drag handles or editors. `onChange` is still required by the type, and is never called. `aria-label` names the document for assistive technology, and `className` and `id` go on the root element.
 
+Because it draws previews and never editors, a block type registered without a `preview` has nothing to show here but its own label. Quoin warns once per type in the console when that happens, so give every type you render read-only a `preview`. It is not an error channel: `onError` is for the document, this is for the registration, so it goes to the developer and not to the reader.
+
 ## Theming
 
 `quoin-editor/styles.css` is compiled Tailwind CSS v4. Every colour and every radius it draws with comes from a custom property under a `--quoin-` prefix. It ships a default for all of them, on `:root` for light and on `.dark` for dark:
@@ -545,6 +591,20 @@ All of Quoin's own rules are in cascade layers, so an **unlayered** global reset
 
 The layer statement has to come before Quoin's stylesheet is parsed, so put it first in your own CSS or in an inline `<style>` in the document head.
 
+### Tailwind, or no Tailwind
+
+`quoin-editor/styles.css` is compiled output. Every value in it is already resolved, so it is a plain stylesheet, not a Tailwind plugin, and a project with no Tailwind at all can import it and be done.
+
+If you do use Tailwind, both major versions work, and what you have to do differs:
+
+| Your setup | What to do |
+| --- | --- |
+| **Tailwind v4** | Name the layer order and import Quoin into it, as [below](#cascade-layers-and-import-order). Without it Quoin's layer sorts last and its utilities beat yours. |
+| **Tailwind v3** | Nothing. v3 emits its own utilities unlayered, and an unlayered rule beats a layered one whatever the order, so yours win over Quoin's by construction. |
+| **No Tailwind** | Nothing. Import the stylesheet and the editor is styled. |
+
+**On Tailwind v3, 0.2.0 is the first version that builds at all.** 0.1.1 and earlier emitted bare `@layer base` and `@layer utilities`, which the v3 PostCSS plugin refuses two different ways: importing the stylesheet from a component raises `'@layer base' is used but no matching '@tailwind base' directive is present`, and `@import`ing it from a stylesheet that does carry the `@tailwind` directives raises `TypeError: layerRule.nodes is not iterable`. Nesting everything under `quoin` in 0.2.0 removed both. If you worked around this by copying the stylesheet into `public/`, you can stop.
+
 ### Cascade layers and import order
 
 Everything the stylesheet paints is inside one top-level cascade layer called `quoin`, with nested layers for its own theme, base and utilities inside it. Nothing it ships lands in a bare `theme`, `base`, `components` or `utilities` layer. It carries only the utilities Quoin's own components use, so the set of class names it can collide with at all is small and fixed.
@@ -646,7 +706,7 @@ The main entry carries a `'use client'` banner, so a React Server Component has 
 
 ## Exports
 
-From `quoin-editor`: `BlockCanvas`, `QuoinProvider`, `useQuoin`, `defineBlock`, `blockByType`, `paletteBlocks`, `coreBlocks`, `UploadField`, `FilePickerButton`, `TEXT_COMMANDS`, `useBlockList`, `useAutosave`, `useAutoGrow`, and the headless transforms and hooks, with their types (`QuoinBlock`, `UploadFn`, `UploadResult`, `BlockDefinition`, `AnyBlockDefinition`, `BlockEditorProps`, `BlockPreviewProps`, `BlockCanvasProps`, `UploadFieldProps`, `FilePickerButtonProps` and others).
+From `quoin-editor`: `BlockCanvas`, `QuoinProvider`, `useQuoin`, `defineBlock`, `blockByType`, `paletteBlocks`, `coreBlocks`, `UploadField`, `FilePickerButton`, `TEXT_COMMANDS`, `useBlockList`, `useAutosave`, `useAutoGrow`, and the headless transforms and hooks, with their types (`QuoinBlock`, `UploadFn`, `UploadResult`, `BlockDefinition`, `AnyBlockDefinition`, `BlockEditorProps`, `BlockPreviewProps`, `BlockCanvasProps`, `UploadFieldProps`, `FilePickerButtonProps` and others), and the [core block data shapes](#what-the-core-blocks-store): `MarkdownBlockData`, `CalloutBlockData`, `CodeBlockData`, `ImageBlockData`, `FileBlockData` and `CoreBlockData`.
 
 From `quoin-editor/headless`: the transforms and the two hooks listed above, with no UI.
 

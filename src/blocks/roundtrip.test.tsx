@@ -15,7 +15,7 @@ const CASES = [
 describe('editor to preview round trip', () => {
   it.each(CASES)('$type preview shows what its editor wrote', ({ type, field }) => {
     const block = blockByType(coreBlocks, type)!;
-    const Editor = block.editor;
+    const Editor = block.editor!;
     const Preview = block.preview!;
     let captured: Record<string, unknown> = block.initialData?.() ?? {};
 

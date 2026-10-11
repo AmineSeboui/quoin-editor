@@ -12,8 +12,7 @@ export function BlockEditor({
   onDone,
 }: BlockEditorProps & { type: string }) {
   const { blockTypes } = useQuoin();
-  const definition = blockByType(blockTypes, type);
-  if (!definition) return null;
-  const Editor = definition.editor;
+  const Editor = blockByType(blockTypes, type)?.editor;
+  if (!Editor) return null;
   return <Editor data={data} onChange={onChange} onInsertBlock={onInsertBlock} onDone={onDone} />;
 }

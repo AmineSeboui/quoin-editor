@@ -26,7 +26,7 @@ describe('coreBlocks', () => {
 
   it('renders the markdown editor through its definition', () => {
     const definition = blockByType(coreBlocks, 'MARKDOWN');
-    const Editor = definition!.editor;
+    const Editor = definition!.editor!;
     render(
       <QuoinProvider value={{ blockTypes: coreBlocks }}>
         <Editor data={{ markdown: 'hello' }} onChange={() => {}} />
@@ -39,8 +39,10 @@ describe('coreBlocks', () => {
     'mounts the %s editor and preview on its own initialData',
     (_type, block) => {
       const data = block.initialData?.() ?? {};
-      const { editor: Editor, preview: Preview } = block;
+      const { editor, preview: Preview } = block;
+      expect(editor).toBeDefined();
       expect(Preview).toBeDefined();
+      const Editor = editor!;
       expect(() =>
         render(
           <QuoinProvider value={{ blockTypes: coreBlocks }}>

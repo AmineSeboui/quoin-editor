@@ -2,18 +2,11 @@ import type { ComponentType } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import type { BlockEditorProps, BlockPreviewProps } from './types';
 
-/** Describes one block type: how to label it, how to draw it at rest, how to edit it. */
-export type BlockDefinition<D extends object = Record<string, unknown>> = {
+/** The fields every block definition carries, whatever it can do with its data. */
+type BlockDefinitionCommon<D extends object> = {
   type: string;
   label: string;
   icon: LucideIcon;
-  editor: ComponentType<BlockEditorProps<D>>;
-  /**
-   * What the block shows when it is not being edited. Optional so a host can register an
-   * edit-only block type, and overridable so a host can supply rich rendering (a full
-   * markdown pipeline, a chart) without Quoin depending on one.
-   */
-  preview?: ComponentType<BlockPreviewProps<D>>;
   /**
    * Called when a new block of this type is inserted, to seed its data.
    * `NoInfer` keeps `D` inferred from `editor` and `preview` alone, so the seed is checked
@@ -30,6 +23,34 @@ export type BlockDefinition<D extends object = Record<string, unknown>> = {
   alwaysEditing?: boolean;
 };
 
+/**
+ * Describes one block type: how to label it, how to draw it at rest, how to edit it.
+ *
+ * Supply `editor`, `preview`, or both, and the canvas does the rest. A definition with no
+ * `preview` is edit-only: a read-only canvas has nothing to draw for it but its label.
+ * A definition with no `editor` can never be edited in the canvas, which is what a block
+ * whose content belongs to a server-side record wants; the card offers no edit affordance
+ * for it and a click goes through to whatever the preview itself renders.
+ *
+ * Omitting both is a type error, because such a block would only ever draw its own label.
+ */
+export type BlockDefinition<D extends object = Record<string, unknown>> =
+  | (BlockDefinitionCommon<D> & {
+      editor: ComponentType<BlockEditorProps<D>>;
+      /**
+       * What the block shows when it is not being edited. Optional so a host can register an
+       * edit-only block type, and overridable so a host can supply rich rendering (a full
+       * markdown pipeline, a chart) without Quoin depending on one.
+       */
+      preview?: ComponentType<BlockPreviewProps<D>>;
+    })
+  | (BlockDefinitionCommon<D> & {
+      /** Omitted: this block is never editable in the canvas. */
+      editor?: undefined;
+      /** Required here, because it is the only thing that can draw the block. */
+      preview: ComponentType<BlockPreviewProps<D>>;
+    });
+
 /** A definition with its data type erased, so definitions of different shapes compose in one array. */
 export type AnyBlockDefinition = BlockDefinition<Record<string, unknown>>;
 
@@ -39,8 +60,13 @@ export type AnyBlockDefinition = BlockDefinition<Record<string, unknown>>;
  * on `editor`, so without it an array of differently-shaped definitions will not typecheck.
  * `initialData` is checked against the editor's data type. That relies on `NoInfer`, so
  * TypeScript 5.4 or later is required.
+ *
+ * `D` defaults to `Record<string, unknown>`, so a definition whose components take no
+ * annotation still gets a usable `data` rather than a bare `object`.
  */
-export function defineBlock<D extends object>(definition: BlockDefinition<D>): AnyBlockDefinition {
+export function defineBlock<D extends object = Record<string, unknown>>(
+  definition: BlockDefinition<D>,
+): AnyBlockDefinition {
   return definition as unknown as AnyBlockDefinition;
 }
 

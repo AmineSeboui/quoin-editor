@@ -6,6 +6,7 @@ import { BlockEditor } from './BlockEditor';
 import { renderedOffsetAt, sourceOffsetFor, type ClickProbe } from './source-offset';
 import { useQuoin } from '../context';
 import { blockByType } from '../registry';
+import { devWarn } from '../dev-warn';
 import type { QuoinBlock } from '../types';
 import { Button } from '../ui/button';
 
@@ -44,7 +45,10 @@ function BlockCardImpl({
   const { blockTypes, onError } = useQuoin();
   const definition = blockByType(blockTypes, block.type);
   const Preview = definition?.preview;
-  const [editing, setEditing] = React.useState(editingByDefault && !readOnly);
+  // A definition with no `editor` can never be edited here, so the card offers no way in:
+  // no click target, no Edit button, and nothing that could set `editing`.
+  const editable = Boolean(definition?.editor) && !readOnly;
+  const [editing, setEditing] = React.useState(editingByDefault && editable);
   const editButtonRef = React.useRef<HTMLButtonElement>(null);
   const editorContainerRef = React.useRef<HTMLDivElement>(null);
   const returnFocusOnClose = React.useRef(false);
@@ -153,7 +157,18 @@ function BlockCardImpl({
     onError(new Error(`No block type is registered for "${block.type}".`));
   }, [definition, block.type, onError]);
 
-  if (definition?.alwaysEditing && !readOnly) {
+  // A read-only canvas draws previews and never editors, so an edit-only definition has
+  // nothing here but its label. That is a registration mistake rather than a document
+  // one, which is why it goes to the developer's console and not to `onError`.
+  React.useEffect(() => {
+    if (!readOnly || !definition || definition.preview) return;
+    devWarn(
+      `the block type "${block.type}" has no \`preview\`, so a read-only canvas can draw ` +
+        'only its label. Give its definition a `preview` to render the block itself.',
+    );
+  }, [readOnly, definition, block.type]);
+
+  if (definition?.alwaysEditing && editable) {
     return (
       <BlockEditor
         type={block.type}
@@ -201,7 +216,8 @@ function BlockCardImpl({
     <p className="py-1 text-sm text-muted-foreground">{definition?.label ?? block.type}</p>
   );
 
-  if (readOnly) return <div>{rest}</div>;
+  // No way into an editor, because the canvas is read-only or this type has none.
+  if (!editable) return <div>{rest}</div>;
 
   return (
     <div className="group/card relative">

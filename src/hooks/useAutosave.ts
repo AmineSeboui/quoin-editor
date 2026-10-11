@@ -3,14 +3,30 @@ import * as React from 'react';
 /** Where a debounced save stands, for a "Saving..." or "Saved" indicator. */
 export type AutosaveStatus = 'idle' | 'saving' | 'saved' | 'retrying';
 
-type SaveResult = { ok?: boolean } | void;
+/**
+ * Whether a resolved save reported failure. Only an explicit `{ ok: false }` counts, so a
+ * `save` that resolves to a response body, a mutation result or nothing at all is a success
+ * and needs no wrapper to discard its value. Rejecting is still the other way to fail.
+ */
+function reportedFailure(result: unknown): boolean {
+  return (
+    typeof result === 'object' &&
+    result !== null &&
+    'ok' in result &&
+    (result as { ok?: unknown }).ok === false
+  );
+}
 
 /** What `useAutosave` tracks, how to build the payload, and how to persist it. */
 export type UseAutosaveInput<T> = {
   /** The tracked fields. An edit to any of them marks dirty and restarts the debounce. */
   deps: React.DependencyList;
   build: () => T;
-  save: (payload: T) => Promise<SaveResult> | SaveResult;
+  /**
+   * Persists the payload. Return anything: a mutation or a `fetch` that resolves to a body
+   * can be passed straight in. A save fails by rejecting, or by resolving to `{ ok: false }`.
+   */
+  save: (payload: T) => unknown;
   debounceMs?: number;
   maxBackoffMs?: number;
 };
@@ -52,7 +68,7 @@ export function useAutosave<T>({
         setStatus('saving');
         try {
           const res = await saveRef.current(buildRef.current());
-          if (res && res.ok === false) throw new Error('save rejected');
+          if (reportedFailure(res)) throw new Error('save rejected');
           retryRef.current = 0;
           dirtyRef.current = false;
           setStatus('saved');

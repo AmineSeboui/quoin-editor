@@ -18,8 +18,12 @@ const RANK: Readonly<Record<string, number>> = {
 const CUSTOM_RANK = 7.5;
 const STACKABLE = new Set(['comment']);
 
+export function isCoreMark(type: string): boolean {
+  return Object.hasOwn(RANK, type);
+}
+
 export function markRank(type: string): number {
-  return RANK[type] ?? CUSTOM_RANK;
+  return isCoreMark(type) ? RANK[type] : CUSTOM_RANK;
 }
 
 export function markKey(mark: Mark): string {

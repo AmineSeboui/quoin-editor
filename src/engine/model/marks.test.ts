@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addMark, hasMark, markKey, markRank, removeMark, sameMark, sameMarkSet, sortMarks } from './marks';
+import { addMark, hasMark, isCoreMark, markKey, markRank, removeMark, sameMark, sameMarkSet, sortMarks } from './marks';
 
 const bold = { type: 'bold' };
 const link = (href: string) => ({ type: 'link', attrs: { href } });
@@ -10,6 +10,14 @@ describe('marks', () => {
     expect(markRank('link')).toBe(0);
     expect(markRank('code')).toBe(11);
     expect(markRank('custom')).toBe(7.5);
+    expect(markRank('toString')).toBe(7.5);
+  });
+
+  it('tells core marks from custom ones', () => {
+    expect(isCoreMark('link')).toBe(true);
+    expect(isCoreMark('background')).toBe(true);
+    expect(isCoreMark('kbd')).toBe(false);
+    expect(isCoreMark('constructor')).toBe(false);
   });
 
   it('keys comments by id and every other mark by type', () => {

@@ -1,4 +1,5 @@
-import { linePrefix, parseLine, type LineAttrs } from '../markdown/line-kind';
+import { parseLine, type LineAttrs } from '../markdown/line-kind';
+import { lineMarkdown } from '../markdown/line-markdown';
 import type { BlockSpec } from '../schema/types';
 import {
   alignOrUndefined,
@@ -11,10 +12,6 @@ import {
 } from './data-fields';
 
 const KNOWN = ['markdown', 'align', 'color', 'background'];
-const TRAILING_HASHES = / (#+)$/;
-
-// A trailing hash run would be read back as an ATX closing sequence and dropped.
-const protectClosingSequence = (markdown: string) => markdown.replace(TRAILING_HASHES, ' \\$1');
 
 export const markdownSpec: BlockSpec = {
   type: 'MARKDOWN',
@@ -37,10 +34,11 @@ export const markdownSpec: BlockSpec = {
 
   toData(block, ctx) {
     const line = block.attrs as LineAttrs;
-    const body = ctx.inline.serialize(regionOf(block, 'text'), { escapeLineStart: true });
+    const hardBreak = line.kind === 'heading' ? 'br' : 'backslash';
+    const body = ctx.inline.serialize(regionOf(block, 'text'), { escapeLineStart: true, hardBreak });
     return withExtra(
       {
-        markdown: linePrefix(line) + (line.kind === 'heading' ? protectClosingSequence(body) : body),
+        markdown: lineMarkdown(line, body),
         align: alignOrUndefined(block.attrs.align),
         color: paletteOrUndefined(block.attrs.color),
         background: paletteOrUndefined(block.attrs.background),

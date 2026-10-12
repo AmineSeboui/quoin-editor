@@ -311,7 +311,7 @@ Each core block keeps its content under its own keys. A host that persists block
 
 Two of these are worth saying out loud, because both have been guessed wrong:
 
-- **The callout's prose is `body`, not `text`.** The label over the field reads "Callout text", which is what the author sees; `body` is what the block stores.
+- **The callout's prose is `body`, not `text`.** The label over the field reads "Callout text", which is what the author sees; `body` is what the block stores. `tone` is one of `info`, `tip`, `warning`, `success` or `danger`, each drawn in its own colour; anything else falls back to the neutral border and fill.
 - **Markdown blocks store markdown source, not rendered HTML.** Quoin edits and stores the source and renders it as plain text; supply a `preview` if you want it rendered.
 
 The optional fields are written after a block's first save: an image's `caption` when the author types one, its `width` and `height` once the uploaded bytes have been measured, a file's `size` when the upload reports it. `src/blocks/data.test.ts` reads the keys back out of each editor's source and fails if one drifts from the table above.
@@ -490,6 +490,9 @@ Because it draws previews and never editors, a block type registered without a `
   --quoin-accent: oklch(0.97 0 0);
   --quoin-accent-foreground: oklch(0.205 0 0);
   --quoin-destructive: oklch(0.577 0.245 27.325);
+  --quoin-info: oklch(0.55 0.17 250);
+  --quoin-success: oklch(0.55 0.14 155);
+  --quoin-warning: oklch(0.65 0.16 65);
   --quoin-radius: 0.625rem;
 }
 
@@ -510,6 +513,9 @@ Because it draws previews and never editors, a block type registered without a `
   --quoin-accent: oklch(0.269 0 0);
   --quoin-accent-foreground: oklch(0.985 0 0);
   --quoin-destructive: oklch(0.704 0.191 22.216);
+  --quoin-info: oklch(0.72 0.14 250);
+  --quoin-success: oklch(0.74 0.15 155);
+  --quoin-warning: oklch(0.79 0.15 65);
   --quoin-radius: 0.625rem;
 }
 ```
@@ -548,9 +554,14 @@ Point the prefixed names at your own in one block on `.quoin`. The canvas root c
   --quoin-accent: var(--accent);
   --quoin-accent-foreground: var(--accent-foreground);
   --quoin-destructive: var(--destructive);
+  --quoin-info: var(--info);
+  --quoin-success: var(--success);
+  --quoin-warning: var(--warning);
   --quoin-radius: var(--radius);
 }
 ```
+
+`--quoin-info`, `--quoin-success` and `--quoin-warning` arrived in 0.4.0 and are read only by the callout block, for its rule and the wash behind it, never for type. If your own theme has no equivalent, leave those three out of the block and the defaults above stand; the rest of the editor does not touch them.
 
 That one block covers both modes: the tokens on the right already flip with your own dark class, and each mapping beats Quoin's `:root` and `.dark` defaults alike. Write it unlayered, or in a layer that sorts after `quoin`, so it outranks those defaults.
 

@@ -160,3 +160,51 @@ if (shipped.length) {
   process.exit(1);
 }
 console.log(`${file}: the utility the README's collision example quotes (${quoted.join(', ')}) is not emitted.`);
+
+// The editor offers five callout tones, so five of them have to be distinguishable. Until
+// 0.4.0 they were mapped onto whatever this palette already carried, and info, tip and
+// success all resolved to the same near-black while every tone shared one grey fill: five
+// choices rendered as three. Distinct class names did not catch it, because the names were
+// always distinct; only the values they resolve to do.
+const TONE_TOKENS = {
+  info: '--quoin-info',
+  tip: '--quoin-primary',
+  warning: '--quoin-warning',
+  success: '--quoin-success',
+  danger: '--quoin-destructive',
+};
+
+/** The first declaration of each token under a selector. The build repeats both blocks
+ *  inside an `@supports (color:lab(...))`, and either copy answers the question. */
+function tokensUnder(selector) {
+  const open = css.indexOf(`${selector}{`);
+  if (open === -1) return null;
+  const body = css.slice(open + selector.length + 1, css.indexOf('}', open));
+  return Object.fromEntries(
+    [...body.matchAll(/(--[\w-]+):([^;]+)/g)].map((m) => [m[1], m[2].trim()]),
+  );
+}
+
+for (const selector of [':root', '.dark']) {
+  const tokens = tokensUnder(selector);
+  if (!tokens) {
+    console.error(`${file} declares no ${selector} block, so the callout tones have no values.`);
+    process.exit(1);
+  }
+  const entries = Object.entries(TONE_TOKENS).map(([tone, token]) => [tone, token, tokens[token]]);
+  const missing = entries.filter(([, , value]) => !value);
+  if (missing.length) {
+    console.error(`${file} leaves a callout tone undeclared on ${selector}:`);
+    for (const [tone, token] of missing) console.error(`  ${tone} reads ${token}`);
+    process.exit(1);
+  }
+  const collisions = entries.flatMap(([tone, , value], i) =>
+    entries.slice(i + 1).filter(([, , other]) => other === value).map(([b]) => `${tone} and ${b} are both ${value}`),
+  );
+  if (collisions.length) {
+    console.error(`${file} draws two callout tones in one colour on ${selector}, so the choice is lost:`);
+    for (const line of collisions) console.error(`  ${line}`);
+    process.exit(1);
+  }
+}
+console.log(`${file}: the five callout tones resolve to five different colours in both themes.`);

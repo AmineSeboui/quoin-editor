@@ -6,12 +6,21 @@ import { str } from './str';
 
 const HINT = 'text-sm text-muted-foreground';
 
-const TONE_BORDER: Record<string, string> = {
-  info: 'border-primary',
-  tip: 'border-accent-foreground',
-  warning: 'border-muted-foreground',
-  success: 'border-secondary-foreground',
-  danger: 'border-destructive',
+/**
+ * One colour per tone, carrying both the rule and the wash behind it. Until 0.4.0 the
+ * five tones were mapped onto whatever this palette already had, which gave info, tip
+ * and success the same near-black rule and all five the same grey fill: the editor
+ * offered five choices that rendered as three, and the choice a writer made was lost.
+ *
+ * The wash is 15% of a mid-lightness colour, which is light enough to keep body copy
+ * on it and saturated enough to read as the tone rather than as grey.
+ */
+export const TONE: Record<string, string> = {
+  info: 'border-info bg-info/15',
+  tip: 'border-primary bg-primary/15',
+  warning: 'border-warning bg-warning/15',
+  success: 'border-success bg-success/15',
+  danger: 'border-destructive bg-destructive/15',
 };
 
 export function MarkdownPreview({ data }: BlockPreviewProps) {
@@ -48,9 +57,9 @@ export function CalloutPreview({ data }: BlockPreviewProps) {
   const body = str(data.body);
   if (body.trim() === '') return <p className={HINT}>Empty callout</p>;
   const tone = str(data.tone) || 'info';
-  const border = TONE_BORDER[tone] ?? 'border-border';
+  const paint = TONE[tone] ?? 'border-border bg-muted/50';
   return (
-    <div data-tone={tone} className={`rounded-md border-l-4 ${border} bg-muted/50 p-3 text-sm`}>
+    <div data-tone={tone} className={`rounded-md border-l-4 ${paint} p-3 text-sm`}>
       {body}
     </div>
   );

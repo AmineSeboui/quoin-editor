@@ -109,6 +109,13 @@
     --quoin-destructive: oklch(0.577 0.245 27.325);
     --quoin-secondary: oklch(0.97 0 0);
     --quoin-secondary-foreground: oklch(0.205 0 0);
+    /* The callout tones. They exist because the rest of this palette cannot tell five
+       tones apart: it carries one accent and one destructive, so info, tip and success
+       all resolved to the same near-black and the tone a writer picked said nothing.
+       Non-text, like --destructive: a rule and a wash, never type. */
+    --quoin-info: oklch(0.55 0.17 250);
+    --quoin-success: oklch(0.55 0.14 155);
+    --quoin-warning: oklch(0.65 0.16 65);
     --quoin-radius: 0.625rem;
   }
 
@@ -129,6 +136,9 @@
     --quoin-secondary: oklch(0.269 0 0);
     --quoin-secondary-foreground: oklch(0.985 0 0);
     --quoin-destructive: oklch(0.704 0.191 22.216);
+    --quoin-info: oklch(0.72 0.14 250);
+    --quoin-success: oklch(0.74 0.15 155);
+    --quoin-warning: oklch(0.79 0.15 65);
     --quoin-radius: 0.625rem;
   }
 }
@@ -150,6 +160,9 @@
   --color-secondary: var(--quoin-secondary);
   --color-secondary-foreground: var(--quoin-secondary-foreground);
   --color-destructive: var(--quoin-destructive);
+  --color-info: var(--quoin-info);
+  --color-success: var(--quoin-success);
+  --color-warning: var(--quoin-warning);
   --radius-lg: var(--quoin-radius);
   --radius-md: calc(var(--quoin-radius) - 2px);
   --radius-sm: calc(var(--quoin-radius) - 4px);

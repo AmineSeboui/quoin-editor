@@ -96,7 +96,7 @@ export function AutosavingEditor({ initial }: { initial: QuoinBlock[] }) {
 }
 ```
 
-`save` may return anything, so a mutation, an axios call or a `fetch` that resolves to a body goes straight in with no wrapper to discard the value. A save fails by rejecting, or by resolving to an explicit `{ ok: false }`; everything else, `undefined` included, is a success. `status` moves `idle` to `saving` to `saved`, or to `retrying` while it backs off, and `retry()` tries again at once.
+`save` may return anything, so a mutation, an axios call or a `fetch` that resolves to a body goes straight in with no wrapper to discard the value. A save fails by rejecting, or by resolving to an explicit `{ ok: false }`; everything else, `undefined` included, is a success. `status` moves `idle` to `saving` to `saved`, or to `retrying` while it backs off, and `retry()` tries again at once. Since 0.4.1 one save runs at a time, with the newest payload queued behind it, and a pending edit is saved at once when the component unmounts or the page is hidden (`flush()` does the same on demand). Retries stop after `maxRetries` (default 8) or when `isRetryable(error)` returns false; `status` is then `failed` and `error` holds the reason.
 
 ### Loading, undoing and discarding
 
@@ -724,6 +724,27 @@ From `quoin-editor`: `BlockCanvas`, `QuoinProvider`, `useQuoin`, `defineBlock`, 
 From `quoin-editor/headless`: the transforms and the two hooks listed above, with no UI.
 
 From `quoin-editor/styles.css`: the stylesheet.
+
+## Accessibility
+
+What the test suite checks:
+
+- axe runs over the canvas, the block cards, the inserter, the slash palette and the shortcuts reference.
+- Controls carry accessible names, and the icons are hidden from assistive technology.
+- Blocks reorder by keyboard, with announcements that name each block by label and position.
+- Escape leaves an open block and returns focus to its Edit button.
+- The default light and dark tokens keep the keyboard focus outline at 3:1 or more and highlighted-row text at 4.5:1 or more, and focusable controls draw the focus as an outline, which Windows forced colours mode keeps.
+
+The checks are automated. A manual pass with NVDA and VoiceOver is not recorded yet.
+
+Known gaps in 0.4:
+
+- A markdown block is read as source. At rest it is plain text, so a screen reader reads the markdown characters as written.
+- Keyboard drag with Space and the arrow keys can drop a block in place, and its announcement can name the wrong position. Use Move up and Move down in the block's options menu to reorder by keyboard.
+
+## Stability
+
+Quoin is 0.x. A minor version may contain breaking changes, and each one is listed in the [changelog](CHANGELOG.md). If you need stability, pin a minor with `~0.4.0`, which takes patch releases only.
 
 ## Licence
 

@@ -1,9 +1,12 @@
 {
   "name": "quoin-editor",
-  "version": "0.4.0",
-  "description": "A React block editor: typed blocks, drag to reorder, a markdown surface with a slash palette, and an open block type registry.",
+  "version": "0.4.1",
+  "description": "Markdown-native block editor for React: Notion-style blocks, a slash palette, drag to reorder and your own block types. Typed JSON out, MIT.",
   "license": "MIT",
-  "author": "Amine Sboui",
+  "author": {
+    "name": "Amine Sboui",
+    "url": "https://github.com/AmineSeboui"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/AmineSeboui/quoin.git"
@@ -14,11 +17,24 @@
   },
   "keywords": [
     "react",
+    "react-component",
     "editor",
     "block-editor",
+    "block-based",
+    "notion-like",
+    "notion-style",
     "markdown",
-    "wysiwyg",
-    "notion"
+    "markdown-editor",
+    "slash-command",
+    "slash-menu",
+    "drag-and-drop",
+    "typescript",
+    "headless",
+    "content-editor",
+    "accessible",
+    "controlled-component",
+    "react-19",
+    "shadcn"
   ],
   "type": "module",
   "sideEffects": [

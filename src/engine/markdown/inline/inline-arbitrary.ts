@@ -52,7 +52,23 @@ export function arbitraryInline(): fc.Arbitrary<Inline> {
   return fc.array(nodeArbitrary, { maxLength: 6 }).map(normalizeInline);
 }
 
-const AWKWARD_VALUES = ['x', 'a"b', '&amp;', '<b>', 'a|b', 'a\nb', '', ' ', '\\', 'a b', '&', '\u00E9'];
+const AWKWARD_VALUES = [
+  'x',
+  'a"b',
+  '&amp;',
+  '<b>',
+  'a|b',
+  'a\nb',
+  'a\n# b',
+  'a\n1. b',
+  'a\n- b',
+  '',
+  ' ',
+  '\\',
+  'a b',
+  '&',
+  '\u00E9',
+];
 const AWKWARD_HREFS = [
   '',
   'a\\b',

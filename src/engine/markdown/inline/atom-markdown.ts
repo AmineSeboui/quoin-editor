@@ -24,7 +24,7 @@ function mentionMarkdown(attrs: Attrs, options: RenderOptions): string {
   const label = escapeText(attrs.label, {
     lineStart: false,
     lineEnd: false,
-    escapeLineStart: false,
+    escapeLineStart: options.escapeLineStart,
     escapePipes: options.escapePipes,
     hardBreak: options.hardBreak,
     next: ']',

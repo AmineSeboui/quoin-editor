@@ -1,3 +1,5 @@
+'use client';
+
 export { BlockCanvas, type BlockCanvasProps } from './canvas/BlockCanvas';
 export { defineBlock, blockByType, paletteBlocks, type BlockDefinition, type AnyBlockDefinition } from './registry';
 export { coreBlocks } from './blocks/core';

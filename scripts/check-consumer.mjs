@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
+const react = process.env.QUOIN_REACT ?? '19';
 const work = mkdtempSync(join(tmpdir(), 'quoin-consumer-'));
 const run = (cmd, args, cwd) => execFileSync(cmd, args, { cwd, stdio: 'inherit' });
 
@@ -15,7 +16,7 @@ run(
   'npm',
   [
     'install', '--no-audit', '--no-fund', `./${tarball}`,
-    'react@19', 'react-dom@19', '@types/react@19', '@types/react-dom@19', 'lucide-react@^1',
+    `react@${react}`, `react-dom@${react}`, `@types/react@${react}`, `@types/react-dom@${react}`, 'lucide-react@^1',
     'typescript@5.4',
   ],
   work,
@@ -51,4 +52,4 @@ run(
   work,
 );
 
-console.log('The packed package typechecks for a consumer on TypeScript 5.4, README samples included.');
+console.log(`The packed package typechecks for a consumer on React ${react} and TypeScript 5.4, README samples included.`);

@@ -2,6 +2,7 @@ import * as React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BlockCanvas } from './BlockCanvas';
+import type * as BlockListModule from '../hooks/useBlockList';
 import type { QuoinBlock } from '../types';
 
 const { resetSpy } = vi.hoisted(() => ({ resetSpy: vi.fn() }));
@@ -9,7 +10,7 @@ const { resetSpy } = vi.hoisted(() => ({ resetSpy: vi.fn() }));
 // The canvas resets itself only for a document it did not write, so the spy sits on
 // `reset` to tell a tolerated echo apart from the canvas treating its own output as foreign.
 vi.mock('../hooks/useBlockList', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../hooks/useBlockList')>();
+  const actual = await importOriginal<typeof BlockListModule>();
   const React = await import('react');
   return {
     ...actual,

@@ -25,8 +25,6 @@ function splitSelectors(list) {
 function* rules(source) {
   const stack = [];
   let prelude = '';
-  let body = '';
-  let nested = false;
   for (const ch of source) {
     if (ch === '{') {
       const text = prelude.trim();

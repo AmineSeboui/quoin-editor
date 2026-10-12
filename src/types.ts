@@ -1,9 +1,4 @@
-/** A document is an ordered array of these; `type` is looked up in the registered block definitions. */
-export type QuoinBlock = {
-  id: string;
-  type: string;
-  data: Record<string, unknown>;
-};
+export type { QuoinBlock } from './engine/model/quoin-block';
 
 /** What your upload function resolves with so Quoin can reference the stored file later. */
 export type UploadResult = {

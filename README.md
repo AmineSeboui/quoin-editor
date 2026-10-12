@@ -730,7 +730,7 @@ From `quoin-editor/styles.css`: the stylesheet.
 What the test suite checks:
 
 - axe runs over the canvas, the block cards, the inserter, the slash palette and the shortcuts reference.
-- Controls carry accessible names, and the icons are hidden from assistive technology.
+- Controls carry accessible names, and the icons in the canvas, the block options menu, the inserter and the slash palette are hidden from assistive technology.
 - Blocks reorder by keyboard, with announcements that name each block by label and position.
 - Escape leaves an open block and returns focus to its Edit button.
 - The default light and dark tokens keep the keyboard focus outline at 3:1 or more and highlighted-row text at 4.5:1 or more, and focusable controls draw the focus as an outline, which Windows forced colours mode keeps.

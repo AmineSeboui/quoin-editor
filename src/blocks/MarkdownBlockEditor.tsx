@@ -100,6 +100,7 @@ export function MarkdownBlockEditor({ data, onChange, onInsertBlock, onDone }: B
         onBlockCommand={(type) => {
           palette.setOpen(false);
           onInsertBlock?.(type);
+          onDone?.();
         }}
         onShortcuts={() => {
           palette.setOpen(false);

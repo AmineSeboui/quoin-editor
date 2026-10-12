@@ -143,9 +143,16 @@ function Canvas({
     reset(blocks);
   }, [blocks, reset]);
 
+  // The new card reads these as it mounts. Kept any longer they would reopen it
+  // on a later remount, such as a read-only round trip or a host undo.
+  React.useEffect(() => {
+    if (newBlockId === null) return;
+    setNewBlockId(null);
+    setSeedSelection(null);
+  }, [newBlockId]);
+
   const insertPlain = React.useCallback(
     (index: number, type: string, data?: Record<string, unknown>) => {
-      setSeedSelection(null);
       const seed = data ?? blockByType(blockTypes, type)?.initialData?.() ?? {};
       setNewBlockId(insertAt(index, type, seed));
     },
@@ -156,9 +163,6 @@ function Canvas({
     const block = list.blocks[index];
     pendingDeleteIndexRef.current = index;
     if (block) removedRef.current = { block, index };
-    // Otherwise a block inserted, deleted and then restored by the host would come
-    // back in edit mode and take the focus from whatever the person is doing.
-    setNewBlockId((current) => (current === id ? null : current));
     remove(id);
   }
 
@@ -194,7 +198,7 @@ function Canvas({
 
   return (
     <div {...rootProps}>
-      <BlockInserter index={0} onInsert={insertPlain} label="Insert a block at the start" />
+      <BlockInserter index={0} onInsert={insertPlain} label="Insert a block at the start" canvasRef={listRef} />
       <DndContext
         id={dndId}
         sensors={sensors}
@@ -233,6 +237,7 @@ function Canvas({
                   index={i + 1}
                   onInsert={insertPlain}
                   label={`Insert a block after block ${i + 1}`}
+                  canvasRef={listRef}
                 />
               </li>
             ))}

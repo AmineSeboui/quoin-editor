@@ -7,11 +7,15 @@ import { defineBlock } from '../registry';
 import { BlockInserter } from './BlockInserter';
 import { renderCanvas } from '../../test/support/render-canvas';
 
+const noCanvas = { current: null };
+
 describe('BlockInserter', () => {
   it('opens the block options and inserts at its own index', async () => {
     const onInsert = vi.fn();
     const user = userEvent.setup();
-    renderCanvas(<BlockInserter index={2} onInsert={onInsert} label="Insert a block after block 2" />);
+    renderCanvas(
+      <BlockInserter index={2} onInsert={onInsert} label="Insert a block after block 2" canvasRef={noCanvas} />,
+    );
 
     await user.click(screen.getByRole('button', { name: 'Insert a block after block 2' }));
     await user.click(screen.getByRole('menuitem', { name: 'Callout' }));
@@ -21,7 +25,9 @@ describe('BlockInserter', () => {
 
   it('offers every registered block type', async () => {
     const user = userEvent.setup();
-    renderCanvas(<BlockInserter index={0} onInsert={vi.fn()} label="Insert a block at the start" />);
+    renderCanvas(
+      <BlockInserter index={0} onInsert={vi.fn()} label="Insert a block at the start" canvasRef={noCanvas} />,
+    );
 
     await user.click(screen.getByRole('button', { name: 'Insert a block at the start' }));
 
@@ -33,7 +39,10 @@ describe('BlockInserter', () => {
     const onInsert = vi.fn();
     const user = userEvent.setup();
     const poll = defineBlock({ type: 'POLL', label: 'Poll', icon: Hash, editor: () => null });
-    renderCanvas(<BlockInserter index={1} onInsert={onInsert} label="Insert" />, [...coreBlocks, poll]);
+    renderCanvas(<BlockInserter index={1} onInsert={onInsert} label="Insert" canvasRef={noCanvas} />, [
+      ...coreBlocks,
+      poll,
+    ]);
 
     await user.click(screen.getByRole('button', { name: 'Insert' }));
     await user.click(screen.getByRole('menuitem', { name: 'Poll' }));
@@ -43,7 +52,7 @@ describe('BlockInserter', () => {
 
   it('has no accessibility violations', async () => {
     const { container } = renderCanvas(
-      <BlockInserter index={0} onInsert={vi.fn()} label="Insert a block at the start" />,
+      <BlockInserter index={0} onInsert={vi.fn()} label="Insert a block at the start" canvasRef={noCanvas} />,
     );
     expect(await axe(container)).toHaveNoViolations();
   });

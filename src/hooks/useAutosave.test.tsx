@@ -279,6 +279,66 @@ describe('useAutosave', () => {
       expect(save).toHaveBeenCalledTimes(3);
       expect(status()).toBe('retrying');
     });
+
+    it('starts the backoff over after a success', async () => {
+      const save = vi
+        .fn()
+        .mockRejectedValueOnce(new Error('offline'))
+        .mockRejectedValueOnce(new Error('offline'))
+        .mockResolvedValueOnce(undefined)
+        .mockRejectedValue(new Error('offline'));
+      render(<Harness save={save} />);
+      await edit();
+      await settle(2000);
+      await settle(4000);
+      await settle(8000);
+      expect(save).toHaveBeenCalledTimes(3);
+      expect(status()).toBe('saved');
+      await edit();
+      await settle(2000);
+      expect(save).toHaveBeenCalledTimes(4);
+      await settle(3999);
+      expect(save).toHaveBeenCalledTimes(4);
+      await settle(1);
+      expect(save).toHaveBeenCalledTimes(5);
+    });
+
+    it('lets flush start the backoff over', async () => {
+      const save = vi.fn(() => Promise.reject(new Error('offline')));
+      render(<Harness save={save} />);
+      await edit();
+      await settle(2000);
+      await settle(4000);
+      expect(save).toHaveBeenCalledTimes(2);
+      await press('flush');
+      expect(save).toHaveBeenCalledTimes(3);
+      await settle(3999);
+      expect(save).toHaveBeenCalledTimes(3);
+      await settle(1);
+      expect(save).toHaveBeenCalledTimes(4);
+    });
+
+    it('retries with an edit made while the failing save ran', async () => {
+      let reject: (reason: Error) => void = () => {};
+      const save = vi.fn().mockImplementationOnce(() => new Promise<void>((_, r) => (reject = r)));
+      render(<Harness save={save} />);
+      await edit();
+      await settle(2000);
+      expect(save).toHaveBeenCalledWith({ n: 1 });
+      await edit();
+      await settle(2000);
+      expect(save).toHaveBeenCalledTimes(1);
+      await act(async () => reject(new Error('offline')));
+      expect(status()).toBe('retrying');
+      await settle(3999);
+      expect(save).toHaveBeenCalledTimes(1);
+      await settle(1);
+      expect(save).toHaveBeenCalledTimes(2);
+      expect(save).toHaveBeenLastCalledWith({ n: 2 });
+      expect(status()).toBe('saved');
+      await settle(60_000);
+      expect(save).toHaveBeenCalledTimes(2);
+    });
   });
 
   it('flush saves the newest payload now and drops the pending debounce', async () => {

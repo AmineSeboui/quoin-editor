@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, v1]
   pull_request:
 
 jobs:
@@ -15,13 +15,21 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run lint
       - run: npm run typecheck
-      - run: npm test
+      - run: npm run test:coverage
       - run: npm run build
       - run: npm run check:css
+      - run: npm run check:directives
+      - run: npm run check:size
 
   consumer:
     runs-on: ubuntu-latest
+    # useAutoGrow still returns a React 19 RefObject<T | null>, which React 18 types reject
+    continue-on-error: ${{ matrix.react == '18' }}
+    strategy:
+      matrix:
+        react: ['18', '19']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -31,3 +39,22 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm run check:consumer
+        env:
+          QUOIN_REACT: ${{ matrix.react }}
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - run: npm run test:e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report

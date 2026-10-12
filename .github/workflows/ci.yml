@@ -32,8 +32,6 @@ jobs:
 
   consumer:
     runs-on: ubuntu-latest
-    # useAutoGrow still returns a React 19 RefObject<T | null>, which React 18 types reject
-    continue-on-error: ${{ matrix.react == '18' }}
     strategy:
       matrix:
         react: ['18', '19']

@@ -37,6 +37,11 @@ describe('deeply nested inline markup', () => {
     expect(timedParse(input)).toEqual([text('*'), text('a'.repeat(100000), [b])]);
   });
 
+  it('leaves tens of thousands of open tags without a matching close literal within the budget', () => {
+    const input = '<u>a'.repeat(40000) + '</b>'.repeat(40000);
+    expect(timedParse(input)).toEqual([text(input)]);
+  });
+
   it('stacks hundreds of nested comment spans within the budget', () => {
     const depth = 600;
     const ids = Array.from({ length: depth }, (_, n) => `c${n}`);

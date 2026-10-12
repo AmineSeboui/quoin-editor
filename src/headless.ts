@@ -1,3 +1,5 @@
+'use client';
+
 export { applyEdit, type Edit } from './markdown/edit';
 export { lineAt } from './markdown/line-at';
 export { toggleLinePrefix, type LinePrefix } from './markdown/line-toggles';

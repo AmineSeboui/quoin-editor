@@ -24,6 +24,13 @@ describe('DocumentStarter', () => {
     expect(onStart).not.toHaveBeenCalled();
   });
 
+  it('ignores a slash keydown that belongs to an IME composition', () => {
+    const { line } = setup();
+    expect(fireEvent.keyDown(line, { key: '/', isComposing: true })).toBe(true);
+    expect(fireEvent.keyDown(line, { key: '/', keyCode: 229 })).toBe(true);
+    expect(screen.queryByPlaceholderText(/search commands/i)).not.toBeInTheDocument();
+  });
+
   it('opens the palette when a slash arrives as a value change rather than a keydown', () => {
     const { line, onStart } = setup();
     fireEvent.change(line, { target: { value: '/' } });

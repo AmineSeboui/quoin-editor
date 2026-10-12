@@ -54,6 +54,7 @@ export function DocumentStarter({
         defaultValue=""
         onChange={handleChange}
         onKeyDown={(e) => {
+          if (e.nativeEvent.isComposing || e.keyCode === 229) return;
           if (e.key !== '/') return;
           e.preventDefault();
           palette.openAtCaret();

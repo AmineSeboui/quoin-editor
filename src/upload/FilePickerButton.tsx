@@ -21,7 +21,7 @@ export type FilePickerButtonProps = {
 // wrapper paints the focus ring the invisible input cannot show.
 export function FilePickerButton({ label, accept, disabled, onPick }: FilePickerButtonProps) {
   return (
-    <span className="relative inline-flex rounded-md has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring/50">
+    <span className="relative inline-flex rounded-md has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--quoin-ring)]">
       <Button asChild variant="outline" size="sm">
         <span aria-hidden="true" className={disabled ? 'pointer-events-none opacity-50' : undefined}>
           <Upload aria-hidden="true" />

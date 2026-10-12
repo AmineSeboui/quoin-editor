@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useQuoin } from '../context';
 import { Input } from '../ui/input';
 import { UploadField } from '../upload/UploadField';
-import type { BlockEditorProps } from '../types';
+import type { BlockEditorProps, UploadResult } from '../types';
 import { str } from './str';
 import { intrinsicSize } from './intrinsic-size';
 
@@ -18,10 +18,15 @@ export function ImageBlockEditor({ data, onChange }: BlockEditorProps) {
   });
   const set = (patch: Record<string, unknown>) => onChange({ ...latest.current, ...patch });
 
-  const onUploaded = async (r: { storageKey: string }) => {
-    const src = resolveAssetUrl(r.storageKey);
+  const newestKey = useRef('');
+
+  const onUploaded = async ({ storageKey }: UploadResult) => {
+    newestKey.current = storageKey;
+    const { width: _width, height: _height, ...unsized } = latest.current;
+    onChange({ ...unsized, storageKey });
+    const src = resolveAssetUrl(storageKey);
     const size = src ? await intrinsicSize(src) : null;
-    set({ storageKey: r.storageKey, ...size });
+    if (size && newestKey.current === storageKey) set({ storageKey, ...size });
   };
 
   return (
@@ -45,7 +50,7 @@ export function ImageBlockEditor({ data, onChange }: BlockEditorProps) {
           className="text-sm"
         />
       </label>
-      {str(data.storageKey) && <span className="text-xs text-muted-foreground">Image attached ✓</span>}
+      {str(data.storageKey) && <span className="text-xs text-muted-foreground">Image attached</span>}
     </div>
   );
 }

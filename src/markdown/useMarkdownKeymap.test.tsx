@@ -15,6 +15,12 @@ function Harness({ onOpenPalette }: { onOpenPalette: () => void }) {
   );
 }
 
+function stubPlatform(platform: string) {
+  vi.spyOn(window.navigator, 'platform', 'get').mockReturnValue(platform);
+}
+
+afterEach(() => vi.restoreAllMocks());
+
 function setup(initial = '') {
   const onOpenPalette = vi.fn();
   render(<Harness onOpenPalette={onOpenPalette} />);
@@ -65,7 +71,7 @@ describe('useMarkdownKeymap', () => {
   it('wraps a selection in bold', () => {
     const { box } = setup('important');
     box.setSelectionRange(0, 9);
-    fireEvent.keyDown(box, { key: 'b', metaKey: true });
+    fireEvent.keyDown(box, { key: 'b', ctrlKey: true });
     expect(box.value).toBe('**important**');
   });
 
@@ -78,13 +84,13 @@ describe('useMarkdownKeymap', () => {
 
   it('toggles a subtitle from the digit code, not the shifted key', () => {
     const { box } = setup('Getting started');
-    fireEvent.keyDown(box, { key: '2', code: 'Digit2', metaKey: true, altKey: true });
+    fireEvent.keyDown(box, { key: '2', code: 'Digit2', ctrlKey: true, altKey: true });
     expect(box.value).toBe('## Getting started');
   });
 
   it('toggles bullets even though Shift makes the key an asterisk', () => {
     const { box } = setup('apples');
-    fireEvent.keyDown(box, { key: '*', code: 'Digit8', metaKey: true, shiftKey: true });
+    fireEvent.keyDown(box, { key: '*', code: 'Digit8', ctrlKey: true, shiftKey: true });
     expect(box.value).toBe('- apples');
   });
 
@@ -103,7 +109,7 @@ describe('useMarkdownKeymap', () => {
 
   it('does not hijack the save shortcut', () => {
     const { box } = setup('hello');
-    expect(fireEvent.keyDown(box, { key: 's', metaKey: true })).toBe(true);
+    expect(fireEvent.keyDown(box, { key: 's', ctrlKey: true })).toBe(true);
   });
 
   it('makes a link when a url is pasted over a selection', () => {
@@ -118,5 +124,86 @@ describe('useMarkdownKeymap', () => {
     box.setSelectionRange(4, 8);
     expect(fireEvent.paste(box, { clipboardData: { getData: () => 'plain' } })).toBe(true);
     expect(box.value).toBe('see docs');
+  });
+});
+
+describe('useMarkdownKeymap during an IME composition', () => {
+  it('does not continue a list on the Enter that commits a candidate', () => {
+    const { box } = setup('- first');
+    expect(fireEvent.keyDown(box, { key: 'Enter', isComposing: true })).toBe(true);
+    expect(box.value).toBe('- first');
+  });
+
+  it('does not continue a list on an Enter that only reports keyCode 229', () => {
+    const { box } = setup('- first');
+    expect(fireEvent.keyDown(box, { key: 'Enter', keyCode: 229 })).toBe(true);
+    expect(box.value).toBe('- first');
+  });
+
+  it('does not strip a list marker on a Backspace that edits the composition', () => {
+    const { box } = setup('- hello');
+    box.setSelectionRange(2, 2);
+    expect(fireEvent.keyDown(box, { key: 'Backspace', isComposing: true })).toBe(true);
+    expect(box.value).toBe('- hello');
+  });
+
+  it('does not indent a list item on a Tab that selects a candidate', () => {
+    const { box } = setup('- a\n- b');
+    expect(fireEvent.keyDown(box, { key: 'Tab', isComposing: true })).toBe(true);
+    expect(box.value).toBe('- a\n- b');
+  });
+
+  it('does not open the palette on a slash typed inside a composition', () => {
+    const { box, onOpenPalette } = setup('hello ');
+    expect(fireEvent.keyDown(box, { key: '/', isComposing: true })).toBe(true);
+    expect(onOpenPalette).not.toHaveBeenCalled();
+  });
+
+  it('does not run a shortcut while composing', () => {
+    const { box } = setup('important');
+    box.setSelectionRange(0, 9);
+    fireEvent.keyDown(box, { key: 'b', ctrlKey: true, isComposing: true });
+    expect(box.value).toBe('important');
+  });
+});
+
+describe('useMarkdownKeymap modifier', () => {
+  it('wraps with Command on a Mac', () => {
+    stubPlatform('MacIntel');
+    const { box } = setup('important');
+    box.setSelectionRange(0, 9);
+    fireEvent.keyDown(box, { key: 'b', metaKey: true });
+    expect(box.value).toBe('**important**');
+  });
+
+  it.each(['b', 'e', 'k'])('leaves Ctrl+%s to the system on a Mac', (key) => {
+    stubPlatform('MacIntel');
+    const { box } = setup('important');
+    box.setSelectionRange(0, 9);
+    expect(fireEvent.keyDown(box, { key, ctrlKey: true })).toBe(true);
+    expect(box.value).toBe('important');
+  });
+
+  it('toggles a subtitle with Command on a Mac', () => {
+    stubPlatform('MacIntel');
+    const { box } = setup('Getting started');
+    fireEvent.keyDown(box, { key: '2', code: 'Digit2', metaKey: true, altKey: true });
+    expect(box.value).toBe('## Getting started');
+  });
+
+  it('wraps with Ctrl elsewhere', () => {
+    stubPlatform('Win32');
+    const { box } = setup('important');
+    box.setSelectionRange(0, 9);
+    fireEvent.keyDown(box, { key: 'b', ctrlKey: true });
+    expect(box.value).toBe('**important**');
+  });
+
+  it('ignores the Windows or Super key elsewhere', () => {
+    stubPlatform('Linux x86_64');
+    const { box } = setup('important');
+    box.setSelectionRange(0, 9);
+    expect(fireEvent.keyDown(box, { key: 'b', metaKey: true })).toBe(true);
+    expect(box.value).toBe('important');
   });
 });

@@ -16,10 +16,12 @@ export function BlockInserter({
   index,
   onInsert,
   label,
+  canvasRef,
 }: {
   index: number;
   onInsert: (index: number, type: string, data?: Record<string, unknown>) => void;
   label: string;
+  canvasRef: React.RefObject<HTMLElement | null>;
 }) {
   const { blockTypes } = useQuoin();
   const options = paletteBlocks(blockTypes);
@@ -36,7 +38,7 @@ export function BlockInserter({
     if (insertedAt === null) return;
 
     event.preventDefault();
-    const card = document.querySelector<HTMLElement>(`[data-block-index="${insertedAt}"]`);
+    const card = canvasRef.current?.querySelector<HTMLElement>(`[data-block-index="${insertedAt}"]`);
     if (!card) return;
     if (typeof card.scrollIntoView === 'function') {
       card.scrollIntoView({ block: 'center', behavior: 'smooth' });

@@ -115,6 +115,13 @@ describe('SlashPalette', () => {
     expect(await axe(document.body)).toHaveNoViolations();
   });
 
+  it('hides its icons from assistive technology', () => {
+    setup();
+    const icons = [...document.body.querySelectorAll('svg.lucide')];
+    expect(icons.length).toBeGreaterThan(0);
+    expect(icons.filter((icon) => icon.getAttribute('aria-hidden') !== 'true')).toEqual([]);
+  });
+
   it('offers a host-registered block type', async () => {
     const custom = defineBlock({ type: 'CHART', label: 'Chart', icon: FileText, editor: () => null });
     renderPalette(

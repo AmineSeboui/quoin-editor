@@ -13,8 +13,8 @@ export type UploadFieldProps = {
   label: string;
   /** An `accept` attribute for the file input, such as `'image/*'` or `'.pdf'`. */
   accept?: string;
-  /** Called once the upload resolves. Throwing from it is reported through the canvas `onError`. */
-  onUploaded: (result: UploadResult) => void;
+  /** Called once the upload resolves. The field stays busy until a returned promise settles, and throwing or rejecting is reported through the canvas `onError`. */
+  onUploaded: (result: UploadResult) => void | Promise<void>;
 };
 
 /** A file picker wired to the canvas `upload` function, with its own busy state and inline error. */
@@ -35,11 +35,12 @@ export function UploadField({ category, label, accept, onUploaded }: UploadField
       setBusy(false);
       return;
     }
-    setBusy(false);
     try {
-      onUploaded(result);
+      await onUploaded(result);
     } catch (cause) {
       onError(cause instanceof Error ? cause : new Error(String(cause)));
+    } finally {
+      setBusy(false);
     }
   }
 

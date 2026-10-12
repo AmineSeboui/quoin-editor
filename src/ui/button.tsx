@@ -2,11 +2,15 @@ import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "./cn";
+import { FOCUS_RING } from "./focus";
 import { SQUARE_TAP_TARGET_FLOOR, TAP_TARGET_FLOOR } from "./touch-target";
 
 /** Class variants for the button primitive, reusable on other elements. */
 const buttonVariants = cva(
-  "inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-[color,background-color,border-color,box-shadow,opacity] disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 shrink-0 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
+  [
+    "inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-[color,background-color,border-color,box-shadow,opacity] disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 shrink-0",
+    FOCUS_RING,
+  ],
   {
     variants: {
       variant: {
@@ -36,17 +40,17 @@ const buttonVariants = cva(
   },
 );
 
-function Button({
-  className,
-  variant = "default",
-  size = "default",
-  asChild = false,
-  ...props
-}: React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & { asChild?: boolean }) {
+type ButtonProps = React.ComponentPropsWithoutRef<"button"> &
+  VariantProps<typeof buttonVariants> & { asChild?: boolean };
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  { className, variant = "default", size = "default", asChild = false, ...props },
+  ref,
+) {
   const Comp = asChild ? Slot : "button";
   return (
     <Comp
+      ref={ref}
       data-slot="button"
       data-variant={variant}
       data-size={size}
@@ -54,6 +58,6 @@ function Button({
       {...props}
     />
   );
-}
+});
 
 export { Button, buttonVariants };

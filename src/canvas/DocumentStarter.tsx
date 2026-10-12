@@ -7,11 +7,13 @@ import { insertCommand } from '../markdown/insert-command';
 import { ShortcutsReference } from '../markdown/ShortcutsReference';
 import { SlashPalette } from '../markdown/SlashPalette';
 import { useSlashPalette } from '../markdown/useSlashPalette';
+import { FOCUS_RING } from '../ui/focus';
 
 const LINE = [
-  'w-full resize-none rounded-md border-0 bg-transparent px-2 py-1 outline-none',
+  'w-full resize-none rounded-md border-0 bg-transparent px-2 py-1',
   'text-base leading-7 placeholder:text-muted-foreground',
-  'transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:ring-ring/50',
+  'transition-[color,box-shadow]',
+  FOCUS_RING,
 ].join(' ');
 
 export function DocumentStarter({
@@ -54,6 +56,7 @@ export function DocumentStarter({
         defaultValue=""
         onChange={handleChange}
         onKeyDown={(e) => {
+          if (e.nativeEvent.isComposing || e.keyCode === 229) return;
           if (e.key !== '/') return;
           e.preventDefault();
           palette.openAtCaret();

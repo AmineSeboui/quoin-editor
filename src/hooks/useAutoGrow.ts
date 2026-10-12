@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect';
 
 /** Height follows the content, and is recomputed when the box gets narrower or
  *  wider, because a re-wrap changes the line count without changing the value.
@@ -21,7 +22,7 @@ export function useAutoGrow<T extends HTMLTextAreaElement>(value: string): React
     if (scroller.scrollTop !== scrollTop) scroller.scrollTop = scrollTop;
   }, []);
 
-  React.useLayoutEffect(fit, [fit, value]);
+  useIsomorphicLayoutEffect(fit, [fit, value]);
 
   React.useEffect(() => {
     const el = ref.current;

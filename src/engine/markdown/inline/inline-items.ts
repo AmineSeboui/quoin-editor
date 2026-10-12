@@ -1,6 +1,7 @@
 import { atom, normalizeInline, text } from '../../model/inline';
 import { addMark } from '../../model/marks';
 import type { Attrs, Inline, InlineNode, Mark } from '../../model/types';
+import { createActiveMarks } from './active-marks';
 import type { TagInfo } from './html-tags';
 
 export type MarkRange = { readonly mark: Mark };
@@ -31,12 +32,10 @@ export type Item =
   | { readonly kind: 'close'; readonly range: MarkRange };
 
 export function flattenItems(items: readonly Item[]): Inline {
-  const active: MarkRange[] = [];
+  const { open, close, current } = createActiveMarks();
   const nodes: InlineNode[] = [];
   const marksWith = (own: readonly Mark[] = []) =>
-    [...active.map((range) => range.mark), ...own].reduce<Mark[]>((set, mark) => addMark(set, mark), []);
-  const open = (range: MarkRange) => active.push(range);
-  const close = (range: MarkRange) => active.splice(active.indexOf(range), 1);
+    own.reduce<readonly Mark[]>((set, mark) => addMark(set, mark), current());
   const emit = (value: string, own?: readonly Mark[]) => nodes.push(text(value, marksWith(own)));
 
   for (const item of items) {

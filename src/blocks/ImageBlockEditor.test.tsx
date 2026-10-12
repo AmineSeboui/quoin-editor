@@ -35,10 +35,10 @@ const settled = (...pending: Promise<void>[]) => act(async () => { await Promise
 
 const result = (storageKey: string): UploadResult => ({ storageKey, filename: `${storageKey}.png`, size: 1 });
 
-function setup(upload?: UploadFn) {
+function setup(upload?: UploadFn, initial: Data = { storageKey: '', alt: '', caption: '' }) {
   const writes: Data[] = [];
   function Harness() {
-    const [data, setData] = useState<Data>({ storageKey: '', alt: '', caption: '' });
+    const [data, setData] = useState<Data>(initial);
     return (
       <ImageBlockEditor
         data={data}
@@ -128,17 +128,17 @@ describe('ImageBlockEditor', () => {
     expect(last()).toMatchObject({ storageKey: 'a', alt: 'A cat', width: 40, height: 30 });
   });
 
-  it('leaves the size off when the image cannot be measured', async () => {
+  it('drops the previous size when a replacement cannot be measured', async () => {
     const finishMeasuring = measuring();
-    const { last } = setup();
+    const { writes, last } = setup(undefined, { storageKey: 'old', alt: 'A cat', caption: '', width: 40, height: 30 });
     let pending!: Promise<void>;
     act(() => {
       pending = Promise.resolve(picker.onUploaded!(result('a')));
     });
+    expect(writes[0]).toEqual({ storageKey: 'a', alt: 'A cat', caption: '' });
     finishMeasuring('a', null);
     await settled(pending);
-    expect(last()).toMatchObject({ storageKey: 'a' });
-    expect(last()).not.toHaveProperty('width');
+    expect(last()).toEqual({ storageKey: 'a', alt: 'A cat', caption: '' });
   });
 
   it('says the image is attached in plain text', async () => {

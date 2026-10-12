@@ -22,7 +22,8 @@ export function ImageBlockEditor({ data, onChange }: BlockEditorProps) {
 
   const onUploaded = async ({ storageKey }: UploadResult) => {
     newestKey.current = storageKey;
-    set({ storageKey });
+    const { width: _width, height: _height, ...unsized } = latest.current;
+    onChange({ ...unsized, storageKey });
     const src = resolveAssetUrl(storageKey);
     const size = src ? await intrinsicSize(src) : null;
     if (size && newestKey.current === storageKey) set({ storageKey, ...size });

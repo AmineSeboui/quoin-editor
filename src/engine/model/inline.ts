@@ -63,11 +63,16 @@ export function sliceInline(inline: Inline, from: number, to: number): Inline {
   return normalizeInline(result);
 }
 
-export function replaceInline(inline: Inline, from: number, to: number, slice: Inline): Inline {
+function assertRange(inline: Inline, from: number, to: number): number {
   const length = inlineLength(inline);
   if (from < 0 || from > to || to > length) {
     throw new RangeError(`range ${from} to ${to} is outside 0 to ${length}`);
   }
+  return length;
+}
+
+export function replaceInline(inline: Inline, from: number, to: number, slice: Inline): Inline {
+  const length = assertRange(inline, from, to);
   return normalizeInline([...sliceInline(inline, 0, from), ...slice, ...sliceInline(inline, to, length)]);
 }
 
@@ -77,6 +82,7 @@ function mapMarksInRange(
   to: number,
   update: (marks: readonly Mark[]) => readonly Mark[],
 ): Inline {
+  assertRange(inline, from, to);
   const result: InlineNode[] = [];
   let start = 0;
   for (const node of inline) {

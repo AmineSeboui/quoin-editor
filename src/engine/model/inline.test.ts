@@ -99,6 +99,19 @@ describe('marks over ranges', () => {
     expect(before).toEqual([text('a'), mention, text('b')]);
   });
 
+  it('leaves the inline unchanged over an empty range', () => {
+    expect(addMarkRange(doc, 3, 3, b)).toEqual(doc);
+    expect(removeMarkRange(addMarkRange(doc, 0, 5, b), 2, 2, 'bold')).toEqual([text('hello', [b]), text(' world')]);
+  });
+
+  it('rejects an inverted or out of bounds range instead of changing the text', () => {
+    const bolded = addMarkRange(doc, 0, 5, b);
+    expect(() => addMarkRange(doc, 4, 2, b)).toThrow(RangeError);
+    expect(() => removeMarkRange(bolded, 4, 2, 'bold')).toThrow(RangeError);
+    expect(() => addMarkRange(doc, -1, 2, b)).toThrow(RangeError);
+    expect(() => removeMarkRange(bolded, 0, 12, 'bold')).toThrow(RangeError);
+  });
+
   it('reports whether every character in a range has a mark', () => {
     const bolded = addMarkRange(doc, 0, 5, b);
     expect(rangeHasMark(bolded, 0, 5, 'bold')).toBe(true);

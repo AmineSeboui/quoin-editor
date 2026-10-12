@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import fc from 'fast-check';
-import { atom, inlineLength, inlineText, normalizeInline, replaceInline, sliceInline, text } from './inline';
+import {
+  addMarkRange,
+  atom,
+  inlineLength,
+  inlineText,
+  normalizeInline,
+  rangeHasMark,
+  removeMarkRange,
+  replaceInline,
+  sliceInline,
+  text,
+} from './inline';
 import { addMark, hasMark, sameMarkSet, sortMarks } from './marks';
 import type { Inline, InlineNode, Mark } from './types';
 
@@ -26,6 +37,10 @@ const withRange = fc.tuple(inline, fc.nat(), fc.nat()).map(([nodes, x, y]): [Inl
   const length = inlineLength(nodes);
   const [a, b] = [x % (length + 1), y % (length + 1)];
   return [nodes, Math.min(a, b), Math.max(a, b)];
+});
+const withAnyRange = fc.tuple(inline, fc.nat(), fc.nat()).map(([nodes, x, y]): [Inline, number, number] => {
+  const length = inlineLength(nodes);
+  return [nodes, x % (length + 1), y % (length + 1)];
 });
 
 describe('inline properties', () => {
@@ -66,6 +81,26 @@ describe('inline properties', () => {
       fc.property(withRange, inline, ([nodes, from, to], slice) => {
         const length = inlineLength(replaceInline(nodes, from, to, slice));
         expect(length).toBe(inlineLength(nodes) - (to - from) + inlineLength(slice));
+      }),
+    );
+  });
+
+  it('keeps the text when marks change over a range and rejects inverted ranges', () => {
+    fc.assert(
+      fc.property(withAnyRange, ([nodes, from, to]) => {
+        if (from > to) {
+          expect(() => addMarkRange(nodes, from, to, { type: 'bold' })).toThrow(RangeError);
+          expect(() => removeMarkRange(nodes, from, to, 'bold')).toThrow(RangeError);
+          return;
+        }
+        const bolded = addMarkRange(nodes, from, to, { type: 'bold' });
+        const cleared = removeMarkRange(nodes, from, to, 'bold');
+        expect(inlineText(bolded)).toBe(inlineText(nodes));
+        expect(inlineText(cleared)).toBe(inlineText(nodes));
+        if (from < to) {
+          expect(rangeHasMark(bolded, from, to, 'bold')).toBe(true);
+          expect(rangeHasMark(cleared, from, to, 'bold')).toBe(false);
+        }
       }),
     );
   });

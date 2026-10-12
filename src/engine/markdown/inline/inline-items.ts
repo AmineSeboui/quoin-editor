@@ -1,5 +1,4 @@
-import { atom, normalizeInline, text } from '../../model/inline';
-import { addMark } from '../../model/marks';
+import { normalizeInline } from '../../model/inline';
 import type { Attrs, Inline, InlineNode, Mark } from '../../model/types';
 import { createActiveMarks } from './active-marks';
 import type { TagInfo } from './html-tags';
@@ -34,13 +33,30 @@ export type Item =
 export function flattenItems(items: readonly Item[]): Inline {
   const { open, close, current } = createActiveMarks();
   const nodes: InlineNode[] = [];
-  const marksWith = (own: readonly Mark[] = []) =>
-    own.reduce<readonly Mark[]>((set, mark) => addMark(set, mark), current());
-  const emit = (value: string, own?: readonly Mark[]) => nodes.push(text(value, marksWith(own)));
+  let run = '';
+  let runMarks: readonly Mark[] = [];
+  const flush = () => {
+    if (run) nodes.push({ kind: 'text', text: run, marks: runMarks });
+    run = '';
+  };
+  const emit = (value: string, own: readonly Mark[] = []) => {
+    if (!value) return;
+    const ranges = own.map((mark) => ({ mark }));
+    ranges.forEach(open);
+    const marks = current();
+    if (marks !== runMarks) flush();
+    run += value;
+    runMarks = marks;
+    ranges.forEach(close);
+  };
+  const emitAtom = (type: string, attrs: Attrs) => {
+    flush();
+    nodes.push({ kind: 'atom', type, attrs, marks: current() });
+  };
 
   for (const item of items) {
     if (item.kind === 'text') emit(item.text, item.marks);
-    else if (item.kind === 'atom') nodes.push(atom(item.type, item.attrs, marksWith()));
+    else if (item.kind === 'atom') emitAtom(item.type, item.attrs);
     else if (item.kind === 'open') open(item.range);
     else if (item.kind === 'close') close(item.range);
     else if (item.kind === 'delimiter') {
@@ -51,5 +67,6 @@ export function flattenItems(items: readonly Item[]): Inline {
     else if (item.tag.close) close(item.range);
     else open(item.range);
   }
+  flush();
   return normalizeInline(nodes);
 }

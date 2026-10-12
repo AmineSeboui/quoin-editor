@@ -44,4 +44,27 @@ describe('createActiveMarks', () => {
     active.close(bold);
     expect(active.current()).not.toBe(before);
   });
+
+  it('returns the same set when the marks shown come back to it', () => {
+    const active = createActiveMarks();
+    [c1, bold].forEach(active.open);
+    const before = active.current();
+    active.close(bold);
+    active.open({ mark: { type: 'bold' } });
+    expect(active.current()).toBe(before);
+    active.open(red);
+    active.close(red);
+    expect(active.current()).toBe(before);
+  });
+
+  it('shows a reopened mark after the marks that sort equal to it', () => {
+    const active = createActiveMarks();
+    const composed = { mark: { type: 'comment', attrs: { id: '\u00e9' } } };
+    const decomposed = { mark: { type: 'comment', attrs: { id: 'e\u0301' } } };
+    [composed, decomposed].forEach(active.open);
+    expect(active.current()).toEqual([composed.mark, decomposed.mark]);
+    active.close(composed);
+    active.open({ mark: { type: 'comment', attrs: { id: '\u00e9' } } });
+    expect(active.current()).toEqual([decomposed.mark, composed.mark]);
+  });
 });

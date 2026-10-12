@@ -34,8 +34,12 @@ export function sameMark(a: Mark, b: Mark): boolean {
   return a.type === b.type && sameAttrs(a.attrs, b.attrs);
 }
 
+export function compareMarks(a: Mark, b: Mark): number {
+  return markRank(a.type) - markRank(b.type) || markKey(a).localeCompare(markKey(b));
+}
+
 export function sortMarks(marks: readonly Mark[]): Mark[] {
-  return [...marks].sort((a, b) => markRank(a.type) - markRank(b.type) || markKey(a).localeCompare(markKey(b)));
+  return [...marks].sort(compareMarks);
 }
 
 export function sameMarkSet(a: readonly Mark[], b: readonly Mark[]): boolean {

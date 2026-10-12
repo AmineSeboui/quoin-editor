@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { text } from '../../model/inline';
-import type { Inline } from '../../model/types';
+import type { Inline, Mark } from '../../model/types';
 import { parseInline } from './parse-inline';
 
 const BUDGET_MS = 1000;
@@ -8,6 +8,11 @@ const b = { type: 'bold' };
 const i = { type: 'italic' };
 const comment = (id: string) => ({ type: 'comment', attrs: { id } });
 const link = (href: string) => ({ type: 'link', attrs: { href } });
+
+function commentSpans(comments: readonly Mark[], body: string): string {
+  const opens = comments.map((mark) => `<span data-comment="${mark.attrs?.id}">`).join('');
+  return opens + body + '</span>'.repeat(comments.length);
+}
 
 function timedParse(input: string): Inline {
   const start = performance.now();
@@ -46,6 +51,24 @@ describe('deeply nested inline markup', () => {
   it('forms tens of thousands of links after as many open brackets within the budget', () => {
     const input = '['.repeat(50000) + '[a](b)'.repeat(50000);
     expect(timedParse(input)).toEqual([text('['.repeat(50000)), text('a'.repeat(50000), [link('b')])]);
+  });
+
+  it('keeps tens of thousands of escaped characters inside hundreds of comment spans within the budget', () => {
+    const comments = Array.from({ length: 500 }, (_, n) => comment(`c${n}`));
+    const input = commentSpans(comments, 'a\\*'.repeat(20000));
+    expect(timedParse(input)).toEqual([text('a*'.repeat(20000), comments)]);
+  });
+
+  it('reopens a mark tens of thousands of times inside hundreds of comment spans within the budget', () => {
+    const comments = Array.from({ length: 500 }, (_, n) => comment(`c${n}`));
+    const input = commentSpans(comments, '<b>a</b>**a**'.repeat(10000));
+    expect(timedParse(input)).toEqual([text('a'.repeat(20000), [...comments, b])]);
+  });
+
+  it('repeats an autolink tens of thousands of times inside hundreds of comment spans within the budget', () => {
+    const comments = Array.from({ length: 500 }, (_, n) => comment(`c${n}`));
+    const input = commentSpans(comments, '<https://a.b>'.repeat(20000));
+    expect(timedParse(input)).toEqual([text('https://a.b'.repeat(20000), [link('https://a.b'), ...comments])]);
   });
 
   it('stacks hundreds of nested comment spans within the budget', () => {

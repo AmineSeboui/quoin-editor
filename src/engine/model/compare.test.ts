@@ -5,7 +5,7 @@ import { compareCodeUnits, compareRegionNames } from './compare';
 const segment = fc.oneof(fc.stringMatching(/^[a-z]+$/), fc.stringMatching(/^\d+$/));
 const regionName = fc.array(segment, { minLength: 1, maxLength: 4 }).map((parts) => parts.join(':'));
 const anyName = fc
-  .array(fc.string({ unit: fc.constantFrom('0', '1', '9', 'a', 'z', '-', ' ', ':', 'é'), maxLength: 4 }), {
+  .array(fc.string({ unit: fc.constantFrom('0', '1', '9', 'a', 'z', '-', ' ', ':', '\u00E9'), maxLength: 4 }), {
     minLength: 1,
     maxLength: 4,
   })
@@ -18,12 +18,12 @@ describe('compareCodeUnits', () => {
     expect(compareCodeUnits('a', 'a')).toBe(0);
     expect(compareCodeUnits('Z', 'a')).toBe(-1);
     expect(compareCodeUnits('ab', 'abc')).toBe(-1);
-    expect(compareCodeUnits('😀', '￿')).toBe(-1);
+    expect(compareCodeUnits('\u{1F600}', '\uFFFF')).toBe(-1);
   });
 
   it('keeps canonically equivalent but distinct strings apart', () => {
-    const composed = 'é';
-    const decomposed = 'é';
+    const composed = '\u00E9';
+    const decomposed = 'e\u0301';
     expect(compareCodeUnits(composed, decomposed)).not.toBe(0);
     expect(compareCodeUnits(composed, decomposed)).toBe(-compareCodeUnits(decomposed, composed));
   });

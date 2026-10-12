@@ -37,44 +37,39 @@ function emphasisMark(char: DelimiterChar, used: number): Mark {
   return { type: used === 2 ? 'bold' : 'italic' };
 }
 
-function pair(stack: DelimiterItem[], openerAt: number, closerAt: number): number {
-  const opener = stack[openerAt];
-  const closer = stack[closerAt];
+function pair(opener: DelimiterItem, closer: DelimiterItem): void {
   const used = closer.char === '~' ? closer.count : Math.min(2, opener.count, closer.count);
   const range = { mark: emphasisMark(closer.char, used) };
   opener.count -= used;
   closer.count -= used;
-  opener.opens.unshift(range);
+  opener.opens.push(range);
   closer.closes.push(range);
-  stack.splice(openerAt + 1, closerAt - openerAt - 1);
-  let closerIndex = openerAt + 1;
-  if (opener.count === 0) {
-    stack.splice(openerAt, 1);
-    closerIndex = openerAt;
-  }
-  if (closer.count === 0) stack.splice(closerIndex, 1);
-  return closerIndex;
 }
 
 export function processEmphasis(stack: DelimiterItem[], bottom: number): void {
+  const openers: DelimiterItem[] = [];
   const openersBottom = new Map<string, DelimiterItem | undefined>();
   let index = bottom;
   while (index < stack.length) {
     const closer = stack[index];
     if (!closer.canClose) {
+      openers.push(closer);
       index++;
       continue;
     }
     const key = `${closer.char}${closer.canOpen}${closer.length % 3}`;
     const floor = openersBottom.get(key);
-    let at = index - 1;
-    while (at >= bottom && stack[at] !== floor && !canPair(stack[at], closer)) at--;
-    if (at >= bottom && stack[at] !== floor) {
-      index = pair(stack, at, index);
+    let at = openers.length - 1;
+    while (at >= 0 && openers[at] !== floor && !canPair(openers[at], closer)) at--;
+    if (at >= 0 && openers[at] !== floor) {
+      const opener = openers[at];
+      pair(opener, closer);
+      openers.length = opener.count > 0 ? at + 1 : at;
+      if (closer.count === 0) index++;
     } else {
-      openersBottom.set(key, stack[index - 1]);
-      if (closer.canOpen) index++;
-      else stack.splice(index, 1);
+      openersBottom.set(key, openers.at(-1));
+      if (closer.canOpen) openers.push(closer);
+      index++;
     }
   }
   stack.length = bottom;

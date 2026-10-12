@@ -32,6 +32,11 @@ describe('deeply nested inline markup', () => {
     expect(timedParse(input)).toEqual([text(plain.slice(0, -1), [i]), text(' ')]);
   });
 
+  it('pairs one long delimiter run with a hundred thousand closers within the budget', () => {
+    const input = '*'.repeat(200001) + 'a**'.repeat(100000);
+    expect(timedParse(input)).toEqual([text('*'), text('a'.repeat(100000), [b])]);
+  });
+
   it('stacks hundreds of nested comment spans within the budget', () => {
     const depth = 600;
     const ids = Array.from({ length: depth }, (_, n) => `c${n}`);

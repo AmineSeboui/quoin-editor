@@ -72,10 +72,11 @@
     "check:directives": "node scripts/check-directives.mjs",
     "check:consumer": "node scripts/check-consumer.mjs",
     "lint": "eslint . && node scripts/check-engine-deps.mjs",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p e2e/tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
     "prepublishOnly": "npm run build && npm run check:css && npm run check:directives"
   },
   "peerDependencies": {
@@ -100,7 +101,9 @@
     "tailwind-merge": "^3.0.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@eslint/js": "^9.39.5",
+    "@playwright/test": "^1.64.0",
     "@tailwindcss/cli": "^4.3.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",

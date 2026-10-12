@@ -44,6 +44,14 @@ describe('0.4 MARKDOWN blocks', () => {
     expect(codec.blocksFromDoc(createDoc([doc.blocks[0], doc.blocks[2], doc.blocks[3]]))).toHaveLength(3);
   });
 
+  it('keeps the line break of a multi line setext heading when it splits the block', () => {
+    const doc = make().docFromBlocks([{ id: 'a', type: 'MARKDOWN', data: { markdown: 'Title\nSubtitle\n---\n\nBody' } }]);
+    expect(doc.blocks.map((b) => [b.attrs.kind, b.regions.text])).toEqual([
+      ['heading', [{ kind: 'text', text: 'Title\nSubtitle', marks: [] }]],
+      ['paragraph', [{ kind: 'text', text: 'Body', marks: [] }]],
+    ]);
+  });
+
   it('keeps a single paragraph with line breaks as one block and its identity', () => {
     const codec = make();
     const block = { id: 'a', type: 'MARKDOWN', data: { markdown: 'line one\nline two' } };

@@ -129,6 +129,15 @@ describe('setext headings', () => {
     expect(parse('Foo\\\n----')).toEqual([md('## Foo\\\\')]);
   });
 
+  it('keeps the line break of a multi line heading when soft breaks are kept', () => {
+    expect(parse('Foo\nBar\n---', 'newline')).toEqual([md('## Foo<br>Bar')]);
+    expect(parse('Foo\nBar\n===\n\nBaz\nQux', 'newline')).toEqual([md('# Foo<br>Bar'), md('Baz\\\nQux')]);
+  });
+
+  it('reads the written form of a multi line heading back as the same single block', () => {
+    expect(parse('## Foo<br>Bar', 'newline')).toEqual([md('## Foo<br>Bar')]);
+  });
+
   it('leaves the underline as text when only link definitions came before it', () => {
     expect(parse('[foo]: /url\n===\n[foo]')).toEqual([md('\\=== [foo](/url)')]);
   });

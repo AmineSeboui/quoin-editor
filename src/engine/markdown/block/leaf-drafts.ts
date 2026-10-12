@@ -18,7 +18,7 @@ export function paragraphDraft(node: ParagraphNode, ctx: Context): Draft {
 
 export function headingDraft(node: HeadingNode, ctx: Context): Draft {
   if (ctx.quote) return lineDraft({ kind: 'quote' }, canonicalInline(node.text, ctx.text), ctx.indent);
-  const body = canonicalInline(node.text, { ...ctx.text, softBreak: 'space' }, 'br');
+  const body = canonicalInline(node.text, ctx.text, 'br');
   return lineDraft({ kind: 'heading', level: node.level }, body, ctx.indent);
 }
 

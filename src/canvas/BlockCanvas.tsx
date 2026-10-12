@@ -27,21 +27,23 @@ import { ReadOnlyCanvas } from './ReadOnlyCanvas';
 import { reorderIndices } from './reorder-indices';
 import { sameBlocks } from './same-blocks';
 import { SortableBlock } from './SortableBlock';
-import { acknowledge } from './unacknowledged';
+import { acknowledge, createUnacknowledged, forgetAll, remember } from './unacknowledged';
 
 /** Props for `BlockCanvas`; `blocks` and `onChange` are the whole document contract. */
 export type BlockCanvasProps = {
   /**
    * The document. Update it synchronously from `onChange`, as with a controlled `<input value onChange>`.
-   * Applying the edit late is tolerated as long as what comes back is one of the arrays the canvas emitted, or a
-   * structural copy of one: it recognises its own output even several keystrokes behind, so a transition, a
-   * debounced setter or a store that clones the document on the way through is safe.
+   * Applying the edit late is tolerated: the canvas recognises an array it emitted however late it comes back, and
+   * a structural copy of one within 64 edits, so a transition, a debounced setter or a store that clones the
+   * document on the way through is safe.
    * A new array that differs from the last one you supplied replaces what the canvas shows, which is how a host
    * loads, undoes or merges. An array structurally equal to the last one you supplied is ignored, so a "discard
-   * changes" button that hands back the original document does nothing; remount the canvas with a React `key` to
-   * force a reset. The comparison is shallow over each block's `data`: a host whose block `data` holds nested
-   * objects rebuilt on every render, and which does not echo `onChange` back, can still lose an edit. The core
-   * block types all have flat data, so this only affects custom blocks.
+   * changes" button that hands back the original document does nothing. A host that does not echo `onChange` back
+   * meets the same when it restores a copy of a state from the last 64 edits, which reads as a late echo. Remount
+   * the canvas with a React `key` to force a reset in either case. The comparison is shallow over each block's
+   * `data`: a host whose block `data` holds nested objects rebuilt on every render, and which does not echo
+   * `onChange` back, can still lose an edit. The core block types all have flat data, so this only affects custom
+   * blocks.
    */
   blocks: QuoinBlock[];
   onChange: (blocks: QuoinBlock[]) => void;
@@ -106,20 +108,21 @@ function Canvas({
 
   // The reducer reads `blocks` once, so the two effects below carry the document
   // across the boundary in both directions. An array this canvas emitted, or a
-  // structural copy of one, is recognised when the host hands it back and is not
-  // reset; any other array the host supplies is foreign and is. Seeding the refs
-  // with the first `blocks` keeps mounting from reporting a change nobody made.
+  // structural copy of a recent one, is recognised when the host hands it back
+  // and is not reset; any other array the host supplies is foreign and is.
+  // Seeding the refs with the first `blocks` keeps mounting from reporting a
+  // change nobody made.
   const lastEmitted = React.useRef<QuoinBlock[]>(blocks);
   const lastSupplied = React.useRef<QuoinBlock[]>(blocks);
   // Every emission still waiting to come back, not just the newest: a host that applies
   // edits late hands back an array from several keystrokes ago, and recognising only the
   // newest would read that as a foreign document and overwrite live text with it.
-  const unacknowledged = React.useRef<Set<QuoinBlock[]>>(new Set());
+  const unacknowledged = React.useRef(createUnacknowledged());
 
   React.useEffect(() => {
     if (list.blocks === lastEmitted.current) return;
     lastEmitted.current = list.blocks;
-    unacknowledged.current.add(list.blocks);
+    remember(unacknowledged.current, list.blocks);
     onChange(list.blocks);
     const removed = removedRef.current;
     removedRef.current = null;
@@ -138,7 +141,7 @@ function Canvas({
     // restoring on a later tick. Dropping this comparison to accept the synchronous case
     // would hand back the edit-wiping bug, which is the worse of the two.
     if (sameBlocks(blocks, previous) || sameBlocks(blocks, list.blocks)) return;
-    unacknowledged.current.clear();
+    forgetAll(unacknowledged.current);
     lastEmitted.current = blocks;
     reset(blocks);
   }, [blocks, reset]);

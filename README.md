@@ -65,7 +65,7 @@ export function TransitionEditor() {
 }
 ```
 
-Since 0.4.1, stores that clone the document on the way through, such as a Redux or Zustand round trip or a server-synced store, are supported too: a structural copy of an array the canvas emitted is recognised as its own, even many keystrokes behind.
+Since 0.4.1, stores that clone the document on the way through, such as a Redux or Zustand round trip or a server-synced store, are supported too. The canvas recognises an array it emitted however late it comes back, and a structural copy of one as long as it is within the last 64 edits.
 
 Debounce the side effect, not the state. `useAutosave` does exactly that: it tracks the values you give it, waits for the edits to settle, then calls your `save`, and it retries a failed save with exponential backoff.
 
@@ -104,7 +104,7 @@ You can hand the canvas a new `blocks` array at any time to load, undo or merge 
 
 When you echo `onChange` back into `blocks`, as every sample above does, the last array you supplied is the edited document, so `setBlocks(saved)` differs from it and resets the canvas with nothing more to do.
 
-The case that needs care is a host that does not echo edits back. There, the last array you supplied is still the original, and an array structurally equal to it is ignored: a "discard changes" button that re-supplies the original document does nothing. To force a reset, remount the canvas with a React `key`. The sample below uses a `key` so it works either way.
+The case that needs care is a host that does not echo edits back. There, the last array you supplied is still the original, and an array structurally equal to it is ignored: a "discard changes" button that re-supplies the original document does nothing. The same goes for restoring a copy of a state from the last 64 edits, which reads as a late echo of the canvas's own output. To force a reset, remount the canvas with a React `key`. The sample below uses a `key` so it works either way.
 
 ```tsx
 import { useState } from 'react';

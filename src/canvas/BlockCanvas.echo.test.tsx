@@ -98,17 +98,42 @@ describe('a host that echoes the canvas back late', () => {
 });
 
 describe('a host that falls far behind', () => {
-  it('keeps all 70 characters when every echo arrives 70 emissions late', async () => {
-    const text = 'x'.repeat(70);
-    const host = delayedHost(70);
+  it('keeps every character when every echo arrives 200 emissions late', async () => {
+    const text = 'x'.repeat(200);
+    const host = delayedHost(200);
     const box = await typeInto(<host.Host />, text);
-    expect(host.pending).toHaveLength(70);
+    expect(host.pending).toHaveLength(200);
 
     while (host.pending.length > 0) {
       host.echoOldest();
       expect(box).toHaveValue(text);
     }
     expect(resetSpy).not.toHaveBeenCalled();
+  });
+
+  it('keeps every character when its echoes land while more than 64 emissions are outstanding', async () => {
+    const text = 'y'.repeat(120);
+    const host = delayedHost(80);
+    const box = await typeInto(<host.Host />, text);
+    expect(host.pending).toHaveLength(80);
+    expect(box).toHaveValue(text);
+
+    while (host.pending.length > 0) host.echoOldest();
+
+    expect(box).toHaveValue(text);
+    expect(resetSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('a host that does not echo the canvas back', () => {
+  it('replaces the document with a copy of a state more than 64 edits old', async () => {
+    const host = delayedHost(Number.POSITIVE_INFINITY);
+    const box = await typeInto(<host.Host />, 'z'.repeat(70));
+
+    host.supply(structuredClone(host.pending[0]));
+
+    expect(box).toHaveValue('z');
+    expect(resetSpy).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -182,6 +207,19 @@ describe('a host that supplies a document of its own', () => {
     await user.click(screen.getByRole('button', { name: 'undo' }));
 
     expect(await screen.findByText('a')).toBeInTheDocument();
+    expect(resetSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('resets for an emission older than one the host already handed back', async () => {
+    const host = delayedHost(Number.POSITIVE_INFINITY);
+    const box = await typeInto(<host.Host />, 'abc');
+    const [first, , third] = host.pending;
+
+    host.supply(third);
+    expect(resetSpy).not.toHaveBeenCalled();
+
+    host.supply(first);
+    expect(box).toHaveValue('a');
     expect(resetSpy).toHaveBeenCalledTimes(1);
   });
 

@@ -40,6 +40,14 @@ describe('marks', () => {
     ]);
   });
 
+  it('sorts canonically equivalent but distinct comment ids the same whatever the input order', () => {
+    const composed = comment('\u00e9');
+    const decomposed = comment('e\u0301');
+    const forward = sortMarks([composed, decomposed]);
+    expect(sortMarks([decomposed, composed])).toEqual(forward);
+    expect(forward).toHaveLength(2);
+  });
+
   it('replaces a mark with the same key and keeps the set sorted', () => {
     expect(addMark([bold, link('a')], link('b'))).toEqual([link('b'), bold]);
     expect(addMark([comment('a')], comment('b'))).toEqual([comment('a'), comment('b')]);

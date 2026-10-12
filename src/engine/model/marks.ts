@@ -1,4 +1,5 @@
 import { sameAttrs } from './attrs';
+import { compareCodeUnits } from './compare';
 import type { Mark } from './types';
 
 const RANK: Readonly<Record<string, number>> = {
@@ -35,7 +36,7 @@ export function sameMark(a: Mark, b: Mark): boolean {
 }
 
 export function compareMarks(a: Mark, b: Mark): number {
-  return markRank(a.type) - markRank(b.type) || markKey(a).localeCompare(markKey(b));
+  return markRank(a.type) - markRank(b.type) || compareCodeUnits(markKey(a), markKey(b));
 }
 
 export function sortMarks(marks: readonly Mark[]): Mark[] {

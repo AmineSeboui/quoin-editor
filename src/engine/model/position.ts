@@ -1,10 +1,11 @@
+import { compareRegionNames } from './compare';
 import { requireBlockIndex } from './doc';
 import type { EngineDoc, Pos } from './types';
 
 export function comparePos(doc: EngineDoc, a: Pos, b: Pos): number {
   return (
     requireBlockIndex(doc, a.block) - requireBlockIndex(doc, b.block) ||
-    a.region.localeCompare(b.region) ||
+    compareRegionNames(a.region, b.region) ||
     a.offset - b.offset
   );
 }

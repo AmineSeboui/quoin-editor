@@ -7,6 +7,7 @@ import { renderedOffsetAt, sourceOffsetFor, type ClickProbe } from './source-off
 import { useQuoin } from '../context';
 import { blockByType } from '../registry';
 import { devWarn } from '../dev-warn';
+import { useIsomorphicLayoutEffect } from '../hooks/use-isomorphic-layout-effect';
 import type { QuoinBlock } from '../types';
 import { Button } from '../ui/button';
 
@@ -133,7 +134,7 @@ function BlockCardImpl({
   // Replacing a tall rendered block with a one-row textarea shrinks the page, so
   // the browser clamps the scroll before the box can grow back. The position is
   // taken at the click and put back here, after the box has been sized.
-  React.useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const scrollTop = scrollTopRef.current;
     scrollTopRef.current = null;
     if (!editing || scrollTop === null) return;

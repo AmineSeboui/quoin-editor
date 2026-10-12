@@ -65,7 +65,7 @@ export function TransitionEditor() {
 }
 ```
 
-What breaks is a store that rebuilds the document on the way through, so what comes back is a structural copy rather than the array the canvas emitted. Arriving behind the canvas's own state, that copy reads as a foreign document and replaces live text with an older snapshot. The damage is not a clean revert: the characters the snapshot predates are dropped and the ones typed after them are kept, so `ZZTYPED hello world` can land as `ZZYED hello wold`. A Redux or Zustand round trip that clones the document, and a server-synced store, are the usual sources.
+Since 0.4.1, stores that clone the document on the way through, such as a Redux or Zustand round trip or a server-synced store, are supported too: a structural copy of an array the canvas emitted is recognised as its own, even many keystrokes behind.
 
 Debounce the side effect, not the state. `useAutosave` does exactly that: it tracks the values you give it, waits for the edits to settle, then calls your `save`, and it retries a failed save with exponential backoff.
 

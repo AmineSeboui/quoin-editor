@@ -27,17 +27,15 @@ import { ReadOnlyCanvas } from './ReadOnlyCanvas';
 import { reorderIndices } from './reorder-indices';
 import { sameBlocks } from './same-blocks';
 import { SortableBlock } from './SortableBlock';
-import { remember } from './unacknowledged';
+import { acknowledge } from './unacknowledged';
 
 /** Props for `BlockCanvas`; `blocks` and `onChange` are the whole document contract. */
 export type BlockCanvasProps = {
   /**
    * The document. Update it synchronously from `onChange`, as with a controlled `<input value onChange>`.
-   * Applying the edit late is tolerated as long as what comes back is one of the arrays the canvas emitted:
-   * it recognises its own output even several keystrokes behind, so a transition or a debounced setter is safe.
-   * A store that rebuilds the document on the way through hands back a structural copy instead, which arrives
-   * behind the canvas's own state and reads as a foreign document. That does not revert the edit cleanly: the
-   * characters the copy predates are dropped and the ones typed after them are kept.
+   * Applying the edit late is tolerated as long as what comes back is one of the arrays the canvas emitted, or a
+   * structural copy of one: it recognises its own output even several keystrokes behind, so a transition, a
+   * debounced setter or a store that clones the document on the way through is safe.
    * A new array that differs from the last one you supplied replaces what the canvas shows, which is how a host
    * loads, undoes or merges. An array structurally equal to the last one you supplied is ignored, so a "discard
    * changes" button that hands back the original document does nothing; remount the canvas with a React `key` to
@@ -107,10 +105,10 @@ function Canvas({
   );
 
   // The reducer reads `blocks` once, so the two effects below carry the document
-  // across the boundary in both directions. An array this canvas emitted is
-  // recognised when the host hands it back and is not reset; an array the host
-  // supplies is foreign and is. Seeding the refs with the first `blocks` keeps
-  // mounting from reporting a change nobody made.
+  // across the boundary in both directions. An array this canvas emitted, or a
+  // structural copy of one, is recognised when the host hands it back and is not
+  // reset; any other array the host supplies is foreign and is. Seeding the refs
+  // with the first `blocks` keeps mounting from reporting a change nobody made.
   const lastEmitted = React.useRef<QuoinBlock[]>(blocks);
   const lastSupplied = React.useRef<QuoinBlock[]>(blocks);
   // Every emission still waiting to come back, not just the newest: a host that applies
@@ -121,7 +119,7 @@ function Canvas({
   React.useEffect(() => {
     if (list.blocks === lastEmitted.current) return;
     lastEmitted.current = list.blocks;
-    remember(unacknowledged.current, list.blocks);
+    unacknowledged.current.add(list.blocks);
     onChange(list.blocks);
     const removed = removedRef.current;
     removedRef.current = null;
@@ -131,13 +129,7 @@ function Canvas({
   React.useEffect(() => {
     const previous = lastSupplied.current;
     lastSupplied.current = blocks;
-    if (unacknowledged.current.has(blocks)) {
-      // Caught up: anything older than this emission has been echoed or coalesced away.
-      // Everything before then is forgotten, so a host replaying one of these arrays from
-      // its own undo stack later is a document the canvas accepts rather than ignores.
-      if (blocks === lastEmitted.current) unacknowledged.current.clear();
-      return;
-    }
+    if (acknowledge(unacknowledged.current, blocks)) return;
     // A host that builds a fresh array on every render, without echoing edits, would
     // otherwise wipe them on any unrelated re-render. An undo replays a different array.
     // The cost of the `previous` half is that a restore applied synchronously inside

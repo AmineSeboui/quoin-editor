@@ -7,6 +7,7 @@ const BUDGET_MS = 1000;
 const b = { type: 'bold' };
 const i = { type: 'italic' };
 const comment = (id: string) => ({ type: 'comment', attrs: { id } });
+const link = (href: string) => ({ type: 'link', attrs: { href } });
 
 function timedParse(input: string): Inline {
   const start = performance.now();
@@ -40,6 +41,11 @@ describe('deeply nested inline markup', () => {
   it('leaves tens of thousands of open tags without a matching close literal within the budget', () => {
     const input = '<u>a'.repeat(40000) + '</b>'.repeat(40000);
     expect(timedParse(input)).toEqual([text(input)]);
+  });
+
+  it('forms tens of thousands of links after as many open brackets within the budget', () => {
+    const input = '['.repeat(50000) + '[a](b)'.repeat(50000);
+    expect(timedParse(input)).toEqual([text('['.repeat(50000)), text('a'.repeat(50000), [link('b')])]);
   });
 
   it('stacks hundreds of nested comment spans within the budget', () => {

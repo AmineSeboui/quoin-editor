@@ -66,6 +66,12 @@ function formLink(scanner: Scanner, opener: Bracket, target: LinkTarget): void {
   items.push({ kind: 'close', range });
 }
 
+// Inactive openers always sit below active ones, so the walk can stop at the first inactive opener.
+// Image openers are deactivated too, which changes nothing because they never form a link.
+function deactivateOpeners(brackets: readonly Bracket[]): void {
+  for (let at = brackets.length - 1; at >= 0 && brackets[at].active; at--) brackets[at].active = false;
+}
+
 export function closeBracket(scanner: Scanner): void {
   const opener = scanner.brackets.pop();
   const target = opener?.active && !opener.image ? matchLink(scanner, opener) : null;
@@ -76,5 +82,5 @@ export function closeBracket(scanner: Scanner): void {
   processEmphasis(scanner.delimiters, opener.bottom);
   formLink(scanner, opener, target.value);
   scanner.pos = target.end;
-  for (const bracket of scanner.brackets) if (!bracket.image) bracket.active = false;
+  deactivateOpeners(scanner.brackets);
 }

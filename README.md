@@ -65,7 +65,7 @@ export function TransitionEditor() {
 }
 ```
 
-What breaks is a store that rebuilds the document on the way through, so what comes back is a structural copy rather than the array the canvas emitted. Arriving behind the canvas's own state, that copy reads as a foreign document and replaces live text with an older snapshot. The damage is not a clean revert: the characters the snapshot predates are dropped and the ones typed after them are kept, so `ZZTYPED hello world` can land as `ZZYED hello wold`. A Redux or Zustand round trip that clones the document, and a server-synced store, are the usual sources.
+Since 0.4.1, stores that clone the document on the way through, such as a Redux or Zustand round trip or a server-synced store, are supported too. The canvas recognises an array it emitted however late it comes back, and a structural copy of one as long as it is within the last 64 edits.
 
 Debounce the side effect, not the state. `useAutosave` does exactly that: it tracks the values you give it, waits for the edits to settle, then calls your `save`, and it retries a failed save with exponential backoff.
 
@@ -96,7 +96,7 @@ export function AutosavingEditor({ initial }: { initial: QuoinBlock[] }) {
 }
 ```
 
-`save` may return anything, so a mutation, an axios call or a `fetch` that resolves to a body goes straight in with no wrapper to discard the value. A save fails by rejecting, or by resolving to an explicit `{ ok: false }`; everything else, `undefined` included, is a success. `status` moves `idle` to `saving` to `saved`, or to `retrying` while it backs off, and `retry()` tries again at once.
+`save` may return anything, so a mutation, an axios call or a `fetch` that resolves to a body goes straight in with no wrapper to discard the value. A save fails by rejecting, or by resolving to an explicit `{ ok: false }`; everything else, `undefined` included, is a success. `status` moves `idle` to `saving` to `saved`, or to `retrying` while it backs off, and `retry()` tries again at once. Since 0.4.1 one save runs at a time, with the newest payload queued behind it, and a pending edit is saved at once when the component unmounts or the page is hidden (`flush()` does the same on demand). Retries stop after `maxRetries` (default 8) or when `isRetryable(error)` returns false; `status` is then `failed` and `error` holds the reason.
 
 ### Loading, undoing and discarding
 
@@ -104,7 +104,7 @@ You can hand the canvas a new `blocks` array at any time to load, undo or merge 
 
 When you echo `onChange` back into `blocks`, as every sample above does, the last array you supplied is the edited document, so `setBlocks(saved)` differs from it and resets the canvas with nothing more to do.
 
-The case that needs care is a host that does not echo edits back. There, the last array you supplied is still the original, and an array structurally equal to it is ignored: a "discard changes" button that re-supplies the original document does nothing. To force a reset, remount the canvas with a React `key`. The sample below uses a `key` so it works either way.
+The case that needs care is a host that does not echo edits back. There, the last array you supplied is still the original, and an array structurally equal to it is ignored: a "discard changes" button that re-supplies the original document does nothing. The same goes for restoring a copy of a state from the last 64 edits, which reads as a late echo of the canvas's own output. To force a reset, remount the canvas with a React `key`. The sample below uses a `key` so it works either way.
 
 ```tsx
 import { useState } from 'react';
@@ -477,19 +477,19 @@ Because it draws previews and never editors, a block type registered without a `
   --quoin-background: oklch(1 0 0);
   --quoin-foreground: oklch(0.145 0 0);
   --quoin-muted: oklch(0.97 0 0);
-  --quoin-muted-foreground: oklch(0.556 0 0);
+  --quoin-muted-foreground: oklch(0.54 0 0);
   --quoin-secondary: oklch(0.97 0 0);
   --quoin-secondary-foreground: oklch(0.205 0 0);
   --quoin-popover: oklch(1 0 0);
   --quoin-popover-foreground: oklch(0.145 0 0);
   --quoin-border: oklch(0.922 0 0);
   --quoin-input: oklch(0.922 0 0);
-  --quoin-ring: oklch(0.708 0 0);
+  --quoin-ring: oklch(0.45 0 0);
   --quoin-primary: oklch(0.205 0 0);
   --quoin-primary-foreground: oklch(0.985 0 0);
   --quoin-accent: oklch(0.97 0 0);
   --quoin-accent-foreground: oklch(0.205 0 0);
-  --quoin-destructive: oklch(0.577 0.245 27.325);
+  --quoin-destructive: oklch(0.55 0.245 27.325);
   --quoin-info: oklch(0.55 0.17 250);
   --quoin-success: oklch(0.55 0.14 155);
   --quoin-warning: oklch(0.65 0.16 65);
@@ -507,7 +507,7 @@ Because it draws previews and never editors, a block type registered without a `
   --quoin-popover-foreground: oklch(0.985 0 0);
   --quoin-border: oklch(1 0 0 / 10%);
   --quoin-input: oklch(1 0 0 / 15%);
-  --quoin-ring: oklch(0.556 0 0);
+  --quoin-ring: oklch(0.708 0 0);
   --quoin-primary: oklch(0.922 0 0);
   --quoin-primary-foreground: oklch(0.205 0 0);
   --quoin-accent: oklch(0.269 0 0);
@@ -562,6 +562,8 @@ Point the prefixed names at your own in one block on `.quoin`. The canvas root c
 ```
 
 `--quoin-info`, `--quoin-success` and `--quoin-warning` arrived in 0.4.0 and are read only by the callout block, for its rule and the wash behind it, never for type. If your own theme has no equivalent, leave those three out of the block and the defaults above stand; the rest of the editor does not touch them.
+
+`--quoin-ring` colours the keyboard focus outline, which is solid and drawn at full strength, so it should reach 3:1 against both `--quoin-background` and `--quoin-popover`. A pale value, such as the grey many shadcn themes keep for `--ring`, fails that, so give `--quoin-ring` a value of its own that does.
 
 That one block covers both modes: the tokens on the right already flip with your own dark class, and each mapping beats Quoin's `:root` and `.dark` defaults alike. Write it unlayered, or in a layer that sorts after `quoin`, so it outranks those defaults.
 
@@ -722,6 +724,27 @@ From `quoin-editor`: `BlockCanvas`, `QuoinProvider`, `useQuoin`, `defineBlock`, 
 From `quoin-editor/headless`: the transforms and the two hooks listed above, with no UI.
 
 From `quoin-editor/styles.css`: the stylesheet.
+
+## Accessibility
+
+What the test suite checks:
+
+- axe runs over the canvas, the block cards, the inserter, the slash palette and the shortcuts reference.
+- Controls carry accessible names, and the icons in the canvas, the block options menu, the inserter and the slash palette are hidden from assistive technology.
+- Blocks reorder by keyboard, with announcements that name each block by label and position.
+- Escape leaves an open block and returns focus to its Edit button.
+- The default light and dark tokens keep the keyboard focus outline at 3:1 or more and highlighted-row text at 4.5:1 or more, and focusable controls draw the focus as an outline, which Windows forced colours mode keeps.
+
+The checks are automated. A manual pass with NVDA and VoiceOver is not recorded yet.
+
+Known gaps in 0.4:
+
+- A markdown block is read as source. At rest it is plain text, so a screen reader reads the markdown characters as written.
+- Keyboard drag with Space and the arrow keys can drop a block in place, and its announcement can name the wrong position. Use Move up and Move down in the block's options menu to reorder by keyboard.
+
+## Stability
+
+Quoin is 0.x. A minor version may contain breaking changes, and each one is listed in the [changelog](CHANGELOG.md). If you need stability, pin a minor with `~0.4.0`, which takes patch releases only.
 
 ## Licence
 

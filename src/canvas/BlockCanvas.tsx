@@ -27,23 +27,23 @@ import { ReadOnlyCanvas } from './ReadOnlyCanvas';
 import { reorderIndices } from './reorder-indices';
 import { sameBlocks } from './same-blocks';
 import { SortableBlock } from './SortableBlock';
-import { remember } from './unacknowledged';
+import { acknowledge, createUnacknowledged, forgetAll, remember } from './unacknowledged';
 
 /** Props for `BlockCanvas`; `blocks` and `onChange` are the whole document contract. */
 export type BlockCanvasProps = {
   /**
    * The document. Update it synchronously from `onChange`, as with a controlled `<input value onChange>`.
-   * Applying the edit late is tolerated as long as what comes back is one of the arrays the canvas emitted:
-   * it recognises its own output even several keystrokes behind, so a transition or a debounced setter is safe.
-   * A store that rebuilds the document on the way through hands back a structural copy instead, which arrives
-   * behind the canvas's own state and reads as a foreign document. That does not revert the edit cleanly: the
-   * characters the copy predates are dropped and the ones typed after them are kept.
+   * Applying the edit late is tolerated: the canvas recognises an array it emitted however late it comes back, and
+   * a structural copy of one within 64 edits, so a transition, a debounced setter or a store that clones the
+   * document on the way through is safe.
    * A new array that differs from the last one you supplied replaces what the canvas shows, which is how a host
    * loads, undoes or merges. An array structurally equal to the last one you supplied is ignored, so a "discard
-   * changes" button that hands back the original document does nothing; remount the canvas with a React `key` to
-   * force a reset. The comparison is shallow over each block's `data`: a host whose block `data` holds nested
-   * objects rebuilt on every render, and which does not echo `onChange` back, can still lose an edit. The core
-   * block types all have flat data, so this only affects custom blocks.
+   * changes" button that hands back the original document does nothing. A host that does not echo `onChange` back
+   * meets the same when it restores a copy of a state from the last 64 edits, which reads as a late echo. Remount
+   * the canvas with a React `key` to force a reset in either case. The comparison is shallow over each block's
+   * `data`: a host whose block `data` holds nested objects rebuilt on every render, and which does not echo
+   * `onChange` back, can still lose an edit. The core block types all have flat data, so this only affects custom
+   * blocks.
    */
   blocks: QuoinBlock[];
   onChange: (blocks: QuoinBlock[]) => void;
@@ -107,16 +107,17 @@ function Canvas({
   );
 
   // The reducer reads `blocks` once, so the two effects below carry the document
-  // across the boundary in both directions. An array this canvas emitted is
-  // recognised when the host hands it back and is not reset; an array the host
-  // supplies is foreign and is. Seeding the refs with the first `blocks` keeps
-  // mounting from reporting a change nobody made.
+  // across the boundary in both directions. An array this canvas emitted, or a
+  // structural copy of a recent one, is recognised when the host hands it back
+  // and is not reset; any other array the host supplies is foreign and is.
+  // Seeding the refs with the first `blocks` keeps mounting from reporting a
+  // change nobody made.
   const lastEmitted = React.useRef<QuoinBlock[]>(blocks);
   const lastSupplied = React.useRef<QuoinBlock[]>(blocks);
   // Every emission still waiting to come back, not just the newest: a host that applies
   // edits late hands back an array from several keystrokes ago, and recognising only the
   // newest would read that as a foreign document and overwrite live text with it.
-  const unacknowledged = React.useRef<Set<QuoinBlock[]>>(new Set());
+  const unacknowledged = React.useRef(createUnacknowledged());
 
   React.useEffect(() => {
     if (list.blocks === lastEmitted.current) return;
@@ -131,13 +132,7 @@ function Canvas({
   React.useEffect(() => {
     const previous = lastSupplied.current;
     lastSupplied.current = blocks;
-    if (unacknowledged.current.has(blocks)) {
-      // Caught up: anything older than this emission has been echoed or coalesced away.
-      // Everything before then is forgotten, so a host replaying one of these arrays from
-      // its own undo stack later is a document the canvas accepts rather than ignores.
-      if (blocks === lastEmitted.current) unacknowledged.current.clear();
-      return;
-    }
+    if (acknowledge(unacknowledged.current, blocks)) return;
     // A host that builds a fresh array on every render, without echoing edits, would
     // otherwise wipe them on any unrelated re-render. An undo replays a different array.
     // The cost of the `previous` half is that a restore applied synchronously inside
@@ -146,14 +141,21 @@ function Canvas({
     // restoring on a later tick. Dropping this comparison to accept the synchronous case
     // would hand back the edit-wiping bug, which is the worse of the two.
     if (sameBlocks(blocks, previous) || sameBlocks(blocks, list.blocks)) return;
-    unacknowledged.current.clear();
+    forgetAll(unacknowledged.current);
     lastEmitted.current = blocks;
     reset(blocks);
   }, [blocks, reset]);
 
+  // The new card reads these as it mounts. Kept any longer they would reopen it
+  // on a later remount, such as a read-only round trip or a host undo.
+  React.useEffect(() => {
+    if (newBlockId === null) return;
+    setNewBlockId(null);
+    setSeedSelection(null);
+  }, [newBlockId]);
+
   const insertPlain = React.useCallback(
     (index: number, type: string, data?: Record<string, unknown>) => {
-      setSeedSelection(null);
       const seed = data ?? blockByType(blockTypes, type)?.initialData?.() ?? {};
       setNewBlockId(insertAt(index, type, seed));
     },
@@ -164,9 +166,6 @@ function Canvas({
     const block = list.blocks[index];
     pendingDeleteIndexRef.current = index;
     if (block) removedRef.current = { block, index };
-    // Otherwise a block inserted, deleted and then restored by the host would come
-    // back in edit mode and take the focus from whatever the person is doing.
-    setNewBlockId((current) => (current === id ? null : current));
     remove(id);
   }
 
@@ -202,7 +201,7 @@ function Canvas({
 
   return (
     <div {...rootProps}>
-      <BlockInserter index={0} onInsert={insertPlain} label="Insert a block at the start" />
+      <BlockInserter index={0} onInsert={insertPlain} label="Insert a block at the start" canvasRef={listRef} />
       <DndContext
         id={dndId}
         sensors={sensors}
@@ -241,6 +240,7 @@ function Canvas({
                   index={i + 1}
                   onInsert={insertPlain}
                   label={`Insert a block after block ${i + 1}`}
+                  canvasRef={listRef}
                 />
               </li>
             ))}

@@ -7,14 +7,16 @@ import { coreBlocks } from './core';
 function Harness({
   initial = '',
   onInsertBlock,
+  onDone,
 }: {
   initial?: string;
   onInsertBlock?: (type: string) => void;
+  onDone?: () => void;
 }) {
   const [data, setData] = React.useState<Record<string, unknown>>({ markdown: initial });
   return (
     <QuoinProvider value={{ blockTypes: coreBlocks }}>
-      <MarkdownBlockEditor data={data} onChange={setData} onInsertBlock={onInsertBlock} />
+      <MarkdownBlockEditor data={data} onChange={setData} onInsertBlock={onInsertBlock} onDone={onDone} />
     </QuoinProvider>
   );
 }
@@ -58,6 +60,22 @@ describe('MarkdownBlockEditor palette', () => {
     fireEvent.click(screen.getByText('Image'));
     expect(onInsertBlock).toHaveBeenCalledWith('IMAGE');
     expect(box()).toHaveValue('');
+  });
+
+  it('finishes editing once a block command has been reported', () => {
+    const calls: string[] = [];
+    render(<Harness onInsertBlock={(type) => calls.push(type)} onDone={() => calls.push('done')} />);
+    openPalette();
+    fireEvent.click(screen.getByText('Image'));
+    expect(calls).toEqual(['IMAGE', 'done']);
+  });
+
+  it('keeps editing after a text command', () => {
+    const onDone = vi.fn();
+    render(<Harness onDone={onDone} />);
+    openPalette();
+    fireEvent.click(screen.getByText('Subtitle'));
+    expect(onDone).not.toHaveBeenCalled();
   });
 
   it('puts the literal slash back when the palette is dismissed', () => {

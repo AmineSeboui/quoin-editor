@@ -3,6 +3,7 @@ import { applyEdit, type Edit } from './edit';
 import { indentList } from './indent-list';
 import { toggleLinePrefix, type LinePrefix } from './line-toggles';
 import { continueList } from './list-continuation';
+import { isMac } from './platform';
 import { shouldOpenPalette } from './slash-trigger';
 import { linkPaste, wrapSelection, type WrapKind } from './wrap-selection';
 
@@ -22,9 +23,12 @@ export function useMarkdownKeymap({
 }) {
   const onKeyDown = React.useCallback(
     (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      // Safari reports keyCode 229 for the keydown that follows compositionend.
+      if (event.nativeEvent.isComposing || event.keyCode === 229) return;
+
       const el = event.currentTarget;
       const { value, selectionStart, selectionEnd } = el;
-      const mod = event.metaKey || event.ctrlKey;
+      const mod = isMac() ? event.metaKey : event.ctrlKey;
 
       const run = (edit: Edit | null) => {
         if (!edit) return;

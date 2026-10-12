@@ -4,6 +4,7 @@ import * as React from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { cn } from "./cn";
+import { FOCUS_RING, HIGHLIGHT_BAR } from "./focus";
 import { TAP_TARGET_FLOOR } from "./touch-target";
 
 function Select(props: React.ComponentProps<typeof SelectPrimitive.Root>) {
@@ -17,7 +18,8 @@ function SelectTrigger({ className, children, ...props }: React.ComponentProps<t
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       className={cn(
-        "border-input data-[placeholder]:text-muted-foreground flex h-9 w-full cursor-pointer items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+        "border-input data-[placeholder]:text-muted-foreground flex h-9 w-full cursor-pointer items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+        FOCUS_RING,
         TAP_TARGET_FLOOR,
         className,
       )}
@@ -62,6 +64,7 @@ function SelectItem({ className, children, ...props }: React.ComponentProps<type
       data-slot="select-item"
       className={cn(
         "focus:bg-accent focus:text-accent-foreground relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        HIGHLIGHT_BAR,
         TAP_TARGET_FLOOR,
         className,
       )}

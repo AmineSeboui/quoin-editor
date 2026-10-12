@@ -81,6 +81,32 @@ describe('UploadField', () => {
     expect(screen.getByLabelText('Upload image')).toBeEnabled();
   });
 
+  it('keeps the control busy until an async callback settles', async () => {
+    const user = userEvent.setup();
+    let settle: () => void = () => {};
+    const upload = vi.fn().mockResolvedValue({ storageKey: 'k/1', filename: 'photo.png', size: 1 });
+    const { onUploaded } = setup(upload, vi.fn().mockReturnValue(new Promise<void>((resolve) => { settle = resolve; })));
+    await user.upload(screen.getByLabelText('Upload image'), file());
+    await waitFor(() => expect(onUploaded).toHaveBeenCalledTimes(1));
+    expect(screen.getByLabelText('Upload image')).toBeDisabled();
+    expect(screen.getByRole('status')).toHaveTextContent('Uploading...');
+    settle();
+    await waitFor(() => expect(screen.getByLabelText('Upload image')).toBeEnabled());
+    expect(screen.queryByRole('status')).toBeNull();
+  });
+
+  it('reports a rejecting async callback through onError once and stays usable', async () => {
+    const user = userEvent.setup();
+    const upload = vi.fn().mockResolvedValue({ storageKey: 'k/1', filename: 'photo.png', size: 1 });
+    const boom = new Error('async callback broke');
+    const { onError } = setup(upload, vi.fn().mockRejectedValue(boom));
+    await user.upload(screen.getByLabelText('Upload image'), file());
+    await waitFor(() => expect(onError).toHaveBeenCalledWith(boom));
+    await waitFor(() => expect(screen.getByLabelText('Upload image')).toBeEnabled());
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
   it('disables the control and announces progress while an upload is in flight', async () => {
     const user = userEvent.setup();
     let finish: (r: { storageKey: string; filename: string; size: number }) => void = () => {};

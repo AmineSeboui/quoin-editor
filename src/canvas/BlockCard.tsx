@@ -7,6 +7,7 @@ import { renderedOffsetAt, sourceOffsetFor, type ClickProbe } from './source-off
 import { useQuoin } from '../context';
 import { blockByType } from '../registry';
 import { devWarn } from '../dev-warn';
+import { useIsomorphicLayoutEffect } from '../hooks/use-isomorphic-layout-effect';
 import type { QuoinBlock } from '../types';
 import { Button } from '../ui/button';
 
@@ -54,6 +55,12 @@ function BlockCardImpl({
   const returnFocusOnClose = React.useRef(false);
   const clickedRef = React.useRef<ClickProbe | null>(null);
   const scrollTopRef = React.useRef<number | null>(null);
+  // Read through a ref so the canvas clearing a one-shot seed does not re-run the
+  // focus effect and move the caret the author has already placed.
+  const seedRef = React.useRef(initialSelection);
+  React.useEffect(() => {
+    seedRef.current = initialSelection;
+  });
 
   const handleInsertBlock = React.useCallback(
     (type: string) => onInsertBlock?.(index + 1, type),
@@ -119,7 +126,7 @@ function BlockCardImpl({
     if (clicked === null || !(field instanceof HTMLTextAreaElement)) {
       field.focus();
       if (field instanceof HTMLTextAreaElement) {
-        const at = initialSelection ?? { start: field.value.length, end: field.value.length };
+        const at = seedRef.current ?? { start: field.value.length, end: field.value.length };
         field.setSelectionRange(at.start, at.end);
       }
       return;
@@ -128,12 +135,12 @@ function BlockCardImpl({
     const offset = sourceOffsetFor(field.value, clicked);
     field.focus({ preventScroll: true });
     field.setSelectionRange(offset, offset);
-  }, [editing, initialSelection]);
+  }, [editing]);
 
   // Replacing a tall rendered block with a one-row textarea shrinks the page, so
   // the browser clamps the scroll before the box can grow back. The position is
   // taken at the click and put back here, after the box has been sized.
-  React.useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const scrollTop = scrollTopRef.current;
     scrollTopRef.current = null;
     if (!editing || scrollTop === null) return;

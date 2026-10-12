@@ -4,6 +4,7 @@ import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { XIcon } from "lucide-react";
 import { cn } from "./cn";
+import { FOCUS_RING } from "./focus";
 import { ICON_TAP_TARGET_FLOOR } from "./touch-target";
 
 function Dialog(props: React.ComponentProps<typeof DialogPrimitive.Root>) {
@@ -63,7 +64,8 @@ function DialogContent({
         {children}
         <DialogPrimitive.Close
           className={cn(
-            "ring-offset-background focus:ring-ring absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-none",
+            "absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100",
+            FOCUS_RING,
             ICON_TAP_TARGET_FLOOR,
           )}
         >

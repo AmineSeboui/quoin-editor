@@ -52,9 +52,10 @@ const EDITOR_SOURCE: Record<keyof typeof KEYS, string> = {
 
 /** The object spreads an editor may use when it writes. `...data`, `...latest.current` and
  *  `...patch` are the `set` helper's own plumbing and carry no new names; `...size` is the
- *  measured image size, held to `ImageBlockData` by the type assertion above. Anything else
- *  is a key this scan cannot see, so the test fails rather than quietly passing it. */
-const KNOWN_SPREADS = ['...data', '...latest.current', '...patch', '...size'];
+ *  measured image size, held to `ImageBlockData` by the type assertion above; `...unsized` is
+ *  the image block less a stale size. Anything else is a key this scan cannot see, so the test
+ *  fails rather than quietly passing it. */
+const KNOWN_SPREADS = ['...data', '...latest.current', '...patch', '...size', '...unsized'];
 
 /** Every top-level key an editor writes, read off the source rather than by driving the
  *  component: an upload path and a Radix select are awkward to fire, and a key written

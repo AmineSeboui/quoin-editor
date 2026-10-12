@@ -4,7 +4,7 @@ import * as React from 'react';
  *  wider, because a re-wrap changes the line count without changing the value.
  *  Only a width change refits: reacting to the height this hook just set would
  *  feed the observer its own output. */
-export function useAutoGrow<T extends HTMLTextAreaElement>(value: string) {
+export function useAutoGrow<T extends HTMLTextAreaElement>(value: string): React.RefObject<T> {
   const ref = React.useRef<T>(null);
   const lastWidth = React.useRef<number | null>(null);
 
@@ -36,5 +36,6 @@ export function useAutoGrow<T extends HTMLTextAreaElement>(value: string) {
     return () => observer.disconnect();
   }, [fit]);
 
-  return ref;
+  // React 18's types refuse `RefObject<T | null>` on a `ref` prop, and `RefObject<T>` fits both majors.
+  return ref as React.RefObject<T>;
 }

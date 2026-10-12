@@ -1,4 +1,5 @@
 import { existsSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
 import * as headless from './headless';
 import * as main from './index';
@@ -22,10 +23,23 @@ describe('the main entry', () => {
   });
 });
 
-describe.runIf(existsSync(resolve(dist, 'index.js')))('built entries', () => {
-  it('share one implementation between the main and headless entries', async () => {
+const entries = ['index.js', 'headless.js', 'index.cjs', 'headless.cjs'];
+
+function expectSameImplementation(builtMain: Record<string, unknown>, builtHeadless: Record<string, unknown>) {
+  const names = Object.keys(builtHeadless);
+  expect(names.length).toBeGreaterThan(0);
+  for (const name of names) expect(builtMain[name]).toBe(builtHeadless[name]);
+}
+
+describe.runIf(entries.every((entry) => existsSync(resolve(dist, entry))))('built entries', () => {
+  it('share one implementation between the main and headless ES module builds', async () => {
     const builtMain = await import(resolve(dist, 'index.js'));
     const builtHeadless = await import(resolve(dist, 'headless.js'));
-    for (const name of Object.keys(builtHeadless)) expect(builtMain[name]).toBe(builtHeadless[name]);
+    expectSameImplementation(builtMain, builtHeadless);
+  });
+
+  it('share one implementation between the main and headless CommonJS builds', () => {
+    const load = createRequire(import.meta.url);
+    expectSameImplementation(load(resolve(dist, 'index.cjs')), load(resolve(dist, 'headless.cjs')));
   });
 });

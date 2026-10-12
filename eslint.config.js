@@ -20,4 +20,8 @@ export default tseslint.config(
       '@typescript-eslint/consistent-type-imports': ['error', { fixStyle: 'inline-type-imports' }],
     },
   },
+  {
+    files: ['vitest.setup.ts'],
+    rules: { '@typescript-eslint/no-empty-object-type': 'off' },
+  },
 );

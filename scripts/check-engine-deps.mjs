@@ -4,20 +4,22 @@ import { dirname, join, relative, resolve } from 'node:path';
 const root = resolve(import.meta.dirname, '..');
 const engine = join(root, 'src', 'engine');
 const specifier =
-  /(?:import|export)\s[^'"]*?from\s*['"]([^'"]+)['"]|\bimport\s*['"]([^'"]+)['"]|import\(\s*['"]([^'"]+)['"]\s*\)/g;
+  /(?:import|export)\s[^'"]*?from\s*['"]([^'"]+)['"]|\bimport\s*['"]([^'"]+)['"]|\bimport\(\s*['"]([^'"]+)['"]\s*\)|\brequire\(\s*['"]([^'"]+)['"]\s*\)/g;
+const source = /\.[cm]?[jt]sx?$/;
+const testFile = /\.test\.[cm]?[jt]sx?$/;
 
 function files(dir) {
   return readdirSync(dir).flatMap((name) => {
     const path = join(dir, name);
     if (statSync(path).isDirectory()) return files(path);
-    return /\.tsx?$/.test(name) && !/\.test\.tsx?$/.test(name) ? [path] : [];
+    return source.test(name) && !testFile.test(name) ? [path] : [];
   });
 }
 
 const violations = files(engine).flatMap((file) => {
-  const source = readFileSync(file, 'utf8');
-  return [...source.matchAll(specifier)]
-    .map((match) => match[1] ?? match[2] ?? match[3])
+  const text = readFileSync(file, 'utf8');
+  return [...text.matchAll(specifier)]
+    .map((match) => match[1] ?? match[2] ?? match[3] ?? match[4])
     .filter((spec) => {
       if (!spec.startsWith('.')) return true;
       return relative(engine, resolve(dirname(file), spec)).startsWith('..');

@@ -12,7 +12,6 @@ export default defineConfig([
   {
     ...shared,
     entry: { index: 'src/index.ts' },
-    clean: true,
     banner: { js: "'use client';" },
   },
   {

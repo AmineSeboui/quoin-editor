@@ -71,7 +71,8 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "tsup && npm run build:css",
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "build": "npm run clean && tsup && npm run build:css",
     "build:css": "tailwindcss -i ./src/styles.css -o ./dist/styles.css --minify",
     "check:css": "node scripts/check-css-scope.mjs dist/styles.css",
     "check:consumer": "node scripts/check-consumer.mjs",

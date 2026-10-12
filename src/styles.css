@@ -96,17 +96,17 @@
     --quoin-background: oklch(1 0 0);
     --quoin-foreground: oklch(0.145 0 0);
     --quoin-muted: oklch(0.97 0 0);
-    --quoin-muted-foreground: oklch(0.556 0 0);
+    --quoin-muted-foreground: oklch(0.54 0 0);
     --quoin-popover: oklch(1 0 0);
     --quoin-popover-foreground: oklch(0.145 0 0);
     --quoin-border: oklch(0.922 0 0);
     --quoin-input: oklch(0.922 0 0);
-    --quoin-ring: oklch(0.708 0 0);
+    --quoin-ring: oklch(0.45 0 0);
     --quoin-primary: oklch(0.205 0 0);
     --quoin-primary-foreground: oklch(0.985 0 0);
     --quoin-accent: oklch(0.97 0 0);
     --quoin-accent-foreground: oklch(0.205 0 0);
-    --quoin-destructive: oklch(0.577 0.245 27.325);
+    --quoin-destructive: oklch(0.55 0.245 27.325);
     --quoin-secondary: oklch(0.97 0 0);
     --quoin-secondary-foreground: oklch(0.205 0 0);
     /* The callout tones. They exist because the rest of this palette cannot tell five
@@ -128,7 +128,7 @@
     --quoin-popover-foreground: oklch(0.985 0 0);
     --quoin-border: oklch(1 0 0 / 10%);
     --quoin-input: oklch(1 0 0 / 15%);
-    --quoin-ring: oklch(0.556 0 0);
+    --quoin-ring: oklch(0.708 0 0);
     --quoin-primary: oklch(0.922 0 0);
     --quoin-primary-foreground: oklch(0.205 0 0);
     --quoin-accent: oklch(0.269 0 0);

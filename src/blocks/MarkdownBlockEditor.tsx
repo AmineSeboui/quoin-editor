@@ -12,12 +12,14 @@ import { useSlashPalette } from '../markdown/useSlashPalette';
 import type { TextCommand } from '../markdown/commands';
 import { useAutoGrow } from '../hooks/useAutoGrow';
 import type { BlockEditorProps } from '../types';
+import { FOCUS_RING } from '../ui/focus';
 import { str } from './str';
 
 const BOX = [
   '-mx-2 min-h-7 w-[calc(100%+1rem)] resize-none rounded-md border-0 bg-transparent px-2 py-0',
-  'text-base leading-7 outline-none placeholder:text-muted-foreground',
-  'transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:ring-ring/50',
+  'text-base leading-7 placeholder:text-muted-foreground',
+  'transition-[color,box-shadow]',
+  FOCUS_RING,
 ].join(' ');
 
 export function MarkdownBlockEditor({ data, onChange, onInsertBlock, onDone }: BlockEditorProps) {

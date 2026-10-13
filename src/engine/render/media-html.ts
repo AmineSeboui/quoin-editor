@@ -2,12 +2,12 @@ import { optionalNumber, str } from '../blocks/data-fields';
 import { sanitizeHref } from '../markdown/urls';
 import type { EngineBlock } from '../model/types';
 import { alignAttr, indentAttr } from './block-attrs';
+import { embedSource } from './embed-provider';
 import { escapeHtml } from './escape-html';
 import { inlineHTML, type BlockView, type HtmlEnv } from './html-env';
 import { element, openTag, type Attr } from './html-tag';
 
 const SANDBOX = 'allow-scripts allow-same-origin allow-presentation';
-const WEB_URL = /^https?:/i;
 
 const numberAttr = (value: unknown): string | undefined => {
   const number = optionalNumber(value);
@@ -52,8 +52,9 @@ export function fileHTML(block: EngineBlock, view: BlockView, env: HtmlEnv): str
 export function embedHTML(block: EngineBlock, view: BlockView, env: HtmlEnv): string {
   const href = sanitizeHref(str(block.attrs.url));
   if (!href) return '';
-  if (env.embeds === 'iframe' && WEB_URL.test(href)) {
-    return element('iframe', [['src', href], ['sandbox', SANDBOX], ['loading', 'lazy'], indentAttr(view.excess)], '');
+  const frame = env.embeds === 'iframe' ? embedSource(href, env.embedProviders) : null;
+  if (frame) {
+    return element('iframe', [['src', frame], ['sandbox', SANDBOX], ['loading', 'lazy'], indentAttr(view.excess)], '');
   }
   return paragraph(view, link(href, href));
 }

@@ -5,6 +5,8 @@ import type { Schema } from '../schema/types';
 import { indentAttr } from './block-attrs';
 import { groupBlocks, type Entry, type Group } from './block-groups';
 import { blockToHTML } from './block-to-html';
+import type { EmbedProvider } from './embed-provider';
+import { coreEmbedProviders } from './embed-providers';
 import { engineBlocksOf } from './engine-blocks';
 import type { HtmlEnv } from './html-env';
 import { element, type Attr } from './html-tag';
@@ -15,6 +17,8 @@ export type HTMLOptions = {
   resolveAssetUrl?: (storageKey: string) => string;
   renderMath?: (latex: string, options: { displayMode: boolean }) => string;
   embeds?: 'iframe' | 'link';
+  /** Tried before the built in providers, in order. Only used when `embeds` is `'iframe'`. */
+  embedProviders?: readonly EmbedProvider[];
 };
 
 type ListGroup = Extract<Group, { kind: 'list' }>;
@@ -57,6 +61,7 @@ export function toHTML(blocks: readonly QuoinBlock[], options: HTMLOptions = {})
     resolveAssetUrl: options.resolveAssetUrl ?? sanitizeHref,
     renderMath: options.renderMath,
     embeds: options.embeds ?? 'link',
+    embedProviders: [...(options.embedProviders ?? []), ...coreEmbedProviders],
     headings: collectHeadings(engine, schema),
   };
   return groupsHTML(groupBlocks(engine), env);

@@ -62,6 +62,7 @@ export { serializeInline } from './markdown/inline/serialize-inline';
 export { PALETTE } from './markdown/palette';
 export { sanitizeHref } from './markdown/urls';
 
+export type { EmbedProvider, EmbedUrl } from './render/embed-provider';
 export type { HTMLOptions } from './render/to-html';
 export { toHTML } from './render/to-html';
 export { toPlainText } from './render/to-plain-text';

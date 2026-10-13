@@ -17,6 +17,7 @@ import { Transaction } from '../state/transaction';
 import { replaceDocStep } from '../transform/replace-doc-step';
 import { coreExtensions, type CoreCommands } from './core-extensions';
 import { detectMac } from './detect-mac';
+import { createDispatchQueue } from './dispatch-queue';
 import { createEchoTracker } from './echo-tracker';
 import { runKeymap, type KeyLike } from './keymap';
 import { resolveExtensions } from './resolve-extensions';
@@ -70,7 +71,6 @@ export function createEditor<F extends CommandFactories = CoreCommands>(options:
   const tracker = createEchoTracker();
   const listeners = new Set<Listener>();
   const quiet = new WeakSet<Transaction>();
-  const dispatched = new WeakSet<Transaction>();
   let state = createState({ doc: codec.docFromBlocks(options.blocks), schema, plugins: resolved.plugins });
   let supplied: readonly QuoinBlock[] = options.blocks;
   let converted: { doc: EngineDoc; blocks: QuoinBlock[] } | null = null;
@@ -81,11 +81,8 @@ export function createEditor<F extends CommandFactories = CoreCommands>(options:
     return converted.blocks;
   }
 
-  function dispatch(tr: Transaction): void {
-    if (destroyed) return;
-    if (dispatched.has(tr)) throw new RangeError('This transaction was already dispatched');
+  function commit(tr: Transaction): void {
     state = applyTransaction(state, tr);
-    dispatched.add(tr);
     for (const listener of [...listeners]) listener(state, tr);
     for (const extension of resolved.extensions) extension.onTransaction?.(tr, state);
     options.onTransaction?.(tr, state);
@@ -93,6 +90,13 @@ export function createEditor<F extends CommandFactories = CoreCommands>(options:
     const blocks = getBlocks();
     tracker.emitted(blocks);
     onChange?.(blocks);
+  }
+
+  const queue = createDispatchQueue(() => state, commit);
+
+  function dispatch(tr: Transaction): void {
+    if (destroyed) return;
+    queue.dispatch(tr);
   }
 
   function setBlocks(incoming: readonly QuoinBlock[]): boolean {
@@ -156,6 +160,7 @@ export function createEditor<F extends CommandFactories = CoreCommands>(options:
     destroy() {
       destroyed = true;
       listeners.clear();
+      queue.clear();
     },
   };
 }

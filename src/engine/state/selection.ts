@@ -12,6 +12,7 @@ import type {
   TextSelection,
 } from '../model/types';
 import type { Schema } from '../schema/types';
+import { blockEnd, blockStart, firstRegion } from '../transform/block-edges';
 import type { Assoc } from '../transform/step';
 
 export function textSelection(anchor: Pos, head: Pos = anchor): TextSelection {
@@ -97,13 +98,14 @@ export function primaryRegion(schema: Schema, block: EngineBlock): string | null
   if (spec.flow === 'text' && spec.primaryRegion !== undefined && Object.hasOwn(block.regions, spec.primaryRegion)) {
     return spec.primaryRegion;
   }
-  return Object.keys(block.regions)[0] ?? null;
+  return firstRegion(block);
 }
 
 function edge(doc: EngineDoc, schema: Schema, blockId: string, atEnd: boolean): Selection {
   const block = doc.blocks[requireBlockIndex(doc, blockId)];
   const region = primaryRegion(schema, block);
   if (region === null) return nodeSelection(blockId);
+  if (specFor(schema, block.type).flow !== 'text') return textSelection(atEnd ? blockEnd(block) : blockStart(block));
   return textSelection({ block: blockId, region, offset: atEnd ? inlineLength(block.regions[region]) : 0 });
 }
 

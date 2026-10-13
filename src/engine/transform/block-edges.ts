@@ -1,8 +1,13 @@
+import { compareRegionNames } from '../model/compare';
 import { inlineLength } from '../model/inline';
 import type { EngineBlock, Pos } from '../model/types';
 
-function firstRegion(block: EngineBlock): string | undefined {
-  return Object.keys(block.regions)[0];
+function orderedRegions(block: EngineBlock): string[] {
+  return Object.keys(block.regions).sort(compareRegionNames);
+}
+
+export function firstRegion(block: EngineBlock): string | null {
+  return orderedRegions(block)[0] ?? null;
 }
 
 export function blockStart(block: EngineBlock): Pos {
@@ -10,7 +15,7 @@ export function blockStart(block: EngineBlock): Pos {
 }
 
 export function blockEnd(block: EngineBlock): Pos {
-  const region = firstRegion(block);
+  const region = orderedRegions(block).at(-1);
   return {
     block: block.id,
     region: region ?? '',

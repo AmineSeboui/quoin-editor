@@ -23,10 +23,10 @@ describe('replaceDocStep', () => {
     expect(map(pos('a', 5))).toEqual(pos('a', 2));
   });
 
-  it('moves a position whose region is gone to the start of the block', () => {
+  it('moves a position whose region is gone to the start of the block, in region order', () => {
     const noted = createDoc([para('a', 'hi', { regions: { text: [text('hi')], note: [text('n')] } })]);
     const { map } = replaceDocStep(noted).apply(before);
-    expect(map(pos('a', 3, 'gone'))).toEqual(pos('a', 0, 'text'));
+    expect(map(pos('a', 3, 'gone'))).toEqual(pos('a', 0, 'note'));
   });
 
   it('moves a position in a removed block to the start of the block now at that index', () => {

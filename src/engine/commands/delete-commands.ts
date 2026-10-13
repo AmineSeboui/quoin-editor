@@ -1,29 +1,24 @@
-import { indexOfBlock, requireBlockIndex } from '../model/doc';
+import { requireBlockIndex } from '../model/doc';
 import { inlineText } from '../model/inline';
 import { nextGraphemeOffset, nextWordOffset, prevGraphemeOffset, prevWordOffset } from '../model/graphemes';
 import { orderedRange } from '../model/position';
-import { isCollapsed, selectedBlockIds, textSelection } from '../state/selection';
+import { isCollapsed, textSelection } from '../state/selection';
 import { Transaction } from '../state/transaction';
 import { replaceInlineStep } from '../transform/replace-inline-step';
+import { deleteBlocks } from './block-structure';
 import type { Command } from './command';
 import { deleteAtEnd, deleteAtStart } from './delete-at-boundary';
 import { deleteRange } from './delete-range';
-import { removeBlocks } from './remove-blocks';
 
 type Reach = (text: string, offset: number) => number;
 
 export const deleteSelection: Command = (state, dispatch) => {
   const { doc, schema, selection } = state;
-  if (selection === null || isCollapsed(selection)) return false;
+  if (selection?.kind !== 'text') return deleteBlocks(state, dispatch);
+  if (isCollapsed(selection)) return false;
   const tr = new Transaction(state);
-  if (selection.kind === 'text') {
-    const { from, to } = orderedRange(doc, selection.anchor, selection.head);
-    tr.setSelection(textSelection(deleteRange(tr, schema, from, to)));
-  } else {
-    const ids = selectedBlockIds(doc, selection);
-    removeBlocks(tr, schema, indexOfBlock(doc, ids[0]), ids.length);
-  }
-  dispatch?.(tr);
+  const { from, to } = orderedRange(doc, selection.anchor, selection.head);
+  dispatch?.(tr.setSelection(textSelection(deleteRange(tr, schema, from, to))));
   return true;
 };
 

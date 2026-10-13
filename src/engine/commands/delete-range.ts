@@ -7,6 +7,7 @@ import { insertBlocksStep, removeBlocksStep } from '../transform/block-steps';
 import { replaceInlineStep } from '../transform/replace-inline-step';
 import { joinBlocksStep } from '../transform/split-join-steps';
 import { createBlock, isTextFlow, regionLength, startPos } from './block-helpers';
+import { capIndents } from './cap-indents';
 
 function clear(tr: Transaction, pos: Pos, start: number, end: number): void {
   if (start < end) tr.step(replaceInlineStep(pos.block, pos.region, start, end, []));
@@ -43,11 +44,16 @@ export function deleteRange(tr: Transaction, schema: Schema, from: Pos, to: Pos,
   if (removeTo > removeFrom) tr.step(removeBlocksStep(removeFrom, removeTo - removeFrom));
   if (keepFirst) {
     if (keepLast) tr.step(joinBlocksStep(first.id, from.region, last.id, to.region));
+    capIndents(tr, start + 1);
     return from;
   }
-  if (keepLast) return { block: last.id, region: to.region, offset: 0 };
+  if (keepLast) {
+    capIndents(tr, start);
+    return { block: last.id, region: to.region, offset: 0 };
+  }
   // Both ends were removed whole, so an empty default block takes their place to give the caret somewhere to land.
   const filler = createBlock(schema, schema.defaultTextBlock, {}, first.indent, newId?.());
   tr.step(insertBlocksStep(removeFrom, [filler]));
+  capIndents(tr, start + 1);
   return startPos(schema, filler);
 }

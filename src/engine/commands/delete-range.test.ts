@@ -61,6 +61,15 @@ describe('deleteRange', () => {
     expect(markdownOf(state)).toEqual(['']);
   });
 
+  it('lifts the blocks after the range when its ends were removed whole', () => {
+    const line = (markdown: string, indent: number) => ({ id: 'x', type: 'MARKDOWN', data: { markdown }, indent });
+    const divider = (indent: number) => ({ ...DIVIDER_FIXTURE, indent });
+    const kept = remove([line('a', 0), divider(1), line('b', 2), line('c', 3)], at(1, 0, ''), at(3, 0));
+    expect(markdownOf(kept.state)).toEqual(['a', '  c']);
+    const filled = remove([line('a', 0), divider(1), divider(2), line('c', 3)], at(1, 0, ''), at(2, 0, ''));
+    expect(markdownOf(filled.state)).toEqual(['a', '  ', '    c']);
+  });
+
   it('clears the tail of the first cell and the head of the last without joining them', () => {
     const { tr, caret, state } = remove([row('abcdef', 'ghijkl')], cell(0, 1), cell(1, 5));
     const [first, second] = ['cell:0:0', 'cell:0:1'].map((key) => inlineText(state.doc.blocks[0].regions[key]));

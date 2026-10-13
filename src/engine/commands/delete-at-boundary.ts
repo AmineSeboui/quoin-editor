@@ -8,6 +8,7 @@ import { setIndentStep } from '../transform/attrs-steps';
 import { removeBlocksStep } from '../transform/block-steps';
 import { joinBlocksStep } from '../transform/split-join-steps';
 import { isParagraph, isTextFlow, regionLength } from './block-helpers';
+import { capIndents } from './cap-indents';
 import type { Command } from './command';
 import { paragraphStep } from './paragraph-step';
 
@@ -26,6 +27,7 @@ function textCaret(state: EditorState): Caret | null {
 function joinInto(tr: Transaction, schema: Schema, target: EngineBlock, source: EngineBlock): void {
   const targetRegion = primaryRegion(schema, target) ?? '';
   tr.step(joinBlocksStep(target.id, targetRegion, source.id, primaryRegion(schema, source) ?? ''));
+  capIndents(tr, requireBlockIndex(tr.doc, target.id) + 1);
   const offset = regionLength(target, targetRegion);
   tr.setSelection(textSelection({ block: target.id, region: targetRegion, offset }));
 }
@@ -65,7 +67,10 @@ export const deleteAtEnd: Command = (state, dispatch) => {
   if (isTextFlow(schema, next)) {
     joinInto(tr, schema, block, next);
   } else {
-    if (isParagraph(block) && pos.offset === 0) tr.step(removeBlocksStep(index, 1));
+    if (isParagraph(block) && pos.offset === 0) {
+      tr.step(removeBlocksStep(index, 1));
+      capIndents(tr, index);
+    }
     tr.setSelection(nodeSelection(next.id));
   }
   dispatch?.(tr);

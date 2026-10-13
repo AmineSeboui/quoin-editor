@@ -6,6 +6,7 @@ import { blocksOf, buildState, caretOf, markdownOf, newIds, run } from '../test-
 import { sliceFromSelection } from './extract-slice';
 import { insertSlice } from './insert-slice';
 import type { Slice } from './slice';
+import { sliceFromClipboard, type ClipboardData } from './slice-from-clipboard';
 
 const nested: QuoinBlock = { id: 'n', type: 'MARKDOWN', data: { markdown: '- nested' }, indent: 1 };
 const kid: QuoinBlock = { id: 'k', type: 'MARKDOWN', data: { markdown: '- kid' }, indent: 1 };
@@ -59,5 +60,38 @@ describe('pasting into an empty text block', () => {
     const undone = run(done.state, undo).state;
     expect(blocksOf(undone)).toEqual(blocksOf(before));
     expect(caretOf(undone)).toEqual({ block: 1, offset: 0 });
+  });
+});
+
+describe('pasting plain text into an empty typed block', () => {
+  const pasted = (target: string, data: ClipboardData) => {
+    const slice = sliceFromClipboard(data, { newId: newIds('c') })!;
+    return run(buildState([target], { block: 0, offset: 0 }), insertSlice(slice, { newId: newIds('p') })).state;
+  };
+
+  it.each([
+    ['## ', '## one'],
+    ['- ', '- one'],
+    ['1. ', '1. one'],
+    ['> ', '> one'],
+    ['- [ ] ', '- [ ] one'],
+  ])('keeps the type of %j for the first line and makes the other lines paragraphs', (target, first) => {
+    const done = pasted(target, { text: 'one\ntwo\nthree' });
+    expect(markdownOf(done)).toEqual([first, 'two', 'three']);
+    expect(caretOf(done)).toEqual({ block: 2, offset: 5 });
+  });
+
+  it('replaces the empty block when the text starts with a heading', () => {
+    expect(markdownOf(pasted('- ', { text: '# Title\nbody' }))).toEqual(['# Title', 'body']);
+  });
+
+  it('still replaces the empty block with the pieces of html or of an engine slice', () => {
+    expect(markdownOf(pasted('## ', { html: '<p>one</p><p>two</p>', text: 'one\ntwo' }))).toEqual(['one', 'two']);
+    const blocks = [
+      { id: 'a', type: 'MARKDOWN', data: { markdown: 'one' } },
+      { id: 'b', type: 'MARKDOWN', data: { markdown: 'two' } },
+    ];
+    const json = JSON.stringify({ quoin: 1, slice: { blocks, openStart: true, openEnd: true } });
+    expect(markdownOf(pasted('## ', { json, text: 'one\ntwo' }))).toEqual(['one', 'two']);
   });
 });

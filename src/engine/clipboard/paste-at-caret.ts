@@ -1,4 +1,5 @@
 import { descendantsEnd, isTextFlow, regionLength } from '../commands/block-helpers';
+import { capIndents } from '../commands/cap-indents';
 import { splitStep } from '../commands/split-step';
 import { requireBlockIndex } from '../model/doc';
 import { inlineLength } from '../model/inline';
@@ -11,7 +12,7 @@ import { replaceInlineStep } from '../transform/replace-inline-step';
 import type { Slice } from './slice';
 import { freshBlocks } from './slice-blocks';
 
-type Ends = Pick<Slice, 'openStart' | 'openEnd'>;
+type Ends = Pick<Slice, 'openStart' | 'openEnd' | 'plainText'>;
 
 function contentOf(schema: Schema, block: EngineBlock): Inline {
   return block.regions[primaryRegion(schema, block) ?? ''] ?? [];
@@ -21,14 +22,20 @@ function insertAt(tr: Transaction, pos: Pos, content: Inline): void {
   if (content.length > 0) tr.step(replaceInlineStep(pos.block, pos.region, pos.offset, pos.offset, content));
 }
 
-function insertClosed(tr: Transaction, schema: Schema, at: number, blocks: readonly EngineBlock[]): void {
+function insertCapped(tr: Transaction, at: number, blocks: readonly EngineBlock[]): void {
   tr.step(insertBlocksStep(at, blocks));
+  capIndents(tr, at, at + blocks.length);
+}
+
+function insertClosed(tr: Transaction, schema: Schema, at: number, blocks: readonly EngineBlock[]): void {
+  insertCapped(tr, at, blocks);
   tr.setSelection(endOf(tr.doc, schema, blocks[blocks.length - 1].id));
 }
 
 function replaceEmpty(tr: Transaction, schema: Schema, index: number, blocks: readonly EngineBlock[]): void {
   tr.step(insertBlocksStep(index, blocks));
   tr.step(removeBlocksStep(index + blocks.length, 1));
+  capIndents(tr, index, index + blocks.length);
   tr.setSelection(endOf(tr.doc, schema, blocks[blocks.length - 1].id));
 }
 
@@ -60,7 +67,8 @@ export function pasteAtCaret(
     return;
   }
 
-  if (regionLength(current, region) === 0) {
+  const keepsTargetType = ends.plainText === true && ends.openStart && textual(first);
+  if (regionLength(current, region) === 0 && !keepsTargetType) {
     replaceEmpty(tr, schema, index, fresh);
     return;
   }
@@ -73,7 +81,7 @@ export function pasteAtCaret(
   const lastContent = mergeLast ? contentOf(schema, fresh[fresh.length - 1]) : [];
 
   if (atStart && !atEnd) {
-    if (middle.length > 0) tr.step(insertBlocksStep(index, middle));
+    if (middle.length > 0) insertCapped(tr, index, middle);
     insertAt(tr, { ...caret, offset: 0 }, lastContent);
     tr.setSelection(textSelection({ ...caret, offset: inlineLength(lastContent) }));
     return;
@@ -84,7 +92,7 @@ export function pasteAtCaret(
   const offset = caret.offset + inlineLength(firstContent);
   const tail = !atEnd && (mergeLast || middle.length > 0) ? splitStep(schema, current, region, offset, makeId()) : null;
   if (tail !== null) tr.step(tail.step);
-  if (middle.length > 0) tr.step(insertBlocksStep(index + 1, middle));
+  if (middle.length > 0) insertCapped(tr, index + 1, middle);
   if (tail !== null && mergeLast) {
     insertAt(tr, { block: tail.tail.id, region: tail.tail.region, offset: 0 }, lastContent);
     tr.setSelection(textSelection({ block: tail.tail.id, region: tail.tail.region, offset: inlineLength(lastContent) }));

@@ -17,9 +17,10 @@ export type SliceFromClipboardOptions = { parser?: DOMParserLike; newId?: () => 
 const isParagraph = (block: QuoinBlock): boolean =>
   block.type === 'MARKDOWN' && parseLine(String(block.data.markdown ?? '')).kind === 'paragraph';
 
-function openSlice(blocks: QuoinBlock[]): Slice | null {
+function openSlice(blocks: QuoinBlock[], plainText = false): Slice | null {
   if (blocks.length === 0) return null;
-  return { blocks, openStart: isParagraph(blocks[0]), openEnd: isParagraph(blocks[blocks.length - 1]) };
+  const slice = { blocks, openStart: isParagraph(blocks[0]), openEnd: isParagraph(blocks[blocks.length - 1]) };
+  return plainText ? { ...slice, plainText } : slice;
 }
 
 function linkBlocks(url: string, makeId: () => string): QuoinBlock[] | null {
@@ -47,5 +48,5 @@ export function sliceFromClipboard(data: ClipboardData, options: SliceFromClipbo
   if (fromJson !== null) return fromJson;
   const fromHtml = htmlSlice(data.html, options);
   if (fromHtml !== null) return fromHtml;
-  return data.text === undefined ? null : openSlice(textBlocks(data.text, options.newId ?? newId));
+  return data.text === undefined ? null : openSlice(textBlocks(data.text, options.newId ?? newId), true);
 }

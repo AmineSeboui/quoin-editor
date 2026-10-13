@@ -4,10 +4,10 @@ import { Transaction } from '../state/transaction';
 import { buildState } from '../test-support/build-state';
 import { capIndents } from './cap-indents';
 
-const indentsAfterCap = (indents: number[], from: number) => {
+const indentsAfterCap = (indents: number[], from: number, end?: number) => {
   const state = buildState(indents.map((indent) => ({ id: 'x', type: 'MARKDOWN', data: { markdown: 'p' }, indent })));
   const tr = new Transaction(state);
-  capIndents(tr, from);
+  capIndents(tr, from, end);
   return applyTransaction(state, tr).doc.blocks.map((block) => block.indent);
 };
 
@@ -31,5 +31,9 @@ describe('capIndents', () => {
   it('changes nothing when the block at the edit point already fits', () => {
     expect(indentsAfterCap([0, 1, 5], 1)).toEqual([0, 1, 5]);
     expect(indentsAfterCap([0, 1], 2)).toEqual([0, 1]);
+  });
+
+  it('walks through every block before the end it is given, then stops at the first block that fits', () => {
+    expect(indentsAfterCap([0, 0, 3, 3, 1, 5], 1, 4)).toEqual([0, 0, 1, 1, 1, 5]);
   });
 });

@@ -1,6 +1,7 @@
 import { createBlockCodec } from '../blocks/codec';
 import type { Command } from '../commands/command';
 import { selectedBlockRange } from '../commands/block-helpers';
+import { capIndents } from '../commands/cap-indents';
 import { deleteRange } from '../commands/delete-range';
 import { newId } from '../model/new-id';
 import { orderedRange } from '../model/position';
@@ -25,6 +26,7 @@ function replaceSelected(
   const fresh = freshBlocks(pieces, tr.doc.blocks[range.start].indent, makeId);
   tr.step(insertBlocksStep(range.end, fresh));
   tr.step(removeBlocksStep(range.start, range.end - range.start));
+  capIndents(tr, range.start, range.start + fresh.length);
   tr.setSelection(endOf(tr.doc, schema, fresh[fresh.length - 1].id));
 }
 

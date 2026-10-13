@@ -1,5 +1,5 @@
 import { emit, type Context, type Sink } from './html-context';
-import { flatText, isElement, MAX_DEPTH, tagName, TEXT_NODE } from './html-dom';
+import { flatText, isBlockTag, isElement, MAX_DEPTH, tagName, TEXT_NODE } from './html-dom';
 
 const LANGUAGE = /(?:^|\s)(?:language|lang)-(\S+)/;
 
@@ -8,9 +8,10 @@ function preText(node: Node, depth = 0): string {
   if (!isElement(node)) return '';
   if (tagName(node) === 'br') return '\n';
   if (depth > MAX_DEPTH) return flatText(node);
-  return Array.from(node.childNodes)
+  const text = Array.from(node.childNodes)
     .map((part) => preText(part, depth + 1))
     .join('');
+  return depth > 0 && isBlockTag(node) && !text.endsWith('\n') ? `${text}\n` : text;
 }
 
 const languageOf = (element: Element | null): string | undefined =>

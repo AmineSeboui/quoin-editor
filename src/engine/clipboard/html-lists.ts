@@ -28,13 +28,13 @@ const isPlainWrapper = (node: Node): node is Element =>
 export function listItem(item: Element, base: BlockAttrs, ctx: Context, sink: Sink): void {
   const own = takeCheckbox(Array.from(item.childNodes));
   const split = own.rest.findIndex(breaksRun);
-  let content = inlineFromNodes(split < 0 ? own.rest : own.rest.slice(0, split), ctx.marks);
+  let content = inlineFromNodes(split < 0 ? own.rest : own.rest.slice(0, split), ctx);
   let rest = split < 0 ? [] : own.rest.slice(split);
   let checked = own.checked;
   if (content.length === 0 && rest.length > 0 && isPlainWrapper(rest[0])) {
     const inner = takeCheckbox(Array.from(rest[0].childNodes));
     checked = checked ?? inner.checked;
-    content = inlineFromNodes(inner.rest, ctx.marks);
+    content = inlineFromNodes(inner.rest, ctx);
     rest = rest.slice(1);
   }
   emitText(sink, ctx.indent, checked === null ? base : { kind: 'task', checked }, content);
@@ -76,6 +76,6 @@ export function wordListItem(paragraph: Element, ctx: Context, sink: Sink): bool
   const listClass = (paragraph.getAttribute('class') ?? '').toLowerCase().includes('msolistparagraph');
   if (level === null && !listClass) return false;
   const depth = level === null ? 0 : Math.max(0, Number(level[1]) - 1);
-  emitText(sink, ctx.indent + depth, wordMarker(paragraph), inlineFromNodes(paragraph.childNodes, ctx.marks));
+  emitText(sink, ctx.indent + depth, wordMarker(paragraph), inlineFromNodes(paragraph.childNodes, ctx));
   return true;
 }

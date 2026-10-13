@@ -35,6 +35,19 @@ export function isItalicStyle(styles: StyleMap): boolean | null {
   return value === 'italic' || value.startsWith('oblique') ? true : null;
 }
 
+const PRESERVING = new Set(['pre', 'pre-wrap', 'break-spaces']);
+const COLLAPSING = new Set(['normal', 'nowrap', 'pre-line']);
+const MONOSPACE = /\b(?:monospace|menlo|monaco|consolas|courier)\b/;
+
+export function keepsWhitespace(styles: StyleMap): boolean | null {
+  const value = styles.get('white-space');
+  if (value === undefined) return null;
+  if (PRESERVING.has(value)) return true;
+  return COLLAPSING.has(value) ? false : null;
+}
+
+export const isMonospace = (styles: StyleMap): boolean => MONOSPACE.test(styles.get('font-family') ?? '');
+
 export function hasDecoration(styles: StyleMap, line: 'underline' | 'line-through'): boolean {
   return (styles.get('text-decoration') ?? '').includes(line) || (styles.get('text-decoration-line') ?? '').includes(line);
 }

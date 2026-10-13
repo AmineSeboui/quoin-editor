@@ -15,13 +15,14 @@ import { inlineFromNodes } from './html-inline';
 import { list, listItem, wordListItem } from './html-lists';
 import { elementMarks } from './html-marks';
 import { figure, imageBlock } from './html-media';
+import { isMonospace, keepsWhitespace, parseStyle } from './html-styles';
 import { tableBlock } from './html-table';
 
 const QUOTE: BlockAttrs = { kind: 'quote' };
 const HEADING = /^h([1-6])$/;
 
 function emitRun(run: readonly Node[], ctx: Context, sink: Sink): void {
-  const inline = inlineFromNodes(run, ctx.marks);
+  const inline = inlineFromNodes(run, ctx);
   if (inline.length === 0) return;
   const plain = ctx.run.kind === 'heading' ? removeMarkRange(inline, 0, inlineLength(inline), 'bold') : inline;
   emitText(sink, ctx.indent, ctx.run, plain);
@@ -29,15 +30,24 @@ function emitRun(run: readonly Node[], ctx: Context, sink: Sink): void {
 
 function details(element: Element, ctx: Context, sink: Sink): void {
   const summary = Array.from(element.children).find((part) => tagName(part) === 'summary');
-  const title: Inline = summary === undefined ? [] : inlineFromNodes(summary.childNodes, ctx.marks);
+  const title: Inline = summary === undefined ? [] : inlineFromNodes(summary.childNodes, ctx);
   emit(sink, 'TOGGLE', ctx.indent, { open: element.hasAttribute('open') }, { text: title });
   const body = Array.from(element.childNodes).filter((part) => part !== summary);
   sink.walk(body, child(ctx, { indent: ctx.indent + 1, run: PARAGRAPH }));
 }
 
+function styledContext(element: Element, outer: Context): { ctx: Context; code: boolean } {
+  const styles = parseStyle(element.getAttribute('style'));
+  const keeps = keepsWhitespace(styles);
+  const marks = elementMarks(element, outer.marks);
+  const ctx = { ...outer, marks, preformatted: keeps ?? outer.preformatted };
+  return { ctx, code: keeps === true && isMonospace(styles) };
+}
+
 function handleBlock(element: Element, outer: Context, sink: Sink): void {
-  const ctx = { ...outer, marks: elementMarks(element, outer.marks) };
+  const { ctx, code } = styledContext(element, outer);
   const tag = tagName(element);
+  if (code && tag === 'div') return codeBlock(element, ctx, sink);
   const heading = HEADING.exec(tag);
   if (heading) return sink.walk(element.childNodes, child(ctx, { run: { kind: 'heading', level: Number(heading[1]) } }));
   switch (tag) {
@@ -84,7 +94,7 @@ function walkNodes(nodes: Iterable<Node>, ctx: Context, sink: Sink): void {
       handleBlock(node, ctx, sink);
     } else if (hasBlockDescendant(node)) {
       flush();
-      sink.walk(node.childNodes, child(ctx, { marks: elementMarks(node, ctx.marks) }));
+      sink.walk(node.childNodes, child(styledContext(node, ctx).ctx));
     } else run.push(node);
   }
   flush();
@@ -92,6 +102,6 @@ function walkNodes(nodes: Iterable<Node>, ctx: Context, sink: Sink): void {
 
 export function blocksFromBody(body: Element, newId: () => string): EngineBlock[] {
   const sink: Sink = { out: [], newId, walk: (nodes, ctx) => walkNodes(nodes, ctx, sink) };
-  sink.walk(body.childNodes, { indent: 0, marks: [], run: PARAGRAPH, depth: 0 });
+  sink.walk(body.childNodes, { indent: 0, marks: [], run: PARAGRAPH, preformatted: false, depth: 0 });
   return sink.out;
 }

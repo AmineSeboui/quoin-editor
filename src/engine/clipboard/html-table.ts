@@ -32,7 +32,7 @@ export function tableBlock(table: Element, ctx: Context, sink: Sink): void {
   rows.forEach((row, r) => {
     for (let c = 0; c < cols; c++) {
       const cell = row.cells[c];
-      regions[cellKey(r, c)] = cell === undefined ? [] : inlineFromNodes(cell.childNodes, ctx.marks);
+      regions[cellKey(r, c)] = cell === undefined ? [] : inlineFromNodes(cell.childNodes, ctx);
     }
   });
   const header = rows[0].head || rows[0].cells.some((cell) => tagName(cell) === 'th');

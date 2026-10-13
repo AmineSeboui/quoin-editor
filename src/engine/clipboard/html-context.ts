@@ -4,6 +4,7 @@ export type Context = {
   readonly indent: number;
   readonly marks: readonly Mark[];
   readonly run: BlockAttrs;
+  readonly preformatted: boolean;
   readonly depth: number;
 };
 

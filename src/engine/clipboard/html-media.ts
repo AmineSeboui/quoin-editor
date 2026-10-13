@@ -16,5 +16,5 @@ export function figure(element: Element, ctx: Context, sink: Sink): void {
     return;
   }
   const caption = element.querySelector('figcaption');
-  imageBlock(img, caption === null ? [] : inlineFromNodes(caption.childNodes, ctx.marks), ctx, sink);
+  imageBlock(img, caption === null ? [] : inlineFromNodes(caption.childNodes, ctx), ctx, sink);
 }

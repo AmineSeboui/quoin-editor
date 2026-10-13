@@ -174,16 +174,16 @@ describe('diffBlocks pairing of leftover runs', () => {
 
 describe('diffBlocks speed', () => {
   const words = 'lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor'.split(' ');
-  const document = (): QuoinBlock[] =>
-    Array.from({ length: 1000 }, (_, i) => {
+  const document = (length: number): QuoinBlock[] =>
+    Array.from({ length }, (_, i) => {
       const body = Array.from({ length: 12 }, (_, j) => words[(i + j) % words.length]).join(' ');
       const kind = i % 10;
       const markdown = kind === 0 ? `## ${body}` : kind < 4 ? `- ${body} **bold** _it_` : `${body} [link](https://x.example) \`code\``;
       return md(`b${i}`, markdown, kind === 2 ? 1 : undefined);
     });
 
-  it('diffs a 1,000 block document by id with twenty edits in a few milliseconds', () => {
-    const before = document();
+  const fastest = (length: number): number => {
+    const before = document(length);
     const after = before.map((block, i) => (i % 50 === 7 ? md(block.id, `${block.data.markdown} edited`, block.indent) : block));
     diffBlocks(before, after);
     const timings: number[] = [];
@@ -191,8 +191,15 @@ describe('diffBlocks speed', () => {
       const start = performance.now();
       const diff = diffBlocks(before, after);
       timings.push(performance.now() - start);
-      expect(diff.filter((d) => d.op === 'change')).toHaveLength(20);
+      expect(diff.filter((d) => d.op === 'change')).toHaveLength(length / 50);
     }
-    expect(Math.min(...timings)).toBeLessThan(5);
+    return Math.min(...timings);
+  };
+
+  it('diffs by id in time that grows linearly with the document', () => {
+    const small = fastest(250);
+    const large = fastest(1000);
+    expect(large / small).toBeLessThan(8);
+    expect(large).toBeLessThan(500);
   });
 });

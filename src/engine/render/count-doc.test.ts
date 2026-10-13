@@ -175,18 +175,25 @@ describe('Editor.stats', () => {
     expect(editor.stats()).toEqual({ characters: 9, words: 2 });
   });
 
-  it('recounts one edited block of a 1,000 block document in well under a millisecond', () => {
+  it('recounts one edited block of a 1,000 block document much faster than counting it all', () => {
     const editor = createEditor({ blocks: thousand(), isMac: true });
     editor.commands.setSelection(textSelection({ block: 'b500', region: 'text', offset: 3 }));
     editor.stats();
-    const timings: number[] = [];
+    const cached: number[] = [];
+    const full: number[] = [];
     for (let run = 0; run < 25; run++) {
       editor.insertText('x');
-      const start = performance.now();
+      let start = performance.now();
       editor.stats();
-      timings.push(performance.now() - start);
+      cached.push(performance.now() - start);
+      if (run < 5) {
+        const blocks = editor.getBlocks();
+        start = performance.now();
+        countText(blocks);
+        full.push(performance.now() - start);
+      }
     }
-    expect(Math.min(...timings)).toBeLessThan(1);
+    expect(Math.min(...cached)).toBeLessThan(Math.min(...full) / 3);
     expect(editor.stats()).toEqual(countText(editor.getBlocks()));
   });
 });

@@ -32,7 +32,7 @@ export type EditorOptions = {
 
 export type MarkdownOptions = {
   comments?: boolean;
-  /** Write what markdown cannot hold as quoin comments. Plain export drops block-level extras and the data of other types. */
+  /** Write what markdown cannot hold as quoin comments. Plain export drops block-level extras and other data. */
   lossless?: boolean;
   resolveAssetUrl?: (key: string) => string;
 };

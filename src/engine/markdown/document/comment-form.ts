@@ -14,7 +14,12 @@ export const hasNativeForm = (type: string): boolean => NATIVE_KEYS.has(type);
 
 // When lossless, a block with a native form is still a comment if it holds data that form cannot carry, such as align,
 // colour or an unknown key, or if the containers above it do not account for all of its indent.
-export function needsComment(block: EngineBlock, residual: number, schema: Schema, ctx: MarkdownExportContext): boolean {
+export function needsComment(
+  block: EngineBlock,
+  residual: number,
+  schema: Schema,
+  ctx: MarkdownExportContext,
+): boolean {
   const native = NATIVE_KEYS.get(block.type);
   if (!native) return false;
   if (residual > 0) return true;

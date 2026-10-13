@@ -61,7 +61,11 @@ const noStyle: Record<string, unknown> = {};
 const markdownDraft = (extras: boolean) =>
   fc
     .tuple(line, arbitraryInline(), extras ? sometimes(textStyle, noStyle) : fc.constant(noStyle))
-    .map(([attrs, inline, style]): Draft => ({ type: 'MARKDOWN', attrs: { ...attrs, ...style }, regions: { text: inline } }));
+    .map(([attrs, inline, style]): Draft => ({
+      type: 'MARKDOWN',
+      attrs: { ...attrs, ...style },
+      regions: { text: inline },
+    }));
 
 const calloutDraft = fc
   .tuple(fc.constantFrom(...TONES), arbitraryInline(), fc.option(fc.constantFrom('\u{1F4A1}', 'i'), { nil: undefined }))
@@ -75,7 +79,12 @@ const codeDraft = fc
     regions: {},
   }));
 
-const CLOSING_TAGS = [text('</summary>'), text('</summary>', [{ type: 'code' }]), text('a </summary> \\ b'), text('\n</summary>')];
+const CLOSING_TAGS = [
+  text('</summary>'),
+  text('</summary>', [{ type: 'code' }]),
+  text('a </summary> \\ b'),
+  text('\n</summary>'),
+];
 const summary = fc.oneof(
   { weight: 3, arbitrary: arbitraryInline() },
   {

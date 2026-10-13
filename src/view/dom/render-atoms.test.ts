@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Decoration } from '../../engine';
 import { atom, text } from '../../engine/model/inline';
-import { domMapOf, isRendering, renderInline } from './render-inline';
+import { domMapOf, isRendering, renderInline, type RenderOptions } from './render-inline';
 
 const host = () => document.createElement('div');
 const bold = { type: 'bold' };
@@ -112,19 +112,41 @@ describe('widgets', () => {
 });
 
 describe('renderer changes and the rendering flag', () => {
-  it('keeps atom elements while the renderers stay the same and rebuilds them when a renderer changes', () => {
+  it('keeps atom and widget elements when every call builds its options afresh', () => {
+    const el = host();
+    const nodes = [text('a'), atom('mention', { id: '1', label: 'A' })];
+    const options = (): RenderOptions => ({
+      atoms: {
+        mention: (_node, doc) => {
+          const chip = doc.createElement('b');
+          chip.textContent = 'chip';
+          return chip;
+        },
+      },
+      widgets: { caret: (_decoration, doc) => doc.createElement('i') },
+      atomText: (node) => node.type,
+    });
+    renderInline(el, nodes, [caret(1)], options());
+    const before = Array.from(el.childNodes);
+    renderInline(el, nodes, [caret(1)], options());
+    const after = Array.from(el.childNodes);
+    expect(after).toHaveLength(3);
+    after.forEach((node, index) => expect(node).toBe(before[index]));
+  });
+
+  it('keeps atom elements built by an earlier renderer until the caller empties the host', () => {
     const el = host();
     const make = (label: string) => (_node: unknown, doc: Document) => {
       const chip = doc.createElement('b');
       chip.textContent = label;
       return chip;
     };
-    const first = { mention: make('one') };
     const nodes = [atom('mention', { id: '1', label: 'A' })];
-    renderInline(el, nodes, [], { atoms: first });
+    renderInline(el, nodes, [], { atoms: { mention: make('one') } });
     const chip = el.firstChild;
-    renderInline(el, nodes, [], { atoms: first });
+    renderInline(el, nodes, [], { atoms: { mention: make('two') } });
     expect(el.firstChild).toBe(chip);
+    el.replaceChildren();
     renderInline(el, nodes, [], { atoms: { mention: make('two') } });
     expect(el.innerHTML).toBe('<b>two</b>');
   });

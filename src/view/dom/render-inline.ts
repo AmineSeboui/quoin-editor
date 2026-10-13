@@ -11,13 +11,11 @@ import { fillerSpec, textSpecs } from './text-specs';
 export type { DomMap, DomPoint } from './dom-map';
 export type { AtomRenderer, RenderOptions, WidgetRenderer } from './render-options';
 
-type HostState = { readonly map: DomMap; readonly options: RenderOptions };
-
-const states = new WeakMap<HTMLElement, HostState>();
+const maps = new WeakMap<HTMLElement, DomMap>();
 const rendering = new WeakSet<HTMLElement>();
 
 export function domMapOf(host: HTMLElement): DomMap | undefined {
-  return states.get(host)?.map;
+  return maps.get(host);
 }
 
 export function isRendering(host: HTMLElement): boolean {
@@ -41,11 +39,8 @@ function needsFiller(inline: Inline): boolean {
   return content === '' || content.endsWith('\n');
 }
 
-// Kept nodes were built by the renderers of the previous call, so a changed renderer rebuilds them.
-function sameRenderers(a: RenderOptions, b: RenderOptions): boolean {
-  return a.atoms === b.atoms && a.widgets === b.widgets && a.atomText === b.atomText;
-}
-
+// Kept nodes are decided by signature alone, and options built inline change identity on every call. A caller that
+// swaps renderers must empty the host first (host.replaceChildren()) so atoms and widgets are rebuilt.
 export function renderInline(
   host: HTMLElement,
   inline: Inline,
@@ -55,8 +50,6 @@ export function renderInline(
   const doc = host.ownerDocument;
   rendering.add(host);
   try {
-    const previous = states.get(host);
-    if (previous && !sameRenderers(previous.options, options)) host.replaceChildren();
     const length = inlineLength(inline);
     const specs = toSegments(inline, decorations).flatMap((segment) => specsFor(segment, options, doc));
     if (needsFiller(inline)) specs.push(fillerSpec(doc, length));
@@ -65,7 +58,7 @@ export function renderInline(
     const nodes = Array.from(host.childNodes);
     specs.forEach((spec, index) => spec.describe(nodes[index], entries));
     const map = createDomMap(host, length, entries);
-    states.set(host, { map, options });
+    maps.set(host, map);
     return map;
   } finally {
     rendering.delete(host);

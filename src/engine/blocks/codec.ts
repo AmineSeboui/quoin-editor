@@ -53,6 +53,7 @@ export function createBlockCodec(schema: Schema, options: { newId?: () => string
     const quoin: QuoinBlock = { id: block.id, type: block.type, data };
     if (block.indent > 0) quoin.indent = block.indent;
     quoinBlocks.set(block, quoin);
+    engineBlocks.set(quoin, [block]);
     return quoin;
   }
 

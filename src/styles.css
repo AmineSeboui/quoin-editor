@@ -13,6 +13,7 @@
 @import "tailwindcss/theme.css" layer(quoin.theme) theme(inline reference);
 @import "tailwindcss/utilities.css" layer(quoin.utilities) source(none);
 @import "tw-animate-css";
+@import "./view/view.css" layer(quoin.components);
 
 /* Tailwind's default dark: variant keys on prefers-color-scheme, while the variables below
    switch on a .dark class; without this line the two disagree for a consumer whose OS theme

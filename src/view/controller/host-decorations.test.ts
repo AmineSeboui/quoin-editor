@@ -1,6 +1,8 @@
-import { describe, expect, it } from 'vitest';
-import type { Decoration } from '../../engine';
-import { decorationsByHost, sameDecorations } from './host-decorations';
+import { describe, expect, it, vi } from 'vitest';
+import type { Decoration, Extension } from '../../engine';
+import { coreExtensions } from '../../engine/extension/core-extensions';
+import { createEditor } from '../../engine/extension/editor';
+import { decorationsByHost, hostDecorations, NO_DECORATIONS, sameDecorations } from './host-decorations';
 import { hostKey } from './host-registry';
 
 const inline = (from: number, to: number, attrs = { class: 'x' }): Decoration =>
@@ -25,5 +27,44 @@ describe('host decorations', () => {
     expect(sameDecorations([widget(1)], [widget(1, { title: 't' })])).toBe(false);
     expect(sameDecorations([inline(0, 1)], [inline(0, 1), widget(1)])).toBe(false);
     expect(sameDecorations([inline(0, 1)], [widget(1)])).toBe(false);
+  });
+});
+
+describe('hostDecorations', () => {
+  const mark: Extension = {
+    name: 'mark',
+    decorations: (): readonly Decoration[] => [
+      { kind: 'inline', block: 'a', region: 'text', from: 0, to: 1, attrs: { class: 'x' } },
+      { kind: 'block', block: 'b', attrs: {} },
+    ],
+  };
+
+  function setup() {
+    const editor = createEditor({
+      blocks: [
+        { id: 'a', type: 'MARKDOWN', data: { markdown: 'one' } },
+        { id: 'b', type: 'MARKDOWN', data: { markdown: 'two' } },
+      ],
+      extensions: [...coreExtensions(), mark],
+    });
+    return { editor, calls: vi.spyOn(editor, 'decorations') };
+  }
+
+  it('gives each host its own decorations and none to the rest', () => {
+    const { editor } = setup();
+    expect(hostDecorations(editor, 'a', 'text')).toEqual([
+      { kind: 'inline', block: 'a', region: 'text', from: 0, to: 1, attrs: { class: 'x' } },
+    ]);
+    expect(hostDecorations(editor, 'b', 'text')).toBe(NO_DECORATIONS);
+    expect(hostDecorations(editor, 'missing', 'text')).toBe(NO_DECORATIONS);
+  });
+
+  it('asks the editor for its decorations once per state however many hosts ask', () => {
+    const { editor, calls } = setup();
+    for (const id of ['a', 'b', 'a', 'b']) hostDecorations(editor, id, 'text');
+    expect(calls).toHaveBeenCalledTimes(1);
+    editor.insertText('x');
+    hostDecorations(editor, 'a', 'text');
+    expect(calls).toHaveBeenCalledTimes(2);
   });
 });

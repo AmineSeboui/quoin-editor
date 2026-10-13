@@ -12,3 +12,4 @@ export { formatShortcut } from './markdown/shortcut-label';
 export { caretRect, type CaretRect } from './markdown/caret-coordinates';
 export { useMarkdownKeymap } from './markdown/useMarkdownKeymap';
 export { useAutoGrow } from './hooks/useAutoGrow';
+export * from './view';

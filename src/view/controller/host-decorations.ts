@@ -1,4 +1,4 @@
-import type { Decoration } from '../../engine';
+import type { Decoration, Editor, EditorState } from '../../engine';
 import { sameAttrs } from '../../engine/model/attrs';
 import { hostKey } from './host-registry';
 
@@ -30,4 +30,17 @@ function sameDecoration(a: Decoration, b: Decoration): boolean {
 
 export function sameDecorations(a: readonly Decoration[], b: readonly Decoration[]): boolean {
   return a === b || (a.length === b.length && a.every((decoration, index) => sameDecoration(decoration, b[index])));
+}
+
+const byState = new WeakMap<EditorState, ReadonlyMap<string, readonly Decoration[]>>();
+
+// A state belongs to one editor, so the decorations grouped from it are computed once however many hosts ask.
+export function hostDecorations(editor: Editor, block: string, region: string): readonly Decoration[] {
+  const { state } = editor;
+  let grouped = byState.get(state);
+  if (grouped === undefined) {
+    grouped = decorationsByHost(editor.decorations());
+    byState.set(state, grouped);
+  }
+  return grouped.get(hostKey(block, region)) ?? NO_DECORATIONS;
 }

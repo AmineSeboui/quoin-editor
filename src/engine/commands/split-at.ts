@@ -4,12 +4,12 @@ import type { EngineBlock, Pos } from '../model/types';
 import type { Schema } from '../schema/types';
 import { primaryRegion, startOf, textSelection } from '../state/selection';
 import type { Transaction } from '../state/transaction';
-import { setIndentStep } from '../transform/attrs-steps';
 import { insertBlocksStep } from '../transform/block-steps';
 import { replaceInlineStep } from '../transform/replace-inline-step';
 import { createBlock, descendantsEnd, isItem, isTextFlow, regionLength, specOf, withContent } from './block-helpers';
 import { insertTextAt } from './insert-text-at';
 import { paragraphStep } from './paragraph-step';
+import { shiftSubtree } from './shift-subtree';
 import { splitStep } from './split-step';
 
 type Target = { tr: Transaction; schema: Schema; block: EngineBlock; index: number; pos: Pos; makeId: () => string };
@@ -26,8 +26,9 @@ function enterInHardBreakBlock({ tr, schema, block, index, pos, makeId }: Target
   }
 }
 
-function leaveItem({ tr, schema, block, pos }: Target): void {
-  tr.step(block.indent > 0 ? setIndentStep(block.id, block.indent - 1) : paragraphStep(schema, block, pos.region));
+function leaveItem({ tr, schema, block, index, pos }: Target): void {
+  if (block.indent > 0) shiftSubtree(tr, index, -1);
+  else tr.step(paragraphStep(schema, block, pos.region));
   tr.setSelection(startOf(tr.doc, schema, block.id));
 }
 

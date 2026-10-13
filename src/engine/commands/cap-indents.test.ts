@@ -5,7 +5,7 @@ import { buildState } from '../test-support/build-state';
 import { capIndents } from './cap-indents';
 
 const indentsAfterCap = (indents: number[], from: number) => {
-  const state = buildState(indents.map((indent, i) => ({ id: 'x', type: 'MARKDOWN', data: { markdown: `p${i}` }, indent })));
+  const state = buildState(indents.map((indent) => ({ id: 'x', type: 'MARKDOWN', data: { markdown: 'p' }, indent })));
   const tr = new Transaction(state);
   capIndents(tr, from);
   return applyTransaction(state, tr).doc.blocks.map((block) => block.indent);

@@ -4,13 +4,13 @@ import type { Schema } from '../schema/types';
 import type { EditorState } from '../state/editor-state';
 import { isCollapsed, nodeSelection, primaryRegion, startOf, textSelection } from '../state/selection';
 import { Transaction } from '../state/transaction';
-import { setIndentStep } from '../transform/attrs-steps';
 import { removeBlocksStep } from '../transform/block-steps';
 import { joinBlocksStep } from '../transform/split-join-steps';
 import { isParagraph, isTextFlow, regionLength } from './block-helpers';
 import { capIndents } from './cap-indents';
 import type { Command } from './command';
 import { paragraphStep } from './paragraph-step';
+import { shiftSubtree } from './shift-subtree';
 
 type Caret = { block: EngineBlock; index: number; pos: Pos };
 
@@ -43,7 +43,7 @@ export const deleteAtStart: Command = (state, dispatch) => {
     tr.step(paragraphStep(schema, block, pos.region));
     tr.setSelection(startOf(tr.doc, schema, block.id));
   } else if (block.indent > 0) {
-    tr.step(setIndentStep(block.id, block.indent - 1));
+    shiftSubtree(tr, index, -1);
   } else if (previous === undefined) {
     return false;
   } else if (isTextFlow(schema, previous)) {

@@ -12,6 +12,12 @@ const line = (markdown: string, indent = 0) => ({ id: 'x', type: 'MARKDOWN', dat
 const nested = () => [line('A'), line('B', 1), line('C', 2)];
 
 describe('deleting keeps every block at most one level below the block before it', () => {
+  it('outdents an indented paragraph with its children on Backspace at its start', () => {
+    const { state } = run(buildState(nested(), { block: 1, offset: 0 }), deleteBackward);
+    expect(markdownOf(state)).toEqual(['A', 'B', '  C']);
+    expect(caretOf(state)).toEqual({ block: 1, offset: 0 });
+  });
+
   it('lifts the children of a block that Delete joins into the block before', () => {
     const { state } = run(buildState(nested(), { block: 0, offset: 1 }), deleteForward);
     expect(markdownOf(state)).toEqual(['AB', '  C']);

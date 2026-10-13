@@ -2,6 +2,7 @@ import { caretMarks } from '../commands/caret-marks';
 import type { Command } from '../commands/command';
 import { text } from '../model/inline';
 import type { Mark, Pos, Selection } from '../model/types';
+import { isPositionNeutral } from '../transform/position-neutral';
 import { replaceInlineStep } from '../transform/replace-inline-step';
 import type { Step } from '../transform/step';
 import type { EditorState } from './editor-state';
@@ -88,12 +89,15 @@ function moved(tr: Transaction, value: HistoryState, direction: Direction, depth
 
 const unrecordedOrigins: readonly TransactionOrigin[] = ['remote', 'reconcile', 'history'];
 
+const movesNoPosition = (tr: Transaction) =>
+  tr.steps.every((_, i) => isPositionNeutral(tr.docs[i], { doc: tr.docs[i + 1] ?? tr.doc, map: tr.maps[i] }));
+
 function advance(tr: Transaction, value: HistoryState, config: Config): HistoryState {
   if (tr.docChanged) {
     const direction = tr.getMeta<Direction>('history');
     if (direction !== undefined) return moved(tr, value, direction, config.depth);
-    const records = tr.addToHistory && !unrecordedOrigins.includes(tr.origin);
-    return records ? recorded(tr, value, config) : emptyHistory;
+    if (tr.addToHistory && !unrecordedOrigins.includes(tr.origin)) return recorded(tr, value, config);
+    if (!movesNoPosition(tr)) return emptyHistory;
   }
   const closed = tr.getMeta<boolean>('closeHistory') === true;
   const relocated = tr.selectionSet && !sameSelection(tr.before.selection, tr.selection);

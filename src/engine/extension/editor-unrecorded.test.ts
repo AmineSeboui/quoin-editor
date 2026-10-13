@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { text } from '../model/inline';
 import { undoDepth } from '../state/history';
 import { caret, md, startEditor } from '../test-support/editor-fixtures';
+import { setAttrsStep } from '../transform/attrs-steps';
 import { replaceInlineStep } from '../transform/replace-inline-step';
 import type { Editor } from './editor';
 
@@ -35,5 +36,15 @@ describe('history across a document change it did not record', () => {
     editor.insertText('z');
     expect(editor.commands.undo()).toBe(true);
     expect(editor.getBlocks()).toEqual([md('a', 'hello!'), md('b', '')]);
+  });
+
+  it('keeps the typing undoable after a toggle opens without being recorded', () => {
+    const toggle = { id: 't', type: 'TOGGLE', data: { markdown: 'T', open: false } };
+    const { editor } = startEditor([md('a', 'hello'), toggle]);
+    editor.commands.setSelection(caret('a', 5));
+    editor.insertText('!');
+    editor.dispatch(editor.createTransaction().setMeta('addToHistory', false).step(setAttrsStep('t', { open: true })));
+    expect(editor.commands.undo()).toBe(true);
+    expect(editor.getBlocks()).toEqual([md('a', 'hello'), { ...toggle, data: { markdown: 'T', open: true } }]);
   });
 });

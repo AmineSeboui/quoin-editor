@@ -34,7 +34,8 @@ function deleteReaching(forward: boolean, reach: Reach): Command {
     const other = reach(value, head.offset);
     const from = Math.min(head.offset, other);
     const to = Math.max(head.offset, other);
-    const tr = new Transaction(state).step(replaceInlineStep(head.block, head.region, from, to, []));
+    const tr = new Transaction(state).setOrigin('input');
+    tr.step(replaceInlineStep(head.block, head.region, from, to, []));
     dispatch?.(tr.setSelection(textSelection({ ...head, offset: from })));
     return true;
   };

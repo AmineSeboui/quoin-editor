@@ -107,6 +107,23 @@ describe('step inverses', () => {
     });
   });
 
+  it('restores the order of the regions of a joined block', () => {
+    const source: EngineBlock = {
+      id: 'k',
+      type: 'CALLOUT',
+      indent: 0,
+      attrs: { tone: 'info' },
+      regions: { body: [text('cd')], note: [text('memo')] },
+    };
+    const joinable = createDoc([para('a', 'ab'), source]);
+    for (const region of ['body', 'note']) {
+      const join = joinBlocksStep('a', 'text', 'k', region);
+      const restored = join.invert(joinable).apply(join.apply(joinable).doc).doc;
+      expect(Object.keys(restored.blocks[1].regions)).toEqual(['body', 'note']);
+      expect(JSON.stringify(restored.blocks)).toBe(JSON.stringify(joinable.blocks));
+    }
+  });
+
   it('merges marked text across the join point and splits it back', () => {
     const pair = createDoc([
       para('a', '', { regions: { text: [text('ab', [bold])] } }),

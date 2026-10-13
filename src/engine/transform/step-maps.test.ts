@@ -7,6 +7,7 @@ import { insertBlocksStep, moveBlocksStep, removeBlocksStep, replaceBlockStep } 
 import { addMarkStep, removeMarkStep } from './mark-steps';
 import { replaceInlineStep } from './replace-inline-step';
 import { joinBlocksStep, splitBlockStep } from './split-join-steps';
+import type { CreatedBlock } from './step';
 import { created, divider, para, pos } from './step-fixtures';
 
 const three = createDoc([para('a', 'one'), para('b', 'two'), para('c', 'three')]);
@@ -158,6 +159,20 @@ describe('position mapping for splits', () => {
       indent: 2,
       regions: { note: [text('n')], text: [text('d')] },
     });
+  });
+});
+
+describe('region order of a split block', () => {
+  const doc = createDoc([para('a', 'hello')]);
+  const regionsOf = (extra: Partial<CreatedBlock>) =>
+    Object.keys(splitBlockStep('a', 'text', 2, created('c', extra)).apply(doc).doc.blocks[1].regions);
+
+  it('puts the tail last when the created block does not list its region', () => {
+    expect(regionsOf({ regions: { note: [text('n')] } })).toEqual(['note', 'text']);
+  });
+
+  it('keeps the tail where the created block lists its region', () => {
+    expect(regionsOf({ regions: { text: [], note: [text('n')] } })).toEqual(['text', 'note']);
   });
 });
 

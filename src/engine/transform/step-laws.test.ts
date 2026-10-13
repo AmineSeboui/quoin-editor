@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import fc from 'fast-check';
+import type { EngineDoc } from '../model/types';
 import { arbitraryDocWithStep } from './steps-arbitrary';
 import { stepFromJSON } from './step-json';
 
@@ -11,12 +12,24 @@ function deepFreeze<T>(value: T): T {
   return value;
 }
 
+const regionOrder = (doc: EngineDoc) => doc.blocks.map((block) => Object.keys(block.regions));
+
 describe('step laws', () => {
   it('invert(before) undoes every step exactly', () => {
     fc.assert(
       fc.property(arbitraryDocWithStep(), ({ doc, step }) => {
         const { doc: after } = step.apply(doc);
         expect(step.invert(doc).apply(after).doc).toEqual(doc);
+      }),
+      { numRuns: 1000 },
+    );
+  });
+
+  it('invert(before) restores the order of the regions of every block', () => {
+    fc.assert(
+      fc.property(arbitraryDocWithStep(), ({ doc, step }) => {
+        const restored = step.invert(doc).apply(step.apply(doc).doc).doc;
+        expect(regionOrder(restored)).toEqual(regionOrder(doc));
       }),
       { numRuns: 1000 },
     );

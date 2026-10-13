@@ -34,6 +34,9 @@ const indent = fc.integer({ min: 0, max: 2 });
 const textContent: fc.Arbitrary<Content> = fc
   .tuple(fc.constantFrom(...ATTRS), arbitraryInline())
   .map(([attrs, inline]) => ({ type: 'MARKDOWN', attrs, regions: { text: inline } }));
+const notedContent: fc.Arbitrary<Content> = fc
+  .tuple(arbitraryInline(), arbitraryInline())
+  .map(([note, inline]) => ({ type: 'MARKDOWN', attrs: { kind: 'paragraph' }, regions: { text: inline, note } }));
 const dividerContent: Content = { type: 'DIVIDER', attrs: {}, regions: {} };
 const bodyContent: fc.Arbitrary<Content> = arbitraryInline().map((inline) => ({
   type: 'CALLOUT',
@@ -48,7 +51,13 @@ const anyContent = fc.oneof(
 
 const arbitraryDoc: fc.Arbitrary<EngineDoc> = fc
   .tuple(
-    fc.array(fc.tuple(textContent, indent), { minLength: 1, maxLength: 4 }),
+    fc.array(
+      fc.tuple(
+        fc.oneof({ weight: 3, arbitrary: textContent }, { weight: 1, arbitrary: notedContent }),
+        indent,
+      ),
+      { minLength: 1, maxLength: 4 },
+    ),
     fc.option(fc.nat(3), { nil: undefined }),
   )
   .map(([entries, dividerAt]) =>

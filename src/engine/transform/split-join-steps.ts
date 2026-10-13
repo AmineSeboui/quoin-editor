@@ -50,9 +50,9 @@ export function joinBlocksStep(target: string, targetRegion: string, source: str
     },
     invert(before) {
       const { id, type, attrs, indent, regions } = requireBlock(before, source);
-      const { [sourceRegion]: _tail, ...others } = regions;
       const length = inlineLength(requireRegion(requireBlock(before, target), targetRegion));
-      const created = { id, type, attrs, indent, region: sourceRegion, regions: others };
+      // Keeping the source region's key holds its place in the key order; the split overwrites its value with the tail.
+      const created = { id, type, attrs, indent, region: sourceRegion, regions };
       return splitBlockStep(target, targetRegion, length, created);
     },
     toJSON: () => ({ stepType: 'joinBlocks', target, targetRegion, source, sourceRegion }),

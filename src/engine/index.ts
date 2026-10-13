@@ -66,7 +66,8 @@ export type { EmbedProvider, EmbedUrl } from './render/embed-provider';
 export type { HTMLOptions } from './render/to-html';
 export { toHTML } from './render/to-html';
 export { toPlainText } from './render/to-plain-text';
-export { countText } from './render/count-text';
+export type { TextStats } from './render/count-block';
+export { countDoc, countText } from './render/count-text';
 
 export type { BlockDiff } from './diff/diff-blocks';
 export { diffBlocks } from './diff/diff-blocks';

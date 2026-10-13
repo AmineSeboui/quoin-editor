@@ -9,6 +9,8 @@ import { isActive } from '../commands/is-active';
 import { toMarkdown } from '../markdown/document/to-markdown';
 import type { QuoinBlock } from '../model/quoin-block';
 import { insertTextWithRules } from '../rules/input-rule';
+import { countDoc } from '../render/count-text';
+import type { TextStats } from '../render/count-block';
 import type { Schema } from '../schema/types';
 import { applyTransaction, createState, type EditorState } from '../state/editor-state';
 import { Transaction } from '../state/transaction';
@@ -59,6 +61,7 @@ export type Editor<F extends CommandFactories = CoreCommands> = {
   setBlocks(blocks: readonly QuoinBlock[]): boolean;
   decorations(): readonly Decoration[];
   toMarkdown(options?: MarkdownOptions): string;
+  stats(): TextStats;
   destroy(): void;
 };
 
@@ -138,6 +141,7 @@ export function createEditor<F extends CommandFactories = CoreCommands>(options:
     setBlocks: (incoming) => !destroyed && controlled.setBlocks(incoming),
     decorations: () => resolved.decorations(state),
     toMarkdown: (markdown) => toMarkdown(getBlocks(), { schema, ...markdown }),
+    stats: () => countDoc(state.doc, { schema }),
     destroy() {
       destroyed = true;
       listeners.clear();

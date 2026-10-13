@@ -41,6 +41,14 @@ describe('echo tracker', () => {
     expect(tracker.classify(doc('1'))).toBe('foreign');
   });
 
+  it('recognises a copy of the newer of two emissions that share a block', () => {
+    const shared: QuoinBlock = { id: 's', type: 'MARKDOWN', data: { markdown: 'shared' } };
+    const [e1, e2] = [[shared, ...doc('1')], [shared, ...doc('12')]];
+    const tracker = tracking(e1, e2);
+    expect(tracker.classify(structuredClone(e2))).toBe('echo');
+    expect(tracker.classify(structuredClone(e1))).toBe('foreign');
+  });
+
   it('recognises a copy of an emission that reordered the blocks of an older one', () => {
     const [a, b] = [doc('a')[0], { ...doc('b')[0], id: 'b' }];
     const tracker = tracking([a, b], [b, a]);

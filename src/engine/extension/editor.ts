@@ -8,20 +8,16 @@ import { createCommandHelpers, type BoundCommands, type Chain, type CommandFacto
 import { isActive } from '../commands/is-active';
 import { toMarkdown } from '../markdown/document/to-markdown';
 import type { QuoinBlock } from '../model/quoin-block';
-import { sameDoc } from '../model/same-doc';
-import type { EngineDoc } from '../model/types';
 import { insertTextWithRules } from '../rules/input-rule';
 import type { Schema } from '../schema/types';
 import { applyTransaction, createState, type EditorState } from '../state/editor-state';
 import { Transaction } from '../state/transaction';
-import { replaceDocStep } from '../transform/replace-doc-step';
+import { createControlledBlocks } from './controlled-blocks';
 import { coreExtensions, type CoreCommands } from './core-extensions';
 import { detectMac } from './detect-mac';
 import { createDispatchQueue } from './dispatch-queue';
-import { createEchoTracker } from './echo-tracker';
 import { runKeymap, type KeyLike } from './keymap';
 import { resolveExtensions } from './resolve-extensions';
-import { sameBlocks } from './same-blocks';
 import type { Decoration, Extension, ResolvedExtensions } from './types';
 
 export type EditorOptions = {
@@ -62,34 +58,29 @@ export type Editor<F extends CommandFactories = CoreCommands> = {
 type Listener = (state: EditorState, tr: Transaction | null) => void;
 
 export function createEditor<F extends CommandFactories = CoreCommands>(options: EditorOptions): Editor<F> {
-  const { newId, onChange } = options;
+  const { newId } = options;
   const isMac = options.isMac ?? detectMac();
   const resolved = resolveExtensions(options.extensions ?? coreExtensions({ newId }), isMac);
-  const { schema } = resolved;
+  const { schema, plugins } = resolved;
   const codec = createBlockCodec(schema, { newId });
-  const tracker = createEchoTracker();
   const listeners = new Set<Listener>();
-  const quiet = new WeakSet<Transaction>();
-  const { plugins } = resolved;
   let state = createState({ doc: codec.docFromBlocks(options.blocks), schema, plugins, clock: options.now });
-  let supplied: readonly QuoinBlock[] = options.blocks;
-  let converted: { doc: EngineDoc; blocks: QuoinBlock[] } | null = null;
   let destroyed = false;
-
-  function getBlocks(): QuoinBlock[] {
-    if (converted?.doc !== state.doc) converted = { doc: state.doc, blocks: codec.blocksFromDoc(state.doc) };
-    return converted.blocks;
-  }
+  const controlled = createControlledBlocks({
+    codec,
+    initial: options.blocks,
+    state: () => state,
+    dispatch,
+    onChange: options.onChange,
+  });
+  const { getBlocks } = controlled;
 
   function commit(tr: Transaction): void {
     state = applyTransaction(state, tr);
     for (const listener of [...listeners]) listener(state, tr);
     for (const extension of resolved.extensions) extension.onTransaction?.(tr, state);
     options.onTransaction?.(tr, state);
-    if (!tr.docChanged || quiet.has(tr)) return;
-    const blocks = getBlocks();
-    tracker.emitted(blocks);
-    onChange?.(blocks);
+    controlled.committed(tr);
   }
 
   const queue = createDispatchQueue(() => state, commit);
@@ -97,25 +88,6 @@ export function createEditor<F extends CommandFactories = CoreCommands>(options:
   function dispatch(tr: Transaction): void {
     if (destroyed) throw new Error('Cannot dispatch to a destroyed editor');
     queue.dispatch(tr);
-  }
-
-  function setBlocks(incoming: readonly QuoinBlock[]): boolean {
-    if (destroyed) return false;
-    const previous = supplied;
-    supplied = incoming;
-    if (incoming === previous || tracker.classify(incoming) === 'echo') return false;
-    if (sameBlocks(incoming, previous) || sameBlocks(incoming, getBlocks())) return false;
-    return reconcile(incoming);
-  }
-
-  function reconcile(incoming: readonly QuoinBlock[]): boolean {
-    const doc = codec.docFromBlocks(incoming);
-    if (sameDoc(doc, state.doc)) return false;
-    tracker.forgetAll();
-    const tr = new Transaction(state).setOrigin('reconcile').setMeta('addToHistory', false);
-    if (sameBlocks(codec.blocksFromDoc(doc), incoming)) quiet.add(tr);
-    dispatch(tr.step(replaceDocStep(doc)));
-    return true;
   }
 
   function paste(data: { json?: string; html?: string; text?: string }, parser?: DOMParserLike): boolean {
@@ -156,7 +128,7 @@ export function createEditor<F extends CommandFactories = CoreCommands>(options:
     paste,
     copy,
     getBlocks,
-    setBlocks,
+    setBlocks: (incoming) => !destroyed && controlled.setBlocks(incoming),
     decorations: () => resolved.decorations(state),
     toMarkdown: (markdown) => toMarkdown(getBlocks(), { schema, ...markdown }),
     destroy() {

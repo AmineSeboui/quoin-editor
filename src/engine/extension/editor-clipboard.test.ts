@@ -21,7 +21,7 @@ describe('clipboard through the editor', () => {
   });
 
   it('pastes a URL at a caret as a link to itself', () => {
-    const { editor } = startEditor([md('a', 'see ')]);
+    const { editor } = startEditor([md('a', 'see&#32;')]);
     editor.commands.setSelection(caret('a', 4));
     expect(editor.paste({ text: 'https://example.com' })).toBe(true);
     expect(editor.getBlocks()[0].data.markdown).toBe('see <https://example.com>');

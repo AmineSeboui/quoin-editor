@@ -210,7 +210,7 @@ describe('clearFormatting details', () => {
 
 describe('insertAtom and insertMention', () => {
   it('inserts a mention at the end of the text and puts the caret after it', () => {
-    const next = run(buildState(['hi '], { block: 0, offset: 3 }), insertMention({ id: '1', label: 'Ada' })).state;
+    const next = run(buildState([{ paragraph: 'hi ' }], { block: 0, offset: 3 }), insertMention({ id: '1', label: 'Ada' })).state;
     expect(markdownOf(next)).toEqual(['hi [@Ada](mention:1)']);
     expect(caretOf(next)).toEqual({ block: 0, offset: 4 });
   });

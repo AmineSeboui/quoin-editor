@@ -31,7 +31,7 @@ describe('splitBlockWithRules', () => {
     ['a caret inside the fence', { paragraph: '```ts' }, { block: 0, offset: 3 }],
     ['a selection', { paragraph: '```ts' }, { anchor: { block: 0, offset: 3 }, head: { block: 0, offset: 5 } }],
     ['a heading', '## ```ts', { block: 0, offset: 5 }],
-    ['a list item', '- ```ts', { block: 0, offset: 5 }],
+    ['a list item', '- \\`\\`\\`ts', { block: 0, offset: 5 }],
   ])('does not turn %s into code', (_label, entry, selection) => {
     const { state } = enter(entry, selection);
     expect(state.doc.blocks.every((block) => block.type === 'MARKDOWN')).toBe(true);

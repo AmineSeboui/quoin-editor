@@ -36,7 +36,7 @@ describe('block input rules', () => {
   });
 
   it('only fires in paragraphs', () => {
-    expect(markdownOf(type('## #', 1, ' '))).toEqual(['## \\#&#32;']);
+    expect(markdownOf(type('## \\#', 1, ' '))).toEqual(['## \\#&#32;']);
   });
 
   it('turns a fenced paragraph into code on Enter', () => {

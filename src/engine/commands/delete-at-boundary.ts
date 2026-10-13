@@ -7,9 +7,9 @@ import { Transaction } from '../state/transaction';
 import { removeBlocksStep } from '../transform/block-steps';
 import { replaceInlineStep } from '../transform/replace-inline-step';
 import { joinBlocksStep } from '../transform/split-join-steps';
-import { isParagraph, isTextFlow, regionLength } from './block-helpers';
+import { descendantsEnd, isParagraph, isTextFlow, regionLength } from './block-helpers';
 import { capIndents } from './cap-indents';
-import { hidingToggle } from './collapsed-toggle';
+import { hidingToggle, isClosedToggle } from './collapsed-toggle';
 import type { Command } from './command';
 import { paragraphStep } from './paragraph-step';
 import { shiftSubtree } from './shift-subtree';
@@ -78,10 +78,13 @@ export const deleteAtEnd: Command = (state, dispatch) => {
   if (caret === null || caret.pos.offset !== regionLength(caret.block, caret.pos.region)) return false;
   const { doc, schema } = state;
   const { block, index, pos } = caret;
-  const next = doc.blocks[index + 1];
+  const nextIndex = isClosedToggle(block) ? descendantsEnd(doc, index) : index + 1;
+  const next = doc.blocks[nextIndex];
   if (next === undefined) return false;
   const tr = new Transaction(state);
-  if (isTextFlow(schema, next)) {
+  if (isTextFlow(schema, next) && nextIndex > index + 1) {
+    joinIntoSummary(tr, schema, block, next);
+  } else if (isTextFlow(schema, next)) {
     joinInto(tr, schema, block, next);
   } else {
     if (isParagraph(block) && pos.offset === 0) {

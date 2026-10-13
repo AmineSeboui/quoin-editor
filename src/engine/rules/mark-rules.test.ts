@@ -22,7 +22,7 @@ describe('mark input rules', () => {
 
   it('does not fire for spaced content or intraword underscores', () => {
     expect(markdownOf(type({ paragraph: 'a* b *' }, 6, '*'))).toEqual(['a\\* b \\*\\*']);
-    expect(markdownOf(type({ paragraph: 'snake_case' }, 10, '_'))).toEqual(['snake\\_case\\_']);
+    expect(markdownOf(type({ paragraph: 'snake_case' }, 10, '_'))).toEqual(['snake_case\\_']);
   });
 
   it('stops the new mark from continuing', () => {

@@ -10,4 +10,15 @@ describe('server import', () => {
     expect(typeof module.domMapOf).toBe('function');
     expect(typeof module.isRendering).toBe('function');
   });
+
+  it('loads the text reader, the diff and the caret lookup', async () => {
+    const [reader, diff, caret] = await Promise.all([
+      import('./read-dom-text'),
+      import('./text-diff'),
+      import('../navigation/caret-from-point'),
+    ]);
+    expect(typeof reader.readDomText).toBe('function');
+    expect(diff.textDiff('a', 'b')).toEqual({ from: 0, to: 1, insert: 'b' });
+    expect(caret.caretFromPoint({} as Document, 0, 0)).toBeNull();
+  });
 });

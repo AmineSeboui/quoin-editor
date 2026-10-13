@@ -1,4 +1,4 @@
-import { sanitizeHref } from '../markdown/urls';
+import { autolinkHref } from '../markdown/autolink-href';
 import { Transaction } from '../state/transaction';
 import { addMarkStep } from '../transform/mark-steps';
 import type { InputRule } from './input-rule';
@@ -28,7 +28,7 @@ export const autolinkRule: InputRule = {
   match: /(?:^|[\s(])((https?:\/\/|www\.)[^\s\uFFFC]+) $/i,
   handler(state, match, range) {
     const url = trimTrailing(match[1]);
-    const href = url.length > match[2].length ? sanitizeHref(/^www\./i.test(url) ? `https://${url}` : url) : null;
+    const href = url.length > match[2].length ? autolinkHref(url) : null;
     const inline = regionInline(state, range);
     const from = range.to - 1 - match[1].length;
     const to = from + url.length;

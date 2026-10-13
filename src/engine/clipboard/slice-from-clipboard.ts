@@ -1,7 +1,7 @@
 import { serializeInline } from '../markdown/inline/serialize-inline';
 import { fromMarkdown } from '../markdown/block/from-markdown';
 import { parseLine } from '../markdown/line-kind';
-import { sanitizeHref } from '../markdown/urls';
+import { autolinkHref } from '../markdown/autolink-href';
 import { text as textNode } from '../model/inline';
 import { newId } from '../model/new-id';
 import type { QuoinBlock } from '../model/quoin-block';
@@ -23,7 +23,7 @@ function openSlice(blocks: QuoinBlock[]): Slice | null {
 }
 
 function linkBlocks(url: string, makeId: () => string): QuoinBlock[] | null {
-  const href = sanitizeHref(url);
+  const href = autolinkHref(url);
   if (href === null) return null;
   const markdown = serializeInline([textNode(url, [{ type: 'link', attrs: { href } }])]);
   return [{ id: makeId(), type: 'MARKDOWN', data: { markdown } }];

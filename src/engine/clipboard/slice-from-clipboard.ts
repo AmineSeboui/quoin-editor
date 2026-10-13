@@ -5,7 +5,7 @@ import { sanitizeHref } from '../markdown/urls';
 import { text as textNode } from '../model/inline';
 import { newId } from '../model/new-id';
 import type { QuoinBlock } from '../model/quoin-block';
-import { fromHTML, type DOMParserLike } from './from-html';
+import { availableParser, fromHTML, type DOMParserLike } from './from-html';
 import { looksLikeMarkdown, plainTextToBlocks } from './from-text';
 import { parseSliceJSON } from './parse-slice-json';
 import { loneUrl } from './paste-url';
@@ -36,10 +36,16 @@ function textBlocks(text: string, makeId: () => string): QuoinBlock[] {
   return looksLikeMarkdown(text) ? fromMarkdown(text, { newId: makeId }) : plainTextToBlocks(text, makeId);
 }
 
+function htmlSlice(html: string | undefined, options: SliceFromClipboardOptions): Slice | null {
+  if (html === undefined) return null;
+  const parser = availableParser(options.parser);
+  return parser === null ? null : openSlice(fromHTML(html, { ...options, parser }));
+}
+
 export function sliceFromClipboard(data: ClipboardData, options: SliceFromClipboardOptions = {}): Slice | null {
   const fromJson = data.json === undefined ? null : parseSliceJSON(data.json);
   if (fromJson !== null) return fromJson;
-  const fromHtml = data.html === undefined ? null : openSlice(fromHTML(data.html, options));
+  const fromHtml = htmlSlice(data.html, options);
   if (fromHtml !== null) return fromHtml;
   return data.text === undefined ? null : openSlice(textBlocks(data.text, options.newId ?? newId));
 }

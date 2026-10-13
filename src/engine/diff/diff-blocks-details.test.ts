@@ -138,7 +138,7 @@ describe('diffBlocks alignment by content', () => {
     expect(diff).toEqual(regenerated('b', ['one', 'two', 'three']).map((block) => ({ op: 'equal', block })));
   });
 
-  it('reports an edited block of an id-less document as a deletion and an insertion', () => {
+  it('reports a replaced block of an id-less document as a deletion and an insertion', () => {
     const diff = diffBlocks(regenerated('a', ['one', 'two', 'three']), regenerated('b', ['one', 'TWO', 'three']));
     expect(diff).toEqual([
       { op: 'equal', block: md('b0', 'one') },
@@ -155,7 +155,7 @@ describe('diffBlocks alignment by content', () => {
 
   it('keeps aligning by id when exactly half of the ids match', () => {
     const a = [md('a', '1'), md('b', '2'), md('c', '3'), md('d', '4')];
-    const b = [md('a', '1'), md('b', '2'), md('x', '3'), md('y', '4')];
+    const b = [md('a', '1'), md('b', '2'), md('x', '5'), md('y', '6')];
     expect(ops(diffBlocks(a, b))).toEqual(['equal', 'equal', 'delete', 'delete', 'insert', 'insert']);
   });
 
@@ -219,9 +219,10 @@ describe('diffBlocks regions', () => {
     expect(change.regions['cell:0:0']).toEqual([{ op: 'equal', inline: [text('a')] }]);
   });
 
-  it('diffs a legacy block with several lines as one block', () => {
-    const [d] = diffBlocks([md('a', '# Title\n\nbody one')], [md('a', '# Title\n\nbody two')]);
-    const change = only(d, 'change');
+  it('diffs a legacy block with several lines piece by piece', () => {
+    const diff = diffBlocks([md('a', '# Title\n\nbody one')], [md('a', '# Title\n\nbody two')]);
+    expect(ops(diff)).toEqual(['equal', 'change']);
+    const change = only(diff[1], 'change');
     expect(change.regions.text.map((c) => c.op)).toEqual(['equal', 'delete', 'insert']);
     expect(change.attrsChanged).toBe(false);
   });

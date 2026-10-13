@@ -4,7 +4,7 @@ import { replaceInlineStep } from '../transform/replace-inline-step';
 import { buildState, caretOf, markdownOf, run } from '../test-support/build-state';
 import { applyTransaction, getPluginState } from './editor-state';
 import { closeHistory, historyKey, historyPlugin, redo, redoDepth, undo, undoDepth, undoInputRule } from './history';
-import { textSelection } from './selection';
+import { nodeSelection, textSelection } from './selection';
 import { Transaction, type TransactionOrigin } from './transaction';
 import type { EditorState } from './editor-state';
 
@@ -277,6 +277,15 @@ describe('input rule reversal', () => {
     const state = applyTransaction(before, ruleTransaction(before, 0, 2, '#'));
     expect(getPluginState(state, historyKey).lastInputRule).toBeNull();
     expect(undoDepth(state)).toBe(1);
+  });
+
+  it('forgets the record once the selection moves, but not when it is set to where it already is', () => {
+    const ruled = applyTransaction(heading(), ruleTransaction(heading(), 0, 1, ' '));
+    const same = applyTransaction(ruled, new Transaction(ruled, 5).setSelection(ruled.selection));
+    expect(undoInputRule(same)).toBe(true);
+    const moved = applyTransaction(ruled, new Transaction(ruled, 5).setSelection(nodeSelection('b0')));
+    expect(undoInputRule(moved)).toBe(false);
+    expect(getPluginState(moved, historyKey).lastInputRule).toBeNull();
   });
 
   it('keeps the record through a transaction that changes no document', () => {

@@ -5,7 +5,7 @@ import { replaceInlineStep } from '../transform/replace-inline-step';
 import type { Step } from '../transform/step';
 import type { EditorState } from './editor-state';
 import { createPluginKey, type PluginSpec } from './plugin';
-import { isCollapsed, textSelection } from './selection';
+import { isCollapsed, sameSelection, textSelection } from './selection';
 import { Transaction, type TransactionOrigin } from './transaction';
 
 export type HistoryItem = {
@@ -86,10 +86,11 @@ function advance(tr: Transaction, value: HistoryState, config: Config): HistoryS
     return recorded(tr, value, config);
   }
   const closed = tr.getMeta<boolean>('closeHistory') === true;
+  const relocated = tr.selectionSet && !sameSelection(tr.before.selection, tr.selection);
   return {
     ...value,
     lastGroup: closed ? null : value.lastGroup,
-    lastInputRule: tr.docChanged ? null : value.lastInputRule,
+    lastInputRule: tr.docChanged || relocated ? null : value.lastInputRule,
   };
 }
 

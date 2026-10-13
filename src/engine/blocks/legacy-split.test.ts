@@ -71,12 +71,12 @@ describe('ids of 0.4 split pieces', () => {
     expect(second.blocks.map((b) => b.id)).toEqual(['a', 'a-2', 'a-3']);
   });
 
-  it('give a fresh id to a piece that collides with another block', () => {
+  it('skip an id that another block uses', () => {
     let n = 0;
     const codec = createBlockCodec(createSchema(), { newId: () => `n${++n}` });
     const other = { id: 'a-2', type: 'MARKDOWN', data: { markdown: 'other' } };
     const ids = codec.docFromBlocks([other, block]).blocks.map((b) => b.id);
-    expect(ids).toEqual(['a-2', 'a', 'n1', 'a-3']);
+    expect(ids).toEqual(['a-2', 'a', 'a-3', 'a-4']);
     expect(new Set(ids).size).toBe(4);
   });
 });

@@ -5,6 +5,7 @@ import type { QuoinBlock } from '../model/quoin-block';
 import type { EngineBlock, EngineDoc } from '../model/types';
 import type { CodecContext, Schema } from '../schema/types';
 import { splitLegacyBlock } from './legacy-split';
+import { withUniqueIds } from './unique-ids';
 import { specFor } from './unknown-spec';
 
 export type BlockCodec = {
@@ -16,6 +17,8 @@ export type BlockCodec = {
 };
 
 type SplitGroup = { readonly original: QuoinBlock; readonly blocks: readonly EngineBlock[] };
+
+const NO_IDS: ReadonlySet<string> = new Set();
 
 const indentOf = (indent: unknown) => (typeof indent === 'number' && Number.isInteger(indent) && indent > 0 ? indent : 0);
 
@@ -30,10 +33,11 @@ export function createBlockCodec(schema: Schema, options: { newId?: () => string
     return { id: block.id, type: block.type, indent: indentOf(block.indent), attrs, regions };
   }
 
-  function toEngineBlocks(block: QuoinBlock): EngineBlock[] {
+  // Pieces cached for an earlier document are read again when a real block of this one has taken a derived id.
+  function engineBlocksAmong(block: QuoinBlock, taken: ReadonlySet<string>): EngineBlock[] {
     const cached = engineBlocks.get(block);
-    if (cached) return [...cached];
-    const pieces = splitLegacyBlock(block, indentOf(block.indent));
+    if (cached?.every((piece, index) => index === 0 || !taken.has(piece.id))) return [...cached];
+    const pieces = splitLegacyBlock(block, indentOf(block.indent), taken);
     if (pieces) {
       const blocks = pieces.map(convert);
       engineBlocks.set(block, blocks);
@@ -57,14 +61,11 @@ export function createBlockCodec(schema: Schema, options: { newId?: () => string
     return quoin;
   }
 
+  const toEngineBlocks = (block: QuoinBlock) => engineBlocksAmong(block, NO_IDS);
+
   function docFromBlocks(blocks: readonly QuoinBlock[]): EngineDoc {
-    const used = new Set<string>();
-    const converted = blocks.flatMap(toEngineBlocks).map((block) => {
-      const unique = used.has(block.id) ? { ...block, id: context.newId() } : block;
-      used.add(unique.id);
-      return unique;
-    });
-    return createDoc(converted);
+    const taken = new Set(blocks.map((block) => block.id));
+    return createDoc(withUniqueIds(blocks.flatMap((block) => engineBlocksAmong(block, taken)), context.newId));
   }
 
   function blocksFromDoc(doc: EngineDoc): QuoinBlock[] {

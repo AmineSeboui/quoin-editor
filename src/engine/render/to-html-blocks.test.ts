@@ -51,9 +51,9 @@ describe('toHTML text blocks', () => {
     expect(toHTML([b('DIVIDER', {}, { indent: 1 })])).toBe('<hr data-indent="1">');
   });
 
-  it('gives the same ids to the pieces of a multi-line block and to a colliding block every time', () => {
+  it('gives the pieces of a multi-line block ids that skip the ids of other blocks, the same every time', () => {
     const blocks = [md('# A\n\n# B', { id: 'x' }), md('# C', { id: 'x-2' })];
-    const expected = '<h1 id="h-x">A</h1><h1 id="h-x-2">B</h1><h1 id="h-split-0">C</h1>';
+    const expected = '<h1 id="h-x">A</h1><h1 id="h-x-3">B</h1><h1 id="h-x-2">C</h1>';
     expect(toHTML(blocks)).toBe(expected);
     expect(toHTML(blocks)).toBe(expected);
   });

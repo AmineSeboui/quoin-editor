@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
 import { blockRangeSelection } from '../../engine';
 import type { ViewController } from '../controller/view-controller';
@@ -147,6 +147,43 @@ describe('EditorView empty document', () => {
     expect(host).toHaveAttribute('contenteditable', 'false');
     expect(host).not.toHaveAttribute('data-placeholder');
     expect(controller.readOnly).toBe(true);
+  });
+
+  it('follows read-only while the document stays empty', () => {
+    const onChange = vi.fn();
+    const typeA = (host: HTMLElement) =>
+      act(() => void host.dispatchEvent(new InputEvent('beforeinput', { inputType: 'insertText', data: 'a', cancelable: true })));
+    const options = (readOnly: boolean) => ({ blocks: [], onChange, readOnly });
+    const view = { placeholder: 'Start' };
+    const { rerender } = render(<Editor options={options(false)} view={view} />);
+    let host = screen.getByRole('textbox', { name: 'Paragraph' });
+    expect(host).toHaveAttribute('contenteditable', 'true');
+    expect(host).toHaveAttribute('data-placeholder', 'Start');
+
+    rerender(<Editor options={options(true)} view={view} />);
+    host = screen.getByRole('textbox', { name: 'Paragraph' });
+    expect(host).toHaveAttribute('contenteditable', 'false');
+    expect(host).not.toHaveAttribute('data-placeholder');
+    typeA(host);
+    expect(onChange).not.toHaveBeenCalled();
+
+    rerender(<Editor options={options(false)} view={view} />);
+    host = screen.getByRole('textbox', { name: 'Paragraph' });
+    expect(host).toHaveAttribute('contenteditable', 'true');
+    expect(host).toHaveAttribute('data-placeholder', 'Start');
+    typeA(host);
+    expect(onChange).toHaveBeenCalledTimes(1);
+  });
+
+  it('refuses the first character when the flag turns read-only under a host that is still editable', () => {
+    const { controller } = mount([]);
+    const host = screen.getByRole('textbox', { name: 'Paragraph' });
+    act(() => controller.setReadOnly(true));
+    host.contentEditable = 'true';
+    const event = new InputEvent('beforeinput', { inputType: 'insertText', data: 'a', cancelable: true });
+    act(() => void host.dispatchEvent(event));
+    expect(event.defaultPrevented).toBe(false);
+    expect(controller.editor.state.doc.blocks).toHaveLength(0);
   });
 });
 

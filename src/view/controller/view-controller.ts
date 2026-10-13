@@ -36,6 +36,7 @@ export class ViewController {
   private detachRoot: (() => void) | null = null;
   private composing: string | null = null;
   private readOnlyFlag: boolean;
+  private readonly readOnlyListeners = new Set<() => void>();
 
   constructor(options: ViewControllerOptions) {
     this.editor = options.editor;
@@ -131,8 +132,15 @@ export class ViewController {
   }
 
   setReadOnly(readOnly: boolean): void {
+    const changed = readOnly !== this.readOnlyFlag;
     this.readOnlyFlag = readOnly;
     for (const { element } of this.registry.all()) element.contentEditable = readOnly ? 'false' : 'true';
+    if (changed) for (const listener of [...this.readOnlyListeners]) listener();
+  }
+
+  subscribeReadOnly(listener: () => void): () => void {
+    this.readOnlyListeners.add(listener);
+    return () => void this.readOnlyListeners.delete(listener);
   }
 
   destroy(): void {

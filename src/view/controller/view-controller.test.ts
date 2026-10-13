@@ -203,4 +203,18 @@ describe('ViewController', () => {
     expect(host.contentEditable).toBe('true');
     expect(new ViewController({ editor: createEditor({ blocks: [] }), readOnly: true }).readOnly).toBe(true);
   });
+
+  it('tells subscribers when read-only changes, and only then', () => {
+    const { controller } = mount();
+    const listener = vi.fn();
+    const stop = controller.subscribeReadOnly(listener);
+    controller.setReadOnly(false);
+    expect(listener).not.toHaveBeenCalled();
+    controller.setReadOnly(true);
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(controller.readOnly).toBe(true);
+    stop();
+    controller.setReadOnly(false);
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
 });

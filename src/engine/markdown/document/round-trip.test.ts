@@ -16,4 +16,12 @@ describe('document round trip', () => {
       { numRuns: 500 },
     );
   });
+
+  it.each(['`</summary>`', 'a \\</summary> b'])('keeps %j in a toggle summary', (summary) => {
+    const blocks = [{ id: 'a', type: 'TOGGLE', data: { markdown: summary, open: false } }];
+    for (const lossless of [false, true]) {
+      const markdown = toMarkdown(blocks, { lossless });
+      expect(strip(fromMarkdown(markdown, { softBreak: 'newline' })), markdown).toEqual(strip(blocks));
+    }
+  });
 });

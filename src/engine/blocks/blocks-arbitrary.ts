@@ -58,9 +58,20 @@ const codeDraft = fc
     regions: {},
   }));
 
+const CLOSING_TAGS = [text('</summary>'), text('</summary>', [{ type: 'code' }]), text('a </summary> \\ b'), text('\n</summary>')];
+const summary = fc.oneof(
+  { weight: 3, arbitrary: arbitraryInline() },
+  {
+    weight: 2,
+    arbitrary: fc
+      .tuple(arbitraryInline(), fc.constantFrom(...CLOSING_TAGS), arbitraryInline())
+      .map(([before, tag, after]) => normalizeInline([...before, tag, ...after])),
+  },
+);
+
 const toggleDraft = fc
-  .tuple(fc.boolean(), arbitraryInline())
-  .map(([open, summary]): Draft => ({ type: 'TOGGLE', attrs: { open }, regions: { text: summary } }));
+  .tuple(fc.boolean(), summary)
+  .map(([open, text]): Draft => ({ type: 'TOGGLE', attrs: { open }, regions: { text } }));
 
 const tableDraft = fc
   .tuple(fc.integer({ min: 1, max: 3 }), fc.integer({ min: 1, max: 3 }), fc.boolean())

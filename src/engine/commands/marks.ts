@@ -60,18 +60,20 @@ function applyMark(type: string, attrs: Attrs | undefined, mode: Mode): Command 
   return (state, dispatch) => {
     if (mode !== 'remove' && !validMark(type, attrs)) return false;
     const mark = makeMark(type, attrs);
+    // A bare type removes every mark of that type. With attributes only the one they name goes.
+    const target = mark.attrs === undefined ? type : mark;
     const caret = collapsedCaret(state);
     if (caret !== null) {
       const current = caretMarks(state.doc, state.schema, state.storedMarks, caret);
       const active = current.some((existing) => matchesMark(existing, type, attrs));
       const remove = mode === 'remove' || (mode === 'toggle' && active);
-      dispatch?.(new Transaction(state).setStoredMarks(remove ? removeMark(current, type) : addMark(current, mark)));
+      dispatch?.(new Transaction(state).setStoredMarks(remove ? removeMark(current, target) : addMark(current, mark)));
       return true;
     }
     const remove = mode === 'remove' || (mode === 'toggle' && selectionHasMark(state, type, attrs));
     return editRanges(state, dispatch, markRanges(state), (tr, { block, region, from, to }, content) => {
       const coverage = markCoverage(content, type, attrs);
-      if (remove && coverage.some) tr.step(removeMarkStep(block, region, from, to, type));
+      if (remove && coverage.some) tr.step(removeMarkStep(block, region, from, to, target));
       if (!remove && !coverage.every) tr.step(addMarkStep(block, region, from, to, mark));
     });
   };

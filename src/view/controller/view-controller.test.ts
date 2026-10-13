@@ -4,6 +4,7 @@ import { createEditor } from '../../engine/extension/editor';
 import type { Extension } from '../../engine/extension/types';
 import { textSelection } from '../../engine/state/selection';
 import { insertText } from '../../engine/commands/insert-text';
+import { hostKey } from './host-registry';
 import { ViewController } from './view-controller';
 
 const detachers: (() => void)[] = [];
@@ -216,5 +217,47 @@ describe('ViewController', () => {
     stop();
     controller.setReadOnly(false);
     expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves the composing host and the DOM selection alone until the composition is over', () => {
+    const { controller, editor, host } = mount();
+    controller.dispatch(editor.createTransaction().setSelection(textSelection(at(1))));
+    const sel = document.getSelection()!;
+    sel.collapse(host.firstChild!, 0);
+    controller.composingKey = hostKey('a', 'text');
+    controller.run(insertText('!'));
+    expect(host.textContent).toBe('hi');
+    expect([sel.anchorNode, sel.anchorOffset]).toEqual([host.firstChild, 0]);
+    controller.readSelectionFromDom();
+    expect(editor.state.selection).toEqual(textSelection(at(2)));
+    controller.composingKey = null;
+    controller.renderHost('a', 'text');
+    expect(host.textContent).toBe('h!i');
+  });
+
+  it('moves focus to the host the selection moves into while the editor has focus', () => {
+    const editor = createEditor({
+      blocks: [
+        { id: 'a', type: 'MARKDOWN', data: { markdown: 'hi' } },
+        { id: 'b', type: 'MARKDOWN', data: { markdown: 'yo' } },
+      ],
+    });
+    const controller = new ViewController({ editor });
+    const [a, b] = ['a', 'b'].map((id) => {
+      const host = document.createElement('div');
+      host.tabIndex = -1;
+      document.body.appendChild(host);
+      controller.registry.register(id, 'text', host);
+      controller.renderHost(id, 'text');
+      return host;
+    });
+    a.focus();
+    controller.dispatch(editor.createTransaction().setSelection(textSelection(at(0, 'b'))));
+    expect(document.activeElement).toBe(b);
+    const input = document.createElement('input');
+    document.body.appendChild(input);
+    input.focus();
+    controller.dispatch(editor.createTransaction().setSelection(textSelection(at(1))));
+    expect(document.activeElement).toBe(input);
   });
 });

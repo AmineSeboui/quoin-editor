@@ -11,14 +11,17 @@ export function hostKey(block: string, region: string): string {
   return `${block}\u0000${region}`;
 }
 
-export function createHostRegistry(): HostRegistry {
+export function createHostRegistry(onRegister?: (element: HTMLElement) => () => void): HostRegistry {
   const byKey = new Map<string, HostEntry>();
   const byElement = new Map<Node, HostEntry>();
+  const releases = new Map<HostEntry, () => void>();
 
   function forget(entry: HostEntry): void {
     const key = hostKey(entry.block, entry.region);
     if (byKey.get(key) === entry) byKey.delete(key);
     if (byElement.get(entry.element) === entry) byElement.delete(entry.element);
+    releases.get(entry)?.();
+    releases.delete(entry);
   }
 
   return {
@@ -28,6 +31,7 @@ export function createHostRegistry(): HostRegistry {
       for (const previous of [byKey.get(key), byElement.get(element)]) if (previous) forget(previous);
       byKey.set(key, entry);
       byElement.set(element, entry);
+      if (onRegister) releases.set(entry, onRegister(element));
       return () => forget(entry);
     },
     get: (block, region) => byKey.get(hostKey(block, region))?.element,

@@ -3,7 +3,7 @@ import { nodeSelection, sameSelection, textSelection } from '../../engine/state/
 import { domMapOf, type DomPoint } from '../dom/render-inline';
 import type { HostRegistry } from './host-registry';
 
-function domToPos(registry: HostRegistry, node: Node, offset: number): Pos | null {
+export function domToPos(registry: HostRegistry, node: Node, offset: number): Pos | null {
   const host = registry.locate(node);
   const mapped = host && domMapOf(host.element)?.fromDom(node, offset);
   return host && typeof mapped === 'number' ? { block: host.block, region: host.region, offset: mapped } : null;

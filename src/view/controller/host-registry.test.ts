@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createHostRegistry, hostKey } from './host-registry';
 
 describe('host registry', () => {
@@ -44,5 +44,21 @@ describe('host registry', () => {
     dropOld();
     expect(registry.get('a', 'text')).toBeUndefined();
     expect(registry.locate(element)?.block).toBe('b');
+  });
+
+  it('runs the registration hook and releases it when the host is dropped or replaced', () => {
+    const released: HTMLElement[] = [];
+    const hook = vi.fn((element: HTMLElement) => () => void released.push(element));
+    const registry = createHostRegistry(hook);
+    const first = document.createElement('div');
+    const second = document.createElement('div');
+    const dropFirst = registry.register('a', 'text', first);
+    const dropSecond = registry.register('a', 'text', second);
+    expect(hook.mock.calls.map(([element]) => element)).toEqual([first, second]);
+    expect(released).toEqual([first]);
+    dropFirst();
+    expect(released).toEqual([first]);
+    dropSecond();
+    expect(released).toEqual([first, second]);
   });
 });

@@ -1,6 +1,7 @@
 import type { Command, Editor, Pos, Selection, Transaction } from '../../engine';
 import { endOf, sameSelection, startOf, textSelection } from '../../engine/state/selection';
 import type { RenderOptions } from '../dom/render-inline';
+import { attachInput, type AttachedInput } from '../input/attach-input';
 import { readSelection, writeSelection } from './dom-selection';
 import { createHostRegistry, hostKey, type HostEntry, type HostRegistry } from './host-registry';
 import { createHostRenderer, type HostRenderer } from './host-renderer';
@@ -26,7 +27,10 @@ const selectionPoints = (selection: globalThis.Selection) =>
 
 export class ViewController {
   readonly editor: Editor;
-  readonly registry: HostRegistry = createHostRegistry();
+  readonly registry: HostRegistry = createHostRegistry((element) => {
+    this.input?.observe(element);
+    return () => this.input?.unobserve(element);
+  });
   goalX: number | null = null;
   private readonly flush: (fn: () => void) => void;
   private readonly hosts: HostRenderer;
@@ -34,6 +38,7 @@ export class ViewController {
   private rootElement: HTMLElement | null = null;
   private selectionSync: SelectionSync | null = null;
   private detachRoot: (() => void) | null = null;
+  private input: AttachedInput | null = null;
   private composing: string | null = null;
   private readOnlyFlag: boolean;
   private readonly readOnlyListeners = new Set<() => void>();
@@ -53,6 +58,10 @@ export class ViewController {
     return this.composing;
   }
 
+  set composingKey(key: string | null) {
+    this.composing = key;
+  }
+
   get readOnly(): boolean {
     return this.readOnlyFlag;
   }
@@ -60,16 +69,20 @@ export class ViewController {
   attach(root: HTMLElement): () => void {
     this.detachRoot?.();
     const sync = createSelectionSync(root.ownerDocument, () => this.readSelectionFromDom());
+    const input = attachInput(this, root);
     const detach = () => {
       sync.stop();
+      input.detach();
       if (this.detachRoot !== detach) return;
       this.detachRoot = null;
       this.selectionSync = null;
+      this.input = null;
       this.rootElement = null;
     };
     this.rootElement = root;
     this.selectionSync = sync;
     this.detachRoot = detach;
+    this.input = input;
     sync.start();
     return detach;
   }
@@ -83,13 +96,29 @@ export class ViewController {
   }
 
   dispatch(tr: Transaction): void {
+    this.edit(() => {
+      this.editor.dispatch(tr);
+      return true;
+    });
+  }
+
+  // Runs editor calls that dispatch on their own (insertText, handleKey, chains), then brings the hosts, the focus and
+  // the DOM selection up to date once.
+  edit(change: () => boolean): boolean {
     const before = this.editor.state;
-    this.flush(() => this.editor.dispatch(tr));
+    const focused = this.hasFocus();
+    let handled = false;
+    this.flush(() => {
+      handled = change();
+    });
+    if (this.editor.state === before) return handled;
     if (this.editor.state.doc !== before.doc) this.goalX = null;
     for (const host of this.registry.all()) {
       if (!this.isComposing(host)) this.hosts.renderIfChanged(host);
     }
+    if (focused) this.keepFocus();
     this.syncSelectionToDom();
+    return handled;
   }
 
   run(command: Command): boolean {
@@ -102,10 +131,16 @@ export class ViewController {
     if (host && !this.isComposing(host)) this.hosts.render(host);
   }
 
+  domSelection(): globalThis.Selection | null {
+    return this.ownerDocument()?.getSelection() ?? null;
+  }
+
+  // While an IME composes, the composing host's offset map is stale and moving the DOM selection would cancel the
+  // composition, so the selection is left alone in both directions.
   syncSelectionToDom(): void {
     const doc = this.ownerDocument();
     const domSelection = doc?.getSelection();
-    if (!doc || !domSelection || !this.ownsFocus(doc)) return;
+    if (this.composing !== null || !doc || !domSelection || !this.ownsFocus(doc)) return;
     const before = selectionPoints(domSelection);
     writeSelection(this.registry, this.editor.state.selection, domSelection, (id) => this.blockElement(id));
     const after = selectionPoints(domSelection);
@@ -114,7 +149,8 @@ export class ViewController {
 
   readSelectionFromDom(): void {
     const { editor } = this;
-    const domSelection = this.ownerDocument()?.getSelection() ?? null;
+    if (this.composing !== null) return;
+    const domSelection = this.domSelection();
     const selection = readSelection(this.registry, domSelection, (node) => this.blockElements.locate(node)?.block);
     if (selection === null || sameSelection(selection, editor.state.selection)) return;
     this.flush(() => editor.dispatch(editor.createTransaction().setSelection(selection).setOrigin('input')));
@@ -160,7 +196,25 @@ export class ViewController {
   private ownsFocus(doc: Document): boolean {
     const active = doc.activeElement;
     if (!active || active === doc.body || active === this.rootElement) return true;
-    return [this.registry, this.blockElements].some((registry) => registry.locate(active)?.element === active);
+    return this.isEditorElement(active);
+  }
+
+  private isEditorElement(element: Element): boolean {
+    return [this.registry, this.blockElements].some((registry) => registry.locate(element)?.element === element);
+  }
+
+  private hasFocus(): boolean {
+    const active = this.ownerDocument()?.activeElement ?? null;
+    return active !== null && this.isEditorElement(active);
+  }
+
+  // React replaces a host whose block changes kind, which drops focus, and Firefox does not move focus into another
+  // host when a script selects inside it.
+  private keepFocus(): void {
+    const element = this.focusElement(this.editor.state.selection);
+    if (this.composing === null && element && element.ownerDocument.activeElement !== element) {
+      element.focus();
+    }
   }
 
   private focusTarget(target: Pos | 'start' | 'end' | undefined): Selection | null {

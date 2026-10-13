@@ -1,0 +1,45 @@
+import { serializeInline } from '../markdown/inline/serialize-inline';
+import { fromMarkdown } from '../markdown/block/from-markdown';
+import { parseLine } from '../markdown/line-kind';
+import { sanitizeHref } from '../markdown/urls';
+import { text as textNode } from '../model/inline';
+import { newId } from '../model/new-id';
+import type { QuoinBlock } from '../model/quoin-block';
+import { fromHTML, type DOMParserLike } from './from-html';
+import { looksLikeMarkdown, plainTextToBlocks } from './from-text';
+import { parseSliceJSON } from './parse-slice-json';
+import { loneUrl } from './paste-url';
+import type { Slice } from './slice';
+
+export type ClipboardData = { json?: string; html?: string; text?: string };
+export type SliceFromClipboardOptions = { parser?: DOMParserLike; newId?: () => string };
+
+const isParagraph = (block: QuoinBlock): boolean =>
+  block.type === 'MARKDOWN' && parseLine(String(block.data.markdown ?? '')).kind === 'paragraph';
+
+function openSlice(blocks: QuoinBlock[]): Slice | null {
+  if (blocks.length === 0) return null;
+  return { blocks, openStart: isParagraph(blocks[0]), openEnd: isParagraph(blocks[blocks.length - 1]) };
+}
+
+function linkBlocks(url: string, makeId: () => string): QuoinBlock[] | null {
+  const href = sanitizeHref(url);
+  if (href === null) return null;
+  const markdown = serializeInline([textNode(url, [{ type: 'link', attrs: { href } }])]);
+  return [{ id: makeId(), type: 'MARKDOWN', data: { markdown } }];
+}
+
+function textBlocks(text: string, makeId: () => string): QuoinBlock[] {
+  const url = loneUrl(text);
+  const link = url === null ? null : linkBlocks(url, makeId);
+  if (link !== null) return link;
+  return looksLikeMarkdown(text) ? fromMarkdown(text, { newId: makeId }) : plainTextToBlocks(text, makeId);
+}
+
+export function sliceFromClipboard(data: ClipboardData, options: SliceFromClipboardOptions = {}): Slice | null {
+  const fromJson = data.json === undefined ? null : parseSliceJSON(data.json);
+  if (fromJson !== null) return fromJson;
+  const fromHtml = data.html === undefined ? null : openSlice(fromHTML(data.html, options));
+  if (fromHtml !== null) return fromHtml;
+  return data.text === undefined ? null : openSlice(textBlocks(data.text, options.newId ?? newId));
+}

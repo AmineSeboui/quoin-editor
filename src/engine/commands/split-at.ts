@@ -7,10 +7,10 @@ import type { Transaction } from '../state/transaction';
 import { setIndentStep } from '../transform/attrs-steps';
 import { insertBlocksStep } from '../transform/block-steps';
 import { replaceInlineStep } from '../transform/replace-inline-step';
-import { splitBlockStep } from '../transform/split-join-steps';
 import { createBlock, descendantsEnd, isItem, isTextFlow, regionLength, specOf, withContent } from './block-helpers';
 import { insertTextAt } from './insert-text-at';
 import { paragraphStep } from './paragraph-step';
+import { splitStep } from './split-step';
 
 type Target = { tr: Transaction; schema: Schema; block: EngineBlock; index: number; pos: Pos; makeId: () => string };
 
@@ -49,12 +49,9 @@ function splitToggle({ tr, schema, block, index, pos, makeId }: Target): void {
 }
 
 function splitInTwo({ tr, schema, block, pos, makeId }: Target): void {
-  const next = specOf(schema, block).splitAttrs?.(block.attrs) ?? { type: block.type, attrs: block.attrs };
-  const created = createBlock(schema, next.type, next.attrs, block.indent, makeId());
-  const region = primaryRegion(schema, created) ?? '';
-  const { id, type, attrs, indent, regions } = created;
-  tr.step(splitBlockStep(block.id, pos.region, pos.offset, { id, type, attrs, indent, region, regions }));
-  tr.setSelection(textSelection({ block: id, region, offset: 0 }));
+  const { step, tail } = splitStep(schema, block, pos.region, pos.offset, makeId());
+  tr.step(step);
+  tr.setSelection(textSelection({ block: tail.id, region: tail.region, offset: 0 }));
 }
 
 export function splitAt(tr: Transaction, schema: Schema, pos: Pos, collapsed: boolean, makeId: () => string): boolean {

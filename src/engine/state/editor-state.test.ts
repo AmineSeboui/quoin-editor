@@ -80,6 +80,15 @@ describe('applyTransaction', () => {
     expect([getPluginState(state, a), getPluginState(state, b)]).toEqual(['a0', 'b0']);
   });
 
+  it('refuses a transaction built on another state', () => {
+    const state = base();
+    const stale = type(state);
+    const next = applyTransaction(state, type(state));
+    expect(() => applyTransaction(next, stale)).toThrow(
+      new RangeError('Applying a mismatched transaction: it was built on another state'),
+    );
+  });
+
   it('reads the plugin state of a plugin that is not registered as an error', () => {
     const read = () => getPluginState(base(), createPluginKey<number>('absent'));
     expect(read).toThrow('no plugin registered for "absent"');

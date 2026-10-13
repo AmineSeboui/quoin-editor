@@ -70,6 +70,7 @@ export function createEditor<F extends CommandFactories = CoreCommands>(options:
   const tracker = createEchoTracker();
   const listeners = new Set<Listener>();
   const quiet = new WeakSet<Transaction>();
+  const dispatched = new WeakSet<Transaction>();
   let state = createState({ doc: codec.docFromBlocks(options.blocks), schema, plugins: resolved.plugins });
   let supplied: readonly QuoinBlock[] = options.blocks;
   let converted: { doc: EngineDoc; blocks: QuoinBlock[] } | null = null;
@@ -82,7 +83,9 @@ export function createEditor<F extends CommandFactories = CoreCommands>(options:
 
   function dispatch(tr: Transaction): void {
     if (destroyed) return;
+    if (dispatched.has(tr)) throw new RangeError('This transaction was already dispatched');
     state = applyTransaction(state, tr);
+    dispatched.add(tr);
     for (const listener of [...listeners]) listener(state, tr);
     for (const extension of resolved.extensions) extension.onTransaction?.(tr, state);
     options.onTransaction?.(tr, state);

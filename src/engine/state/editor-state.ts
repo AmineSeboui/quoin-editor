@@ -38,6 +38,7 @@ export function createState(config: {
 }
 
 export function applyTransaction(state: EditorState, tr: Transaction): EditorState {
+  if (tr.before !== state) throw new RangeError('Applying a mismatched transaction: it was built on another state');
   const selection = validateSelection(tr.doc, state.schema, tr.selection);
   const unchanged = !tr.docChanged && sameSelection(state.selection, selection);
   const storedMarks = tr.storedMarksSet ? tr.storedMarks : unchanged ? state.storedMarks : null;

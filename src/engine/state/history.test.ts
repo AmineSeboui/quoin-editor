@@ -211,6 +211,10 @@ describe('history', () => {
 
 describe('input rule reversal', () => {
   const heading = () => buildState([{ paragraph: '#' }], { block: 0, offset: 1 }, { plugins: [historyPlugin()] });
+  const ruledHeading = () => {
+    const state = heading();
+    return applyTransaction(state, ruleTransaction(state, 0, 1, ' '));
+  };
 
   it('undoes an input rule back to the typed text', () => {
     let state = heading();
@@ -226,7 +230,7 @@ describe('input rule reversal', () => {
   });
 
   it('records the whole transaction and the caret from before it', () => {
-    const state = applyTransaction(heading(), ruleTransaction(heading(), 0, 1, ' '));
+    const state = ruledHeading();
     const record = getPluginState(state, historyKey).lastInputRule;
     expect(record?.undoText).toBe(' ');
     expect(record?.at).toEqual({ block: 'b0', region: 'text', offset: 1 });
@@ -234,8 +238,7 @@ describe('input rule reversal', () => {
   });
 
   it('leaves the caret after the typed characters', () => {
-    const rule = ruleTransaction(heading(), 0, 1, ' ');
-    const state = run(applyTransaction(heading(), rule), undoInputRule).state;
+    const state = run(ruledHeading(), undoInputRule).state;
     expect(caretOf(state)).toEqual({ block: 0, offset: 2 });
   });
 
@@ -251,7 +254,7 @@ describe('input rule reversal', () => {
   });
 
   it('is one history item that undoing brings the rule back from', () => {
-    let state = applyTransaction(heading(), ruleTransaction(heading(), 0, 1, ' '));
+    let state = ruledHeading();
     state = run(state, undoInputRule).state;
     expect(undoDepth(state)).toBe(2);
     expect(markdownOf(run(state, undo).state)).toEqual(['']);
@@ -259,7 +262,7 @@ describe('input rule reversal', () => {
 
   it('only applies right after the rule', () => {
     expect(run(heading(), undoInputRule).ok).toBe(false);
-    const ruled = applyTransaction(heading(), ruleTransaction(heading(), 0, 1, ' '));
+    const ruled = ruledHeading();
     expect(undoInputRule(ruled)).toBe(true);
     const typed = typeAt(ruled, 0, 'x', 10);
     expect(getPluginState(typed, historyKey).lastInputRule).toBeNull();
@@ -280,7 +283,7 @@ describe('input rule reversal', () => {
   });
 
   it('forgets the record once the selection moves, but not when it is set to where it already is', () => {
-    const ruled = applyTransaction(heading(), ruleTransaction(heading(), 0, 1, ' '));
+    const ruled = ruledHeading();
     const same = applyTransaction(ruled, new Transaction(ruled, 5).setSelection(ruled.selection));
     expect(undoInputRule(same)).toBe(true);
     const moved = applyTransaction(ruled, new Transaction(ruled, 5).setSelection(nodeSelection('b0')));
@@ -289,7 +292,7 @@ describe('input rule reversal', () => {
   });
 
   it('keeps the record through a transaction that changes no document', () => {
-    const ruled = applyTransaction(heading(), ruleTransaction(heading(), 0, 1, ' '));
+    const ruled = ruledHeading();
     const moved = applyTransaction(ruled, new Transaction(ruled, 5).setMeta('x', 1));
     expect(undoInputRule(moved)).toBe(true);
   });

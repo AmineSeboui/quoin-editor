@@ -5,7 +5,7 @@ import type { BlockAttrs, EngineBlock, Inline, Pos } from '../model/types';
 import type { Schema } from '../schema/types';
 import { endOf, primaryRegion, selectedBlockIds, textSelection } from '../state/selection';
 import { Transaction } from '../state/transaction';
-import { setAttrsStep, type AttrsPatch } from '../transform/attrs-steps';
+import { patchChangesAttrs, setAttrsStep, type AttrsPatch } from '../transform/attrs-steps';
 import { replaceBlockStep } from '../transform/block-steps';
 import { createBlock, isTextFlow, withContent } from './block-helpers';
 import type { Command } from './command';
@@ -61,7 +61,8 @@ export function setBlockType(type: string, attrs: BlockAttrs = {}): Command {
     const moved = new Map<string, { from: string; to: string; length: number }>();
     for (const block of blocks) {
       if (block.type === type) {
-        tr.step(setAttrsStep(block.id, sameTypePatch(type, attrs)));
+        const patch = sameTypePatch(type, attrs);
+        if (patchChangesAttrs(block.attrs, patch)) tr.step(setAttrsStep(block.id, patch));
         continue;
       }
       const next = convert(schema, block, type, attrs);
@@ -70,6 +71,7 @@ export function setBlockType(type: string, attrs: BlockAttrs = {}): Command {
       const to = primaryRegion(schema, next);
       if (from !== null && to !== null) moved.set(block.id, { from, to, length: inlineLength(next.regions[to]) });
     }
+    if (!tr.docChanged) return false;
     if (selection?.kind === 'text' && moved.size > 0) {
       const carry = (pos: Pos): Pos => {
         const entry = moved.get(pos.block);

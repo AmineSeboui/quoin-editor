@@ -1,4 +1,5 @@
 import { updateBlock } from '../model/doc';
+import { sameValue } from '../model/same-value';
 import type { BlockAttrs } from '../model/types';
 import { identityMap, StepError, type Step } from './step';
 import { requireBlock } from './step-access';
@@ -11,6 +12,12 @@ function patchAttrs(attrs: BlockAttrs, patch: AttrsPatch): BlockAttrs {
     [...keys]
       .filter((key) => !(Object.hasOwn(patch, key) && patch[key] === undefined))
       .map((key) => [key, Object.hasOwn(patch, key) ? patch[key] : attrs[key]]),
+  );
+}
+
+export function patchChangesAttrs(attrs: BlockAttrs, patch: AttrsPatch): boolean {
+  return Object.keys(patch).some((key) =>
+    patch[key] === undefined ? Object.hasOwn(attrs, key) : !sameValue(attrs[key], patch[key]),
   );
 }
 

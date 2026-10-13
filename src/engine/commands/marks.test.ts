@@ -137,9 +137,7 @@ describe('setMark and unsetMark', () => {
     const state = select(['a**b**c'], [0, 0], [0, 3]);
     const once = run(state, setMark('bold')).state;
     expect(markdownOf(once)).toEqual(['**abc**']);
-    const again = run(once, setMark('bold'));
-    expect(again.ok).toBe(true);
-    expect(again.tr?.docChanged).toBe(false);
+    expect(run(once, setMark('bold')).ok).toBe(false);
   });
 
   it('removes a mark whatever its attributes, and skips ranges without it', () => {
@@ -181,9 +179,7 @@ describe('links', () => {
   it('unlinks only the selected part of a link, and ignores ranges without one', () => {
     const state = select(['[abcd](https://a.b)'], [0, 0], [0, 2]);
     expect(markdownOf(run(state, unsetLink).state)).toEqual(['ab[cd](https://a.b)']);
-    const plain = run(select(['abc'], [0, 0], [0, 3]), unsetLink);
-    expect(plain.ok).toBe(true);
-    expect(plain.tr?.docChanged).toBe(false);
+    expect(run(select(['abc'], [0, 0], [0, 3]), unsetLink).ok).toBe(false);
   });
 
   it('edits the link at the edge of its text', () => {

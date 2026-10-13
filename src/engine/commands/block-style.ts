@@ -2,19 +2,20 @@ import { isPaletteColor } from '../markdown/palette';
 import { blockById } from '../model/doc';
 import { selectedBlockIds } from '../state/selection';
 import { Transaction } from '../state/transaction';
-import { setAttrsStep, type AttrsPatch } from '../transform/attrs-steps';
+import { patchChangesAttrs, setAttrsStep, type AttrsPatch } from '../transform/attrs-steps';
 import type { EditorState } from '../state/editor-state';
 import type { Command } from './command';
 
 type Align = 'left' | 'center' | 'right' | 'justify';
 
 function patchBlocks(state: EditorState, patch: AttrsPatch, only?: string): Transaction | null {
-  const ids = selectedBlockIds(state.doc, state.selection).filter(
-    (id) => only === undefined || blockById(state.doc, id)?.type === only,
-  );
-  if (ids.length === 0 || Object.keys(patch).length === 0) return null;
+  const changing = selectedBlockIds(state.doc, state.selection).filter((id) => {
+    const block = blockById(state.doc, id);
+    return block !== undefined && (only === undefined || block.type === only) && patchChangesAttrs(block.attrs, patch);
+  });
+  if (changing.length === 0) return null;
   const tr = new Transaction(state);
-  for (const id of ids) tr.step(setAttrsStep(id, patch));
+  for (const id of changing) tr.step(setAttrsStep(id, patch));
   return tr;
 }
 

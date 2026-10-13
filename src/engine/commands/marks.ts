@@ -1,6 +1,6 @@
 import { blockById } from '../model/doc';
 import { atom } from '../model/inline';
-import { addMark, removeMark } from '../model/marks';
+import { addMark, removeMark, sameMark, sameMarkSet } from '../model/marks';
 import { orderedRange } from '../model/position';
 import type { Attrs, Inline, Mark, Pos } from '../model/types';
 import { sanitizeHref } from '../markdown/urls';
@@ -42,9 +42,9 @@ function editRanges(
   ranges: readonly MarkRange[],
   edit: (tr: Transaction, range: MarkRange, content: Inline) => void,
 ): boolean {
-  if (ranges.length === 0) return false;
   const tr = new Transaction(state);
   for (const range of ranges) edit(tr, range, rangeContent(state, range));
+  if (!tr.docChanged) return false;
   dispatch?.(tr);
   return true;
 }
@@ -61,7 +61,9 @@ function applyMark(type: string, attrs: Attrs | undefined, mode: Mode): Command 
       const current = caretMarks(state.doc, state.schema, state.storedMarks, caret);
       const active = current.some((existing) => matchesMark(existing, type, mark.attrs));
       const remove = mode === 'remove' || (mode === 'toggle' && active);
-      dispatch?.(new Transaction(state).setStoredMarks(remove ? removeMark(current, target) : addMark(current, mark)));
+      const next = remove ? removeMark(current, target) : addMark(current, mark);
+      if (sameMarkSet(next, current)) return false;
+      dispatch?.(new Transaction(state).setStoredMarks(next));
       return true;
     }
     const remove = mode === 'remove' || (mode === 'toggle' && selectionHasMark(state, type, mark.attrs));
@@ -98,8 +100,9 @@ export function setLink(href: string, title?: string): Command {
   return (state, dispatch) => {
     if (safe === null || safe === '') return false;
     const link: Mark = { type: 'link', attrs: title ? { href: safe, title } : { href: safe } };
-    return editRanges(state, dispatch, linkRanges(state), (tr, { block, region, from, to }) => {
-      tr.step(addMarkStep(block, region, from, to, link));
+    return editRanges(state, dispatch, linkRanges(state), (tr, { block, region, from, to }, content) => {
+      const linked = content.every((node) => node.marks.some((mark) => sameMark(mark, link)));
+      if (!linked) tr.step(addMarkStep(block, region, from, to, link));
     });
   };
 }
@@ -114,7 +117,9 @@ export const clearFormatting: Command = (state, dispatch) => {
   const caret = collapsedCaret(state);
   if (caret !== null) {
     const current = caretMarks(state.doc, state.schema, state.storedMarks, caret);
-    dispatch?.(new Transaction(state).setStoredMarks(current.filter((mark) => !clearable(mark))));
+    const kept = current.filter((mark) => !clearable(mark));
+    if (kept.length === current.length) return false;
+    dispatch?.(new Transaction(state).setStoredMarks(kept));
     return true;
   }
   return editRanges(state, dispatch, markRanges(state), (tr, { block, region, from, to }, content) => {

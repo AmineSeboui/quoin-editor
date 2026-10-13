@@ -30,7 +30,12 @@ export type EditorOptions = {
   isMac?: boolean;
 };
 
-export type MarkdownOptions = { comments?: boolean; lossless?: boolean; resolveAssetUrl?: (key: string) => string };
+export type MarkdownOptions = {
+  comments?: boolean;
+  /** Write what markdown cannot hold as quoin comments. Plain export drops block-level extras and the data of other types. */
+  lossless?: boolean;
+  resolveAssetUrl?: (key: string) => string;
+};
 
 export type Editor<F extends CommandFactories = CoreCommands> = {
   readonly state: EditorState;

@@ -1,5 +1,6 @@
 import fc from 'fast-check';
 import { arbitraryInline } from '../markdown/inline/inline-arbitrary';
+import { PALETTE } from '../markdown/palette';
 import { normalizeInline, text } from '../model/inline';
 import type { QuoinBlock } from '../model/quoin-block';
 import type { BlockAttrs, EngineBlock, Inline, InlineNode } from '../model/types';
@@ -42,9 +43,25 @@ const line = fc.oneof(
   { weight: 2, arbitrary: fc.constant<BlockAttrs>({ kind: 'quote' }) },
 );
 
-const markdownDraft = fc
-  .tuple(line, arbitraryInline())
-  .map(([attrs, inline]): Draft => ({ type: 'MARKDOWN', attrs, regions: { text: inline } }));
+const extraKeys = fc.dictionary(fc.constantFrom(...KEYS), jsonValue, { minKeys: 1, maxKeys: 2 });
+const sometimes = <T>(arbitrary: fc.Arbitrary<T>, none: T) =>
+  fc.oneof({ weight: 3, arbitrary: fc.constant(none) }, { weight: 1, arbitrary });
+const textStyle = fc.record(
+  {
+    align: fc.constantFrom('left', 'center', 'right', 'justify'),
+    color: fc.constantFrom(...PALETTE),
+    background: fc.constantFrom(...PALETTE),
+    extra: extraKeys,
+  },
+  { requiredKeys: [] },
+);
+const blockExtra = extraKeys.map((extra) => ({ extra }));
+const noStyle: Record<string, unknown> = {};
+
+const markdownDraft = (extras: boolean) =>
+  fc
+    .tuple(line, arbitraryInline(), extras ? sometimes(textStyle, noStyle) : fc.constant(noStyle))
+    .map(([attrs, inline, style]): Draft => ({ type: 'MARKDOWN', attrs: { ...attrs, ...style }, regions: { text: inline } }));
 
 const calloutDraft = fc
   .tuple(fc.constantFrom(...TONES), arbitraryInline(), fc.option(fc.constantFrom('\u{1F4A1}', 'i'), { nil: undefined }))
@@ -69,9 +86,10 @@ const summary = fc.oneof(
   },
 );
 
-const toggleDraft = fc
-  .tuple(fc.boolean(), summary)
-  .map(([open, text]): Draft => ({ type: 'TOGGLE', attrs: { open }, regions: { text } }));
+const toggleDraft = (extras: boolean) =>
+  fc
+    .tuple(fc.boolean(), summary, extras ? sometimes(blockExtra, noStyle) : fc.constant(noStyle))
+    .map(([open, text, style]): Draft => ({ type: 'TOGGLE', attrs: { open, ...style }, regions: { text } }));
 
 const tableDraft = fc
   .tuple(fc.integer({ min: 1, max: 3 }), fc.integer({ min: 1, max: 3 }), fc.boolean())
@@ -89,21 +107,25 @@ const tableDraft = fc
   );
 
 const mathDraft = fc.constantFrom(...LATEX).map((latex): Draft => ({ type: 'MATH', attrs: { latex }, regions: {} }));
-const markerDraft = fc.constantFrom('DIVIDER', 'TOC').map((type): Draft => ({ type, attrs: {}, regions: {} }));
+const markerDraft = (extras: boolean) =>
+  fc
+    .tuple(fc.constantFrom('DIVIDER', 'TOC'), extras ? sometimes(blockExtra, noStyle) : fc.constant(noStyle))
+    .map(([type, style]): Draft => ({ type, attrs: style, regions: {} }));
 const pluginDraft = fc
   .dictionary(fc.constantFrom(...KEYS), jsonValue, { maxKeys: 3 })
   .map((data): Draft => ({ type: 'PLUGIN', attrs: { data }, regions: {} }));
 
-const draftArbitrary = fc.oneof(
-  { weight: 12, arbitrary: markdownDraft },
-  { weight: 2, arbitrary: calloutDraft },
-  { weight: 2, arbitrary: codeDraft },
-  { weight: 2, arbitrary: markerDraft },
-  { weight: 3, arbitrary: toggleDraft },
-  { weight: 2, arbitrary: tableDraft },
-  { weight: 1, arbitrary: mathDraft },
-  { weight: 2, arbitrary: pluginDraft },
-);
+const draftArbitrary = (extras: boolean) =>
+  fc.oneof(
+    { weight: 12, arbitrary: markdownDraft(extras) },
+    { weight: 2, arbitrary: calloutDraft },
+    { weight: 2, arbitrary: codeDraft },
+    { weight: 2, arbitrary: markerDraft(extras) },
+    { weight: 3, arbitrary: toggleDraft(extras) },
+    { weight: 2, arbitrary: tableDraft },
+    { weight: 1, arbitrary: mathDraft },
+    { weight: 2, arbitrary: pluginDraft },
+  );
 
 const opensContainer = ({ type, attrs }: Draft) =>
   type === 'TOGGLE' || (type === 'MARKDOWN' && ['bullet', 'ordered', 'task'].includes(String(attrs.kind)));
@@ -130,9 +152,11 @@ function arrange(entries: readonly (readonly [Draft, number])[]): EngineBlock[] 
   });
 }
 
-export function arbitraryBlocks(): fc.Arbitrary<QuoinBlock[]> {
+// With extras, text blocks, toggles, dividers and tables of contents sometimes carry data that markdown cannot hold in
+// its native form, which only a lossless export keeps.
+export function arbitraryBlocks({ extras = false }: { extras?: boolean } = {}): fc.Arbitrary<QuoinBlock[]> {
   const codec = createBlockCodec(createSchema());
   return fc
-    .array(fc.tuple(draftArbitrary, fc.integer({ min: 0, max: 3 })), { maxLength: 8 })
+    .array(fc.tuple(draftArbitrary(extras), fc.integer({ min: 0, max: 3 })), { maxLength: 8 })
     .map((entries) => arrange(entries).map((block) => codec.toQuoin(block)));
 }

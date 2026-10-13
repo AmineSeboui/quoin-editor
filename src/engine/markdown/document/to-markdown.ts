@@ -4,6 +4,7 @@ import { createSchema } from '../../schema/create-schema';
 import type { Schema } from '../../schema/types';
 import { startsHtmlBlock } from '../block/html-blocks';
 import { blockMarkdown, type ExportEnv } from './block-markdown';
+import { needsComment } from './comment-form';
 import { hangLines, indentLines } from './line-format';
 import { createListContext, type Container, type Placement } from './list-context';
 import { stripComments } from './strip-comments';
@@ -12,6 +13,11 @@ export type ToMarkdownOptions = {
   schema?: Schema;
   resolveAssetUrl?: (storageKey: string) => string;
   comments?: boolean;
+  /**
+   * Write every block that markdown cannot hold in full as a quoin comment, so that fromMarkdown reads back all of its
+   * data. Plain export, the default, writes native markdown and drops what that form cannot carry: block-level align,
+   * colour, background and other extra keys, the indent no container explains, and the data of the other block types.
+   */
   lossless?: boolean;
 };
 
@@ -99,11 +105,15 @@ export function toMarkdown(blocks: readonly QuoinBlock[], options: ToMarkdownOpt
   };
 
   for (const engineBlock of blocks.flatMap((block) => codec.toEngineBlocks(block))) {
-    const placement = context.place(env.ctx.comments ? engineBlock : stripComments(engineBlock));
+    const block = env.ctx.comments ? engineBlock : stripComments(engineBlock);
+    const placement = context.place(
+      block,
+      env.lossless ? (residual) => needsComment(block, residual, schema, env.ctx) : undefined,
+    );
     closeToggles(placement.closed);
     const text = blockMarkdown(placement.block, env, {
       residual: placement.residual,
-      asComment: env.lossless && takenAsItemText(pieces[pieces.length - 1], placement),
+      asComment: placement.comment || (env.lossless && takenAsItemText(pieces[pieces.length - 1], placement)),
     });
     if (text) pieces.push(pieceOf(text, placement));
   }

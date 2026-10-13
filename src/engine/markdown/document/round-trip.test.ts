@@ -17,6 +17,16 @@ describe('document round trip', () => {
     );
   });
 
+  it('keeps every key of text blocks, toggles, dividers and tables of contents that carry extras too', () => {
+    fc.assert(
+      fc.property(arbitraryBlocks({ extras: true }), (blocks) => {
+        const markdown = toMarkdown(blocks, { lossless: true });
+        expect(strip(fromMarkdown(markdown, { softBreak: 'newline' })), markdown).toEqual(strip(blocks));
+      }),
+      { numRuns: 1000 },
+    );
+  });
+
   it.each(['`</summary>`', 'a \\</summary> b'])('keeps %j in a toggle summary', (summary) => {
     const blocks = [{ id: 'a', type: 'TOGGLE', data: { markdown: summary, open: false } }];
     for (const lossless of [false, true]) {

@@ -23,10 +23,11 @@ export type Placement = {
   readonly closed: readonly Container[];
   readonly bare: boolean;
   readonly fragile: boolean;
+  readonly comment: boolean;
 };
 
 export type ListContext = {
-  place(block: EngineBlock): Placement;
+  place(block: EngineBlock, asComment?: (residual: number) => boolean): Placement;
   finish(): Container[];
 };
 
@@ -45,12 +46,14 @@ export function createListContext(): ListContext {
   const stack: Container[] = [];
   const runs = new Map<number, number>();
 
-  function place(block: EngineBlock): Placement {
+  function place(block: EngineBlock, asComment?: (residual: number) => boolean): Placement {
     const closed: Container[] = [];
     while (stack.length > 0 && stack[stack.length - 1].indent >= block.indent) closed.push(stack.pop() as Container);
     const parent = stack[stack.length - 1];
     const prefix = parent?.childPrefix ?? '';
     const line = lineKindOf(block);
+    const residual = block.indent - stack.length;
+    const comment = asComment?.(residual) === true;
 
     for (const indent of [...runs.keys()]) if (indent > block.indent) runs.delete(indent);
     let placed = block;
@@ -63,15 +66,15 @@ export function createListContext(): ListContext {
       runs.delete(block.indent);
     }
 
-    const isItem = line !== undefined && ITEM_KINDS.includes(line);
+    const isItem = !comment && line !== undefined && ITEM_KINDS.includes(line);
     const hang = isItem ? (line === 'ordered' ? String(number).length : 0) + 2 : 0;
-    const container = openedBy(block, prefix, hang);
-    const residual = block.indent - stack.length;
+    const container = comment ? undefined : openedBy(block, prefix, hang);
     if (container) stack.push(container);
 
-    const bare = (line === 'bullet' || line === 'ordered') && inlineLength(block.regions.text ?? []) === 0;
+    const bare = !comment && (line === 'bullet' || line === 'ordered') && inlineLength(block.regions.text ?? []) === 0;
     const fragile = isItem && (bare || (line === 'ordered' && number !== 1));
-    return { block: placed, line, prefix, hang, residual, parent, container, closed, bare, fragile };
+    const shown = comment ? undefined : line;
+    return { block: placed, line: shown, prefix, hang, residual, parent, container, closed, bare, fragile, comment };
   }
 
   return { place, finish: () => stack.splice(0).reverse() };

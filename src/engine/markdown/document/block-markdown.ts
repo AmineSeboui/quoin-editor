@@ -5,6 +5,7 @@ import type { EngineBlock } from '../../model/types';
 import type { MarkdownExportContext, Schema } from '../../schema/types';
 import { isQuoinType } from '../block/quoin-comment';
 import { calloutMarkdown, codeMarkdown, mathMarkdown, tableMarkdown } from './block-forms';
+import { hasNativeForm } from './comment-form';
 import { quoinComment } from './comment-markdown';
 import { quoteLines } from './line-format';
 import { bookmarkMarkdown, embedMarkdown, fileMarkdown, imageMarkdown } from './link-forms';
@@ -20,8 +21,6 @@ export type BlockRender = { readonly residual: number; readonly asComment: boole
 type Data = Record<string, unknown>;
 
 const QUOTE_PREFIX = '> ';
-// Written as markdown even when lossless: the rest would lose data that only a comment can keep.
-const NATIVE_TYPES = new Set(['MARKDOWN', 'DIVIDER', 'TOC', 'TOGGLE']);
 
 function markdownLine(block: EngineBlock, data: Data): string | null {
   const kind = block.attrs.kind ?? 'paragraph';
@@ -72,7 +71,7 @@ export function blockMarkdown(block: EngineBlock, env: ExportEnv, { residual, as
   const spec = specFor(env.schema, block.type);
   const data = spec.toData(block, env.ctx);
   const comment = () => (isQuoinType(block.type) ? quoinComment(block.type, data, residual) : null);
-  if (asComment || (env.lossless && !NATIVE_TYPES.has(block.type))) return comment();
+  if (asComment || (env.lossless && !hasNativeForm(block.type))) return comment();
   const written = spec.toMarkdown ? spec.toMarkdown(block, env.ctx) : coreMarkdown(block, data, env, residual);
   if (written !== null) return written;
   return env.lossless || block.type !== 'MARKDOWN' ? comment() : null;

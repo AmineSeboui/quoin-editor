@@ -57,14 +57,17 @@ describe('createActiveMarks', () => {
     expect(active.current()).toBe(before);
   });
 
-  it('shows a reopened mark after the marks that sort equal to it', () => {
-    const active = createActiveMarks();
+  it('orders canonically equivalent but distinct ids by code unit whatever the open order', () => {
     const composed = { mark: { type: 'comment', attrs: { id: '\u00e9' } } };
     const decomposed = { mark: { type: 'comment', attrs: { id: 'e\u0301' } } };
-    [composed, decomposed].forEach(active.open);
-    expect(active.current()).toEqual([composed.mark, decomposed.mark]);
-    active.close(composed);
-    active.open({ mark: { type: 'comment', attrs: { id: '\u00e9' } } });
-    expect(active.current()).toEqual([decomposed.mark, composed.mark]);
+    const forward = createActiveMarks();
+    [composed, decomposed].forEach(forward.open);
+    expect(forward.current()).toEqual([decomposed.mark, composed.mark]);
+    const backward = createActiveMarks();
+    [decomposed, composed].forEach(backward.open);
+    expect(backward.current()).toEqual([decomposed.mark, composed.mark]);
+    forward.close(composed);
+    forward.open({ mark: { type: 'comment', attrs: { id: '\u00e9' } } });
+    expect(forward.current()).toEqual([decomposed.mark, composed.mark]);
   });
 });

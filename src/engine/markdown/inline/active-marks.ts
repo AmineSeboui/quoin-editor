@@ -19,24 +19,21 @@ function upperBound(marks: readonly Mark[], mark: Mark): number {
   return low;
 }
 
-function indexOfKey(marks: readonly Mark[], mark: Mark, key: string): number {
-  let index = upperBound(marks, mark) - 1;
-  while (markKey(marks[index]) !== key) index--;
-  return index;
+function indexOfKey(marks: readonly Mark[], mark: Mark): number {
+  return upperBound(marks, mark) - 1;
 }
 
 // Only the innermost open range of a mark key shows. A range closed beneath it stays on the key's stack,
 // flagged in closedBelowTop, and is dropped once it surfaces, so every range is pushed and popped once.
-// shown stays sorted, with marks that sort equal in the order they appeared, as a stable sort leaves them.
-// current() copies it only when a key's top differs from the last copy or a mark joined marks that sort
-// equal to it, so a set that changes and comes back keeps its identity.
+// shown stays sorted by compareMarks, which is equal only for the same key.
+// current() copies it only when a key's top differs from the last copy, so a set that changes and comes
+// back keeps its identity.
 export function createActiveMarks(): ActiveMarks {
   const stacks = new Map<string, MarkRange[]>();
   const closedBelowTop = new Set<MarkRange>();
   const shown: Mark[] = [];
   const copied = new Map<string, Mark>();
   const changed = new Set<string>();
-  let reordered = false;
   let copy: readonly Mark[] = [];
 
   const track = (key: string, top?: Mark) => {
@@ -49,12 +46,10 @@ export function createActiveMarks(): ActiveMarks {
     const key = markKey(range.mark);
     const stack = stacks.get(key);
     if (stack) {
-      shown[indexOfKey(shown, range.mark, key)] = range.mark;
+      shown[indexOfKey(shown, range.mark)] = range.mark;
       stack.push(range);
     } else {
-      const index = upperBound(shown, range.mark);
-      reordered ||= index > 0 && compareMarks(shown[index - 1], range.mark) === 0;
-      shown.splice(index, 0, range.mark);
+      shown.splice(upperBound(shown, range.mark), 0, range.mark);
       stacks.set(key, [range]);
     }
     track(key, range.mark);
@@ -69,7 +64,7 @@ export function createActiveMarks(): ActiveMarks {
     }
     stack.pop();
     while (stack.length > 0 && closedBelowTop.delete(stack[stack.length - 1])) stack.pop();
-    const index = indexOfKey(shown, range.mark, key);
+    const index = indexOfKey(shown, range.mark);
     const top = stack.at(-1)?.mark;
     if (top) {
       shown[index] = top;
@@ -81,7 +76,7 @@ export function createActiveMarks(): ActiveMarks {
   };
 
   const current = () => {
-    if (changed.size === 0 && !reordered) return copy;
+    if (changed.size === 0) return copy;
     copy = [...shown];
     for (const key of changed) {
       const stack = stacks.get(key);
@@ -89,7 +84,6 @@ export function createActiveMarks(): ActiveMarks {
       else copied.delete(key);
     }
     changed.clear();
-    reordered = false;
     return copy;
   };
 

@@ -7,6 +7,8 @@ const specifier =
   /(?:import|export)\s[^'"]*?from\s*['"]([^'"]+)['"]|\bimport\s*['"]([^'"]+)['"]|\bimport\(\s*['"]([^'"]+)['"]\s*\)|\brequire\(\s*['"]([^'"]+)['"]\s*\)/g;
 const source = /\.[cm]?[jt]sx?$/;
 const testFile = /\.test\.[cm]?[jt]sx?$/;
+const testHelper = /-arbitrary\.[cm]?[jt]sx?$|[\\/]test-support[\\/]/;
+const testHelperPackages = new Set(['fast-check', 'vitest']);
 
 function files(dir) {
   return readdirSync(dir).flatMap((name) => {
@@ -21,7 +23,7 @@ const violations = files(engine).flatMap((file) => {
   return [...text.matchAll(specifier)]
     .map((match) => match[1] ?? match[2] ?? match[3] ?? match[4])
     .filter((spec) => {
-      if (!spec.startsWith('.')) return true;
+      if (!spec.startsWith('.')) return !(testHelper.test(file) && testHelperPackages.has(spec));
       return relative(engine, resolve(dirname(file), spec)).startsWith('..');
     })
     .map((spec) => `${relative(root, file)}: ${spec}`);

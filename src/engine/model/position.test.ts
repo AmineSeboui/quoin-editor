@@ -15,6 +15,12 @@ describe('positions', () => {
     expect(comparePos(doc, { block: 'a', region: 'body', offset: 9 }, p('a', 0))).toBeLessThan(0);
   });
 
+  it('orders numbered regions numerically within a block', () => {
+    const at = (region: string) => ({ block: 'a', region, offset: 0 });
+    expect(comparePos(doc, at('cell:0:2'), at('cell:0:10'))).toBeLessThan(0);
+    expect(comparePos(doc, at('cell:10:0'), at('cell:2:0'))).toBeGreaterThan(0);
+  });
+
   it('returns a range in document order', () => {
     expect(orderedRange(doc, p('b', 1), p('a', 2))).toEqual({ from: p('a', 2), to: p('b', 1) });
     expect(orderedRange(doc, p('a', 2), p('b', 1))).toEqual({ from: p('a', 2), to: p('b', 1) });

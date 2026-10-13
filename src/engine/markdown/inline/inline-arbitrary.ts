@@ -41,7 +41,7 @@ const atomArbitrary = fc.oneof(
   fc
     .tuple(fc.constantFrom('1', '2'), fc.constantFrom('Ada', 'Bo B'), marks)
     .map(([id, label, own]) => atom('mention', { id, label }, own)),
-  fc.tuple(fc.constantFrom('x^2', 'a_b'), marks).map(([latex, own]) => atom('math', { latex }, own)),
+  fc.tuple(fc.constantFrom('x^2', 'a_b', '5', '2x'), marks).map(([latex, own]) => atom('math', { latex }, own)),
 );
 const nodeArbitrary: fc.Arbitrary<InlineNode> = fc.oneof(
   { weight: 4, arbitrary: fc.tuple(textValue, marks).map(([value, own]) => text(value, own)) },

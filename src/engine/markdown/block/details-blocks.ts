@@ -3,7 +3,9 @@ import { addChild, canNest, closeTip, type BlockStart, type Parser } from './par
 const DETAILS_OPEN = /^<details(\s[^>]*)?>/i;
 const DETAILS_CLOSE = /^<\/details>[ \t]*$/i;
 const SUMMARY_OPEN = /^<summary(?:\s[^>]*)?>/i;
-const SUMMARY_CLOSE = /<\/summary>/i;
+// Quoin ends every summary line but the last with a hard-break backslash and closes the last with the tag, so a tag
+// inside the text never ends a line that way. Foreign html may close the summary in the middle of a line.
+const SUMMARY_CLOSE = /<\/summary>(?:[ \t]*$|(?![\s\S]*\\$))/i;
 const OPEN_ATTRIBUTE = /(?:^|\s)open(?=[\s=/]|$)/i;
 
 export function findOpenDetails(parser: Parser, limit: number): number {

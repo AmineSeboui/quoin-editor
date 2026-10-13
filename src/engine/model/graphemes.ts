@@ -37,6 +37,14 @@ function words(text: string): Span[] {
     .map((s) => ({ start: s.index, end: s.index + s.segment.length }));
 }
 
+export function graphemeCount(text: string): number {
+  return boundaries(text).length - 1;
+}
+
+export function wordCount(text: string): number {
+  return words(text).length;
+}
+
 export function nextGraphemeOffset(text: string, offset: number): number {
   return boundaries(text).find((b) => b > offset) ?? text.length;
 }

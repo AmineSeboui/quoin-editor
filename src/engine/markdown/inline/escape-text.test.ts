@@ -11,8 +11,53 @@ const inside: EscapeContext = {
 const at = (overrides: Partial<EscapeContext>): EscapeContext => ({ ...inside, ...overrides });
 
 describe('escapeText', () => {
-  it.each(['\\', '`', '*', '_', '[', ']', '<', '~', '$'])('always escapes %s', (char) => {
+  it.each(['`', '*', '[', ']', '<', '~', '$'])('always escapes %s', (char) => {
     expect(escapeText(`a${char}b`, inside)).toBe(`a\\${char}b`);
+  });
+
+  it.each([
+    ['snake_case_name', 'snake_case_name'],
+    ['https://example.com/a_b_c?x=1', 'https://example.com/a_b_c?x=1'],
+    ['1_000_000', '1_000_000'],
+    ['\u00e9_\u00e9', '\u00e9_\u00e9'],
+  ])('leaves an underscore between two letters or digits alone in %j', (input, expected) => {
+    expect(escapeText(input, inside)).toBe(expected);
+  });
+
+  it.each([
+    ['_a', '\\_a'],
+    ['a_', 'a\\_'],
+    ['a_ b', 'a\\_ b'],
+    ['a _b', 'a \\_b'],
+    ['a__b', 'a\\_\\_b'],
+    ['a_*b', 'a\\_\\*b'],
+    ['_', '\\_'],
+  ])('escapes the underscores of %j', (input, expected) => {
+    expect(escapeText(input, inside)).toBe(expected);
+  });
+
+  it('escapes an underscore at the edge of its text, whose neighbours it cannot see', () => {
+    expect(escapeText('a_', at({ next: 'b' }))).toBe('a\\_');
+    expect(escapeText('_b', at({ previous: 'a' }))).toBe('\\_b');
+  });
+
+  it.each([
+    ['C:\\Users\\me', 'C:\\Users\\me'],
+    ['a\\1', 'a\\1'],
+    ['\\\u00e9', '\\\u00e9'],
+  ])('leaves a backslash before a letter or digit alone in %j', (input, expected) => {
+    expect(escapeText(input, inside)).toBe(expected);
+  });
+
+  it.each([
+    ['a\\', 'a\\\\'],
+    ['a\\*', 'a\\\\\\*'],
+    ['a\\\\b', 'a\\\\\\b'],
+    ['a\\ b', 'a\\\\ b'],
+    ['a\\\nb', 'a\\\\\\\nb'],
+    ['a\\&b', 'a\\\\&b'],
+  ])('escapes the backslashes of %j', (input, expected) => {
+    expect(escapeText(input, at({ previous: 'x', following: 'y' }))).toBe(expected);
   });
 
   it.each(['>', '#', '=', '+', '-', '|', '(', ')', '.', '"', '@'])('leaves %s alone mid line', (char) => {

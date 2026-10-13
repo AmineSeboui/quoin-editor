@@ -1,0 +1,50 @@
+import { createBlockCodec } from '../blocks/codec';
+import type { QuoinBlock } from '../model/quoin-block';
+import { createSchema } from '../schema/create-schema';
+import type { Schema } from '../schema/types';
+import { changeBetween, sameContent, type BlockChange } from './block-change';
+import { alignSteps, movedIds } from './diff-steps';
+import { refineSteps } from './refine-gaps';
+
+export type BlockDiff =
+  | { op: 'equal'; block: QuoinBlock }
+  | { op: 'insert'; block: QuoinBlock; moved?: boolean }
+  | { op: 'delete'; block: QuoinBlock; moved?: boolean }
+  | BlockChange;
+
+const idOf = (block: QuoinBlock) => block.id;
+
+function idsMostlyMatch(a: readonly QuoinBlock[], b: readonly QuoinBlock[]): boolean {
+  const known = new Set(b.map(idOf));
+  const matching = a.filter((block) => known.has(block.id)).length;
+  return matching * 2 >= Math.min(a.length, b.length);
+}
+
+/**
+ * A 0.4 block that holds several nodes is diffed as the pieces the editor splits it into, so an edit shows in one
+ * piece only, and the diff then carries those pieces. Blocks that are the same on both sides are never split.
+ */
+export function diffBlocks(
+  a: readonly QuoinBlock[],
+  b: readonly QuoinBlock[],
+  options: { schema?: Schema } = {},
+): BlockDiff[] {
+  const schema = options.schema ?? createSchema();
+  const codec = createBlockCodec(schema);
+  const byId = idsMostlyMatch(a, b);
+  const expand = (block: QuoinBlock) => {
+    const pieces = codec.toEngineBlocks(block);
+    return pieces.length === 1 ? [block] : pieces.map(codec.toQuoin);
+  };
+  const steps = refineSteps(alignSteps(a, b, byId), expand, byId);
+  const moved = byId ? movedIds(steps) : new Set<string>();
+  return steps.map((step): BlockDiff => {
+    if (step.kind === 'pair') {
+      return sameContent(step.before, step.after)
+        ? { op: 'equal', block: step.after }
+        : changeBetween(step.before, step.after, schema, codec.context);
+    }
+    const { kind, block } = step;
+    return moved.has(block.id) ? { op: kind, block, moved: true } : { op: kind, block };
+  });
+}

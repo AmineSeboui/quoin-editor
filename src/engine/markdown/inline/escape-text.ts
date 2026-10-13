@@ -13,10 +13,21 @@ export type EscapeContext = {
 
 export const ALWAYS_ESCAPED = /[\\`*_[\]<~$]/;
 
+const WORD_CHAR = /^[\p{L}\p{N}]$/u;
+const LITERAL_AFTER_BACKSLASH = /^[^\s!-/:-@[-`{-~]$/;
 const ENTITY_LIKE = /&#?[A-Za-z0-9]+;/y;
 const ORDERED_MARKER = /[0-9]+(?=[.)])/y;
 const LINE_START_SYNTAX = new Set(['#', '>', '=', '+', '-']);
 const WHITESPACE_ENTITY: Readonly<Record<string, string>> = { ' ': '&#32;', '\t': '&#9;' };
+
+// An underscore between two word characters never opens or closes emphasis, and a backslash before anything but ASCII
+// punctuation or a line end is just a backslash. The neighbours across the edge of the text are not known here.
+function needsEscape(text: string, index: number): boolean {
+  const char = text[index];
+  if (char === '_') return !(WORD_CHAR.test(text[index - 1] ?? '') && WORD_CHAR.test(text[index + 1] ?? ''));
+  if (char === '\\') return !LITERAL_AFTER_BACKSLASH.test(text[index + 1] ?? '');
+  return true;
+}
 
 export function escapeEntityAmpersands(value: string): string {
   return value.replace(/&(?=#?[A-Za-z0-9]+;)/g, '\\&');
@@ -50,7 +61,7 @@ export function escapeText(text: string, ctx: EscapeContext): string {
     } else if (char === ' ' || char === '\t') {
       const lineEnd = text[i + 1] === '\n' || (i === last && ctx.lineEnd);
       out += lineStart || lineEnd ? WHITESPACE_ENTITY[char] : char;
-    } else if (ALWAYS_ESCAPED.test(char)) {
+    } else if (ALWAYS_ESCAPED.test(char) && needsEscape(text, i)) {
       out += `\\${char}`;
     } else if (char === '&') {
       out += matchAt(ENTITY_LIKE, text, i) ? '\\&' : '&';

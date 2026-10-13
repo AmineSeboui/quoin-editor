@@ -60,6 +60,20 @@ describe('parseLine', () => {
     expect(linePrefix({ kind: 'quote' })).toBe('> ');
   });
 
+  it.each([
+    [1.5, '1. '],
+    [-1, '1. '],
+    [Number.NaN, '1. '],
+    [Number.POSITIVE_INFINITY, '1. '],
+    ['3', '1. '],
+    [0, '0. '],
+    [999_999_999, '999999999. '],
+    [1e10, '999999999. '],
+  ])('writes an ordered start of %j as a marker that parses back', (start, prefix) => {
+    expect(linePrefix({ kind: 'ordered', start: start as number })).toBe(prefix);
+    expect(parseLine(`${prefix}item`).kind).toBe('ordered');
+  });
+
   it('keeps a heading level inside one to six', () => {
     expect(linePrefix({ kind: 'heading' })).toBe('# ');
     expect(linePrefix({ kind: 'heading', level: 0 })).toBe('# ');

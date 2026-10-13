@@ -6,7 +6,7 @@ const root = resolve(import.meta.dirname, '..');
 const budgets = [
   ['dist/index.js', 95_000],
   ['dist/headless.js', 45_000],
-  ['dist/engine.js', 30_000],
+  ['dist/engine.js', 52_000],
 ];
 const external = ['react', 'react-dom', 'react/jsx-runtime', 'yjs'];
 

@@ -1,0 +1,149 @@
+import { blockById } from '../model/doc';
+import { atom } from '../model/inline';
+import { addMark, removeMark, sameMark, sameMarkSet } from '../model/marks';
+import { orderedRange } from '../model/position';
+import type { Attrs, Inline, Mark, Pos } from '../model/types';
+import { sanitizeHref } from '../markdown/urls';
+import type { EditorState } from '../state/editor-state';
+import { isCollapsed, textSelection } from '../state/selection';
+import { Transaction } from '../state/transaction';
+import { addMarkStep, removeMarkStep } from '../transform/mark-steps';
+import { replaceInlineStep } from '../transform/replace-inline-step';
+import { caretMarks } from './caret-marks';
+import type { Command } from './command';
+import { deleteRange } from './delete-range';
+import { markExtent } from './mark-extent';
+import { storableAtom, storableMark } from './storable-mark';
+import {
+  markCoverage,
+  markRanges,
+  matchesMark,
+  rangeContent,
+  selectionHasMark,
+  type MarkRange,
+} from './selection-marks';
+
+type Mode = 'add' | 'remove' | 'toggle';
+
+const KEPT_ON_CLEAR = new Set(['link', 'comment']);
+
+function makeMark(type: string, attrs?: Attrs): Mark {
+  return attrs !== undefined && Object.keys(attrs).length > 0 ? { type, attrs } : { type };
+}
+
+function collapsedCaret(state: EditorState): Pos | null {
+  const { selection } = state;
+  return selection?.kind === 'text' && isCollapsed(selection) ? selection.head : null;
+}
+
+function editRanges(
+  state: EditorState,
+  dispatch: ((tr: Transaction) => void) | undefined,
+  ranges: readonly MarkRange[],
+  edit: (tr: Transaction, range: MarkRange, content: Inline) => void,
+): boolean {
+  const tr = new Transaction(state);
+  for (const range of ranges) edit(tr, range, rangeContent(state, range));
+  if (!tr.docChanged) return false;
+  dispatch?.(tr);
+  return true;
+}
+
+function applyMark(type: string, attrs: Attrs | undefined, mode: Mode): Command {
+  return (state, dispatch) => {
+    const requested = makeMark(type, attrs);
+    const mark = mode === 'remove' ? requested : storableMark(requested);
+    if (mark === null) return false;
+    // A bare type removes every mark of that type. With attributes only the one they name goes.
+    const target = mark.attrs === undefined ? type : mark;
+    const caret = collapsedCaret(state);
+    if (caret !== null) {
+      const current = caretMarks(state.doc, state.schema, state.storedMarks, caret);
+      const active = current.some((existing) => matchesMark(existing, type, mark.attrs));
+      const remove = mode === 'remove' || (mode === 'toggle' && active);
+      const next = remove ? removeMark(current, target) : addMark(current, mark);
+      if (sameMarkSet(next, current)) return false;
+      dispatch?.(new Transaction(state).setStoredMarks(next));
+      return true;
+    }
+    const remove = mode === 'remove' || (mode === 'toggle' && selectionHasMark(state, type, mark.attrs));
+    return editRanges(state, dispatch, markRanges(state), (tr, { block, region, from, to }, content) => {
+      const coverage = markCoverage(content, type, mark.attrs);
+      if (remove && coverage.some) tr.step(removeMarkStep(block, region, from, to, target));
+      if (!remove && !coverage.every) tr.step(addMarkStep(block, region, from, to, mark));
+    });
+  };
+}
+
+export function toggleMark(type: string, attrs?: Attrs): Command {
+  return applyMark(type, attrs, 'toggle');
+}
+
+export function setMark(type: string, attrs?: Attrs): Command {
+  return applyMark(type, attrs, 'add');
+}
+
+export function unsetMark(type: string): Command {
+  return applyMark(type, undefined, 'remove');
+}
+
+function linkRanges(state: EditorState): MarkRange[] {
+  const caret = collapsedCaret(state);
+  if (caret === null) return markRanges(state);
+  const inline = blockById(state.doc, caret.block)?.regions[caret.region] ?? [];
+  const extent = markExtent(inline, caret.offset, 'link');
+  return extent === null ? [] : [{ block: caret.block, region: caret.region, ...extent }];
+}
+
+export function setLink(href: string, title?: string): Command {
+  const safe = sanitizeHref(href);
+  return (state, dispatch) => {
+    if (safe === null || safe === '') return false;
+    const link: Mark = { type: 'link', attrs: title ? { href: safe, title } : { href: safe } };
+    return editRanges(state, dispatch, linkRanges(state), (tr, { block, region, from, to }, content) => {
+      const linked = content.every((node) => node.marks.some((mark) => sameMark(mark, link)));
+      if (!linked) tr.step(addMarkStep(block, region, from, to, link));
+    });
+  };
+}
+
+export const unsetLink: Command = (state, dispatch) =>
+  editRanges(state, dispatch, linkRanges(state), (tr, { block, region, from, to }, content) => {
+    if (markCoverage(content, 'link').some) tr.step(removeMarkStep(block, region, from, to, 'link'));
+  });
+
+export const clearFormatting: Command = (state, dispatch) => {
+  const clearable = (mark: Mark) => !KEPT_ON_CLEAR.has(mark.type);
+  const caret = collapsedCaret(state);
+  if (caret !== null) {
+    const current = caretMarks(state.doc, state.schema, state.storedMarks, caret);
+    const kept = current.filter((mark) => !clearable(mark));
+    if (kept.length === current.length) return false;
+    dispatch?.(new Transaction(state).setStoredMarks(kept));
+    return true;
+  }
+  return editRanges(state, dispatch, markRanges(state), (tr, { block, region, from, to }, content) => {
+    const types = new Set(content.flatMap((node) => node.marks.filter(clearable).map((mark) => mark.type)));
+    for (const type of types) tr.step(removeMarkStep(block, region, from, to, type));
+  });
+};
+
+export function insertAtom(type: string, attrs: Attrs): Command {
+  return (state, dispatch) => {
+    const { doc, schema, selection } = state;
+    if (selection?.kind !== 'text' || !storableAtom(type, attrs)) return false;
+    const tr = new Transaction(state);
+    const { from, to } = orderedRange(doc, selection.anchor, selection.head);
+    const caret = deleteRange(tr, schema, from, to);
+    const node = atom(type, attrs, caretMarks(tr.doc, schema, tr.storedMarks, caret));
+    tr.step(replaceInlineStep(caret.block, caret.region, caret.offset, caret.offset, [node]));
+    tr.setSelection(textSelection({ ...caret, offset: caret.offset + 1 }));
+    dispatch?.(tr);
+    return true;
+  };
+}
+
+export function insertMention(mention: { id: string; label: string; kind?: string }): Command {
+  const { id, label, kind } = mention;
+  return insertAtom('mention', kind === undefined ? { id, label } : { id, label, kind });
+}

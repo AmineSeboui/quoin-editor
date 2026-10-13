@@ -101,3 +101,34 @@ describe('details toggles', () => {
     expect(parse('a\n</details>')).toEqual([md('a'), md('\\</details>')]);
   });
 });
+
+describe('toggle summaries that contain a closing summary tag', () => {
+  it('keeps the tag inside a code span', () => {
+    expect(parse('<details>\n<summary>`</summary>`</summary>\n</details>')).toEqual([toggle('`</summary>`')]);
+  });
+
+  it('keeps an escaped tag', () => {
+    expect(parse('<details open>\n<summary>a \\</summary> b</summary>\n\nchild\n\n</details>')).toEqual([
+      toggle('a \\</summary> b', true),
+      md('child', 1),
+    ]);
+  });
+
+  it('keeps the tag on every line of a summary written over several lines', () => {
+    const input = '<details>\n<summary>x \\</summary>\\\n`</summary>`\\\n\\</summary> y</summary>\n</details>';
+    expect(parse(input)).toEqual([toggle('x \\</summary>\\\n`</summary>`\\\n\\</summary> y')]);
+  });
+
+  it('ends the summary at a closing tag followed by spaces or tabs', () => {
+    expect(parse('<details>\n<summary>`</summary>`</summary> \t \nbody\n</details>')).toEqual([
+      toggle('`</summary>`'),
+      md('body', 1),
+    ]);
+  });
+
+  it('keeps reading foreign html that closes the summary in the middle of a line', () => {
+    expect(parse('<details>\n<summary>T</summary> more\nbody\n</details>')).toEqual([toggle('T'), md('body', 1)]);
+    expect(parse('<details>\n<summary>T</summary> more\n\nbody\n</details>')).toEqual([toggle('T'), md('body', 1)]);
+  });
+});
+

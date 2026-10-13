@@ -12,7 +12,7 @@ export function atom(type: string, attrs: Attrs, marks: readonly Mark[] = []): A
   return { kind: 'atom', type, attrs, marks: sortMarks(marks) };
 }
 
-function nodeLength(node: InlineNode): number {
+export function nodeLength(node: InlineNode): number {
   return node.kind === 'text' ? node.text.length : 1;
 }
 
@@ -149,7 +149,7 @@ export function rangeHasMark(inline: Inline, from: number, to: number, type: str
   return true;
 }
 
-function equalNode(a: InlineNode, b: InlineNode): boolean {
+export function equalNode(a: InlineNode, b: InlineNode): boolean {
   if (!sameMarkSet(a.marks, b.marks)) return false;
   if (a.kind === 'text') return b.kind === 'text' && a.text === b.text;
   return b.kind === 'atom' && a.type === b.type && sameAttrs(a.attrs, b.attrs);

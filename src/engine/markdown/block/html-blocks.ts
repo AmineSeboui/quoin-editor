@@ -24,6 +24,8 @@ const HTML_KINDS: readonly HtmlKind[] = [
   { start: COMPLETE_TAG, end: null, interrupts: false },
 ];
 
+export const startsHtmlBlock = (line: string): boolean => HTML_KINDS.some(({ start }) => start.test(line));
+
 export const htmlBlockStart: BlockStart = (parser, container) => {
   const { cursor } = parser;
   if (cursor.indented || !cursor.text.startsWith('<')) return 'none';

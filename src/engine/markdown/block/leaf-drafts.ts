@@ -4,7 +4,7 @@ import { joinLines } from './block-tree';
 import { draft, lineDraft, type Context, type Draft } from './drafts';
 import { imageParagraph } from './image-paragraph';
 import { trimBlank } from './lines';
-import { canonicalInline } from './inline-text';
+import { canonicalCell, canonicalInline } from './inline-text';
 
 const textLine = (ctx: Context): LineAttrs => ({ kind: ctx.quote ? 'quote' : 'paragraph' });
 
@@ -35,5 +35,6 @@ export function mathDraft(node: MathNode, ctx: Context): Draft {
 }
 
 export function tableDraft(node: TableNode, ctx: Context): Draft {
-  return draft('TABLE', { rows: [node.header, ...node.rows], header: true, align: node.align }, ctx.indent);
+  const rows = [node.header, ...node.rows].map((row) => row.map((cell) => canonicalCell(cell, ctx.text)));
+  return draft('TABLE', { rows, header: true, align: node.align }, ctx.indent);
 }

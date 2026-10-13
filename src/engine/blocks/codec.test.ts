@@ -72,6 +72,14 @@ describe('block codec caching and boundaries', () => {
     expect(c.toQuoin(edited)).toBe(quoin);
   });
 
+  it('maps a QuoinBlock it produced back to the engine block it came from', () => {
+    const c = codec();
+    const [block] = c.toEngineBlocks({ id: 'a', type: 'MARKDOWN', data: { markdown: 'x' } });
+    const edited = { ...block, indent: 1 };
+    expect(c.toEngineBlocks(c.toQuoin(edited))).toEqual([edited]);
+    expect(c.toEngineBlocks(c.toQuoin(edited))[0]).toBe(edited);
+  });
+
   it('keeps unedited blocks identical while only the edited one is rebuilt', () => {
     const c = codec();
     const blocks: QuoinBlock[] = [

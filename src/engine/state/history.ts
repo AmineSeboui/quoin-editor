@@ -67,30 +67,33 @@ function recorded(tr: Transaction, value: HistoryState, { depth, groupDelay }: C
 function moved(tr: Transaction, value: HistoryState, direction: Direction, depth: number): HistoryState {
   const undoing = direction === 'undo';
   const source = undoing ? value.done : value.undone;
+  const applied = source.length - 1 - (tr.getMeta<number>('historySkipped') ?? 0);
   const inverse: HistoryItem = {
     steps: invertTransaction(tr),
     selection: tr.before.selection,
-    origin: source.at(-1)?.origin ?? tr.origin,
+    origin: source[applied]?.origin ?? tr.origin,
   };
-  const rest = source.slice(0, -1);
+  const rest = source.slice(0, applied);
   const target = newest([...(undoing ? value.undone : value.done), inverse], depth);
   const stacks = undoing ? { done: rest, undone: target } : { done: target, undone: rest };
   return { ...value, ...stacks, lastGroup: null, lastInputRule: null };
 }
 
+const unrecordedOrigins: readonly TransactionOrigin[] = ['remote', 'reconcile', 'history'];
+
 function advance(tr: Transaction, value: HistoryState, config: Config): HistoryState {
-  if (tr.origin === 'reconcile') return emptyHistory;
-  const direction = tr.getMeta<Direction>('history');
-  if (tr.docChanged && direction !== undefined) return moved(tr, value, direction, config.depth);
-  if (tr.docChanged && tr.addToHistory && tr.origin !== 'remote' && tr.origin !== 'history') {
-    return recorded(tr, value, config);
+  if (tr.docChanged) {
+    const direction = tr.getMeta<Direction>('history');
+    if (direction !== undefined) return moved(tr, value, direction, config.depth);
+    const records = tr.addToHistory && !unrecordedOrigins.includes(tr.origin);
+    return records ? recorded(tr, value, config) : emptyHistory;
   }
   const closed = tr.getMeta<boolean>('closeHistory') === true;
   const relocated = tr.selectionSet && !sameSelection(tr.before.selection, tr.selection);
   return {
     ...value,
     lastGroup: closed ? null : value.lastGroup,
-    lastInputRule: tr.docChanged || relocated ? null : value.lastInputRule,
+    lastInputRule: relocated ? null : value.lastInputRule,
   };
 }
 
@@ -102,13 +105,16 @@ export function historyPlugin(options: { depth?: number; groupDelay?: number } =
 function travel(direction: Direction): Command {
   return (state, dispatch) => {
     const history = historyOf(state);
-    const item = (direction === 'undo' ? history?.done : history?.undone)?.at(-1);
-    if (item === undefined) return false;
-    const tr = new Transaction(state).setOrigin('history').setMeta('history', direction);
-    if (!item.steps.every((step) => tr.maybeStep(step))) return false;
-    if (item.selection !== null) tr.setSelection(item.selection);
-    dispatch?.(tr);
-    return true;
+    const items = (direction === 'undo' ? history?.done : history?.undone) ?? [];
+    for (let i = items.length - 1; i >= 0; i--) {
+      const tr = new Transaction(state).setOrigin('history').setMeta('history', direction);
+      if (!items[i].steps.every((step) => tr.maybeStep(step))) continue;
+      const { selection } = items[i];
+      if (selection !== null) tr.setSelection(selection);
+      dispatch?.(tr.setMeta('historySkipped', items.length - 1 - i));
+      return true;
+    }
+    return false;
   };
 }
 

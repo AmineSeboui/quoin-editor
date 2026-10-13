@@ -3,7 +3,17 @@ import { inlineText, text } from '../model/inline';
 import { replaceInlineStep } from '../transform/replace-inline-step';
 import { buildState, caretOf, markdownOf, run } from '../test-support/build-state';
 import { applyTransaction, getPluginState } from './editor-state';
-import { closeHistory, historyKey, historyPlugin, redo, redoDepth, undo, undoDepth, undoInputRule } from './history';
+import {
+  closeHistory,
+  historyKey,
+  historyPlugin,
+  redo,
+  redoDepth,
+  undo,
+  undoDepth,
+  undoInputRule,
+  type HistoryState,
+} from './history';
 import { nodeSelection, textSelection } from './selection';
 import { Transaction, type TransactionOrigin } from './transaction';
 import type { EditorState } from './editor-state';
@@ -13,6 +23,11 @@ const typeAt = (state: EditorState, offset: number, value: string, time: number,
     state,
     new Transaction(state, time).setOrigin(origin).step(replaceInlineStep('b0', 'text', offset, offset, [text(value)])),
   );
+
+const withHistory = (state: EditorState, history: HistoryState): EditorState => ({
+  ...state,
+  pluginState: new Map(state.pluginState).set(historyKey.name, history),
+});
 
 const ruleTransaction = (state: EditorState, from: number, to: number, undoText: string, time = 0) =>
   new Transaction(state, time)
@@ -58,42 +73,44 @@ describe('history', () => {
     expect(undoDepth(typeAt(state, 2, 'c', 20))).toBe(3);
   });
 
-  it('does not record remote changes and clears on reconcile', () => {
-    let state = typeAt(start(), 0, 'a', 0);
+  it('clears both stacks on a remote change or a reconcile', () => {
+    let state = run(typeAt(typeAt(start(), 0, 'a', 0), 1, 'b', 1000), undo).state;
+    expect([undoDepth(state), redoDepth(state)]).toEqual([1, 1]);
+    const remote = applyTransaction(
+      state,
+      new Transaction(state, 2000).setOrigin('remote').step(replaceInlineStep('b0', 'text', 0, 0, [text('r')])),
+    );
+    expect([undoDepth(remote), redoDepth(remote)]).toEqual([0, 0]);
     state = applyTransaction(
       state,
-      new Transaction(state, 1)
-        .setOrigin('remote')
-        .setMeta('addToHistory', false)
-        .step(replaceInlineStep('b0', 'text', 0, 0, [text('r')])),
+      new Transaction(state, 2000).setOrigin('reconcile').step(replaceInlineStep('b0', 'text', 0, 0, [text('x')])),
     );
-    expect(undoDepth(state)).toBe(1);
-    state = applyTransaction(
-      state,
-      new Transaction(state, 2).setOrigin('reconcile').step(replaceInlineStep('b0', 'text', 0, 0, [text('x')])),
-    );
-    expect(undoDepth(state)).toBe(0);
+    expect([undoDepth(state), redoDepth(state)]).toEqual([0, 0]);
     expect(run(state, undo).ok).toBe(false);
   });
 
-  it('clears the redo stack on reconcile too', () => {
-    let state = run(typeAt(start(), 0, 'a', 0), undo).state;
-    expect(redoDepth(state)).toBe(1);
-    state = applyTransaction(state, new Transaction(state, 2).setOrigin('reconcile'));
-    expect(redoDepth(state)).toBe(0);
+  it('clears both stacks when a document change opts out of history or comes from history unrecorded', () => {
+    const state = run(typeAt(typeAt(start(), 0, 'a', 0), 1, 'b', 1000), undo).state;
+    const change = (tr: Transaction) =>
+      applyTransaction(state, tr.step(replaceInlineStep('b0', 'text', 1, 1, [text('c')])));
+    const optedOut = change(new Transaction(state, 2000).setMeta('addToHistory', false));
+    expect([undoDepth(optedOut), redoDepth(optedOut)]).toEqual([0, 0]);
+    const historyOrigin = change(new Transaction(state, 2000).setOrigin('history'));
+    expect([undoDepth(historyOrigin), redoDepth(historyOrigin)]).toEqual([0, 0]);
   });
 
-  it('leaves the stacks alone when a change opts out of history', () => {
-    let state = typeAt(start(), 0, 'a', 0);
-    state = typeAt(state, 1, 'b', 5000, 'command');
-    state = applyTransaction(
-      state,
-      new Transaction(state, 6000)
-        .setMeta('addToHistory', false)
-        .step(replaceInlineStep('b0', 'text', 2, 2, [text('c')])),
-    );
-    expect(undoDepth(state)).toBe(2);
-    expect(redoDepth(state)).toBe(0);
+  it('keeps both stacks through transactions that change no document, whatever their origin', () => {
+    const state = run(typeAt(typeAt(start(), 0, 'a', 0), 1, 'b', 1000), undo).state;
+    const caret = textSelection({ block: 'b0', region: 'text', offset: 0 });
+    const unchanged = [
+      new Transaction(state, 2000).setOrigin('remote').setSelection(caret),
+      new Transaction(state, 2000).setOrigin('reconcile').setMeta('addToHistory', false),
+      new Transaction(state, 2000).setMeta('addToHistory', false).setStoredMarks([{ type: 'bold' }]),
+    ];
+    for (const tr of unchanged) {
+      const next = applyTransaction(state, tr);
+      expect([undoDepth(next), redoDepth(next)]).toEqual([1, 1]);
+    }
   });
 
   it('starts a new group when the caret is in another block or region', () => {
@@ -188,18 +205,27 @@ describe('history', () => {
     expect(undoDepth(state)).toBe(1);
   });
 
-  it('refuses to undo steps the document no longer accepts', () => {
-    let state = typeAt(start(), 0, 'abc', 0);
-    state = applyTransaction(
-      state,
-      new Transaction(state, 1)
-        .setOrigin('remote')
-        .setMeta('addToHistory', false)
-        .step(replaceInlineStep('b0', 'text', 0, 3, [])),
-    );
-    expect(run(state, undo).ok).toBe(false);
+  it('drops an item the document no longer accepts and undoes the one below it', () => {
+    const typed = typeAt(typeAt(start(), 0, 'a', 0), 1, 'b', 1000);
+    const history = getPluginState(typed, historyKey);
+    const unapplicable = { ...history.done[1], steps: [replaceInlineStep('b0', 'text', 5, 6, [])] };
+    const state = withHistory(typed, { ...history, done: [history.done[0], unapplicable] });
+    const undone = run(state, undo);
+    expect(undone.ok).toBe(true);
+    expect(markdownOf(undone.state)).toEqual(['b']);
+    expect([undoDepth(undone.state), redoDepth(undone.state)]).toEqual([0, 1]);
+    expect(markdownOf(run(undone.state, redo).state)).toEqual(['ab']);
+  });
+
+  it('refuses to undo when no item applies any more, without dispatching', () => {
+    const typed = typeAt(start(), 0, 'abc', 0);
+    const history = getPluginState(typed, historyKey);
+    const state = withHistory(typed, {
+      ...history,
+      done: [{ ...history.done[0], steps: [replaceInlineStep('b0', 'text', 5, 6, [])] }],
+    });
+    expect(run(state, undo)).toEqual({ ok: false, state, tr: null });
     expect(undo(state)).toBe(false);
-    expect(undoDepth(state)).toBe(1);
   });
 
   it('does nothing in a state without the history plugin', () => {

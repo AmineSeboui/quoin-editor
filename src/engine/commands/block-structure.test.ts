@@ -116,6 +116,22 @@ describe('moving blocks', () => {
     expect(markdownOf(run(down, moveBlocksUp).state)).toEqual(['- a', '- b', '  - d', '  - c']);
   });
 
+  it('never takes a shallower block of the range below indent zero when the first block is clamped', () => {
+    const up = buildState([item('a'), item('p', 1), item('q'), item('r')], { anchor: { block: 1, offset: 0 }, head: { block: 2, offset: 0 } });
+    const movedUp = run(up, moveBlocksUp);
+    expect(movedUp.ok).toBe(true);
+    expect(markdownOf(movedUp.state)).toEqual(['- p', '- q', '- a', '- r']);
+    const down = buildState([item('a'), item('b', 1), item('p', 2), item('q'), item('r')], { anchor: { block: 2, offset: 0 }, head: { block: 3, offset: 0 } });
+    const movedDown = run(down, moveBlocksDown);
+    expect(movedDown.ok).toBe(true);
+    expect(markdownOf(movedDown.state)).toEqual(['- a', '  - b', '- r', '  - p', '- q']);
+  });
+
+  it('shifts a shallower block of the range by the clamp while it stays above zero', () => {
+    const state = buildState([item('a'), item('b', 1), item('p', 2), item('q', 1), item('z')], { anchor: { block: 2, offset: 0 }, head: { block: 3, offset: 0 } });
+    expect(markdownOf(run(state, moveBlocksUp).state)).toEqual(['- a', '  - p', '- q', '  - b', '- z']);
+  });
+
   it('moves a selection of several blocks as one range', () => {
     const state = buildState([item('a'), item('b'), item('c'), item('d')], { anchor: { block: 1, offset: 0 }, head: { block: 2, offset: 0 } });
     expect(markdownOf(run(state, moveBlocksDown).state)).toEqual(['- a', '- d', '- b', '- c']);

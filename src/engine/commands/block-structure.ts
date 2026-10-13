@@ -91,7 +91,8 @@ function moveCommand(direction: 'up' | 'down'): Command {
     const delta = Math.min(0, cap - doc.blocks[range.start].indent);
     if (delta !== 0) {
       for (const { id, indent: current } of doc.blocks.slice(range.start, range.end)) {
-        tr.step(setIndentStep(id, current + delta));
+        const value = Math.max(0, current + delta);
+        if (value !== current) tr.step(setIndentStep(id, value));
       }
     }
     dispatch?.(tr);

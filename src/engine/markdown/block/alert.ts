@@ -1,7 +1,7 @@
 import { joinLines, type BlockNode, type QuoteNode } from './block-tree';
 
 const ALERT_LINE = /^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*$/;
-const TONES: Readonly<Record<string, string>> = {
+export const ALERT_TONES: Readonly<Record<string, string>> = {
   NOTE: 'info',
   TIP: 'tip',
   IMPORTANT: 'success',
@@ -22,5 +22,5 @@ export function alertOf(quote: QuoteNode): Alert | null {
     paragraphs.push(joinLines(node.lines));
     used++;
   }
-  return { tone: TONES[match[1]], paragraphs, rest: children.slice(used) };
+  return { tone: ALERT_TONES[match[1]], paragraphs, rest: children.slice(used) };
 }

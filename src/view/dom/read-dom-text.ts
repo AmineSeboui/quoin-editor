@@ -1,6 +1,6 @@
 const ELEMENT_NODE = 1;
 const TEXT_NODE = 3;
-const OBJECT_REPLACEMENT = '￼';
+const OBJECT_REPLACEMENT = '\uFFFC';
 const BLOCKS = new Set(['div', 'p']);
 
 type Marker = 'atom' | 'break' | 'br' | 'block';
@@ -30,9 +30,10 @@ function collect(parent: Node, out: Token[]): void {
   }
 }
 
-// Reads the text a host holds the way the model counts it: one ￼ per atom and one \n per line break. A browser br
-// with nothing after it is the placeholder that keeps an empty line open, and a block the browser opened only ends the
-// line when that line has something on it, so a block that follows a break does not add a second newline.
+// Reads the text a host holds the way the model counts it: one object replacement character per atom and one \n per
+// line break. A browser br with nothing after it is the placeholder that keeps an empty line open, and a block the
+// browser opened only ends the line when that line has something on it, so a block that follows a break does not add a
+// second newline.
 export function readDomText(host: HTMLElement): string {
   const tokens: Token[] = [];
   collect(host, tokens);

@@ -18,7 +18,7 @@ describe('readDomText', () => {
     ['<br data-quoin-filler="">', ''],
     ['a<br>', 'a'],
     ['a<br>b', 'a\nb'],
-    ['x<span contenteditable="false" data-quoin-atom="mention">@Ada</span>y', 'x￼y'],
+    ['x<span contenteditable="false" data-quoin-atom="mention">@Ada</span>y', 'x\uFFFCy'],
     ['x<span contenteditable="false" data-quoin-widget="caret">Bo</span>y', 'xy'],
     ['a<div>b</div>', 'a\nb'],
   ])('reads %j', (html, expected) => expect(readDomText(host(html))).toBe(expected));
@@ -31,7 +31,7 @@ describe('readDomText', () => {
     ['<strong>a<br data-quoin-break="">b</strong>', 'a\nb'],
     ['<strong>a<br></strong>', 'a'],
     ['<strong>a<br></strong>b', 'a\nb'],
-    ['<em><span data-quoin-atom="math"><span>x</span><br>y</span></em>z', '￼z'],
+    ['<em><span data-quoin-atom="math"><span>x</span><br>y</span></em>z', '\uFFFCz'],
     ['<span data-quoin-widget="caret"><br>Bo</span>a', 'a'],
   ])('reads inline structure %j', (html, expected) => expect(readDomText(host(html))).toBe(expected));
 

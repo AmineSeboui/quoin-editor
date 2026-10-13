@@ -43,7 +43,7 @@ describe('textDiff', () => {
   });
 
   it('describes every change as an edit that rebuilds the new text', () => {
-    const samples = ['', 'a', 'aa', 'ab', 'aab', 'abab', 'banana', 'bandana', 'x\ny', 'x\n\ny', '￼', 'a￼a'];
+    const samples = ['', 'a', 'aa', 'ab', 'aab', 'abab', 'banana', 'bandana', 'x\ny', 'x\n\ny', '\uFFFC', 'a\uFFFCa'];
     for (const before of samples) {
       for (const after of samples) {
         for (const hint of [undefined, 0, 1, 2, 3, 6]) {

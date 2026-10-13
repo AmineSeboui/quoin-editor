@@ -1,3 +1,4 @@
+import { sanitizeHref } from '../markdown/urls';
 import type { QuoinBlock } from '../model/quoin-block';
 import { createSchema } from '../schema/create-schema';
 import type { Schema } from '../schema/types';
@@ -53,7 +54,7 @@ export function toHTML(blocks: readonly QuoinBlock[], options: HTMLOptions = {})
   const schema = options.schema ?? createSchema();
   const engine = engineBlocksOf(blocks, schema);
   const env: HtmlEnv = {
-    resolveAssetUrl: options.resolveAssetUrl ?? ((storageKey) => storageKey),
+    resolveAssetUrl: options.resolveAssetUrl ?? sanitizeHref,
     renderMath: options.renderMath,
     embeds: options.embeds ?? 'link',
     headings: collectHeadings(engine, schema),

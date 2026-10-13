@@ -43,8 +43,9 @@ export function imageHTML(block: EngineBlock, view: BlockView, env: HtmlEnv): st
 
 export function fileHTML(block: EngineBlock, view: BlockView, env: HtmlEnv): string {
   const key = str(block.attrs.storageKey);
-  if (key === '') return '';
-  const attrs: Attr[] = [['href', env.resolveAssetUrl(key)], ['download', true]];
+  const href = key === '' ? null : env.resolveAssetUrl(key);
+  if (!href) return '';
+  const attrs: Attr[] = [['href', href], ['download', true]];
   return paragraph(view, element('a', attrs, escapeHtml(str(block.attrs.filename))));
 }
 

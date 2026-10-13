@@ -120,6 +120,24 @@ describe('toHTML media blocks', () => {
     expect(html(b('FILE', { storageKey: '', filename: 'f' }))).toBe('');
   });
 
+  it('drops an unsafe storage key when no host resolver is given', () => {
+    for (const storageKey of ['javascript:alert(1)', ' JaVaScRiPt:alert(1)', 'data:text/html,x', 'vbscript:x', 'java\tscript:alert(1)']) {
+      expect(html(b('FILE', { storageKey, filename: 'f' }))).toBe('');
+      expect(html(b('IMAGE', { storageKey, alt: 'x' }))).toBe('');
+    }
+    expect(html(b('FILE', { storageKey: 'https://x.y/f.pdf', filename: 'f' }))).toBe(
+      '<p><a href="https://x.y/f.pdf" download>f</a></p>',
+    );
+    expect(html(b('IMAGE', { storageKey: 'a/b.png', alt: 'x' }))).toBe('<figure><img src="a/b.png" alt="x"></figure>');
+  });
+
+  it('trusts what a host resolver returns, and writes nothing when it returns nothing', () => {
+    const resolveAssetUrl = (key: string) => (key === 'gone' ? '' : `/a/${key}`);
+    expect(html(b('IMAGE', { storageKey: 'gone', alt: 'x' }), { resolveAssetUrl })).toBe('');
+    expect(html(b('FILE', { storageKey: 'gone', filename: 'f' }), { resolveAssetUrl })).toBe('');
+    expect(html(b('IMAGE', { storageKey: 'k', alt: 'x' }), { resolveAssetUrl })).toBe('<figure><img src="/a/k" alt="x"></figure>');
+  });
+
   it('writes an embed as a link or a sandboxed iframe, only for a web address as an iframe', () => {
     const link = '<p><a href="https://youtu.be/x" rel="noopener noreferrer">https://youtu.be/x</a></p>';
     expect(html(b('EMBED', { url: 'https://youtu.be/x' }))).toBe(link);

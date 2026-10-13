@@ -149,7 +149,7 @@ export function rangeHasMark(inline: Inline, from: number, to: number, type: str
   return true;
 }
 
-function equalNode(a: InlineNode, b: InlineNode): boolean {
+export function equalNode(a: InlineNode, b: InlineNode): boolean {
   if (!sameMarkSet(a.marks, b.marks)) return false;
   if (a.kind === 'text') return b.kind === 'text' && a.text === b.text;
   return b.kind === 'atom' && a.type === b.type && sameAttrs(a.attrs, b.attrs);

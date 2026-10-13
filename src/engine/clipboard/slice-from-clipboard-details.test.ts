@@ -59,7 +59,8 @@ describe('sliceFromClipboard', () => {
   });
 
   it('turns a lone pasted http url into a link', () => {
-    expect(shape({ text: ' https://a.b/x_y__z__ \n' })).toEqual({ markdown: ['<https://a.b/x_y__z__>'], open: [true, true] });
+    const trimmed = { markdown: ['<https://a.b/x_y__z>\\_\\_'], open: [true, true] };
+    expect(shape({ text: ' https://a.b/x_y__z__ \n' })).toEqual(trimmed);
     expect(shape({ text: 'http://a.b' })).toEqual({ markdown: ['<http://a.b>'], open: [true, true] });
     expect(shape({ text: 'https://a.b and more' })?.markdown).toEqual(['https://a.b and more']);
     expect(shape({ text: 'https://a.b\nhttps://c.d' })?.markdown).toEqual(['https://a.b', 'https://c.d']);

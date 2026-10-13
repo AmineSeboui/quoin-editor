@@ -1,14 +1,13 @@
 import { serializeInline } from '../markdown/inline/serialize-inline';
 import { fromMarkdown } from '../markdown/block/from-markdown';
 import { parseLine } from '../markdown/line-kind';
-import { autolinkHref } from '../markdown/autolink-href';
 import { text as textNode } from '../model/inline';
 import { newId } from '../model/new-id';
 import type { QuoinBlock } from '../model/quoin-block';
 import { availableParser, fromHTML, type DOMParserLike } from './from-html';
 import { looksLikeMarkdown, plainTextToBlocks } from './from-text';
 import { parseSliceJSON } from './parse-slice-json';
-import { loneUrl } from './paste-url';
+import { pastedLink } from './paste-url';
 import type { Slice } from './slice';
 
 export type ClipboardData = { json?: string; html?: string; text?: string };
@@ -23,16 +22,17 @@ function openSlice(blocks: QuoinBlock[], plainText = false): Slice | null {
   return plainText ? { ...slice, plainText } : slice;
 }
 
-function linkBlocks(url: string, makeId: () => string): QuoinBlock[] | null {
-  const href = autolinkHref(url);
-  if (href === null) return null;
-  const markdown = serializeInline([textNode(url, [{ type: 'link', attrs: { href } }])]);
+function linkBlocks(text: string, makeId: () => string): QuoinBlock[] | null {
+  const link = pastedLink(text);
+  if (link === null) return null;
+  const { url, href, rest } = link;
+  const linked = textNode(url, [{ type: 'link', attrs: { href } }]);
+  const markdown = serializeInline(rest === '' ? [linked] : [linked, textNode(rest)]);
   return [{ id: makeId(), type: 'MARKDOWN', data: { markdown } }];
 }
 
 function textBlocks(text: string, makeId: () => string): QuoinBlock[] {
-  const url = loneUrl(text);
-  const link = url === null ? null : linkBlocks(url, makeId);
+  const link = linkBlocks(text, makeId);
   if (link !== null) return link;
   return looksLikeMarkdown(text) ? fromMarkdown(text, { newId: makeId }) : plainTextToBlocks(text, makeId);
 }

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { inlineText } from '../model/inline';
+import { insertTextWithRules } from '../rules/input-rule';
+import { markInputRules } from '../rules/mark-rules';
+import type { EditorState } from '../state/editor-state';
+import { buildState, run } from '../test-support/build-state';
 import { caret, md, range, startEditor } from '../test-support/editor-fixtures';
+import { insertSlice } from './insert-slice';
 import { loneUrl } from './paste-url';
 import { sliceFromClipboard } from './slice-from-clipboard';
 
@@ -47,6 +53,40 @@ describe('pasting a www address', () => {
     const { editor } = startEditor([md('a', 'go here')]);
     editor.commands.setSelection(range('a', 3, 7));
     expect(editor.paste({ text: 'www.example.com' })).toBe(true);
+    expect(editor.getBlocks()[0].data.markdown).toBe('go [here](https://www.example.com)');
+  });
+});
+
+describe('pasting an address that ends in punctuation', () => {
+  const linksOf = (state: EditorState) =>
+    state.doc.blocks[0].regions.text.flatMap((node) => {
+      const link = node.marks.find((mark) => mark.type === 'link');
+      return link === undefined || node.kind !== 'text' ? [] : [[node.text, link.attrs?.href]];
+    });
+  const typed = (address: string) => {
+    const state = buildState([{ paragraph: address }], { block: 0, offset: address.length });
+    return run(state, insertTextWithRules(' ', markInputRules));
+  };
+  const pasted = (address: string) =>
+    run(buildState([''], { block: 0, offset: 0 }), insertSlice(sliceFromClipboard({ text: address })!));
+
+  it.each(['www.example.com.', 'https://a.b/c,', 'https://a.b?!', 'https://a.b/x_(y))', "www.a.b/c';", 'www.!'])(
+    'links %j the way typing it does',
+    (address) => {
+      const { state } = pasted(address);
+      expect(linksOf(state)).toEqual(linksOf(typed(address).state));
+      expect(inlineText(state.doc.blocks[0].regions.text)).toBe(address);
+    },
+  );
+
+  it('writes the punctuation after the link', () => {
+    expect(markdownOfPaste('www.example.com.')).toEqual(['[www.example.com](https://www.example.com).']);
+  });
+
+  it('leaves the punctuation out of the link put on a selection', () => {
+    const { editor } = startEditor([md('a', 'go here')]);
+    editor.commands.setSelection(range('a', 3, 7));
+    expect(editor.paste({ text: 'www.example.com.' })).toBe(true);
     expect(editor.getBlocks()[0].data.markdown).toBe('go [here](https://www.example.com)');
   });
 });

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { nextGraphemeOffset, nextWordOffset, prevGraphemeOffset, prevWordOffset } from './graphemes';
+import { graphemeCount, nextGraphemeOffset, nextWordOffset, prevGraphemeOffset, prevWordOffset, wordCount } from './graphemes';
 
 describe('graphemes', () => {
   it('steps over surrogate pairs and combining sequences as one', () => {
@@ -28,6 +28,15 @@ describe('graphemes', () => {
   });
 });
 
+describe('counts', () => {
+  it('counts a grapheme cluster once and words apart from punctuation', () => {
+    expect(graphemeCount('a\u{1F44D}\u{1F3FD}e\u0301')).toBe(3);
+    expect(graphemeCount('')).toBe(0);
+    expect(wordCount('hello, big world')).toBe(3);
+    expect(wordCount(' ,; ')).toBe(0);
+  });
+});
+
 describe('graphemes without Intl.Segmenter', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -46,6 +55,13 @@ describe('graphemes without Intl.Segmenter', () => {
     expect(fallback.nextGraphemeOffset(s, 1)).toBe(3);
     expect(fallback.prevGraphemeOffset(s, 5)).toBe(3);
     expect(fallback.nextGraphemeOffset(s, 6)).toBe(6);
+  });
+
+  it('counts code points and runs of letters, digits and underscores', async () => {
+    const fallback = await loadFallback();
+    expect(fallback.graphemeCount('a\u{1F44D}\u{1F3FD}b')).toBe(4);
+    expect(fallback.graphemeCount('')).toBe(0);
+    expect(fallback.wordCount('h\u00E9llo, big_2 world')).toBe(3);
   });
 
   it('falls back to runs of letters, digits and underscores for words', async () => {

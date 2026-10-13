@@ -26,8 +26,20 @@ describe('tables', () => {
     ['| a | b |\n|:-|-:|\n| 1 | 2 |', table([['a', 'b'], ['1', '2']], ['left', 'right'])],
     ['a | b\n-|-\n1 | 2', table([['a', 'b'], ['1', '2']], [null, null])],
     ['| abc | def |\n| --- | --- |', table([['abc', 'def']], [null, null])],
-    ['| f\\|oo  |\n| ------ |\n| b `\\|` az |', table([['f\\|oo'], ['b `\\|` az']], [null])],
+    ['| f\\|oo  |\n| ------ |\n| b `\\|` az |', table([['f\\|oo'], ['b <code>\\|</code> az']], [null])],
   ])('reads %j', (input, expected) => expect(parse(input)).toEqual([expected]));
+
+  it('unescapes the pipes of a cell before it reads the markdown, code spans included (GFM example 200)', () => {
+    expect(parse('| f\\|oo  |\n| ------ |\n| b `\\|` az |\n| b **\\|** im |')).toEqual([
+      table([['f\\|oo'], ['b <code>\\|</code> az'], ['b **\\|** im']], [null]),
+    ]);
+  });
+
+  it('writes every cell the way the engine writes it', () => {
+    expect(parse('| [!NOTE] | *a* |\n| --- | --- |\n| `a\\|b` | x\\|y |')).toEqual([
+      table([['\\[!NOTE\\]', '_a_'], ['<code>a\\|b</code>', 'x\\|y']], [null, null]),
+    ]);
+  });
 
   it('pads short rows, drops extra cells and keeps empty cells', () => {
     expect(parse('| abc | def |\n| --- | --- |\n| bar |\n| bar | baz | boo |\n|a||')).toEqual([

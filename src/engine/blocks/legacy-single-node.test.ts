@@ -72,8 +72,8 @@ describe('0.4 MARKDOWN blocks that hold one node', () => {
     expect(doc.blocks.map((b) => [b.attrs.kind, b.indent])).toEqual([['heading', 2]]);
   });
 
-  it('reads every single line block as fromMarkdown reads it', () => {
-    const alphabet = fc.constantFrom(...'aZ1 \t#-*_>`~|![]():<$\\=+.&\u00a0');
+  it('reads every short block as fromMarkdown reads it', () => {
+    const alphabet = fc.constantFrom(...'aZ1 \t#-*_>`~|![]():<$\\=+.&\u00a0\n\r');
     const chars = fc.array(alphabet, { maxLength: 12 }).map((list) => list.join(''));
     const letterFirst = fc.tuple(fc.constantFrom('a', 'Q', '\u00e9', '\u4e2d'), chars).map(([head, tail]) => head + tail);
     fc.assert(

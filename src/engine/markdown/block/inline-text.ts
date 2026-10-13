@@ -31,6 +31,13 @@ export function canonicalInline(source: string, options: TextOptions, hardBreak?
   return serializeInline(parseText(source, options), { escapeLineStart: true, hardBreak });
 }
 
+const ESCAPED_PIPE = /\\\|/g;
+
+// GFM unescapes the pipes of a cell before it reads the inline markdown, code spans included.
+export function canonicalCell(source: string, options: TextOptions): string {
+  return serializeInline(parseText(source.replace(ESCAPED_PIPE, '|'), options), { escapePipes: true, hardBreak: 'br' });
+}
+
 export function canonicalParagraphs(paragraphs: readonly string[], options: TextOptions): string {
   const parts = paragraphs.map((source) => parseText(source, options));
   const joined = parts.flatMap((part, index) => (index === 0 ? part : [text('\n'), ...part]));

@@ -6,7 +6,7 @@ import type { EngineBlock, Inline, Pos } from '../model/types';
 import type { Schema } from '../schema/types';
 import { endOf, primaryRegion, textSelection } from '../state/selection';
 import type { Transaction } from '../state/transaction';
-import { insertBlocksStep } from '../transform/block-steps';
+import { insertBlocksStep, removeBlocksStep } from '../transform/block-steps';
 import { replaceInlineStep } from '../transform/replace-inline-step';
 import type { Slice } from './slice';
 import { freshBlocks } from './slice-blocks';
@@ -23,6 +23,12 @@ function insertAt(tr: Transaction, pos: Pos, content: Inline): void {
 
 function insertClosed(tr: Transaction, schema: Schema, at: number, blocks: readonly EngineBlock[]): void {
   tr.step(insertBlocksStep(at, blocks));
+  tr.setSelection(endOf(tr.doc, schema, blocks[blocks.length - 1].id));
+}
+
+function replaceEmpty(tr: Transaction, schema: Schema, index: number, blocks: readonly EngineBlock[]): void {
+  tr.step(insertBlocksStep(index, blocks));
+  tr.step(removeBlocksStep(index + blocks.length, 1));
   tr.setSelection(endOf(tr.doc, schema, blocks[blocks.length - 1].id));
 }
 
@@ -51,6 +57,11 @@ export function pasteAtCaret(
   const fresh = freshBlocks(pieces, current.indent, makeId);
   if (!textual(current) || region !== primaryRegion(schema, current)) {
     insertClosed(tr, schema, descendantsEnd(tr.doc, index), fresh);
+    return;
+  }
+
+  if (regionLength(current, region) === 0) {
+    replaceEmpty(tr, schema, index, fresh);
     return;
   }
 

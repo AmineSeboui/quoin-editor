@@ -1,6 +1,7 @@
+import { caretMarks } from '../commands/caret-marks';
 import type { Command } from '../commands/command';
 import { text } from '../model/inline';
-import type { Pos, Selection } from '../model/types';
+import type { Mark, Pos, Selection } from '../model/types';
 import { replaceInlineStep } from '../transform/replace-inline-step';
 import type { Step } from '../transform/step';
 import type { EditorState } from './editor-state';
@@ -14,7 +15,12 @@ export type HistoryItem = {
   readonly origin: TransactionOrigin;
 };
 
-export type InputRuleRecord = { readonly steps: readonly Step[]; readonly undoText: string; readonly at: Pos };
+export type InputRuleRecord = {
+  readonly steps: readonly Step[];
+  readonly undoText: string;
+  readonly at: Pos;
+  readonly marks: readonly Mark[];
+};
 
 export type HistoryState = {
   readonly done: readonly HistoryItem[];
@@ -48,7 +54,8 @@ function inputRuleRecord(tr: Transaction, steps: readonly Step[]): InputRuleReco
   const rule = tr.getMeta<{ undoText: string }>('inputRule');
   const before = tr.before.selection;
   if (rule === undefined || before?.kind !== 'text' || !isCollapsed(before)) return null;
-  return { steps, undoText: rule.undoText, at: before.head };
+  const { doc, schema, storedMarks } = tr.before;
+  return { steps, undoText: rule.undoText, at: before.head, marks: caretMarks(doc, schema, storedMarks, before.head) };
 }
 
 function recorded(tr: Transaction, value: HistoryState, { depth, groupDelay }: Config): HistoryState {
@@ -93,7 +100,7 @@ function advance(tr: Transaction, value: HistoryState, config: Config): HistoryS
   return {
     ...value,
     lastGroup: closed ? null : value.lastGroup,
-    lastInputRule: relocated ? null : value.lastInputRule,
+    lastInputRule: relocated || tr.storedMarksSet ? null : value.lastInputRule,
   };
 }
 
@@ -125,10 +132,10 @@ export const undoInputRule: Command = (state, dispatch) => {
   const record = historyOf(state)?.lastInputRule;
   if (record === null || record === undefined) return false;
   if (dispatch !== undefined) {
-    const { steps, undoText, at } = record;
+    const { steps, undoText, at, marks } = record;
     const tr = new Transaction(state);
     steps.forEach((step) => tr.step(step));
-    tr.step(replaceInlineStep(at.block, at.region, at.offset, at.offset, [text(undoText)]));
+    tr.step(replaceInlineStep(at.block, at.region, at.offset, at.offset, [text(undoText, marks)]));
     dispatch(tr.setSelection(textSelection({ ...at, offset: at.offset + undoText.length })));
   }
   return true;

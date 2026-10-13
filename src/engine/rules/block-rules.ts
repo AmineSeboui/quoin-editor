@@ -29,7 +29,7 @@ function lineRule(
 
 const divider: InputRule = {
   name: 'divider',
-  match: /^(?:---|\*\*\*|___)$/,
+  match: /^(?:---|[\u2013\u2014]-|\*\*\*|___)$/,
   blockTypes: ['MARKDOWN'],
   kinds: PARAGRAPH,
   handler(state, _match, range, context) {

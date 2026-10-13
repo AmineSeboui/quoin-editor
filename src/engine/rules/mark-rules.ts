@@ -15,7 +15,7 @@ export const markInputRules: readonly InputRule[] = [
   typed('highlight', /==([^\s=](?:[^=]*[^\s=])?)==$/, 2, 'highlight'),
   markRule({
     name: 'link',
-    match: /\[([^\s[\]](?:[^[\]]*[^\s[\]])?)\]\(([^\s()]+)\)$/,
+    match: /\[([^\s[\]](?:[^[\]]*[^\s[\]])?)\]\(((?:[^\s()]|\((?:[^\s()]|\([^\s()]*\))*\))+)\)$/,
     open: 1,
     close: (match) => match[2].length + 3,
     mark(match) {

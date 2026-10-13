@@ -3,6 +3,7 @@ import type { QuoinBlock } from '../model/quoin-block';
 
 // A line that starts with a letter and does not end in whitespace or a backslash reads the same with either parser.
 const PLAIN_LINE = /^\p{L}(?:[^\r\n]*[^\s\\])?$/u;
+// fromMarkdown has no block for whitespace alone, which a 0.4 block can hold, so it reads as one empty paragraph.
 const BLANK_PIECE: QuoinBlock = { id: '', type: 'MARKDOWN', data: { markdown: '' } };
 
 const pieceId = (id: string, index: number) => (index === 0 ? id : `${id}-${index + 1}`);

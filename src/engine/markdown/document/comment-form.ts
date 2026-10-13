@@ -2,7 +2,8 @@ import { specFor } from '../../blocks/unknown-spec';
 import type { EngineBlock } from '../../model/types';
 import type { MarkdownExportContext, Schema } from '../../schema/types';
 
-// The types that are written as markdown even when lossless, with the data keys that markdown can carry.
+// The types that are written as markdown even when lossless, with the data keys that markdown can carry. A divider or
+// a table of contents has no data in markdown, so any key makes it a comment.
 const NATIVE_KEYS = new Map<string, readonly string[]>([
   ['MARKDOWN', ['markdown']],
   ['TOGGLE', ['markdown', 'open']],

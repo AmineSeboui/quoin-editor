@@ -75,9 +75,27 @@ function distance(a: Rgb, b: Rgb): number {
   return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2;
 }
 
+// A fully saturated #0000ff highlight lies 323 from the blue background and a dark red 339 from the brown one, so
+// 330 keeps every tinted version of a palette colour and rejects colours that only happen to be nearest.
+const MAX_PALETTE_DISTANCE = 330;
+const NEUTRAL_CHROMA = 24;
+const LIGHT_TEXT = 200;
+const WHITE_SURFACE = 244;
+const DARK_SURFACE = 128;
+
+// Page surfaces: light text on a dark page, and white or dark grey backgrounds. Every palette value sits outside
+// them, so palette colours still map to themselves.
+function isSurface([r, g, b]: Rgb, kind: PaletteKind): boolean {
+  const high = Math.max(r, g, b);
+  const low = Math.min(r, g, b);
+  const neutral = high - low <= NEUTRAL_CHROMA;
+  if (kind === 'text') return neutral && (high + low) / 2 > LIGHT_TEXT;
+  return low >= WHITE_SURFACE || (neutral && (high + low) / 2 < DARK_SURFACE);
+}
+
 export function nearestPaletteColor(css: string, kind: PaletteKind): string | null {
   const rgb = parseColor(css);
-  if (rgb === null) return null;
+  if (rgb === null || isSurface(rgb, kind)) return null;
   const table = PALETTE_RGB[kind];
   let best: PaletteName = 'default';
   let least = Infinity;
@@ -90,5 +108,5 @@ export function nearestPaletteColor(css: string, kind: PaletteKind): string | nu
       }
     }
   }
-  return best === 'default' ? null : best;
+  return best === 'default' || least > MAX_PALETTE_DISTANCE ** 2 ? null : best;
 }

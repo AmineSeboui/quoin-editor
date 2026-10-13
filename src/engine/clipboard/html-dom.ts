@@ -73,6 +73,9 @@ export const isElement = (node: Node): node is Element => node.nodeType === ELEM
 
 export const tagName = (element: Element): string => element.localName.toLowerCase();
 
+export const isFragmentRoot = (element: Element): boolean =>
+  element.parentElement !== null && element.parentElement.localName.toLowerCase() === 'body';
+
 export const isDropped = (element: Element): boolean => DROPPED.has(tagName(element));
 
 export const isBlockTag = (element: Element): boolean => BLOCK_TAGS.has(tagName(element));

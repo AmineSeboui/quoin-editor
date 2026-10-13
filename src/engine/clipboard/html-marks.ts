@@ -2,7 +2,7 @@ import { isPaletteColor } from '../markdown/palette';
 import { sanitizeHref } from '../markdown/urls';
 import { addMark, hasMark, removeMark } from '../model/marks';
 import type { Mark } from '../model/types';
-import { tagName } from './html-dom';
+import { isFragmentRoot, tagName } from './html-dom';
 import {
   fontWeight,
   hasDecoration,
@@ -54,9 +54,10 @@ export function elementMarks(element: Element, inherited: readonly Mark[]): read
   if (tag === 'sup' || align === 'super') add({ type: 'sup' });
   if (tag === 'mark') add(highlightMark(element));
 
-  const color = linked ? null : nearestPaletteColor(styles.get('color') ?? '', 'text');
+  const pageColors = isFragmentRoot(element);
+  const color = linked || pageColors ? null : nearestPaletteColor(styles.get('color') ?? '', 'text');
   if (color !== null) add({ type: 'color', attrs: { color } });
-  const background = nearestPaletteColor(styles.get('background-color') ?? '', 'background');
+  const background = pageColors ? null : nearestPaletteColor(styles.get('background-color') ?? '', 'background');
   if (background !== null) add({ type: 'background', attrs: { color: background } });
   return marks;
 }

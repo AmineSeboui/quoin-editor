@@ -26,7 +26,7 @@ import type { Command } from './command';
 import { removeBlocks } from './remove-blocks';
 import { shiftSubtree } from './shift-subtree';
 
-type Options = { newId?: () => string };
+export type BlockStructureOptions = { newId?: () => string };
 
 export const toggleTask: Command = (state, dispatch) => {
   const { doc, selection } = state;
@@ -108,7 +108,7 @@ function copiedSelection(selection: Selection, copies: ReadonlyMap<string, strin
   }
 }
 
-export function duplicateBlocks(options: Options = {}): Command {
+export function duplicateBlocks(options: BlockStructureOptions = {}): Command {
   const makeId = options.newId ?? newId;
   return (state, dispatch) => {
     const { doc, selection } = state;
@@ -132,7 +132,7 @@ export const deleteBlocks: Command = (state, dispatch) => {
   return true;
 };
 
-export function insertBlockAfter(type: string, attrs?: BlockAttrs, options: Options = {}): Command {
+export function insertBlockAfter(type: string, attrs?: BlockAttrs, options: BlockStructureOptions = {}): Command {
   const makeId = options.newId ?? newId;
   return (state, dispatch) => {
     const { doc, schema } = state;

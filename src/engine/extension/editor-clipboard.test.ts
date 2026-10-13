@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { createEditor, createInternalEditor } from './editor';
 import { caret, md, range, startEditor } from '../test-support/editor-fixtures';
 
 describe('clipboard through the editor', () => {
@@ -111,9 +112,10 @@ describe('queries through the editor', () => {
     expect(editor.getBlocks()).toEqual([md('a', 'word')]);
   });
 
-  it('exposes the schema, the resolved extensions and the codec it works with', () => {
-    const { editor } = startEditor([md('a', 'x')]);
+  it('exposes the schema, and to the package the resolved extensions and the codec it works with', () => {
+    const editor = createInternalEditor({ blocks: [md('a', 'x')], isMac: true });
     expect(editor.schema).toBe(editor.resolved.schema);
     expect(editor.codec.docFromBlocks([md('q', 'y')]).blocks[0].id).toBe('q');
+    expect(createEditor({ blocks: [md('a', 'x')], isMac: true }).schema.blocks.has('MARKDOWN')).toBe(true);
   });
 });

@@ -44,8 +44,6 @@ export type MarkdownOptions = {
 export type Editor<F extends CommandFactories = CoreCommands> = {
   readonly state: EditorState;
   readonly schema: Schema;
-  readonly resolved: ResolvedExtensions;
-  readonly codec: BlockCodec;
   dispatch(tr: Transaction): void;
   createTransaction(): Transaction;
   subscribe(listener: (state: EditorState, tr: Transaction | null) => void): () => void;
@@ -65,9 +63,21 @@ export type Editor<F extends CommandFactories = CoreCommands> = {
   destroy(): void;
 };
 
+/** What the headless and UI layers of this package read beyond the public editor. It is not part of the entry. */
+export type InternalEditor<F extends CommandFactories = CoreCommands> = Editor<F> & {
+  readonly resolved: ResolvedExtensions;
+  readonly codec: BlockCodec;
+};
+
 type Listener = (state: EditorState, tr: Transaction | null) => void;
 
 export function createEditor<F extends CommandFactories = CoreCommands>(options: EditorOptions): Editor<F> {
+  return createInternalEditor<F>(options);
+}
+
+export function createInternalEditor<F extends CommandFactories = CoreCommands>(
+  options: EditorOptions,
+): InternalEditor<F> {
   const { newId } = options;
   const isMac = options.isMac ?? detectMac();
   const resolved = resolveExtensions(options.extensions ?? coreExtensions({ newId }), isMac);

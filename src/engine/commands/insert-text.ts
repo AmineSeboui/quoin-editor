@@ -10,7 +10,7 @@ import type { Command } from './command';
 import { deleteRange } from './delete-range';
 import { insertTextAt } from './insert-text-at';
 
-type Options = { origin?: TransactionOrigin; newId?: () => string };
+export type InsertTextOptions = { origin?: TransactionOrigin; newId?: () => string };
 
 function replaceBlocksWithText(
   tr: Transaction,
@@ -29,7 +29,7 @@ function replaceBlocksWithText(
   tr.setSelection(endOf(tr.doc, schema, paragraph.id));
 }
 
-export function insertText(value: string, options: Options = {}): Command {
+export function insertText(value: string, options: InsertTextOptions = {}): Command {
   const makeId = options.newId ?? newId;
   return (state, dispatch) => {
     if (value === '') return false;

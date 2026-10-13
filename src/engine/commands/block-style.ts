@@ -1,3 +1,4 @@
+import type { Align } from '../blocks/data-fields';
 import { isPaletteColor } from '../markdown/palette';
 import { blockById } from '../model/doc';
 import { selectedBlockIds } from '../state/selection';
@@ -5,8 +6,6 @@ import { Transaction } from '../state/transaction';
 import { patchChangesAttrs, setAttrsStep, type AttrsPatch } from '../transform/attrs-steps';
 import type { EditorState } from '../state/editor-state';
 import type { Command } from './command';
-
-type Align = 'left' | 'center' | 'right' | 'justify';
 
 function patchBlocks(state: EditorState, patch: AttrsPatch, only?: string): Transaction | null {
   const changing = selectedBlockIds(state.doc, state.selection).filter((id) => {

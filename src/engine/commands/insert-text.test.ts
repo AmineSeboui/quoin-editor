@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { inlineText } from '../model/inline';
 import { buildState, caretOf, markdownOf, newIds, run } from '../test-support/build-state';
 import { DIVIDER_FIXTURE } from '../test-support/fixtures';
 import { insertText } from './insert-text';
@@ -29,6 +30,15 @@ describe('insertText', () => {
     const next = run(state, insertText('Y')).state;
     expect(markdownOf(next)).toEqual(['heYld']);
     expect(caretOf(next)).toEqual({ block: 0, offset: 3 });
+  });
+
+  it('replaces a selection across two cells inside their own cells', () => {
+    const table = { id: 't', type: 'TABLE', data: { rows: [['abcdef', 'ghijkl']] } };
+    const selection = { anchor: { block: 0, offset: 1 }, head: { block: 0, region: 'cell:0:1', offset: 5 } };
+    const { state } = run(buildState([table], selection), insertText('X'));
+    const cells = ['cell:0:0', 'cell:0:1'].map((key) => inlineText(state.doc.blocks[0].regions[key]));
+    expect(cells).toEqual(['aX', 'l']);
+    expect(caretOf(state)).toEqual({ block: 0, offset: 2 });
   });
 
   it('creates a paragraph in an empty document', () => {

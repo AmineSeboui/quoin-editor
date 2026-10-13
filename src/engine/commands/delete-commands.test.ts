@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { inlineText } from '../model/inline';
 import { buildState, caretOf, markdownOf, run } from '../test-support/build-state';
 import type { Command } from './command';
 import { note, noteSchema } from './command-fixtures';
@@ -128,6 +129,16 @@ describe('deleteBackward at the start of a block', () => {
   it('deletes inside a table cell', () => {
     const { state } = after([TABLE], { block: 0, offset: 2 }, deleteBackward);
     expect(state.doc.blocks[0].regions['cell:0:0']).toEqual([{ kind: 'text', text: 'a', marks: [] }]);
+  });
+
+  it('deletes a selection across two cells without touching the rest of either cell', () => {
+    const table = { id: 't', type: 'TABLE', data: { rows: [['abcdef', 'ghijkl']] } };
+    const selection = { anchor: { block: 0, offset: 1 }, head: { block: 0, region: 'cell:0:1', offset: 5 } };
+    const { ok, state } = after([table], selection, deleteSelection);
+    const cells = ['cell:0:0', 'cell:0:1'].map((key) => inlineText(state.doc.blocks[0].regions[key]));
+    expect(ok).toBe(true);
+    expect(cells).toEqual(['a', 'l']);
+    expect(caretOf(state)).toEqual({ block: 0, offset: 1 });
   });
 
   it('reports nothing to do without a selection', () => {

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { inlineText } from '../model/inline';
 import type { Pos } from '../model/types';
 import { applyTransaction } from '../state/editor-state';
 import { Transaction } from '../state/transaction';
@@ -7,6 +8,8 @@ import { DIVIDER_FIXTURE } from '../test-support/fixtures';
 import { deleteRange } from './delete-range';
 
 const at = (block: number, offset: number, region = 'text'): Pos => ({ block: `b${block}`, region, offset });
+const cell = (col: number, offset: number): Pos => ({ block: 'b0', region: `cell:0:${col}`, offset });
+const row = (...cells: string[]) => ({ id: 't', type: 'TABLE', data: { rows: [cells] } });
 
 function remove(blocks: Parameters<typeof buildState>[0], from: Pos, to: Pos) {
   const state = buildState(blocks);
@@ -56,5 +59,26 @@ describe('deleteRange', () => {
   it('keeps the document non-empty when everything is removed', () => {
     const { state } = remove([DIVIDER_FIXTURE, DIVIDER_FIXTURE], at(0, 0, ''), at(1, 0, ''));
     expect(markdownOf(state)).toEqual(['']);
+  });
+
+  it('clears the tail of the first cell and the head of the last without joining them', () => {
+    const { tr, caret, state } = remove([row('abcdef', 'ghijkl')], cell(0, 1), cell(1, 5));
+    const [first, second] = ['cell:0:0', 'cell:0:1'].map((key) => inlineText(state.doc.blocks[0].regions[key]));
+    expect([first, second]).toEqual(['a', 'l']);
+    expect(tr.steps.map((step) => step.stepType)).toEqual(['replaceInline', 'replaceInline']);
+    expect(caret).toEqual(cell(0, 1));
+  });
+
+  it('empties the cells strictly between the two ends', () => {
+    const { state } = remove([row('abc', 'def', 'ghi', 'jkl')], cell(0, 1), cell(3, 2));
+    const texts = [0, 1, 2, 3].map((col) => inlineText(state.doc.blocks[0].regions[`cell:0:${col}`]));
+    expect(texts).toEqual(['a', '', '', 'l']);
+  });
+
+  it('keeps a cell untouched when the range ends at its start', () => {
+    const { tr, state } = remove([row('abc', 'def')], cell(0, 3), cell(1, 0));
+    expect(tr.steps).toEqual([]);
+    expect(inlineText(state.doc.blocks[0].regions['cell:0:0'])).toBe('abc');
+    expect(inlineText(state.doc.blocks[0].regions['cell:0:1'])).toBe('def');
   });
 });

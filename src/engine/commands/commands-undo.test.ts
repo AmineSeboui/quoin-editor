@@ -13,6 +13,8 @@ const toggle = (open: boolean) => ({ id: 't', type: 'TOGGLE', data: { markdown: 
 const callout = { id: 'c', type: 'CALLOUT', data: { tone: 'info', body: 'ab<br>' } };
 const nested = (markdown: string) => ({ id: 'n', type: 'MARKDOWN', data: { markdown }, indent: 1 });
 const split = splitBlock({ newId: newIds() });
+const table = { id: 'g', type: 'TABLE', data: { rows: [['abc', 'def', 'ghi']] } };
+const cells = { anchor: { block: 0, offset: 1 }, head: { block: 0, region: 'cell:0:2', offset: 1 } };
 const range = { anchor: { block: 0, offset: 1 }, head: { block: 2, offset: 1 } };
 
 const cases: [string, Parameters<typeof buildState>[0], Parameters<typeof buildState>[1], Command][] = [
@@ -21,6 +23,7 @@ const cases: [string, Parameters<typeof buildState>[0], Parameters<typeof buildS
   ['insertHardBreak', ['abcd'], { block: 0, offset: 2 }, insertHardBreak],
   ['deleteSelection across blocks', ['abc', 'def', 'ghi'], range, deleteSelection],
   ['deleteSelection around a divider', ['ab', DIVIDER_FIXTURE, 'cd'], range, deleteSelection],
+  ['deleteSelection across table cells', [table], cells, deleteSelection],
   ['deleteBackward joining blocks', ['ab', 'cd'], { block: 1, offset: 0 }, deleteBackward],
   ['deleteBackward on a heading', ['## Head'], { block: 0, offset: 0 }, deleteBackward],
   ['deleteBackward on a toggle', [toggle(true)], { block: 0, offset: 0 }, deleteBackward],

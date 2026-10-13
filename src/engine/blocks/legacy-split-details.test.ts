@@ -61,7 +61,7 @@ describe('legacy MARKDOWN splitting', () => {
     const edited = { ...doc.blocks[1], regions: { text: [] } };
     expect(codec.blocksFromDoc(createDoc([doc.blocks[0], edited]))).toEqual([
       { id: 'a', type: 'MARKDOWN', data: { markdown: '# Title', align: 'center', color: 'red', background: 'blue', custom: 1 } },
-      { id: 'n1', type: 'MARKDOWN', data: { markdown: '' } },
+      { id: 'a-2', type: 'MARKDOWN', data: { markdown: '' } },
     ]);
   });
 
@@ -91,9 +91,9 @@ describe('legacy MARKDOWN splitting', () => {
     const codec = make();
     const [head, tail] = codec.toEngineBlocks(legacy('# T\n\ntext'));
     const between = codec.toEngineBlocks({ id: 'x', type: 'MARKDOWN', data: { markdown: 'between' } })[0];
-    expect(codec.blocksFromDoc(createDoc([head, between, tail])).map((b) => b.id)).toEqual(['a', 'x', 'n1']);
+    expect(codec.blocksFromDoc(createDoc([head, between, tail])).map((b) => b.id)).toEqual(['a', 'x', 'a-2']);
     expect(codec.blocksFromDoc(createDoc([head])).map((b) => b.id)).toEqual(['a']);
-    expect(codec.blocksFromDoc(createDoc([tail])).map((b) => b.id)).toEqual(['n1']);
+    expect(codec.blocksFromDoc(createDoc([tail])).map((b) => b.id)).toEqual(['a-2']);
   });
 
   it('emits two legacy blocks side by side as their originals', () => {

@@ -33,7 +33,7 @@ export function createBlockCodec(schema: Schema, options: { newId?: () => string
   function toEngineBlocks(block: QuoinBlock): EngineBlock[] {
     const cached = engineBlocks.get(block);
     if (cached) return [...cached];
-    const pieces = splitLegacyBlock(block, indentOf(block.indent), context.newId);
+    const pieces = splitLegacyBlock(block, indentOf(block.indent));
     if (pieces) {
       const blocks = pieces.map(convert);
       engineBlocks.set(block, blocks);

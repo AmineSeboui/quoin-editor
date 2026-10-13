@@ -75,7 +75,7 @@ describe('indent and outdent details', () => {
   });
 
   it('outdents down to zero and stops there', () => {
-    const state = buildState([item('a'), item('b', 1)], { blocks: [0, 1] });
+    const state = buildState([item('a'), item('b', 1)], { blocks: [1, 1] });
     expect(markdownOf(run(state, outdent).state)).toEqual(['- a', '- b']);
     expect(run(buildState([item('a')], { block: 0, offset: 0 }), outdent).ok).toBe(false);
   });

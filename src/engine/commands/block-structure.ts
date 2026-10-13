@@ -9,7 +9,6 @@ import {
   startOf,
   textSelection,
 } from '../state/selection';
-import type { EditorState } from '../state/editor-state';
 import { Transaction } from '../state/transaction';
 import { setAttrsStep, setIndentStep } from '../transform/attrs-steps';
 import { insertBlocksStep, moveBlocksStep, replaceBlockStep } from '../transform/block-steps';
@@ -24,6 +23,7 @@ import {
 } from './block-helpers';
 import type { Command } from './command';
 import { removeBlocks } from './remove-blocks';
+import { shiftSubtree } from './shift-subtree';
 
 type Options = { newId?: () => string };
 
@@ -40,31 +40,30 @@ export const toggleTask: Command = (state, dispatch) => {
   return true;
 };
 
-function reindent(state: EditorState, next: (current: number, previous: number) => number): Transaction | null {
-  const range = selectedBlockRange(state.doc, state.selection);
-  if (range === null) return null;
-  const { blocks } = state.doc;
-  const tr = new Transaction(state);
-  let previous = range.start > 0 ? blocks[range.start - 1].indent : -1;
-  for (const block of blocks.slice(range.start, range.end)) {
-    const value = next(block.indent, previous);
-    if (value !== block.indent) tr.step(setIndentStep(block.id, value));
-    previous = value;
-  }
-  return tr.docChanged ? tr : null;
-}
+type Delta = (root: number, before: number) => number;
 
-function reindentCommand(next: (current: number, previous: number) => number): Command {
+// A selected root is a selected block outside the subtree of an earlier one. Roots never deepen down the range, so a
+// root can indent exactly when it is no deeper than the block before the range: its first predecessor at its own
+// level is then outside the selection, and sibling roots move together.
+function reindentCommand(delta: Delta): Command {
   return (state, dispatch) => {
-    const tr = reindent(state, next);
-    if (tr === null) return false;
+    const { doc } = state;
+    const range = selectedBlockRange(doc, state.selection);
+    if (range === null) return false;
+    const before = range.start > 0 ? doc.blocks[range.start - 1].indent : -1;
+    const tr = new Transaction(state);
+    for (let root = range.start; root < range.end; root = descendantsEnd(doc, root)) {
+      const shift = delta(doc.blocks[root].indent, before);
+      if (shift !== 0) shiftSubtree(tr, root, shift);
+    }
+    if (!tr.docChanged) return false;
     dispatch?.(tr);
     return true;
   };
 }
 
-export const indent = reindentCommand((current, previous) => (current <= previous ? current + 1 : current));
-export const outdent = reindentCommand((current) => Math.max(0, current - 1));
+export const indent = reindentCommand((root, before) => (root <= before ? 1 : 0));
+export const outdent = reindentCommand((root) => (root > 0 ? -1 : 0));
 
 type MoveTarget = { to: number; preceding: number };
 

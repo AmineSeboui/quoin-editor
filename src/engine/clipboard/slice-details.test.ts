@@ -51,11 +51,11 @@ describe('sliceFromSelection', () => {
     expect(slice).toMatchObject({ openStart: true, openEnd: true });
   });
 
-  it('copies a table whole when a selection starts or ends in one of its cells', () => {
+  it('copies only the flow text when a selection runs into a table cell of another block', () => {
     const toTable = sliceOf(['abc', table], { anchor: at(0, 1), head: at(1, 1, 'cell:0:1') });
-    expect(shape(toTable)).toEqual(['bc', '<TABLE>']);
+    expect(shape(toTable)).toEqual(['bc']);
     const fromTable = sliceOf([table, 'xyz'], { anchor: at(0, 0, 'cell:0:1'), head: at(1, 2) });
-    expect(shape(fromTable)).toEqual(['<TABLE>', 'xy']);
+    expect(shape(fromTable)).toEqual(['xy']);
   });
 
   it('copies a whole block when the selection spans regions of one block', () => {

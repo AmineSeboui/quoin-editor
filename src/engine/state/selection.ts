@@ -101,12 +101,17 @@ export function primaryRegion(schema: Schema, block: EngineBlock): string | null
   return firstRegion(block);
 }
 
+function flowEdge(schema: Schema, block: EngineBlock, atEnd: boolean): Pos | null {
+  const region = specFor(schema, block.type).flow === 'text' ? primaryRegion(schema, block) : null;
+  return region === null ? null : { block: block.id, region, offset: atEnd ? inlineLength(block.regions[region]) : 0 };
+}
+
 function edge(doc: EngineDoc, schema: Schema, blockId: string, atEnd: boolean): Selection {
   const block = doc.blocks[requireBlockIndex(doc, blockId)];
-  const region = primaryRegion(schema, block);
-  if (region === null) return nodeSelection(blockId);
-  if (specFor(schema, block.type).flow !== 'text') return textSelection(atEnd ? blockEnd(block) : blockStart(block));
-  return textSelection({ block: blockId, region, offset: atEnd ? inlineLength(block.regions[region]) : 0 });
+  const flow = flowEdge(schema, block, atEnd);
+  if (flow !== null) return textSelection(flow);
+  if (Object.keys(block.regions).length === 0) return nodeSelection(blockId);
+  return textSelection(atEnd ? blockEnd(block) : blockStart(block));
 }
 
 export function startOf(doc: EngineDoc, schema: Schema, blockId: string): Selection {
@@ -132,13 +137,42 @@ function validatePos(doc: EngineDoc, schema: Schema, pos: Pos): Pos | NodeSelect
   return pos.offset >= 0 && pos.offset <= length ? pos : { ...pos, offset: Math.min(Math.max(pos.offset, 0), length) };
 }
 
+function nearestFlow(doc: EngineDoc, schema: Schema, from: number, to: number, atEnd: boolean): Pos | null {
+  const step = atEnd ? -1 : 1;
+  for (let index = from; index !== to + step; index += step) {
+    const pos = flowEdge(schema, doc.blocks[index], atEnd);
+    if (pos !== null) return pos;
+  }
+  return null;
+}
+
+const inFlow = (doc: EngineDoc, schema: Schema, pos: Pos) =>
+  flowEdge(schema, doc.blocks[requireBlockIndex(doc, pos.block)], false)?.region === pos.region;
+
+function clampToFlow(doc: EngineDoc, schema: Schema, selection: TextSelection): Selection {
+  const { anchor, head } = selection;
+  if (anchor.block === head.block) return selection;
+  const backward = comparePos(doc, anchor, head) > 0;
+  const [from, to] = backward ? [head, anchor] : [anchor, head];
+  const first = requireBlockIndex(doc, from.block);
+  const last = requireBlockIndex(doc, to.block);
+  const start = inFlow(doc, schema, from) ? from : nearestFlow(doc, schema, first + 1, last, false);
+  const end = inFlow(doc, schema, to) ? to : nearestFlow(doc, schema, last - 1, first, true);
+  if (start === from && end === to) return selection;
+  if (start === null || end === null || comparePos(doc, start, end) > 0) {
+    return blockRangeSelection(anchor.block, head.block);
+  }
+  return backward ? textSelection(end, start) : textSelection(start, end);
+}
+
 function validateText(doc: EngineDoc, schema: Schema, selection: TextSelection): Selection | null {
   const head = validatePos(doc, schema, selection.head);
   const anchor = validatePos(doc, schema, selection.anchor);
   if (head === null || anchor === null) return defaultSelection(doc, schema);
   if ('kind' in head) return head;
   if ('kind' in anchor) return anchor;
-  return anchor === selection.anchor && head === selection.head ? selection : textSelection(anchor, head);
+  const valid = anchor === selection.anchor && head === selection.head ? selection : textSelection(anchor, head);
+  return clampToFlow(doc, schema, valid);
 }
 
 export function validateSelection(doc: EngineDoc, schema: Schema, selection: Selection | null): Selection | null {

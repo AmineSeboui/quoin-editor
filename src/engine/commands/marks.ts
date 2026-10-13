@@ -3,7 +3,6 @@ import { atom } from '../model/inline';
 import { addMark, removeMark } from '../model/marks';
 import { orderedRange } from '../model/position';
 import type { Attrs, Inline, Mark, Pos } from '../model/types';
-import { isPaletteColor } from '../markdown/palette';
 import { sanitizeHref } from '../markdown/urls';
 import type { EditorState } from '../state/editor-state';
 import { isCollapsed, textSelection } from '../state/selection';
@@ -14,6 +13,7 @@ import { caretMarks } from './caret-marks';
 import type { Command } from './command';
 import { deleteRange } from './delete-range';
 import { markExtent } from './mark-extent';
+import { storableAtom, storableMark } from './storable-mark';
 import {
   markCoverage,
   markRanges,
@@ -25,17 +25,10 @@ import {
 
 type Mode = 'add' | 'remove' | 'toggle';
 
-const COLOR_MARKS = new Set(['highlight', 'color', 'background']);
 const KEPT_ON_CLEAR = new Set(['link', 'comment']);
 
 function makeMark(type: string, attrs?: Attrs): Mark {
   return attrs !== undefined && Object.keys(attrs).length > 0 ? { type, attrs } : { type };
-}
-
-function validMark(type: string, attrs?: Attrs): boolean {
-  if (!COLOR_MARKS.has(type)) return true;
-  const color = attrs?.color;
-  return color === undefined ? type === 'highlight' : isPaletteColor(color);
 }
 
 function collapsedCaret(state: EditorState): Pos | null {
@@ -58,21 +51,22 @@ function editRanges(
 
 function applyMark(type: string, attrs: Attrs | undefined, mode: Mode): Command {
   return (state, dispatch) => {
-    if (mode !== 'remove' && !validMark(type, attrs)) return false;
-    const mark = makeMark(type, attrs);
+    const requested = makeMark(type, attrs);
+    const mark = mode === 'remove' ? requested : storableMark(requested);
+    if (mark === null) return false;
     // A bare type removes every mark of that type. With attributes only the one they name goes.
     const target = mark.attrs === undefined ? type : mark;
     const caret = collapsedCaret(state);
     if (caret !== null) {
       const current = caretMarks(state.doc, state.schema, state.storedMarks, caret);
-      const active = current.some((existing) => matchesMark(existing, type, attrs));
+      const active = current.some((existing) => matchesMark(existing, type, mark.attrs));
       const remove = mode === 'remove' || (mode === 'toggle' && active);
       dispatch?.(new Transaction(state).setStoredMarks(remove ? removeMark(current, target) : addMark(current, mark)));
       return true;
     }
-    const remove = mode === 'remove' || (mode === 'toggle' && selectionHasMark(state, type, attrs));
+    const remove = mode === 'remove' || (mode === 'toggle' && selectionHasMark(state, type, mark.attrs));
     return editRanges(state, dispatch, markRanges(state), (tr, { block, region, from, to }, content) => {
-      const coverage = markCoverage(content, type, attrs);
+      const coverage = markCoverage(content, type, mark.attrs);
       if (remove && coverage.some) tr.step(removeMarkStep(block, region, from, to, target));
       if (!remove && !coverage.every) tr.step(addMarkStep(block, region, from, to, mark));
     });
@@ -132,7 +126,7 @@ export const clearFormatting: Command = (state, dispatch) => {
 export function insertAtom(type: string, attrs: Attrs): Command {
   return (state, dispatch) => {
     const { doc, schema, selection } = state;
-    if (selection?.kind !== 'text') return false;
+    if (selection?.kind !== 'text' || !storableAtom(type, attrs)) return false;
     const tr = new Transaction(state);
     const { from, to } = orderedRange(doc, selection.anchor, selection.head);
     const caret = deleteRange(tr, schema, from, to);

@@ -1,9 +1,10 @@
 import { specFor } from '../blocks/unknown-spec';
+import { indexOfBlock } from '../model/doc';
 import { inlineLength } from '../model/inline';
 import { newId } from '../model/new-id';
-import type { BlockAttrs, EngineBlock, EngineDoc, Inline, Pos } from '../model/types';
+import type { BlockAttrs, EngineBlock, EngineDoc, Inline, Pos, Selection } from '../model/types';
 import type { BlockSpec, Schema } from '../schema/types';
-import { primaryRegion } from '../state/selection';
+import { primaryRegion, selectedBlockIds } from '../state/selection';
 
 const ITEM_KINDS = new Set(['bullet', 'ordered', 'task', 'quote']);
 
@@ -52,4 +53,21 @@ export function withContent(schema: Schema, block: EngineBlock, content: Inline)
 
 export function startPos(schema: Schema, block: EngineBlock): Pos {
   return { block: block.id, region: primaryRegion(schema, block) ?? '', offset: 0 };
+}
+
+export function headBlockId(selection: Selection | null): string | null {
+  if (selection === null) return null;
+  if (selection.kind === 'text') return selection.head.block;
+  return selection.kind === 'node' ? selection.block : selection.head;
+}
+
+export type BlockRange = { start: number; end: number };
+
+export function selectedBlockRange(doc: EngineDoc, selection: Selection | null): BlockRange | null {
+  const ids = selectedBlockIds(doc, selection);
+  if (ids.length === 0) return null;
+  const start = indexOfBlock(doc, ids[0]);
+  let end = start + ids.length;
+  for (let index = start; index < start + ids.length; index++) end = Math.max(end, descendantsEnd(doc, index));
+  return { start, end };
 }

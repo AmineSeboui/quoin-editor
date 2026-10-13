@@ -5,15 +5,18 @@ import { DIVIDER_FIXTURE } from '../test-support/fixtures';
 import {
   createBlock,
   descendantsEnd,
+  headBlockId,
   isItem,
   isParagraph,
   isTextFlow,
   regionLength,
+  selectedBlockRange,
   specOf,
   startPos,
   withContent,
 } from './block-helpers';
 import { text } from '../model/inline';
+import { blockRangeSelection, nodeSelection, textSelection } from '../state/selection';
 
 const schema = createSchema();
 
@@ -56,5 +59,21 @@ describe('block helpers', () => {
     expect(block.regions).toEqual({ body: [text('hi')] });
     expect(startPos(schema, block)).toEqual({ block: 'c', region: 'body', offset: 0 });
     expect(startPos(schema, createBlock(schema, 'DIVIDER', {}, 0, 'd')).region).toBe('');
+  });
+
+  it('names the block of the head of any selection', () => {
+    expect(headBlockId(null)).toBeNull();
+    expect(headBlockId(textSelection({ block: 'b0', region: 'text', offset: 0 }, { block: 'b1', region: 'text', offset: 0 }))).toBe('b1');
+    expect(headBlockId(nodeSelection('b2'))).toBe('b2');
+    expect(headBlockId(blockRangeSelection('b0', 'b2'))).toBe('b2');
+  });
+
+  it('finds the selected blocks with every descendant, forwards or backwards', () => {
+    const indented = (id: string, indent: number) => ({ id, type: 'MARKDOWN', data: { markdown: id }, indent });
+    const { doc } = buildState([indented('a', 0), indented('b', 0), indented('c', 1), indented('d', 0), indented('e', 1)]);
+    expect(selectedBlockRange(doc, null)).toBeNull();
+    expect(selectedBlockRange(doc, nodeSelection('b1'))).toEqual({ start: 1, end: 3 });
+    expect(selectedBlockRange(doc, blockRangeSelection('b4', 'b3'))).toEqual({ start: 3, end: 5 });
+    expect(selectedBlockRange(doc, blockRangeSelection('b0', 'b1'))).toEqual({ start: 0, end: 3 });
   });
 });

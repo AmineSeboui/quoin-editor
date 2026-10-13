@@ -12,7 +12,7 @@ export function atom(type: string, attrs: Attrs, marks: readonly Mark[] = []): A
   return { kind: 'atom', type, attrs, marks: sortMarks(marks) };
 }
 
-function nodeLength(node: InlineNode): number {
+export function nodeLength(node: InlineNode): number {
   return node.kind === 'text' ? node.text.length : 1;
 }
 

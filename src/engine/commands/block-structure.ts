@@ -10,7 +10,7 @@ import {
   textSelection,
 } from '../state/selection';
 import { Transaction } from '../state/transaction';
-import { setAttrsStep, setIndentStep } from '../transform/attrs-steps';
+import { setAttrsStep } from '../transform/attrs-steps';
 import { insertBlocksStep, moveBlocksStep, replaceBlockStep } from '../transform/block-steps';
 import {
   createBlock,
@@ -21,6 +21,7 @@ import {
   selectedBlockRange,
   type BlockRange,
 } from './block-helpers';
+import { capIndents } from './cap-indents';
 import type { Command } from './command';
 import { removeBlocks } from './remove-blocks';
 import { shiftSubtree } from './shift-subtree';
@@ -65,35 +66,27 @@ function reindentCommand(delta: Delta): Command {
 export const indent = reindentCommand((root, before) => (root <= before ? 1 : 0));
 export const outdent = reindentCommand((root) => (root > 0 ? -1 : 0));
 
-type MoveTarget = { to: number; preceding: number };
-
-function moveTarget(doc: EngineDoc, range: BlockRange, direction: 'up' | 'down'): MoveTarget | null {
+function moveTarget(doc: EngineDoc, range: BlockRange, direction: 'up' | 'down'): number | null {
   if (direction === 'up') {
     if (range.start === 0) return null;
     let root = range.start - 1;
     while (root > 0 && doc.blocks[root].indent > doc.blocks[range.start].indent) root--;
-    return { to: root, preceding: root - 1 };
+    return root;
   }
   if (range.end >= doc.blocks.length) return null;
-  const end = descendantsEnd(doc, range.end);
-  return { to: end - (range.end - range.start), preceding: end - 1 };
+  return descendantsEnd(doc, range.end) - (range.end - range.start);
 }
 
 function moveCommand(direction: 'up' | 'down'): Command {
   return (state, dispatch) => {
     const { doc } = state;
     const range = selectedBlockRange(doc, state.selection);
-    const target = range === null ? null : moveTarget(doc, range, direction);
-    if (range === null || target === null) return false;
-    const tr = new Transaction(state).step(moveBlocksStep(range.start, range.end - range.start, target.to));
-    const cap = target.preceding < 0 ? 0 : doc.blocks[target.preceding].indent + 1;
-    const delta = Math.min(0, cap - doc.blocks[range.start].indent);
-    if (delta !== 0) {
-      for (const { id, indent: current } of doc.blocks.slice(range.start, range.end)) {
-        const value = Math.max(0, current + delta);
-        if (value !== current) tr.step(setIndentStep(id, value));
-      }
-    }
+    const to = range === null ? null : moveTarget(doc, range, direction);
+    if (range === null || to === null) return false;
+    const count = range.end - range.start;
+    const tr = new Transaction(state).step(moveBlocksStep(range.start, count, to));
+    capIndents(tr, to);
+    capIndents(tr, to + count);
     dispatch?.(tr);
     return true;
   };

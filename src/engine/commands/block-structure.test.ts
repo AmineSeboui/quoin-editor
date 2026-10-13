@@ -127,9 +127,9 @@ describe('moving blocks', () => {
     expect(markdownOf(movedDown.state)).toEqual(['- a', '  - b', '- r', '  - p', '- q']);
   });
 
-  it('shifts a shallower block of the range by the clamp while it stays above zero', () => {
+  it('keeps a shallower block of the range under its own parent when the first block is clamped', () => {
     const state = buildState([item('a'), item('b', 1), item('p', 2), item('q', 1), item('z')], { anchor: { block: 2, offset: 0 }, head: { block: 3, offset: 0 } });
-    expect(markdownOf(run(state, moveBlocksUp).state)).toEqual(['- a', '  - p', '- q', '  - b', '- z']);
+    expect(markdownOf(run(state, moveBlocksUp).state)).toEqual(['- a', '  - p', '  - q', '  - b', '- z']);
   });
 
   it('moves a selection of several blocks as one range', () => {

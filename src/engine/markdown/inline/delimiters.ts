@@ -46,9 +46,15 @@ function pair(opener: DelimiterItem, closer: DelimiterItem): void {
   closer.closes.push(range);
 }
 
+// A floor is the index of the highest opener that no closer of its key can pair with. An opener at or below it was
+// already refused, so a floor above a cut stack drops to the new top and the same openers stay refused.
+function clampFloors(floors: Map<string, number>, length: number): void {
+  for (const [key, floor] of floors) if (floor >= length) floors.set(key, length - 1);
+}
+
 export function processEmphasis(stack: DelimiterItem[], bottom: number): void {
   const openers: DelimiterItem[] = [];
-  const openersBottom = new Map<string, DelimiterItem | undefined>();
+  const floors = new Map<string, number>();
   let index = bottom;
   while (index < stack.length) {
     const closer = stack[index];
@@ -58,16 +64,17 @@ export function processEmphasis(stack: DelimiterItem[], bottom: number): void {
       continue;
     }
     const key = `${closer.char}${closer.canOpen}${closer.length % 3}`;
-    const floor = openersBottom.get(key);
+    const floor = floors.get(key) ?? -1;
     let at = openers.length - 1;
-    while (at >= 0 && openers[at] !== floor && !canPair(openers[at], closer)) at--;
-    if (at >= 0 && openers[at] !== floor) {
+    while (at > floor && !canPair(openers[at], closer)) at--;
+    if (at > floor) {
       const opener = openers[at];
       pair(opener, closer);
       openers.length = opener.count > 0 ? at + 1 : at;
+      clampFloors(floors, openers.length);
       if (closer.count === 0) index++;
     } else {
-      openersBottom.set(key, openers.at(-1));
+      floors.set(key, openers.length - 1);
       if (closer.canOpen) openers.push(closer);
       index++;
     }

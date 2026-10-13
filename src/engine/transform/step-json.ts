@@ -1,7 +1,9 @@
-import type { EngineBlock, Inline, Mark } from '../model/types';
+import { createDoc } from '../model/doc';
+import type { EngineBlock, EngineDoc, Inline, Mark } from '../model/types';
 import { patchFromJSON, setAttrsStep, setIndentStep } from './attrs-steps';
 import { insertBlocksStep, moveBlocksStep, removeBlocksStep, replaceBlockStep } from './block-steps';
 import { addMarkStep, removeMarkStep } from './mark-steps';
+import { replaceDocStep } from './replace-doc-step';
 import { replaceInlineStep } from './replace-inline-step';
 import { joinBlocksStep, splitBlockStep } from './split-join-steps';
 import { StepError, type CreatedBlock, type Step, type StepJSON } from './step';
@@ -28,6 +30,13 @@ const isInteger = (value: unknown): value is number => Number.isInteger(value);
 const isInline = (value: unknown): value is Inline => Array.isArray(value);
 const isMarkOrType = (value: unknown): value is Mark | string => isString(value) || isMark(value);
 const areBlocks = (value: unknown): value is EngineBlock[] => Array.isArray(value) && value.every(isBlock);
+
+function docOf(blocks: EngineBlock[]): EngineDoc {
+  if (new Set(blocks.map((block) => block.id)).size !== blocks.length) {
+    throw new StepError('a replaceDoc step repeats a block id');
+  }
+  return createDoc(blocks);
+}
 
 function reader(json: StepJSON) {
   const read = <T>(key: string, accept: (value: unknown) => value is T): T => {
@@ -87,6 +96,8 @@ export function stepFromJSON(json: StepJSON): Step {
       return moveBlocksStep(get.integer('from'), get.integer('count'), get.integer('to'));
     case 'replaceBlock':
       return replaceBlockStep(get.block('block'));
+    case 'replaceDoc':
+      return replaceDocStep(docOf(get.blocks('blocks')));
     case 'splitBlock':
       return splitBlockStep(get.string('block'), get.string('region'), get.integer('offset'), get.created('created'));
     case 'joinBlocks':

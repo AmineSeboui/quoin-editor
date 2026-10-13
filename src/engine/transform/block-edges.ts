@@ -17,3 +17,9 @@ export function blockEnd(block: EngineBlock): Pos {
     offset: region === undefined ? 0 : inlineLength(block.regions[region]),
   };
 }
+
+export function clampPos(block: EngineBlock, pos: Pos): Pos {
+  if (!Object.hasOwn(block.regions, pos.region)) return blockStart(block);
+  const length = inlineLength(block.regions[pos.region]);
+  return pos.offset > length ? { ...pos, offset: length } : pos;
+}

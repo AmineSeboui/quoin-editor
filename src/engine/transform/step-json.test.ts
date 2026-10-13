@@ -4,6 +4,7 @@ import { atom, text } from '../model/inline';
 import { setAttrsStep, setIndentStep } from './attrs-steps';
 import { insertBlocksStep, moveBlocksStep, removeBlocksStep, replaceBlockStep } from './block-steps';
 import { addMarkStep, removeMarkStep } from './mark-steps';
+import { replaceDocStep } from './replace-doc-step';
 import { replaceInlineStep } from './replace-inline-step';
 import { joinBlocksStep, splitBlockStep } from './split-join-steps';
 import { StepError, type StepJSON } from './step';
@@ -28,6 +29,7 @@ describe('step JSON', () => {
     ['removeBlocks', removeBlocksStep(0, 2)],
     ['moveBlocks', moveBlocksStep(0, 2, 1)],
     ['replaceBlock', replaceBlockStep(para('b', 'changed'))],
+    ['replaceDoc', replaceDocStep(createDoc([para('n', 'new'), divider('m')]))],
     ['splitBlock', splitBlockStep('a', 'text', 2, created('c', { regions: { note: [text('n')] } }))],
     ['joinBlocks', joinBlocksStep('a', 'text', 'b', 'text')],
   ])('restores a %s step that behaves the same', (stepType, step) => {

@@ -1,7 +1,6 @@
 import { createDoc, replaceBlocks, updateBlock } from '../model/doc';
-import { inlineLength } from '../model/inline';
 import type { EngineBlock } from '../model/types';
-import { blockEnd, blockStart } from './block-edges';
+import { blockEnd, blockStart, clampPos } from './block-edges';
 import { identityMap, StepError, type PosMap, type Step } from './step';
 import { requireBlock, requireSpan } from './step-access';
 
@@ -59,12 +58,7 @@ export function moveBlocksStep(from: number, count: number, to: number): Step {
 }
 
 export function replaceBlockStep(block: EngineBlock): Step {
-  const map: PosMap = (pos) => {
-    if (pos.block !== block.id) return pos;
-    if (!Object.hasOwn(block.regions, pos.region)) return blockStart(block);
-    const length = inlineLength(block.regions[pos.region]);
-    return pos.offset > length ? { ...pos, offset: length } : pos;
-  };
+  const map: PosMap = (pos) => (pos.block === block.id ? clampPos(block, pos) : pos);
   return Object.freeze<Step>({
     stepType: 'replaceBlock',
     apply(doc) {

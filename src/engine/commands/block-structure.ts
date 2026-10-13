@@ -117,6 +117,7 @@ export function duplicateBlocks(options: Options = {}): Command {
     const blocks = doc.blocks.slice(range.start, range.end).map((block) => ({ ...block, id: makeId() }));
     const copies = new Map(blocks.map((copy, i) => [doc.blocks[range.start + i].id, copy.id]));
     const tr = new Transaction(state).step(insertBlocksStep(range.end, blocks));
+    capIndents(tr, range.end);
     dispatch?.(tr.setSelection(copiedSelection(selection, copies)));
     return true;
   };

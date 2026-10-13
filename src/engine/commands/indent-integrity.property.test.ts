@@ -5,7 +5,7 @@ import { inlineLength } from '../model/inline';
 import type { EngineDoc, Pos, Selection } from '../model/types';
 import { blockRangeSelection, nodeSelection, textSelection } from '../state/selection';
 import { buildState, newIds, run } from '../test-support/build-state';
-import { deleteBlocks, indent, moveBlocksDown, moveBlocksUp, outdent } from './block-structure';
+import { deleteBlocks, duplicateBlocks, indent, moveBlocksDown, moveBlocksUp, outdent } from './block-structure';
 import type { Command } from './command';
 import {
   deleteBackward,
@@ -60,6 +60,7 @@ function editingCommands(): Command[] {
     outdent,
     moveBlocksUp,
     moveBlocksDown,
+    duplicateBlocks({ newId }),
   ];
 }
 

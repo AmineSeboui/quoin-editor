@@ -4,6 +4,7 @@ import { replaceInlineStep } from '../transform/replace-inline-step';
 import { removeBlocksStep } from '../transform/block-steps';
 import { StepError, type Step } from '../transform/step';
 import { buildState, caretOf } from '../test-support/build-state';
+import { DIVIDER_FIXTURE } from '../test-support/fixtures';
 import { applyTransaction, createState, getPluginState } from './editor-state';
 import { createPluginKey } from './plugin';
 import { nodeSelection, textSelection } from './selection';
@@ -148,7 +149,7 @@ describe('transaction selection and meta', () => {
   });
 
   it('keeps a node selection on its block through steps elsewhere', () => {
-    const nodeState = buildState(['a', 'b'], { node: 1 });
+    const nodeState = buildState(['a', DIVIDER_FIXTURE], { node: 1 });
     const tr = new Transaction(nodeState).step(insertAt(0, 'x'));
     expect(tr.selection).toEqual(nodeSelection('b1'));
   });

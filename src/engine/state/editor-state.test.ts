@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { text } from '../model/inline';
+import { removeBlocksStep } from '../transform/block-steps';
 import { replaceInlineStep } from '../transform/replace-inline-step';
 import { buildState, caretOf } from '../test-support/build-state';
+import { DIVIDER_FIXTURE } from '../test-support/fixtures';
 import { applyTransaction, createState, getPluginState } from './editor-state';
 import { createPluginKey, type PluginSpec } from './plugin';
 import { nodeSelection, textSelection } from './selection';
@@ -22,7 +24,8 @@ describe('createState', () => {
     const { doc, schema } = base();
     const state = createState({ doc, schema, selection: textSelection({ block: 'b1', region: 'text', offset: 99 }) });
     expect(caretOf(state)).toEqual({ block: 1, offset: 5 });
-    expect(createState({ doc, schema, selection: nodeSelection('b1') }).selection).toEqual(nodeSelection('b1'));
+    const divided = buildState(['hello', DIVIDER_FIXTURE]);
+    expect(createState({ doc: divided.doc, schema, selection: nodeSelection('b1') }).selection).toEqual(nodeSelection('b1'));
   });
 
   it('keeps a selection in any document that has blocks and none in one that has not', () => {
@@ -78,6 +81,12 @@ describe('applyTransaction', () => {
     expect(calls).toEqual(['a a0 false', 'b b0 a1']);
     expect([getPluginState(next, a), getPluginState(next, b)]).toEqual(['a1', 'b1']);
     expect([getPluginState(state, a), getPluginState(state, b)]).toEqual(['a0', 'b0']);
+  });
+
+  it('puts a caret in the next block when a mapped step removes the node-selected void block', () => {
+    const state = buildState(['one', DIVIDER_FIXTURE, 'three'], { node: 1 });
+    const next = applyTransaction(state, new Transaction(state).step(removeBlocksStep(1, 1)));
+    expect(caretOf(next)).toEqual({ block: 1, offset: 0 });
   });
 
   it('refuses a transaction built on another state', () => {

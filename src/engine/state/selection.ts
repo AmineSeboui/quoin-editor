@@ -175,12 +175,18 @@ function validateText(doc: EngineDoc, schema: Schema, selection: TextSelection):
   return clampToFlow(doc, schema, valid);
 }
 
+function validateNode(doc: EngineDoc, schema: Schema, selection: NodeSelection): Selection | null {
+  const block = blockById(doc, selection.block);
+  if (block === undefined) return defaultSelection(doc, schema);
+  return specFor(schema, block.type).flow === 'text' ? startOf(doc, schema, block.id) : selection;
+}
+
 export function validateSelection(doc: EngineDoc, schema: Schema, selection: Selection | null): Selection | null {
   if (doc.blocks.length === 0) return null;
   if (selection === null) return defaultSelection(doc, schema);
   switch (selection.kind) {
     case 'node':
-      return doc.index.has(selection.block) ? selection : defaultSelection(doc, schema);
+      return validateNode(doc, schema, selection);
     case 'blocks':
       return doc.index.has(selection.anchor) && doc.index.has(selection.head)
         ? selection

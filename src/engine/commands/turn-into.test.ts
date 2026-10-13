@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { historyPlugin, undo } from '../state/history';
 import { buildState, caretOf, markdownOf, run, blocksOf } from '../test-support/build-state';
 import { DIVIDER_FIXTURE } from '../test-support/fixtures';
+import { insertText } from './insert-text';
 import { setBlockType } from './turn-into';
 
 describe('setBlockType', () => {
@@ -70,6 +71,24 @@ describe('setBlockType', () => {
     expect(markdownOf(run(math, setBlockType('MARKDOWN')).state)).toEqual(['x^2']);
     const empty = buildState([{ id: 'c', type: 'CODE', data: { language: '', code: '' } }], { node: 0 });
     expect(run(empty, setBlockType('CALLOUT')).state.doc.blocks[0].regions.body).toEqual([]);
+  });
+
+  it('puts a caret at the end of a node-selected code block that became text, so typing appends', () => {
+    const state = buildState([{ id: 'c', type: 'CODE', data: { language: 'js', code: 'let a = 1' } }], { node: 0 });
+    const paragraph = run(state, setBlockType('MARKDOWN', { kind: 'paragraph' })).state;
+    expect(caretOf(paragraph)).toEqual({ block: 0, offset: 9 });
+    expect(markdownOf(run(paragraph, insertText('z')).state)).toEqual(['let a = 1z']);
+  });
+
+  it('puts a caret at the end of a node-selected math block turned into a callout', () => {
+    const state = buildState([{ id: 'm', type: 'MATH', data: { latex: 'x^2' } }], { node: 0 });
+    const callout = run(state, setBlockType('CALLOUT')).state;
+    expect(caretOf(callout)).toEqual({ block: 0, offset: 3 });
+  });
+
+  it('keeps a node selection on a code block that stays code', () => {
+    const state = buildState([{ id: 'c', type: 'CODE', data: { language: '', code: 'x' } }], { node: 0 });
+    expect(caretOf(run(state, setBlockType('CODE', { language: 'ts' })).state)).toEqual({ node: 0 });
   });
 
   it('turns a code block into another code block language with setAttrs semantics', () => {

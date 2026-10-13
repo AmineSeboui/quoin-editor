@@ -3,7 +3,7 @@ import { blockById } from '../model/doc';
 import { inlineLength, inlineText, text } from '../model/inline';
 import type { BlockAttrs, EngineBlock, Inline, Pos } from '../model/types';
 import type { Schema } from '../schema/types';
-import { primaryRegion, selectedBlockIds, textSelection } from '../state/selection';
+import { endOf, primaryRegion, selectedBlockIds, textSelection } from '../state/selection';
 import { Transaction } from '../state/transaction';
 import { setAttrsStep, type AttrsPatch } from '../transform/attrs-steps';
 import { replaceBlockStep } from '../transform/block-steps';
@@ -78,6 +78,8 @@ export function setBlockType(type: string, attrs: BlockAttrs = {}): Command {
       };
       tr.setSelection(textSelection(carry(selection.anchor), carry(selection.head)));
     }
+    const converted = selection?.kind === 'node' ? blockById(tr.doc, selection.block) : undefined;
+    if (converted !== undefined && isTextFlow(schema, converted)) tr.setSelection(endOf(tr.doc, schema, converted.id));
     dispatch?.(tr);
     return true;
   };

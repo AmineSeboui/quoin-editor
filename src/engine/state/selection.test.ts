@@ -127,6 +127,10 @@ describe('validateSelection', () => {
     expect(validate(textSelection(p('b2', 0), p('b0', 1)))).toEqual(nodeSelection('b2'));
   });
 
+  it('turns a node selection that lands on a text block into a caret at its start', () => {
+    expect(validate(nodeSelection('b0'))).toEqual(textSelection(p('b0', 0)));
+  });
+
   it('falls back to the default selection for missing blocks and a missing selection', () => {
     expect(validate(null)).toEqual(textSelection(p('b0', 0)));
     expect(validate(nodeSelection('zz'))).toEqual(textSelection(p('b0', 0)));

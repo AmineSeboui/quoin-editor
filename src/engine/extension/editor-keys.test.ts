@@ -131,4 +131,20 @@ describe('the core keymap', () => {
     expect(editor.handleKey(key('b', { ctrlKey: true }))).toBe(true);
     expect(editor.handleKey(key('x'))).toBe(false);
   });
+
+  it.each([
+    ['Mod-Shift-8', mod('8', { shiftKey: true }), '- let a = 1z'],
+    ['Mod-Shift-9', mod('9', { shiftKey: true }), '- [ ] let a = 1z'],
+    ['Mod-Alt-2', mod('2', { altKey: true }), '## let a = 1z'],
+  ])('keeps typing after %s on a node-selected code block', (_name, shortcut, expected) => {
+    const { editor } = startEditor([
+      md('a', 'x'),
+      { id: 'c', type: 'CODE', data: { language: 'js', code: 'let a = 1' } },
+    ]);
+    editor.commands.setSelection({ kind: 'node', block: 'c' });
+    expect(editor.handleKey(shortcut)).toBe(true);
+    expect(editor.state.selection?.kind).toBe('text');
+    editor.insertText('z');
+    expect(markdownOf(editor.getBlocks())).toEqual(['x', expected]);
+  });
 });

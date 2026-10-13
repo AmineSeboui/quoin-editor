@@ -21,10 +21,10 @@ describe('sliceFromSelection', () => {
   });
 
   it('copies whole blocks of a node selection with their children, making indents relative', () => {
-    const toggle: QuoinBlock = { id: 'g', type: 'TOGGLE', data: { markdown: 'T', open: true }, indent: 1 };
+    const divider: QuoinBlock = { id: 'g', type: 'DIVIDER', data: {}, indent: 1 };
     const child: QuoinBlock = { id: 'c', type: 'MARKDOWN', data: { markdown: 'kid' }, indent: 2 };
-    const slice = sliceOf(['top', toggle, child, 'after'], { node: 1 });
-    expect(shape(slice)).toEqual(['T', '  kid']);
+    const slice = sliceOf(['top', divider, child, 'after'], { node: 1 });
+    expect(shape(slice)).toEqual(['<DIVIDER>', '  kid']);
     expect(slice).toMatchObject({ openStart: false, openEnd: false });
   });
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { blockRangeSelection } from '../state/selection';
 import { buildState, caretOf, run } from '../test-support/build-state';
+import { DIVIDER_FIXTURE } from '../test-support/fixtures';
 import { selectAll, selectBlock, setSelection } from './selection-commands';
 
 describe('selection commands', () => {
@@ -14,7 +15,7 @@ describe('selection commands', () => {
   it('selects every block from a range of blocks, a node or several blocks of text', () => {
     const blocks = buildState(['a', 'b', 'c'], { blocks: [1, 1] });
     expect(caretOf(run(blocks, selectAll).state)).toEqual({ blocks: [0, 2] });
-    expect(caretOf(run(buildState(['a', 'b', 'c'], { node: 1 }), selectAll).state)).toEqual({ blocks: [0, 2] });
+    expect(caretOf(run(buildState(['a', DIVIDER_FIXTURE, 'c'], { node: 1 }), selectAll).state)).toEqual({ blocks: [0, 2] });
     const across = buildState(['abc', 'def', 'ghi'], { anchor: { block: 0, offset: 1 }, head: { block: 1, offset: 1 } });
     expect(caretOf(run(across, selectAll).state)).toEqual({ blocks: [0, 2] });
   });
@@ -50,7 +51,7 @@ describe('selection commands', () => {
   it('selects the block of the head with selectBlock', () => {
     const state = buildState(['a', 'b', 'c'], { anchor: { block: 0, offset: 0 }, head: { block: 1, offset: 1 } });
     expect(caretOf(run(state, selectBlock).state)).toEqual({ blocks: [1, 1] });
-    expect(caretOf(run(buildState(['a', 'b'], { node: 0 }), selectBlock).state)).toEqual({ blocks: [0, 0] });
+    expect(caretOf(run(buildState([DIVIDER_FIXTURE, 'b'], { node: 0 }), selectBlock).state)).toEqual({ blocks: [0, 0] });
     expect(caretOf(run(buildState(['a', 'b', 'c'], { blocks: [0, 2] }), selectBlock).state)).toEqual({ blocks: [2, 2] });
   });
 

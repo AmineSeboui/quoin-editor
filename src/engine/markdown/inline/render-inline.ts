@@ -49,7 +49,7 @@ function firstContent(node: InlineNode | undefined): string {
 // An explicit stack of frames stands in for recursion, because a node can carry thousands of marks.
 export function renderInline(nodes: Inline, options: RenderOptions): string {
   function renderLeaf({ node, index }: Leaf, before: string, after: string): string {
-    if (node.kind === 'atom') return atomMarkdown(node, after, options);
+    if (node.kind === 'atom') return atomMarkdown(node, before, after, options);
     return escapeText(node.text, {
       lineStart: before === '' || before.endsWith('\\\n'),
       lineEnd: after === '' || after === '\n',

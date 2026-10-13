@@ -8,6 +8,7 @@ import type { RenderOptions } from './render-options';
 const MENTION_KEYS = new Set(['id', 'label', 'kind']);
 const DIGIT = /[0-9]/;
 const MATH_EDGE_HAZARD = /^\s|\s$|\\$/;
+const TRAILING_SPACE = /\s$/;
 
 function hasMentionShape(attrs: Attrs): boolean {
   const { id, label, kind } = attrs;
@@ -34,11 +35,12 @@ function mentionMarkdown(attrs: Attrs, options: RenderOptions): string {
   return `[@${label}](${linkDestination(mentionHref(attrs), options.escapePipes)})`;
 }
 
-function isPrettyMath(attrs: Attrs, after: string, options: RenderOptions): boolean {
+function isPrettyMath(attrs: Attrs, before: string, after: string, options: RenderOptions): boolean {
   const { latex } = attrs;
   if (Object.keys(attrs).length !== 1 || !latex || /[$\n]/.test(latex)) return false;
   if (options.escapePipes && latex.includes('|')) return false;
-  return !MATH_EDGE_HAZARD.test(latex) && !DIGIT.test(after[0] ?? '');
+  const pricelike = DIGIT.test(latex[0]) && (before === '' || TRAILING_SPACE.test(before));
+  return !MATH_EDGE_HAZARD.test(latex) && !DIGIT.test(after[0] ?? '') && !pricelike;
 }
 
 // A mention is a link in markdown, and a link cannot sit inside another link.
@@ -48,9 +50,9 @@ export function writesMention(node: AtomNode, options: RenderOptions): boolean {
   return sanitizeHref(href) === href && !node.marks.some((mark) => mark.type === 'link');
 }
 
-export function atomMarkdown(node: AtomNode, after: string, options: RenderOptions): string {
+export function atomMarkdown(node: AtomNode, before: string, after: string, options: RenderOptions): string {
   if (writesMention(node, options)) return mentionMarkdown(node.attrs, options);
-  if (!options.strict && node.type === 'math' && isPrettyMath(node.attrs, after, options)) {
+  if (!options.strict && node.type === 'math' && isPrettyMath(node.attrs, before, after, options)) {
     return `$${node.attrs.latex}$`;
   }
   const attributes: [string, string][] = [['data-atom', node.type], ...dataAttributes(node.attrs)];

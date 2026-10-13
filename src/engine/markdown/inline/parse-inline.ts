@@ -7,7 +7,7 @@ import { matchEntity } from './entities';
 import { isEscapable } from './escapes';
 import { flattenItems, type DelimiterChar, type DelimiterItem } from './inline-items';
 import { matchAt } from './match-at';
-import { findMathClose, mathLatex, opensMath } from './math-span';
+import { dollarRunEnd, findMathClose, mathLatex, opensMath } from './math-span';
 import { openAngle } from './open-angle';
 import { pairTags } from './pair-tags';
 import { createScanner, findClose, pushText, type Scanner } from './scanner';
@@ -108,6 +108,11 @@ function entity(scanner: Scanner): void {
 
 function math(scanner: Scanner): void {
   const { src, pos } = scanner;
+  if (src[pos + 1] === '$') {
+    const end = dollarRunEnd(src, pos);
+    pushText(scanner, src.slice(pos, end), end - pos);
+    return;
+  }
   const close = opensMath(src, pos) ? findClose(scanner, 'math', pos + 2, (from) => findMathClose(src, from)) : -1;
   if (close < 0) {
     pushText(scanner, '$', 1);

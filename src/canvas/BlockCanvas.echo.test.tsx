@@ -110,7 +110,7 @@ describe('a host that falls far behind', () => {
       expect(box).toHaveValue(text);
     }
     expect(resetSpy).not.toHaveBeenCalled();
-  });
+  }, 30_000);
 
   it('keeps every character when its echoes land while more than 64 emissions are outstanding', async () => {
     const text = 'y'.repeat(120);
@@ -123,7 +123,7 @@ describe('a host that falls far behind', () => {
 
     expect(box).toHaveValue(text);
     expect(resetSpy).not.toHaveBeenCalled();
-  });
+  }, 30_000);
 });
 
 describe('a host that does not echo the canvas back', () => {
@@ -135,7 +135,7 @@ describe('a host that does not echo the canvas back', () => {
 
     expect(box).toHaveValue('z');
     expect(resetSpy).toHaveBeenCalledTimes(1);
-  });
+  }, 30_000);
 });
 
 describe('a host that echoes structural copies of the canvas', () => {

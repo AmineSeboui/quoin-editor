@@ -62,6 +62,10 @@ export class Transaction {
     return this.storedMarksWereSet;
   }
 
+  get meta(): ReadonlyMap<string, unknown> {
+    return this.metaValues;
+  }
+
   get origin(): TransactionOrigin {
     return this.getMeta<TransactionOrigin>('origin') ?? 'command';
   }

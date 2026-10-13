@@ -95,6 +95,9 @@ const NEUTRAL_CHROMA = 24;
 const LIGHT_TEXT = 200;
 const WHITE_SURFACE = 244;
 const DARK_SURFACE = 128;
+// The brightest channel of every palette background is 233 or more, so a neutral background below that is a grey
+// rather than a tint, and by distance alone it would land on the darkest pastel, brown.
+const PASTEL_FLOOR = 233;
 
 // Page surfaces: light text on a dark page, and white or dark grey backgrounds. Every palette value sits outside
 // them, so palette colours still map to themselves.
@@ -106,9 +109,15 @@ function isSurface([r, g, b]: Rgb, kind: PaletteKind): boolean {
   return low >= WHITE_SURFACE || (neutral && (high + low) / 2 < DARK_SURFACE);
 }
 
+function isGreyBackground([r, g, b]: Rgb): boolean {
+  const high = Math.max(r, g, b);
+  return high - Math.min(r, g, b) <= NEUTRAL_CHROMA && high < PASTEL_FLOOR;
+}
+
 export function nearestPaletteColor(css: string, kind: PaletteKind): string | null {
   const rgb = parseColor(css);
   if (rgb === null || isSurface(rgb, kind)) return null;
+  if (kind === 'background' && isGreyBackground(rgb)) return 'gray';
   const table = PALETTE_RGB[kind];
   let best: PaletteName = 'default';
   let least = Infinity;

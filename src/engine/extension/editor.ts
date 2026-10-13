@@ -30,7 +30,7 @@ export type EditorOptions = {
   newId?: () => string;
   now?: () => number;
   isMac?: boolean;
-  /** Turns a storage key into the url written for IMAGE and FILE blocks in copied HTML and text. */
+  /** Turns a storage key into the url written for IMAGE and FILE blocks in copies and, by default, in toMarkdown. */
   resolveAssetUrl?: (key: string) => string;
 };
 
@@ -124,6 +124,11 @@ export function createInternalEditor<F extends CommandFactories = CoreCommands>(
     return slice === null ? null : sliceToClipboard(slice, { schema, resolveAssetUrl: options.resolveAssetUrl });
   }
 
+  function exportMarkdown(markdown: MarkdownOptions = {}): string {
+    const resolveAssetUrl = markdown.resolveAssetUrl ?? options.resolveAssetUrl;
+    return toMarkdown(getBlocks(), { schema, ...markdown, resolveAssetUrl });
+  }
+
   const helpers = createCommandHelpers(() => state, dispatch, resolved.commands as F, () => !destroyed);
 
   return {
@@ -150,7 +155,7 @@ export function createInternalEditor<F extends CommandFactories = CoreCommands>(
     getBlocks,
     setBlocks: (incoming) => !destroyed && controlled.setBlocks(incoming),
     decorations: () => resolved.decorations(state),
-    toMarkdown: (markdown) => toMarkdown(getBlocks(), { schema, ...markdown }),
+    toMarkdown: exportMarkdown,
     stats: () => countDoc(state.doc, { schema }),
     destroy() {
       destroyed = true;

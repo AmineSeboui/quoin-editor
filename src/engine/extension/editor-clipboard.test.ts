@@ -103,6 +103,13 @@ describe('queries through the editor', () => {
     expect(editor.toMarkdown().endsWith('\n')).toBe(true);
   });
 
+  it('exports markdown with the asset resolver of the editor unless the caller passes one', () => {
+    const image = { id: 'i', type: 'IMAGE', data: { storageKey: 'k1', alt: 'pic' } };
+    const { editor } = startEditor([image], { resolveAssetUrl: (key) => `https://cdn.test/${key}` });
+    expect(editor.toMarkdown()).toBe('![pic](https://cdn.test/k1)\n');
+    expect(editor.toMarkdown({ resolveAssetUrl: (key) => `https://other.test/${key}` })).toContain('other.test/k1');
+  });
+
   it('answers can() without changing anything', () => {
     const { editor, onChange } = startEditor([md('a', 'word')]);
     editor.commands.setSelection(range('a', 0, 4));

@@ -39,6 +39,17 @@ describe('nearestPaletteColor', () => {
     expect(nearestPaletteColor(css, kind)).toBe(name);
   });
 
+  it.each(['rgb(192, 192, 192)', '#808080', 'rgb(230, 230, 230)', 'rgb(200, 196, 192)', 'rgb(192, 196, 200)'])(
+    'reads the neutral background %s as gray, never brown',
+    (css) => expect(nearestPaletteColor(css, 'background')).toBe('gray'),
+  );
+
+  it('reads every grey background between the dark and the white surfaces as gray', () => {
+    for (let level = 128; level < 244; level++) {
+      expect(nearestPaletteColor(rgb([level, level, level]), 'background'), String(level)).toBe('gray');
+    }
+  });
+
   it('ignores colours that are not near any palette entry', () => {
     expect(nearestPaletteColor('rgb(0, 0, 128)', 'background')).toBeNull();
     expect(nearestPaletteColor('rgb(128, 0, 0)', 'background')).toBeNull();
@@ -62,6 +73,10 @@ describe('fromHTML colours', () => {
     expect(markdownOf(span('background-color: rgb(13, 17, 23)'))).toEqual(['x']);
     expect(markdownOf(span('color: rgb(230, 237, 243); background-color: rgb(30, 30, 30)'))).toEqual(['x']);
     expect(markdownOf(span('background-color: rgb(246, 248, 250)'))).toEqual(['x']);
+  });
+
+  it('imports a mid grey highlight as the gray background', () => {
+    expect(markdownOf(span('background-color: rgb(192, 192, 192)'))).toEqual(['<span data-bg="gray">x</span>']);
   });
 
   it('keeps a clearly red text and a clearly yellow highlight', () => {

@@ -5,9 +5,11 @@ import type { EditorState } from '../state/editor-state';
 import { isCollapsed, nodeSelection, primaryRegion, startOf, textSelection } from '../state/selection';
 import { Transaction } from '../state/transaction';
 import { removeBlocksStep } from '../transform/block-steps';
+import { replaceInlineStep } from '../transform/replace-inline-step';
 import { joinBlocksStep } from '../transform/split-join-steps';
 import { isParagraph, isTextFlow, regionLength } from './block-helpers';
 import { capIndents } from './cap-indents';
+import { hidingToggle } from './collapsed-toggle';
 import type { Command } from './command';
 import { paragraphStep } from './paragraph-step';
 import { shiftSubtree } from './shift-subtree';
@@ -32,12 +34,25 @@ function joinInto(tr: Transaction, schema: Schema, target: EngineBlock, source: 
   tr.setSelection(textSelection({ block: target.id, region: targetRegion, offset }));
 }
 
+// The blocks between a closed toggle and the line are hidden, so the line joins the summary and skips them.
+function joinIntoSummary(tr: Transaction, schema: Schema, summary: EngineBlock, source: EngineBlock): void {
+  const region = primaryRegion(schema, summary) ?? '';
+  const offset = regionLength(summary, region);
+  const index = requireBlockIndex(tr.doc, source.id);
+  const content = source.regions[primaryRegion(schema, source) ?? ''];
+  if (content.length > 0) tr.step(replaceInlineStep(summary.id, region, offset, offset, content));
+  tr.step(removeBlocksStep(index, 1));
+  capIndents(tr, index);
+  tr.setSelection(textSelection({ block: summary.id, region, offset }));
+}
+
 export const deleteAtStart: Command = (state, dispatch) => {
   const caret = textCaret(state);
   if (caret === null || caret.pos.offset !== 0) return false;
   const { doc, schema } = state;
   const { block, index, pos } = caret;
   const previous = doc.blocks[index - 1];
+  const hidden = hidingToggle(doc, index);
   const tr = new Transaction(state);
   if (!isParagraph(block)) {
     tr.step(paragraphStep(schema, block, pos.region));
@@ -46,6 +61,8 @@ export const deleteAtStart: Command = (state, dispatch) => {
     shiftSubtree(tr, index, -1);
   } else if (previous === undefined) {
     return false;
+  } else if (hidden !== null) {
+    joinIntoSummary(tr, schema, doc.blocks[hidden], block);
   } else if (isTextFlow(schema, previous)) {
     joinInto(tr, schema, previous, block);
   } else {

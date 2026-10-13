@@ -8,7 +8,7 @@ describe('clipboard through the editor', () => {
     expect(editor.copy()).toBeNull();
     editor.commands.setSelection(range('a', 0, 7));
     const copied = editor.copy()!;
-    expect(copied.text).toBe('one **two**');
+    expect(copied.text).toBe('one two');
     expect(copied.html).toContain('<strong>two</strong>');
     expect(JSON.parse(copied.json)).toMatchObject({ quoin: 1, slice: { openStart: true, openEnd: true } });
   });

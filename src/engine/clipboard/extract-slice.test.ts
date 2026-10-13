@@ -10,7 +10,7 @@ describe('slices', () => {
     const slice = sliceFromSelection(state, createBlockCodec(state.schema))!;
     expect(slice.openStart && slice.openEnd).toBe(true);
     expect(slice.blocks.map((b) => b.data.markdown)).toEqual(['## e**ll**']);
-    expect(sliceToClipboard(slice).text).toBe('e**ll**');
+    expect(sliceToClipboard(slice).text).toBe('ell');
   });
 
   it('copies across blocks with partial ends', () => {

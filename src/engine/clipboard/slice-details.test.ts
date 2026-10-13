@@ -71,12 +71,12 @@ describe('sliceToClipboard', () => {
     openEnd: true,
   });
 
-  it('writes json, html and markdown text', () => {
+  it('writes json, html and the plain text of an open block', () => {
     const slice = open('## T **b**');
     const { json, html, text } = sliceToClipboard(slice);
     expect(JSON.parse(json)).toEqual({ quoin: 1, slice });
     expect(html).toBe('<h2 id="h-a">T <strong>b</strong></h2>');
-    expect(text).toBe('T **b**');
+    expect(text).toBe('T b');
   });
 
   it('writes closed slices as markdown without the trailing newline', () => {

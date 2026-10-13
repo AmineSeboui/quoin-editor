@@ -59,16 +59,16 @@ describe('the controlled contract', () => {
     expect(after[1]).toBe(before[1]);
   });
 
-  it('clears history, does not record the load and emits the new document', () => {
+  it('clears history and does not record the load', () => {
     const { editor, onChange } = typed([md('a', 'x')]);
     expect(editor.can().undo()).toBe(true);
     onChange.mockClear();
     expect(editor.setBlocks([md('a', 'other')])).toBe(true);
     expect(editor.can().undo()).toBe(false);
     expect(editor.can().redo()).toBe(false);
-    expect(onChange).toHaveBeenCalledTimes(1);
-    expect(onChange.mock.calls[0][0]).toEqual([md('a', 'other')]);
-    expect(editor.setBlocks(onChange.mock.calls[0][0])).toBe(false);
+    expect(onChange).not.toHaveBeenCalled();
+    expect(editor.getBlocks()).toEqual([md('a', 'other')]);
+    expect(editor.setBlocks([md('a', 'other')])).toBe(false);
   });
 
   it('marks the reconcile transaction with its origin and keeps it out of the history', () => {

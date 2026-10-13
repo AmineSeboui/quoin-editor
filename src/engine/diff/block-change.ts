@@ -1,9 +1,9 @@
 import { specFor } from '../blocks/unknown-spec';
 import { compareRegionNames } from '../model/compare';
 import type { QuoinBlock } from '../model/quoin-block';
+import { sameValue } from '../model/same-value';
 import type { CodecContext, Schema } from '../schema/types';
 import { diffInline, type InlineChange } from './diff-inline';
-import { sameValue } from './same-value';
 
 export type BlockChange = {
   op: 'change';

@@ -8,6 +8,7 @@ import { createCommandHelpers, type BoundCommands, type Chain, type CommandFacto
 import { isActive } from '../commands/is-active';
 import { toMarkdown } from '../markdown/document/to-markdown';
 import type { QuoinBlock } from '../model/quoin-block';
+import { sameDoc } from '../model/same-doc';
 import type { EngineDoc } from '../model/types';
 import { insertTextWithRules } from '../rules/input-rule';
 import type { Schema } from '../schema/types';
@@ -68,6 +69,7 @@ export function createEditor<F extends CommandFactories = CoreCommands>(options:
   const codec = createBlockCodec(schema, { newId });
   const tracker = createEchoTracker();
   const listeners = new Set<Listener>();
+  const quiet = new WeakSet<Transaction>();
   let state = createState({ doc: codec.docFromBlocks(options.blocks), schema, plugins: resolved.plugins });
   let supplied: readonly QuoinBlock[] = options.blocks;
   let converted: { doc: EngineDoc; blocks: QuoinBlock[] } | null = null;
@@ -84,7 +86,7 @@ export function createEditor<F extends CommandFactories = CoreCommands>(options:
     for (const listener of [...listeners]) listener(state, tr);
     for (const extension of resolved.extensions) extension.onTransaction?.(tr, state);
     options.onTransaction?.(tr, state);
-    if (!tr.docChanged) return;
+    if (!tr.docChanged || quiet.has(tr)) return;
     const blocks = getBlocks();
     tracker.emitted(blocks);
     onChange?.(blocks);
@@ -93,10 +95,18 @@ export function createEditor<F extends CommandFactories = CoreCommands>(options:
   function setBlocks(incoming: readonly QuoinBlock[]): boolean {
     const previous = supplied;
     supplied = incoming;
-    if (tracker.classify(incoming) === 'echo') return false;
+    if (incoming === previous || tracker.classify(incoming) === 'echo') return false;
     if (sameBlocks(incoming, previous) || sameBlocks(incoming, getBlocks())) return false;
+    return reconcile(incoming);
+  }
+
+  function reconcile(incoming: readonly QuoinBlock[]): boolean {
+    const doc = codec.docFromBlocks(incoming);
+    if (sameDoc(doc, state.doc)) return false;
+    tracker.forgetAll();
     const tr = new Transaction(state, now()).setOrigin('reconcile').setMeta('addToHistory', false);
-    dispatch(tr.step(replaceDocStep(codec.docFromBlocks(incoming))));
+    if (sameBlocks(codec.blocksFromDoc(doc), incoming)) quiet.add(tr);
+    dispatch(tr.step(replaceDocStep(doc)));
     return true;
   }
 

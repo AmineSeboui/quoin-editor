@@ -42,10 +42,15 @@ describe('sameBlocks', () => {
     expect(sameBlocks(doc(), doc().slice(1))).toBe(false);
   });
 
-  it('compares nested data by identity', () => {
-    const rows = [['a']];
-    const table = (value: unknown): QuoinBlock[] => [{ id: 't', type: 'TABLE', data: { rows: value } }];
-    expect(sameBlocks(table(rows), table(rows))).toBe(true);
-    expect(sameBlocks(table(rows), table([['a']]))).toBe(false);
+  it('compares nested data deeply', () => {
+    const table = (rows: unknown): QuoinBlock[] => [{ id: 't', type: 'TABLE', data: { rows, align: [null] } }];
+    expect(sameBlocks(table([['a']]), table([['a']]))).toBe(true);
+    expect(sameBlocks(table([['a']]), table([['b']]))).toBe(false);
+    expect(sameBlocks(table([['a']]), table({ 0: ['a'] }))).toBe(false);
+  });
+
+  it('reads a data key holding undefined as absent', () => {
+    const [first] = doc();
+    expect(sameBlocks([first], [{ ...first, data: { ...first.data, extra: undefined } }])).toBe(true);
   });
 });

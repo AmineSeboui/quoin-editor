@@ -1,8 +1,8 @@
 import { inlineLength } from '../../model/inline';
 import type { EngineBlock } from '../../model/types';
 import type { LineKind } from '../line-kind';
+import { MAX_MARKER_NUMBER, orderedStart } from '../ordered-start';
 
-const MAX_MARKER_NUMBER = 999_999_999;
 const ITEM_KINDS: readonly string[] = ['bullet', 'ordered', 'task'];
 
 export type Container = {
@@ -33,11 +33,6 @@ export type ListContext = {
 const lineKindOf = (block: EngineBlock): LineKind | undefined =>
   block.type === 'MARKDOWN' ? ((block.attrs.kind as LineKind | undefined) ?? 'paragraph') : undefined;
 
-function startOf(block: EngineBlock): number {
-  const { start } = block.attrs;
-  return typeof start === 'number' && Number.isInteger(start) && start >= 0 ? Math.min(start, MAX_MARKER_NUMBER) : 1;
-}
-
 function openedBy(block: EngineBlock, prefix: string, hang: number): Container | undefined {
   if (hang > 0) return { kind: 'item', indent: block.indent, prefix, childPrefix: prefix + ' '.repeat(hang) };
   if (block.type === 'TOGGLE') return { kind: 'toggle', indent: block.indent, prefix, childPrefix: prefix };
@@ -61,7 +56,7 @@ export function createListContext(): ListContext {
     let placed = block;
     let number = 1;
     if (line === 'ordered') {
-      number = Math.min(runs.get(block.indent) ?? startOf(block), MAX_MARKER_NUMBER);
+      number = Math.min(runs.get(block.indent) ?? orderedStart(block.attrs.start), MAX_MARKER_NUMBER);
       runs.set(block.indent, number + 1);
       if (number !== block.attrs.start) placed = { ...block, attrs: { ...block.attrs, start: number } };
     } else {

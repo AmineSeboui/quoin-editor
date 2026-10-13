@@ -1,3 +1,5 @@
+import { orderedStart } from './ordered-start';
+
 export type LineKind = 'paragraph' | 'heading' | 'bullet' | 'ordered' | 'task' | 'quote';
 
 export type LineAttrs = { kind: LineKind; level?: number; checked?: boolean; start?: number };
@@ -38,7 +40,7 @@ export function linePrefix({ kind, level, checked, start }: LineAttrs): string {
     case 'bullet':
       return '- ';
     case 'ordered':
-      return `${start ?? 1}. `;
+      return `${orderedStart(start)}. `;
     case 'task':
       return checked ? '- [x] ' : '- [ ] ';
     case 'quote':

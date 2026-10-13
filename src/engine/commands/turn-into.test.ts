@@ -12,6 +12,14 @@ describe('setBlockType', () => {
     expect(markdownOf(run(state, setBlockType('MARKDOWN', { kind: 'heading', level: 3 })).state)).toEqual(['### a', '### b']);
   });
 
+  it.each([1.5, -1, Number.NaN, 1e10])('turns text into an ordered item even when the start is %j', (start) => {
+    const state = buildState(['a'], { block: 0, offset: 0 });
+    const next = run(state, setBlockType('MARKDOWN', { kind: 'ordered', start })).state;
+    const [stored] = blocksOf(next);
+    expect(stored.data.markdown).toMatch(/^\d{1,9}\. a$/);
+    expect(buildState([stored]).doc.blocks[0].attrs.kind).toBe('ordered');
+  });
+
   it('moves content into a callout and back, keeping ids', () => {
     const state = buildState(['**x**'], { block: 0, offset: 0 });
     const callout = run(state, setBlockType('CALLOUT', { tone: 'tip' })).state;

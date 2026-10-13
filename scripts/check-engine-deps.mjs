@@ -2,12 +2,12 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
-const engine = join(root, 'src', 'engine');
+const engine = process.argv[2] ? resolve(process.argv[2]) : join(root, 'src', 'engine');
 const specifier =
   /(?:import|export)\s[^'"]*?from\s*['"]([^'"]+)['"]|\bimport\s*['"]([^'"]+)['"]|\bimport\(\s*['"]([^'"]+)['"]\s*\)|\brequire\(\s*['"]([^'"]+)['"]\s*\)/g;
 const source = /\.[cm]?[jt]sx?$/;
 const testFile = /\.test\.[cm]?[jt]sx?$/;
-const testHelper = /-arbitrary\.[cm]?[jt]sx?$|[\\/]test-support[\\/]/;
+const testHelper = /-arbitrary(?:\.[cm]?[jt]sx?)?$|(?:^|[\\/])test-support(?:[\\/]|$)/;
 const testHelperPackages = new Set(['fast-check', 'vitest']);
 
 function files(dir) {
@@ -23,14 +23,19 @@ const violations = files(engine).flatMap((file) => {
   return [...text.matchAll(specifier)]
     .map((match) => match[1] ?? match[2] ?? match[3] ?? match[4])
     .filter((spec) => {
-      if (!spec.startsWith('.')) return !(testHelper.test(file) && testHelperPackages.has(spec));
-      return relative(engine, resolve(dirname(file), spec)).startsWith('..');
+      const helper = testHelper.test(relative(engine, file));
+      if (!spec.startsWith('.')) return !(helper && testHelperPackages.has(spec));
+      const target = relative(engine, resolve(dirname(file), spec));
+      return target.startsWith('..') || (!helper && testHelper.test(target));
     })
     .map((spec) => `${relative(root, file)}: ${spec}`);
 });
 
 if (violations.length) {
-  console.error('The engine must not import packages or code outside src/engine:\n' + violations.join('\n'));
+  console.error(
+    'The engine must not import packages, code outside src/engine, or test helpers from code that ships:\n' +
+      violations.join('\n'),
+  );
   process.exit(1);
 }
 console.log('Engine imports are self-contained.');

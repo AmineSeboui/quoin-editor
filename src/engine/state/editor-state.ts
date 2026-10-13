@@ -11,6 +11,7 @@ export type EditorState = {
   readonly schema: Schema;
   readonly plugins: readonly PluginSpec<unknown>[];
   readonly pluginState: ReadonlyMap<string, unknown>;
+  readonly clock: () => number;
 };
 
 export function createState(config: {
@@ -18,8 +19,9 @@ export function createState(config: {
   schema: Schema;
   selection?: Selection | null;
   plugins?: readonly PluginSpec<unknown>[];
+  clock?: () => number;
 }): EditorState {
-  const { doc, schema, plugins = [] } = config;
+  const { doc, schema, plugins = [], clock = Date.now } = config;
   const requested = config.selection === undefined ? defaultSelection(doc, schema) : config.selection;
   const pluginState = new Map<string, unknown>();
   const state: EditorState = {
@@ -29,6 +31,7 @@ export function createState(config: {
     storedMarks: null,
     plugins,
     pluginState,
+    clock,
   };
   for (const plugin of plugins) {
     if (pluginState.has(plugin.key.name)) throw new Error(`duplicate plugin key "${plugin.key.name}"`);

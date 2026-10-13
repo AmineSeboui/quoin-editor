@@ -18,7 +18,7 @@ export class Transaction {
   private readonly mapList: PosMap[] = [];
   private readonly metaValues = new Map<string, unknown>();
 
-  constructor(state: EditorState, time: number = Date.now()) {
+  constructor(state: EditorState, time: number = state.clock()) {
     this.before = state;
     this.time = time;
     this.currentDoc = state.doc;

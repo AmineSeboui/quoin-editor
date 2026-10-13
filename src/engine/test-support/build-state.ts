@@ -1,4 +1,3 @@
-import { vi } from 'vitest';
 import { createBlockCodec, type BlockCodec } from '../blocks/codec';
 import type { Command } from '../commands/command';
 import { createDoc, requireBlockIndex } from '../model/doc';
@@ -8,16 +7,13 @@ import type { EngineBlock, EngineDoc, Pos, Selection } from '../model/types';
 import { createSchema } from '../schema/create-schema';
 import type { Schema } from '../schema/types';
 import { applyTransaction, createState, type EditorState } from '../state/editor-state';
-import { createPluginKey, type PluginSpec } from '../state/plugin';
+import type { PluginSpec } from '../state/plugin';
 import { blockRangeSelection, nodeSelection, primaryRegion, textSelection } from '../state/selection';
 import type { Transaction } from '../state/transaction';
 
 export type Caret = { block: number; offset: number; region?: string };
 export type SelectionSpec = Caret | { anchor: Caret; head: Caret } | { node: number } | { blocks: [number, number] };
 type Entry = string | QuoinBlock | { paragraph: string };
-
-const clockKey = createPluginKey<number>('test-clock');
-const clock = (time: number): PluginSpec<number> => ({ key: clockKey, init: () => time, apply: (_tr, value) => value });
 
 export function newIds(prefix = 'n'): () => string {
   let next = 0;
@@ -51,6 +47,7 @@ export function buildState(
   selection?: SelectionSpec | null,
   options: { plugins?: readonly PluginSpec<unknown>[]; schema?: Schema; time?: number } = {},
 ): EditorState {
+  const { time } = options;
   const schema = options.schema ?? createSchema();
   const codec = createBlockCodec(schema, { newId: newIds() });
   const doc = createDoc(
@@ -62,7 +59,8 @@ export function buildState(
     doc,
     schema,
     selection: selection ? toSelection(doc, schema, selection) : selection,
-    plugins: [...(options.plugins ?? []), ...(options.time === undefined ? [] : [clock(options.time)])],
+    plugins: options.plugins,
+    clock: time === undefined ? undefined : () => time,
   });
 }
 
@@ -100,15 +98,9 @@ export function run(
 ): { ok: boolean; state: EditorState; tr: Transaction | null } {
   let current = state;
   let last: Transaction | null = null;
-  const time = state.pluginState.get(clockKey.name) as number | undefined;
-  const spy = time === undefined ? null : vi.spyOn(Date, 'now').mockReturnValue(time);
-  try {
-    const ok = command(state, (tr) => {
-      current = applyTransaction(current, tr);
-      last = tr;
-    });
-    return { ok, state: current, tr: last };
-  } finally {
-    spy?.mockRestore();
-  }
+  const ok = command(state, (tr) => {
+    current = applyTransaction(current, tr);
+    last = tr;
+  });
+  return { ok, state: current, tr: last };
 }

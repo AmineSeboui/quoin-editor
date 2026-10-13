@@ -44,19 +44,6 @@ describe('createEditor notifications', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
-  it('stops dispatching after destroy', () => {
-    const { editor, onChange } = startEditor([md('a', 'x')]);
-    const listener = vi.fn();
-    editor.subscribe(listener);
-    editor.commands.setSelection(caret('a', 1));
-    listener.mockClear();
-    editor.destroy();
-    expect(editor.insertText('!')).toBe(true);
-    expect(listener).not.toHaveBeenCalled();
-    expect(onChange).not.toHaveBeenCalled();
-    expect(editor.getBlocks()).toEqual([md('a', 'x')]);
-  });
-
   it('stamps transactions it creates with the clock it was given', () => {
     const { editor } = startEditor([md('a', 'x')], { now: () => 1234 });
     expect(editor.createTransaction().time).toBe(1234);

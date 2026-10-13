@@ -18,6 +18,14 @@ describe('transactions', () => {
     expect(caretOf(applyTransaction(state, tr))).toEqual({ block: 0, offset: 8 });
   });
 
+  it('takes its time from the clock of the state it is built on, unless given one', () => {
+    const { doc, schema } = buildState(['a']);
+    const state = createState({ doc, schema, clock: () => 42 });
+    expect(new Transaction(state).time).toBe(42);
+    expect(new Transaction(state, 7).time).toBe(7);
+    expect(new Transaction(applyTransaction(state, new Transaction(state).step(insertAt(0, 'x')))).time).toBe(42);
+  });
+
   it('records the doc before each step', () => {
     const state = buildState(['a', 'b']);
     const tr = new Transaction(state).step(removeBlocksStep(1, 1));

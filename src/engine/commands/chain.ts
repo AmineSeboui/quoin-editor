@@ -90,11 +90,12 @@ export function createCommandHelpers<F extends CommandFactories>(
   getState: () => EditorState,
   dispatch: (tr: Transaction) => void,
   factories: F,
+  live: () => boolean = () => true,
 ): { commands: BoundCommands<F>; chain(): Chain<F>; can(): BoundCommands<F> } {
   const names = Object.keys(factories);
   const bind = (send?: (tr: Transaction) => void): BoundCommands<F> =>
     Object.fromEntries(
-      names.map((name) => [name, (...args: never[]) => factories[name](...args)(getState(), send)]),
+      names.map((name) => [name, (...args: never[]) => live() && factories[name](...args)(getState(), send)]),
     ) as unknown as BoundCommands<F>;
   const commands = bind(dispatch);
   const dryRun = bind();
@@ -103,6 +104,7 @@ export function createCommandHelpers<F extends CommandFactories>(
     const queue: Command[] = [];
     const built: Record<string, unknown> = {
       run() {
+        if (!live()) return false;
         const { ok, tr } = runCommands(getState(), queue);
         if (ok && tr !== null) dispatch(tr);
         return ok;

@@ -64,14 +64,14 @@ type Listener = (state: EditorState, tr: Transaction | null) => void;
 export function createEditor<F extends CommandFactories = CoreCommands>(options: EditorOptions): Editor<F> {
   const { newId, onChange } = options;
   const isMac = options.isMac ?? detectMac();
-  const now = options.now ?? Date.now;
   const resolved = resolveExtensions(options.extensions ?? coreExtensions({ newId }), isMac);
   const { schema } = resolved;
   const codec = createBlockCodec(schema, { newId });
   const tracker = createEchoTracker();
   const listeners = new Set<Listener>();
   const quiet = new WeakSet<Transaction>();
-  let state = createState({ doc: codec.docFromBlocks(options.blocks), schema, plugins: resolved.plugins });
+  const { plugins } = resolved;
+  let state = createState({ doc: codec.docFromBlocks(options.blocks), schema, plugins, clock: options.now });
   let supplied: readonly QuoinBlock[] = options.blocks;
   let converted: { doc: EngineDoc; blocks: QuoinBlock[] } | null = null;
   let destroyed = false;
@@ -95,11 +95,12 @@ export function createEditor<F extends CommandFactories = CoreCommands>(options:
   const queue = createDispatchQueue(() => state, commit);
 
   function dispatch(tr: Transaction): void {
-    if (destroyed) return;
+    if (destroyed) throw new Error('Cannot dispatch to a destroyed editor');
     queue.dispatch(tr);
   }
 
   function setBlocks(incoming: readonly QuoinBlock[]): boolean {
+    if (destroyed) return false;
     const previous = supplied;
     supplied = incoming;
     if (incoming === previous || tracker.classify(incoming) === 'echo') return false;
@@ -111,13 +112,14 @@ export function createEditor<F extends CommandFactories = CoreCommands>(options:
     const doc = codec.docFromBlocks(incoming);
     if (sameDoc(doc, state.doc)) return false;
     tracker.forgetAll();
-    const tr = new Transaction(state, now()).setOrigin('reconcile').setMeta('addToHistory', false);
+    const tr = new Transaction(state).setOrigin('reconcile').setMeta('addToHistory', false);
     if (sameBlocks(codec.blocksFromDoc(doc), incoming)) quiet.add(tr);
     dispatch(tr.step(replaceDocStep(doc)));
     return true;
   }
 
   function paste(data: { json?: string; html?: string; text?: string }, parser?: DOMParserLike): boolean {
+    if (destroyed) return false;
     const { text } = data;
     const ruled = text !== undefined && resolved.pasteRules.some((rule) => rule.match(text, state)?.(state, dispatch));
     if (ruled) return true;
@@ -130,7 +132,7 @@ export function createEditor<F extends CommandFactories = CoreCommands>(options:
     return slice === null ? null : sliceToClipboard(slice, { schema });
   }
 
-  const helpers = createCommandHelpers(() => state, dispatch, resolved.commands as F);
+  const helpers = createCommandHelpers(() => state, dispatch, resolved.commands as F, () => !destroyed);
 
   return {
     get state() {
@@ -140,7 +142,7 @@ export function createEditor<F extends CommandFactories = CoreCommands>(options:
     resolved,
     codec,
     dispatch,
-    createTransaction: () => new Transaction(state, now()),
+    createTransaction: () => new Transaction(state),
     subscribe(listener) {
       listeners.add(listener);
       return () => void listeners.delete(listener);
@@ -149,8 +151,8 @@ export function createEditor<F extends CommandFactories = CoreCommands>(options:
     chain: helpers.chain,
     can: helpers.can,
     isActive: (name, attrs) => isActive(state, name, attrs),
-    insertText: (text) => insertTextWithRules(text, resolved.inputRules, { newId })(state, dispatch),
-    handleKey: (event) => runKeymap(resolved.keymap, state, dispatch, event, isMac),
+    insertText: (text) => !destroyed && insertTextWithRules(text, resolved.inputRules, { newId })(state, dispatch),
+    handleKey: (event) => !destroyed && runKeymap(resolved.keymap, state, dispatch, event, isMac),
     paste,
     copy,
     getBlocks,

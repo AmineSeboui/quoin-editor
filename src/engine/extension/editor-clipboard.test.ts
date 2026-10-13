@@ -13,6 +13,29 @@ describe('clipboard through the editor', () => {
     expect(JSON.parse(copied.json)).toMatchObject({ quoin: 1, slice: { openStart: true, openEnd: true } });
   });
 
+  describe('copying uploaded media', () => {
+    const image = { id: 'i', type: 'IMAGE', data: { storageKey: 'uploads/abc.png', alt: 'cat' } };
+    const file = { id: 'f', type: 'FILE', data: { storageKey: 'uploads/doc.pdf', filename: 'doc.pdf' } };
+    const resolveAssetUrl = (key: string) => `https://cdn.test/${key}`;
+    const copyBlock = (block: typeof image | typeof file, options: { resolveAssetUrl?: typeof resolveAssetUrl }) => {
+      const { editor } = startEditor([block], options);
+      editor.commands.setSelection({ kind: 'node', block: block.id });
+      return editor.copy()!;
+    };
+
+    it('writes the resolved url of an image and a file into the html and the text', () => {
+      const copiedImage = copyBlock(image, { resolveAssetUrl });
+      expect(copiedImage.html).toContain('src="https://cdn.test/uploads/abc.png"');
+      expect(copiedImage.html).not.toContain('"uploads/abc.png"');
+      expect(copiedImage.text).toBe('![cat](https://cdn.test/uploads/abc.png)');
+      expect(copyBlock(file, { resolveAssetUrl }).html).toContain('href="https://cdn.test/uploads/doc.pdf"');
+    });
+
+    it('keeps the sanitizing default without a resolver', () => {
+      expect(copyBlock(image, {}).html).toContain('src="uploads/abc.png"');
+    });
+  });
+
   it('pastes a lone URL over a selection as a link', () => {
     const { editor } = startEditor([md('a', 'docs')]);
     editor.commands.setSelection(range('a', 0, 4));

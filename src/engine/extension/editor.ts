@@ -28,6 +28,8 @@ export type EditorOptions = {
   newId?: () => string;
   now?: () => number;
   isMac?: boolean;
+  /** Turns a storage key into the url written for IMAGE and FILE blocks in copied HTML and text. */
+  resolveAssetUrl?: (key: string) => string;
 };
 
 export type MarkdownOptions = {
@@ -106,7 +108,7 @@ export function createEditor<F extends CommandFactories = CoreCommands>(options:
 
   function copy() {
     const slice = sliceFromSelection(state, codec);
-    return slice === null ? null : sliceToClipboard(slice, { schema });
+    return slice === null ? null : sliceToClipboard(slice, { schema, resolveAssetUrl: options.resolveAssetUrl });
   }
 
   const helpers = createCommandHelpers(() => state, dispatch, resolved.commands as F, () => !destroyed);

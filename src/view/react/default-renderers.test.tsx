@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { textSelection } from '../../engine';
 import type { QuoinBlock } from '../../engine/model/quoin-block';
@@ -135,6 +135,15 @@ describe('toggle blocks', () => {
     expect(controller.registry.get('g', 'text')).toBeUndefined();
   });
 
+  it('does not open or close while read-only, and reports no change', () => {
+    const onChange = vi.fn();
+    const { controller } = mount(toggle(false), { readOnly: true, onChange });
+    act(() => screen.getByRole('button', { name: 'Toggle' }).click());
+    expect(controller.editor.state.doc.blocks[0].attrs.open).not.toBe(true);
+    expect(screen.getByRole('button', { name: 'Toggle' })).toHaveAttribute('aria-expanded', 'false');
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
   it('leaves the caret alone when the chevron is pressed', () => {
     const { controller } = mount(toggle(true));
     act(() => controller.dispatch(controller.editor.createTransaction().setSelection(caretIn('s', 1))));
@@ -156,7 +165,7 @@ describe('block renderer lookup', () => {
     expect(container.querySelectorAll('.quoin-void')).toHaveLength(2);
   });
 
-  it('prefers the caller\'s renderer and hands it the block, the controller and the index', () => {
+  it('prefers the caller\'s renderer and hands it the block and the controller', () => {
     const seen: BlockRenderProps[] = [];
     const Custom = (props: BlockRenderProps) => {
       seen.push(props);

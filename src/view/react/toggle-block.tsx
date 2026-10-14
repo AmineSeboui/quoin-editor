@@ -16,7 +16,9 @@ export const ToggleBlock: BlockRenderer = ({ block, controller }) => {
         contentEditable={false}
         tabIndex={-1}
         onMouseDown={keepFocus}
-        onClick={() => controller.run(onBlock(block.id, setAttrs({ open: !open })))}
+        onClick={() => {
+          if (!controller.readOnly) controller.run(onBlock(block.id, setAttrs({ open: !open })));
+        }}
       >
         <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
           <path d="M6 3.5l4.5 4.5L6 12.5" fill="none" stroke="currentColor" strokeWidth="2" />

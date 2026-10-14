@@ -24,6 +24,7 @@ export function SelectionSink() {
       role="textbox"
       aria-label="Selected content"
       aria-multiline="true"
+      aria-readonly={readOnly ? 'true' : undefined}
       tabIndex={-1}
       spellCheck={false}
       data-quoin-sink=""

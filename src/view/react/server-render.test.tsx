@@ -13,7 +13,7 @@ describe('server rendering', () => {
     );
     expect(html).toContain('role="group"');
     expect(html).toContain('aria-label="Doc"');
-    expect(html).toContain('Type / for commands. Press Escape, then Tab, to leave the editor.');
+    expect(html).toContain('Press Escape, then Tab, to leave the editor.');
     expect(html).toMatch(/data-block-id="h"[^>]*data-kind="heading"/);
     expect(html).toContain('aria-label="Heading 1"');
     expect(html).toContain('role="checkbox"');

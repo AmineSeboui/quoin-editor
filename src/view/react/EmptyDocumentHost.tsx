@@ -23,6 +23,7 @@ export function EmptyDocumentHost({ placeholder }: { placeholder?: string }) {
       suppressContentEditableWarning
       role="textbox"
       aria-multiline="true"
+      aria-readonly={readOnly ? 'true' : undefined}
       aria-label="Paragraph"
       data-quoin-host=""
       data-quoin-empty=""

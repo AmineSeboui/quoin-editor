@@ -6,6 +6,7 @@ import { regionInline } from '../controller/region-inline';
 import { useViewController } from './editor-context';
 import { useEditorState } from './use-editor-state';
 import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect';
+import { useReadOnly } from './use-read-only';
 
 export type EditableRegionProps = {
   block: string;
@@ -23,6 +24,7 @@ const samePainted = (a: Painted, b: Painted): boolean =>
 export function EditableRegion({ block, region, label, placeholder, className }: EditableRegionProps) {
   const controller = useViewController();
   const ref = useRef<HTMLDivElement>(null);
+  const readOnly = useReadOnly(controller);
   const select = useCallback(
     (state: EditorState): Painted => ({
       inline: regionInline(state, block, region),
@@ -46,11 +48,12 @@ export function EditableRegion({ block, region, label, placeholder, className }:
     <div
       ref={ref}
       className={className}
-      contentEditable={!controller.readOnly}
+      contentEditable={!readOnly}
       suppressContentEditableWarning
       tabIndex={-1}
       role="textbox"
       aria-multiline="true"
+      aria-readonly={readOnly ? 'true' : undefined}
       aria-label={label}
       data-quoin-host=""
       data-placeholder={empty ? placeholder : undefined}

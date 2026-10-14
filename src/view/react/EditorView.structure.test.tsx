@@ -23,7 +23,7 @@ describe('EditorView root', () => {
     expect(root).toHaveClass('quoin', 'quoin-editor', 'host-class');
     expect(root).toHaveAttribute('id', 'doc');
     const hint = document.getElementById(root.getAttribute('aria-describedby')!);
-    expect(hint).toHaveTextContent('Type / for commands. Press Escape, then Tab, to leave the editor.');
+    expect(hint).toHaveTextContent('Press Escape, then Tab, to leave the editor.');
   });
 
   it('attaches the controller to the root while mounted', () => {

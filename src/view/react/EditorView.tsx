@@ -20,14 +20,14 @@ export type EditorViewProps = {
 };
 
 const NO_RENDERERS: Readonly<Record<string, BlockRenderer>> = {};
-const HINT = 'Type / for commands. Press Escape, then Tab, to leave the editor.';
+const HINT = 'Press Escape, then Tab, to leave the editor.';
 
 export function EditorView({
   controller,
   renderers = NO_RENDERERS,
   className,
   id,
-  'aria-label': label,
+  'aria-label': label = 'Editor',
   placeholder,
 }: EditorViewProps) {
   const root = useRef<HTMLDivElement>(null);

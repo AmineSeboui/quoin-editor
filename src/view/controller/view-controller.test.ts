@@ -4,38 +4,15 @@ import { createEditor } from '../../engine/extension/editor';
 import type { Extension } from '../../engine/extension/types';
 import { textSelection } from '../../engine/state/selection';
 import { insertText } from '../../engine/commands/insert-text';
-import { toggleMark } from '../../engine/commands/marks';
 import { hostKey } from './host-registry';
+import { at, cleanUpAfterTest, mountController } from './test-controller';
 import { ViewController } from './view-controller';
 
-const detachers: (() => void)[] = [];
-
-afterEach(() => {
-  detachers.splice(0).forEach((detach) => detach());
-  (document.activeElement as HTMLElement | null)?.blur();
-  document.body.replaceChildren();
-});
-
-function mount() {
-  const editor = createEditor({ blocks: [{ id: 'a', type: 'MARKDOWN', data: { markdown: 'hi' } }] });
-  const controller = new ViewController({ editor });
-  const root = document.createElement('div');
-  const host = document.createElement('div');
-  host.contentEditable = 'true';
-  root.appendChild(host);
-  document.body.appendChild(root);
-  detachers.push(controller.attach(root));
-  controller.registry.register('a', 'text', host);
-  controller.renderHost('a', 'text');
-  return { controller, editor, host, root };
-}
-
-const at = (offset: number, block = 'a') => ({ block, region: 'text', offset });
-const nextTask = () => new Promise((resolve) => setTimeout(resolve, 0));
+afterEach(cleanUpAfterTest);
 
 describe('ViewController', () => {
   it('renders a host and re-renders it after a dispatch, restoring the caret', () => {
-    const { controller, editor, host } = mount();
+    const { controller, editor, host } = mountController();
     expect(host.textContent).toBe('hi');
     controller.run((state, dispatch) => {
       dispatch!(editor.createTransaction().setSelection(textSelection({ block: 'a', region: 'text', offset: 2 })));
@@ -46,13 +23,6 @@ describe('ViewController', () => {
     const sel = document.getSelection()!;
     expect(sel.anchorNode?.textContent).toBe('hi!');
     expect(sel.anchorOffset).toBe(3);
-  });
-
-  it('reads the DOM selection into the model', () => {
-    const { controller, editor, host } = mount();
-    document.getSelection()!.setBaseAndExtent(host.firstChild!, 1, host.firstChild!, 1);
-    controller.readSelectionFromDom();
-    expect(editor.state.selection).toMatchObject({ head: { block: 'a', offset: 1 } });
   });
 
   it('runs dispatches inside the flush function', () => {
@@ -96,7 +66,7 @@ describe('ViewController', () => {
   });
 
   it('resets the goal column when the document changes', () => {
-    const { controller, editor } = mount();
+    const { controller, editor } = mountController();
     controller.goalX = 40;
     controller.dispatch(editor.createTransaction().setSelection(textSelection(at(1))));
     expect(controller.goalX).toBe(40);
@@ -105,7 +75,7 @@ describe('ViewController', () => {
   });
 
   it('focuses the host of the target and writes the selection there', () => {
-    const { controller, editor, host } = mount();
+    const { controller, editor, host } = mountController();
     host.tabIndex = -1;
     const sel = document.getSelection()!;
     controller.focus('end');
@@ -122,104 +92,8 @@ describe('ViewController', () => {
     expect(editor.state.selection).toEqual(textSelection(at(0)));
   });
 
-  it('leaves the DOM selection alone while focus is in a control outside the editor', () => {
-    const { controller, editor } = mount();
-    const input = document.createElement('input');
-    document.body.appendChild(input);
-    input.focus();
-    const sel = document.getSelection()!;
-    sel.removeAllRanges();
-    controller.dispatch(editor.createTransaction().setSelection(textSelection(at(1))));
-    expect(editor.state.selection).toEqual(textSelection(at(1)));
-    expect(sel.rangeCount).toBe(0);
-  });
-
-  it('keeps the model selection while a control outside the editor has focus', async () => {
-    const editor = createEditor({ blocks: [{ id: 'a', type: 'MARKDOWN', data: { markdown: 'hello' } }] });
-    const controller = new ViewController({ editor });
-    const root = document.createElement('div');
-    const host = document.createElement('div');
-    host.contentEditable = 'true';
-    root.appendChild(host);
-    const button = document.createElement('button');
-    document.body.append(root, button);
-    detachers.push(controller.attach(root));
-    controller.registry.register('a', 'text', host);
-    controller.renderHost('a', 'text');
-    controller.dispatch(editor.createTransaction().setSelection(textSelection(at(1), at(4))));
-    button.focus();
-    document.getSelection()!.setBaseAndExtent(host.firstChild!, 1, host.firstChild!, 4);
-    await nextTask();
-    controller.run(toggleMark('bold'));
-    document.dispatchEvent(new Event('selectionchange'));
-    await nextTask();
-    expect(host.innerHTML).toBe('h<strong>ell</strong>o');
-    expect(editor.state.selection).toEqual(textSelection(at(1), at(4)));
-  });
-
-  it('reads a selection inside a void block element as a node selection', () => {
-    const editor = createEditor({
-      blocks: [
-        { id: 'a', type: 'MARKDOWN', data: { markdown: 'hi' } },
-        { id: 'd', type: 'DIVIDER', data: {} },
-      ],
-    });
-    const controller = new ViewController({ editor });
-    const root = document.createElement('div');
-    const shell = document.createElement('div');
-    shell.appendChild(document.createElement('hr'));
-    root.appendChild(shell);
-    document.body.appendChild(root);
-    detachers.push(controller.attach(root));
-    const unregister = controller.registerBlockElement('d', shell);
-    expect(controller.blockElement('d')).toBe(shell);
-    document.getSelection()!.collapse(shell, 1);
-    controller.readSelectionFromDom();
-    expect(editor.state.selection).toEqual({ kind: 'node', block: 'd' });
-    unregister();
-    expect(controller.blockElement('d')).toBeUndefined();
-  });
-
-  it('maps the DOM selection without re-rendering the host or writing the selection back', () => {
-    const { controller, editor, host } = mount();
-    const stray = document.createElement('i');
-    host.appendChild(stray);
-    const sel = document.getSelection()!;
-    sel.collapse(host, 1);
-    controller.readSelectionFromDom();
-    expect(editor.state.selection).toEqual(textSelection(at(2)));
-    expect(host.lastChild).toBe(stray);
-    expect([sel.anchorNode, sel.anchorOffset]).toEqual([host, 1]);
-  });
-
-  it('follows selection changes while attached and stops when detached', async () => {
-    const { controller, editor, host, root } = mount();
-    const detach = controller.attach(root);
-    const sel = document.getSelection()!;
-    sel.collapse(host.firstChild!, 1);
-    await nextTask();
-    expect(editor.state.selection).toEqual(textSelection(at(1)));
-    detach();
-    expect(controller.root).toBeNull();
-    sel.collapse(host.firstChild!, 2);
-    await nextTask();
-    expect(editor.state.selection).toEqual(textSelection(at(1)));
-  });
-
-  it('ignores the selection change its own write causes', async () => {
-    const { controller, editor, host } = mount();
-    const read = vi.spyOn(controller, 'readSelectionFromDom');
-    controller.dispatch(editor.createTransaction().setSelection(textSelection(at(1))));
-    await nextTask();
-    expect(read).not.toHaveBeenCalled();
-    document.getSelection()!.collapse(host.firstChild!, 2);
-    await nextTask();
-    expect(read).toHaveBeenCalledTimes(1);
-    expect(editor.state.selection).toEqual(textSelection(at(2)));
-  });
-
   it('applies read-only to the registered hosts', () => {
-    const { controller, host } = mount();
+    const { controller, host } = mountController();
     expect(controller.readOnly).toBe(false);
     controller.setReadOnly(true);
     expect(controller.readOnly).toBe(true);
@@ -230,7 +104,7 @@ describe('ViewController', () => {
   });
 
   it('tells subscribers when read-only changes, and only then', () => {
-    const { controller } = mount();
+    const { controller } = mountController();
     const listener = vi.fn();
     const stop = controller.subscribeReadOnly(listener);
     controller.setReadOnly(false);
@@ -244,7 +118,7 @@ describe('ViewController', () => {
   });
 
   it('leaves the composing host and the DOM selection alone until the composition is over', () => {
-    const { controller, editor, host } = mount();
+    const { controller, editor, host } = mountController();
     controller.dispatch(editor.createTransaction().setSelection(textSelection(at(1))));
     const sel = document.getSelection()!;
     sel.collapse(host.firstChild!, 0);

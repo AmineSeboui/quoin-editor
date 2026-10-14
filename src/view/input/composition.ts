@@ -1,11 +1,12 @@
 import type { ViewController } from '../controller/view-controller';
 import { hostKey } from '../controller/host-registry';
 import { commitEmptyHost } from './commit-empty-host';
-import { reconcileHost } from './reconcile-host';
+import { snapshotComposition, type CompositionSnapshot } from './composition-snapshot';
 
 export type CompositionHandlers = {
   start(event: CompositionEvent): void;
   end(event: CompositionEvent): void;
+  release(): void;
   readonly active: boolean;
 };
 
@@ -29,6 +30,7 @@ function elementOf(controller: ViewController, target: Target | null): HTMLEleme
 export function createCompositionHandlers(controller: ViewController): CompositionHandlers {
   let active = false;
   let target: Target | null = null;
+  let snapshot: CompositionSnapshot | null = null;
   let stopWaiting: (() => void) | null = null;
 
   function settle(): void {
@@ -37,9 +39,11 @@ export function createCompositionHandlers(controller: ViewController): Compositi
     active = false;
     controller.composingKey = null;
     const host = target;
+    const started = snapshot;
     target = null;
+    snapshot = null;
     if (host === EMPTY_HOST) commitEmptyHost(controller);
-    else if (host !== null && !reconcileHost(controller, host.block, host.region)) {
+    else if (host !== null && !started?.settle()) {
       controller.renderHost(host.block, host.region);
       controller.syncSelectionToDom();
     }
@@ -58,13 +62,20 @@ export function createCompositionHandlers(controller: ViewController): Compositi
   return {
     start() {
       if (stopWaiting !== null) settle();
+      snapshot?.release();
       target = targetAt(controller, controller.domSelection()?.anchorNode ?? null);
+      const host = target === EMPTY_HOST ? null : target;
+      snapshot = host && snapshotComposition(controller, host.block, host.region);
       active = true;
       controller.composingKey = target === null || target === EMPTY_HOST ? target : hostKey(target.block, target.region);
     },
     end() {
       if (!active || stopWaiting !== null) return;
       waitForInput(elementOf(controller, target));
+    },
+    release() {
+      snapshot?.release();
+      snapshot = null;
     },
     get active() {
       return active;

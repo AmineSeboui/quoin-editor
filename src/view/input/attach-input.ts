@@ -73,6 +73,7 @@ export function attachInput(controller: ViewController, root: HTMLElement): Atta
     },
     drain: fallback.drain,
     detach() {
+      composition.release();
       detachClipboard();
       root.removeEventListener('keydown', onKeyDown);
       root.removeEventListener('beforeinput', onBeforeInput);

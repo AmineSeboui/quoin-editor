@@ -3,6 +3,11 @@ import type { ViewController } from 'quoin-editor/headless';
 
 declare global {
   interface Window {
-    __quoin: { blocks(): QuoinBlock[]; changes: number; controller?: ViewController };
+    __quoin: {
+      blocks(): QuoinBlock[];
+      changes: number;
+      controller?: ViewController;
+      files?: { names: string[]; at: unknown }[];
+    };
   }
 }

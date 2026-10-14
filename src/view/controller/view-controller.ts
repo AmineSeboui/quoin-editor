@@ -42,6 +42,7 @@ export class ViewController {
     };
   });
   readonly keyInterceptors = new Set<KeyInterceptor>();
+  readonly onFiles: ViewControllerOptions['onFiles'];
   goalX: number | null = null;
   dragging = false;
   private readonly flush: (fn: () => void) => void;
@@ -69,6 +70,7 @@ export class ViewController {
   constructor(options: ViewControllerOptions) {
     this.editor = options.editor;
     this.flush = options.flush ?? runNow;
+    this.onFiles = options.onFiles;
     const decorationsOf = (block: string, region: string) => this.decorationsFor(block, region);
     this.hosts = createHostRenderer(options.editor, options.render, decorationsOf);
     this.readOnlyFlag = options.readOnly ?? false;

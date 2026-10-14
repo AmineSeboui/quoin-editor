@@ -1,3 +1,4 @@
+import { attachClipboard } from '../clipboard/attach-clipboard';
 import type { ViewController } from '../controller/view-controller';
 import { createSinkComposition } from '../selection/sink-composition';
 import { handleBeforeInput } from './before-input';
@@ -48,6 +49,8 @@ export function attachInput(controller: ViewController, root: HTMLElement): Atta
     else composition.end(event);
   };
 
+  const detachClipboard = attachClipboard(controller, root, catchUp);
+
   root.addEventListener('keydown', onKeyDown);
   root.addEventListener('beforeinput', onBeforeInput);
   root.addEventListener('input', onInput);
@@ -67,6 +70,7 @@ export function attachInput(controller: ViewController, root: HTMLElement): Atta
       observed.delete(host);
     },
     detach() {
+      detachClipboard();
       root.removeEventListener('keydown', onKeyDown);
       root.removeEventListener('beforeinput', onBeforeInput);
       root.removeEventListener('input', onInput);

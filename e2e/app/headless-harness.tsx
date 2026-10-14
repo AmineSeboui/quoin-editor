@@ -42,8 +42,14 @@ export function HeadlessHarness({ doc }: { doc: string }) {
       window.__quoin.changes += 1;
       setBlocks(next);
     },
+    onFiles: (files, at) => window.__quoin.files?.push({ names: files.map((file) => file.name), at }),
   });
-  window.__quoin = { blocks: () => blocks, changes: window.__quoin?.changes ?? 0, controller };
+  window.__quoin = {
+    blocks: () => blocks,
+    changes: window.__quoin?.changes ?? 0,
+    controller,
+    files: window.__quoin?.files ?? [],
+  };
   return (
     <>
       <button type="button" onClick={() => controller.run(toggleMark('bold'))}>

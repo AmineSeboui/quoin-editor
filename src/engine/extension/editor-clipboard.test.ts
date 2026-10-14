@@ -66,9 +66,19 @@ describe('clipboard through the editor', () => {
     expect(editor.getBlocks()[0].data.markdown).toBe('xy **z**');
   });
 
-  it('has nothing to paste from empty data, and nowhere to paste in an empty document', () => {
+  it('has nothing to paste from empty data', () => {
     expect(startEditor([md('a', 'x')]).editor.paste({})).toBe(false);
-    expect(startEditor([]).editor.paste({ text: 'hello' })).toBe(false);
+    expect(startEditor([]).editor.paste({})).toBe(false);
+  });
+
+  it('pastes into an empty document with no selection as new blocks and puts the caret after them', () => {
+    const { editor } = startEditor([]);
+    expect(editor.state.selection).toBeNull();
+    expect(editor.paste({ text: '# Title\n\n- item' })).toBe(true);
+    expect(editor.getBlocks().map((block) => block.data.markdown)).toEqual(['# Title', '- item']);
+    expect(editor.state.selection).toMatchObject({ kind: 'text', anchor: { offset: 4 } });
+    expect(editor.commands.undo()).toBe(true);
+    expect(editor.getBlocks()).toEqual([]);
   });
 
   it('pastes a copied slice in one undoable step', () => {

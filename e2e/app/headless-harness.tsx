@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { QuoinBlock } from 'quoin-editor';
 import { toggleMark } from 'quoin-editor/engine';
-import { EditorView, useQuoinEditor } from 'quoin-editor/headless';
+import { EditorView, useQuoinEditor, type ViewController } from 'quoin-editor/headless';
 
 const md = (id: string, markdown: string, indent = 0): QuoinBlock => ({
   id,
@@ -34,6 +34,22 @@ const docs: Record<string, QuoinBlock[]> = {
   closed: [md('a', 'one'), { id: 't', type: 'TOGGLE', data: { markdown: 'T', open: false } }, md('c', 'child', 1)],
 };
 
+// Typing, keys and commands all reach the document through edit(), and dispatch() calls it too, so one wrapper times the
+// change, the React flush, the host render and the selection write together. A key that changes nothing is not an edit.
+function timeEdits(controller: ViewController): () => void {
+  const edit = controller.edit.bind(controller);
+  controller.edit = (change) => {
+    const before = controller.editor.state;
+    const start = performance.now();
+    const handled = edit(change);
+    if (controller.editor.state !== before) window.__quoin.timings?.push(performance.now() - start);
+    return handled;
+  };
+  return () => {
+    controller.edit = edit;
+  };
+}
+
 export function HeadlessHarness({ doc }: { doc: string }) {
   const [blocks, setBlocks] = useState<QuoinBlock[]>(docs[doc] ?? []);
   const controller = useQuoinEditor({
@@ -49,7 +65,9 @@ export function HeadlessHarness({ doc }: { doc: string }) {
     changes: window.__quoin?.changes ?? 0,
     controller,
     files: window.__quoin?.files ?? [],
+    timings: window.__quoin?.timings ?? [],
   };
+  useEffect(() => timeEdits(controller), [controller]);
   return (
     <>
       <button type="button" onClick={() => controller.run(toggleMark('bold'))}>

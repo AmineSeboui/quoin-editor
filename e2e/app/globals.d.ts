@@ -8,6 +8,7 @@ declare global {
       changes: number;
       controller?: ViewController;
       files?: { names: string[]; at: unknown }[];
+      timings?: number[];
     };
   }
 }

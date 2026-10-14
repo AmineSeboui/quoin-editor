@@ -42,7 +42,7 @@ export function attachInput(controller: ViewController, root: HTMLElement): Atta
   };
   const onInput = (event: Event) => fallback.onInput(event as InputEvent);
   const onCompositionStart = (event: CompositionEvent) => {
-    if (inHost(event)) composition.start(event);
+    if (inHost(event) || inEmptyHost(event)) composition.start(event);
     else if (inSink(event)) sinkComposition.start();
   };
   const onCompositionEnd = (event: CompositionEvent) => {

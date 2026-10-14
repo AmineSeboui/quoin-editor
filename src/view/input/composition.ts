@@ -1,5 +1,6 @@
 import type { ViewController } from '../controller/view-controller';
 import { hostKey } from '../controller/host-registry';
+import { commitEmptyHost } from './commit-empty-host';
 import { reconcileHost } from './reconcile-host';
 
 export type CompositionHandlers = {
@@ -8,7 +9,20 @@ export type CompositionHandlers = {
   readonly active: boolean;
 };
 
-type Target = { readonly block: string; readonly region: string };
+const EMPTY_HOST = 'empty';
+
+type Target = { readonly block: string; readonly region: string } | typeof EMPTY_HOST;
+
+function targetAt(controller: ViewController, node: Node | null): Target | null {
+  const entry = controller.registry.locate(node);
+  if (entry !== null) return { block: entry.block, region: entry.region };
+  return node !== null && controller.emptyHost?.contains(node) ? EMPTY_HOST : null;
+}
+
+function elementOf(controller: ViewController, target: Target | null): HTMLElement | undefined {
+  if (target === EMPTY_HOST) return controller.emptyHost ?? undefined;
+  return target === null ? undefined : controller.registry.get(target.block, target.region);
+}
 
 // Some browsers apply the committed text in an input event after compositionend, so the host is read once that event
 // has run, or after a zero delay timeout when none comes.
@@ -24,9 +38,11 @@ export function createCompositionHandlers(controller: ViewController): Compositi
     controller.composingKey = null;
     const host = target;
     target = null;
-    if (host === null || reconcileHost(controller, host.block, host.region)) return;
-    controller.renderHost(host.block, host.region);
-    controller.syncSelectionToDom();
+    if (host === EMPTY_HOST) commitEmptyHost(controller);
+    else if (host !== null && !reconcileHost(controller, host.block, host.region)) {
+      controller.renderHost(host.block, host.region);
+      controller.syncSelectionToDom();
+    }
   }
 
   function waitForInput(element: HTMLElement | undefined): void {
@@ -42,14 +58,13 @@ export function createCompositionHandlers(controller: ViewController): Compositi
   return {
     start() {
       if (stopWaiting !== null) settle();
-      const entry = controller.registry.locate(controller.domSelection()?.anchorNode ?? null);
-      target = entry && { block: entry.block, region: entry.region };
+      target = targetAt(controller, controller.domSelection()?.anchorNode ?? null);
       active = true;
-      controller.composingKey = entry && hostKey(entry.block, entry.region);
+      controller.composingKey = target === null || target === EMPTY_HOST ? target : hostKey(target.block, target.region);
     },
     end() {
       if (!active || stopWaiting !== null) return;
-      waitForInput(target === null ? undefined : controller.registry.get(target.block, target.region));
+      waitForInput(elementOf(controller, target));
     },
     get active() {
       return active;

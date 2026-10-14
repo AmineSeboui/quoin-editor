@@ -1,5 +1,6 @@
 import type { ViewController } from '../controller/view-controller';
 import { hostKey, type HostEntry } from '../controller/host-registry';
+import { commitEmptyHost } from './commit-empty-host';
 import { reconcileHost } from './reconcile-host';
 
 export type DomInputFallback = {
@@ -44,7 +45,10 @@ export function createDomInputFallback(controller: ViewController): DomInputFall
 
   return {
     onInput(event) {
-      if (!event.isComposing && !event.defaultPrevented) schedule(event.target as Node | null);
+      const { target } = event;
+      if (event.isComposing || event.defaultPrevented) return;
+      if (target === null || target !== controller.emptyHost) schedule(target as Node | null);
+      else if (controller.composingKey === null && !controller.readOnly) commitEmptyHost(controller);
     },
     observe(host) {
       const observer = new MutationObserver(() => schedule(host));

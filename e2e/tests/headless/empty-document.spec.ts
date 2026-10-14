@@ -89,4 +89,29 @@ test.describe('the empty document', () => {
     await page.keyboard.type('a');
     await expect.poll(() => markdown(page)).toEqual(['a']);
   });
+
+  test('accented text inserted without key events starts the document', async ({ page }) => {
+    await openHeadless(page, 'empty');
+    await emptyHost(page).click();
+    await page.keyboard.insertText('caf\u00e9 cr\u00e8me');
+    await expect.poll(() => markdown(page)).toEqual(['caf\u00e9 cr\u00e8me']);
+    expect(await changes(page)).toBe(1);
+    await expect(host(page, 0)).toBeFocused();
+    await page.keyboard.insertText(' br\u00fbl\u00e9e');
+    await expect.poll(() => markdown(page)).toEqual(['caf\u00e9 cr\u00e8me br\u00fbl\u00e9e']);
+  });
+
+  test('text a spellchecker or an extension writes into the empty host becomes the first paragraph', async ({ page }) => {
+    await openHeadless(page, 'empty');
+    await emptyHost(page).click();
+    await emptyHost(page).evaluate((element) => {
+      element.textContent = 'Written for you';
+      element.dispatchEvent(new InputEvent('input', { inputType: 'insertReplacementText', bubbles: true }));
+    });
+    await expect.poll(() => markdown(page)).toEqual(['Written for you']);
+    expect(await changes(page)).toBe(1);
+    await expect(host(page, 0)).toBeFocused();
+    await page.keyboard.type('!');
+    await expect.poll(() => markdown(page)).toEqual(['Written for you!']);
+  });
 });

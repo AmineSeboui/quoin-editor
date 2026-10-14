@@ -5,7 +5,7 @@ import { attachInput, type AttachedInput } from '../input/attach-input';
 import { readSelection, writeSelection } from './dom-selection';
 import { createHostRegistry, hostKey, type HostEntry, type HostRegistry } from './host-registry';
 import { createHostRenderer, type HostRenderer } from './host-renderer';
-import { createSelectionSync, type SelectionSync } from './selection-sync';
+import { createSelectionSync, samePoints, selectionPoints, type SelectionSync } from './selection-sync';
 
 export type ViewControllerOptions = {
   editor: Editor;
@@ -21,9 +21,6 @@ function first<T>(items: Iterable<T>): T | undefined {
   for (const item of items) return item;
   return undefined;
 }
-
-const selectionPoints = (selection: globalThis.Selection) =>
-  [selection.anchorNode, selection.anchorOffset, selection.focusNode, selection.focusOffset] as const;
 
 export class ViewController {
   readonly editor: Editor;
@@ -144,7 +141,7 @@ export class ViewController {
     const before = selectionPoints(domSelection);
     writeSelection(this.registry, this.editor.state.selection, domSelection, (id) => this.blockElement(id));
     const after = selectionPoints(domSelection);
-    if (before.some((point, index) => point !== after[index])) this.selectionSync?.suppressNext();
+    if (!samePoints(before, after)) this.selectionSync?.suppressNext();
   }
 
   readSelectionFromDom(): void {

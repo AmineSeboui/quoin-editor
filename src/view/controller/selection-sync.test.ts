@@ -34,6 +34,29 @@ describe('selection sync', () => {
     expect(onChange).toHaveBeenCalledTimes(1);
   });
 
+  it('still reports a change made after the suppressed write when the browser folds both into one event', () => {
+    const onChange = vi.fn();
+    const sync = createSelectionSync(document, onChange);
+    const text = document.body.appendChild(document.createTextNode('hello'));
+    const selection = document.getSelection()!;
+    const fire = () => document.dispatchEvent(new Event('selectionchange'));
+    sync.start();
+    try {
+      selection.collapse(text, 1);
+      sync.suppressNext();
+      fire();
+      expect(onChange).not.toHaveBeenCalled();
+      selection.collapse(text, 2);
+      sync.suppressNext();
+      selection.collapse(text, 3);
+      fire();
+      expect(onChange).toHaveBeenCalledTimes(1);
+    } finally {
+      sync.stop();
+      text.remove();
+    }
+  });
+
   it('drops an unused suppression on the next macrotask', () => {
     vi.useFakeTimers();
     const { sync, onChange, fire } = setup();

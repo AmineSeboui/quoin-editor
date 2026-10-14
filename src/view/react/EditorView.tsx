@@ -1,11 +1,11 @@
 import { useId, useRef } from 'react';
 import type { ViewController } from '../controller/view-controller';
-import { BlockShell } from './BlockShell';
 import type { BlockRenderer } from './block-renderer-types';
 import { QuoinEditorContext } from './editor-context';
 import { EmptyDocumentHost } from './EmptyDocumentHost';
 import { LiveRegion } from './LiveRegion';
 import { SelectionSink } from './SelectionSink';
+import { useBlockElements } from './use-block-elements';
 import { useEditorState } from './use-editor-state';
 import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect';
 
@@ -32,6 +32,7 @@ export function EditorView({
   const root = useRef<HTMLDivElement>(null);
   const hintId = useId();
   const blocks = useEditorState(controller, (state) => state.doc.blocks);
+  const shells = useBlockElements(blocks, renderers);
 
   useIsomorphicLayoutEffect(() => (root.current === null ? undefined : controller.attach(root.current)), [controller]);
 
@@ -45,13 +46,7 @@ export function EditorView({
         aria-label={label}
         aria-describedby={hintId}
       >
-        {blocks.length === 0 ? (
-          <EmptyDocumentHost placeholder={placeholder} />
-        ) : (
-          blocks.map((block, index) => (
-            <BlockShell key={block.id} block={block} index={index} renderers={renderers} />
-          ))
-        )}
+        {blocks.length === 0 ? <EmptyDocumentHost placeholder={placeholder} /> : shells}
         <SelectionSink />
         <div id={hintId} className="quoin-visually-hidden">
           {HINT}

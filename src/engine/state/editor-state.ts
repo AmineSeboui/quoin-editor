@@ -3,6 +3,7 @@ import type { Schema } from '../schema/types';
 import type { PluginKey, PluginSpec } from './plugin';
 import { defaultSelection, sameSelection, validateSelection } from './selection';
 import type { Transaction } from './transaction';
+import { visibleSelection } from './visible-selection';
 
 export type EditorState = {
   readonly doc: EngineDoc;
@@ -45,7 +46,7 @@ export const mismatchedTransaction = () =>
 
 export function applyTransaction(state: EditorState, tr: Transaction): EditorState {
   if (tr.before !== state) throw mismatchedTransaction();
-  const selection = validateSelection(tr.doc, state.schema, tr.selection);
+  const selection = visibleSelection(tr.doc, state.schema, validateSelection(tr.doc, state.schema, tr.selection));
   const unchanged = !tr.docChanged && sameSelection(state.selection, selection);
   const storedMarks = tr.storedMarksSet ? tr.storedMarks : unchanged ? state.storedMarks : null;
   const next: EditorState = { ...state, doc: tr.doc, selection, storedMarks };

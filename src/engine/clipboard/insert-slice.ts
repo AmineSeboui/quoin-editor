@@ -30,16 +30,25 @@ function replaceSelected(
   tr.setSelection(endOf(tr.doc, schema, fresh[fresh.length - 1].id));
 }
 
+function appendAtEnd(tr: Transaction, schema: Schema, pieces: readonly EngineBlock[], makeId: () => string): void {
+  const at = tr.doc.blocks.length;
+  const fresh = freshBlocks(pieces, 0, makeId);
+  tr.step(insertBlocksStep(at, fresh));
+  capIndents(tr, at, at + fresh.length);
+  tr.setSelection(endOf(tr.doc, schema, fresh[fresh.length - 1].id));
+}
+
 export function insertSlice(slice: Slice, options: { newId?: () => string } = {}): Command {
   const makeId = options.newId ?? newId;
   return (state, dispatch) => {
     const { doc, schema, selection } = state;
-    if (selection === null) return false;
     const codec = createBlockCodec(schema, { newId: makeId });
     const pieces = slice.blocks.flatMap((block) => codec.toEngineBlocks(block));
     if (pieces.length === 0) return false;
     const tr = new Transaction(state).setOrigin('paste');
-    if (selection.kind === 'text') {
+    if (selection === null) {
+      appendAtEnd(tr, schema, pieces, makeId);
+    } else if (selection.kind === 'text') {
       const { from, to } = orderedRange(doc, selection.anchor, selection.head);
       pasteAtCaret(tr, schema, deleteRange(tr, schema, from, to, makeId), slice, pieces, makeId);
     } else {

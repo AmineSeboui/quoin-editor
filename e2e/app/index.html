@@ -4,6 +4,25 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Quoin e2e harness</title>
+    <style>
+      .harness-monospace [data-quoin-host] {
+        font-family: monospace;
+      }
+      body {
+        background: var(--quoin-background);
+        color: var(--quoin-foreground);
+      }
+      html.dark {
+        color-scheme: dark;
+      }
+    </style>
+    <script>
+      // The page follows the reader's colour scheme the way a host does, with the class the palette switches on.
+      const scheme = matchMedia('(prefers-color-scheme: dark)');
+      const follow = () => document.documentElement.classList.toggle('dark', scheme.matches);
+      follow();
+      scheme.addEventListener('change', follow);
+    </script>
   </head>
   <body>
     <main id="root"></main>

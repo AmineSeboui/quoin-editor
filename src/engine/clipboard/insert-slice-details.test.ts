@@ -156,9 +156,21 @@ describe('copy and paste round trip', () => {
 });
 
 describe('insertSlice commands', () => {
-  it('does nothing without a selection or without blocks', () => {
-    expect(run(buildState([], null), insertSlice(slice(['x']))).ok).toBe(false);
+  it('does nothing without blocks', () => {
+    expect(run(buildState([], null), insertSlice({ blocks: [], openStart: true, openEnd: true })).ok).toBe(false);
     expect(run(buildState(['a'], caret(0, 0)), insertSlice({ blocks: [], openStart: true, openEnd: true })).ok).toBe(false);
+  });
+
+  it('appends whole blocks at the end when nothing is selected, with the caret at the end of the last', () => {
+    const done = run(buildState([], null), insertSlice(slice(['X', '- Y']), { newId: newIds('p') })).state;
+    expect(markdownOf(done)).toEqual(['X', '- Y']);
+    expect(caretOf(done)).toEqual({ block: 1, offset: 1 });
+    const indented = [
+      { id: 'i', type: 'MARKDOWN', data: { markdown: '- top' } },
+      { id: 'j', type: 'MARKDOWN', data: { markdown: '- deep' }, indent: 2 },
+    ];
+    const capped = run(buildState([], null), insertSlice({ blocks: indented, openStart: false, openEnd: false })).state;
+    expect(capped.doc.blocks.map((block) => block.indent)).toEqual([0, 1]);
   });
 
   it('records a paste transaction and can be probed without dispatching', () => {

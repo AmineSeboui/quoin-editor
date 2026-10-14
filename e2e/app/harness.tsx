@@ -9,12 +9,6 @@ const docs: Record<string, QuoinBlock[]> = {
   ],
 };
 
-declare global {
-  interface Window {
-    __quoin: { blocks(): QuoinBlock[]; changes: number };
-  }
-}
-
 export function Harness({ doc }: { doc: string }) {
   const [blocks, setBlocks] = useState<QuoinBlock[]>(docs[doc] ?? []);
   window.__quoin = { blocks: () => blocks, changes: window.__quoin?.changes ?? 0 };

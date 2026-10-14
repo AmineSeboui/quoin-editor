@@ -1,6 +1,9 @@
 import { createRoot } from 'react-dom/client';
 import 'quoin-editor/styles.css';
 import { Harness } from './harness';
+import { HeadlessHarness } from './headless-harness';
 
-const doc = new URLSearchParams(location.search).get('doc') ?? 'empty';
-createRoot(document.getElementById('root')!).render(<Harness doc={doc} />);
+const params = new URLSearchParams(location.search);
+const doc = params.get('doc') ?? 'empty';
+const App = params.get('view') === 'headless' ? HeadlessHarness : Harness;
+createRoot(document.getElementById('root')!).render(<App doc={doc} />);

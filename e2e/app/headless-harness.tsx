@@ -30,6 +30,7 @@ const docs: Record<string, QuoinBlock[]> = {
   divider: [md('a', 'a'), { id: 'd', type: 'DIVIDER', data: {} }, md('b', 'b')],
   image: [md('a', 'one'), { id: 'i', type: 'IMAGE', data: { storageKey: 'k', alt: 'An image' } }, md('b', 'two')],
   list: [md('l1', '- one'), md('l2', '- two'), md('l3', '- three')],
+  closed: [md('a', 'one'), { id: 't', type: 'TOGGLE', data: { markdown: 'T', open: false } }, md('c', 'child', 1)],
 };
 
 export function HeadlessHarness({ doc }: { doc: string }) {

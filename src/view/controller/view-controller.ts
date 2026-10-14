@@ -6,6 +6,7 @@ import type { KeyInterceptor } from '../input/keydown';
 import { readSelection, writeSelection } from './dom-selection';
 import { createHostRegistry, hostKey, type HostEntry, type HostRegistry } from './host-registry';
 import { createHostRenderer, type HostRenderer } from './host-renderer';
+import { selectionElement, type RenderedElements } from './selection-element';
 import { createSelectionSync, samePoints, selectionPoints, type SelectionSync } from './selection-sync';
 
 export type ViewControllerOptions = {
@@ -27,13 +28,22 @@ export class ViewController {
   readonly editor: Editor;
   readonly registry: HostRegistry = createHostRegistry((element) => {
     this.input?.observe(element);
-    return () => this.input?.unobserve(element);
+    this.syncTabStop();
+    return () => {
+      this.input?.unobserve(element);
+      this.syncTabStop();
+    };
   });
   readonly keyInterceptors = new Set<KeyInterceptor>();
   goalX: number | null = null;
   private readonly flush: (fn: () => void) => void;
   private readonly hosts: HostRenderer;
-  private readonly blockElements: HostRegistry = createHostRegistry();
+  private readonly blockElements: HostRegistry = createHostRegistry(() => {
+    this.syncTabStop();
+    return () => this.syncTabStop();
+  });
+  private readonly rendered: RenderedElements = { hosts: this.registry, block: (id) => this.blockElement(id) };
+  private tabStop: HTMLElement | undefined;
   private rootElement: HTMLElement | null = null;
   private selectionSync: SelectionSync | null = null;
   private detachRoot: (() => void) | null = null;
@@ -69,9 +79,11 @@ export class ViewController {
     this.detachRoot?.();
     const sync = createSelectionSync(root.ownerDocument, () => this.readSelectionFromDom());
     const input = attachInput(this, root);
+    const unsubscribe = this.editor.subscribe(() => this.syncTabStop());
     const detach = () => {
       sync.stop();
       input.detach();
+      unsubscribe();
       if (this.detachRoot !== detach) return;
       this.detachRoot = null;
       this.selectionSync = null;
@@ -83,6 +95,7 @@ export class ViewController {
     this.detachRoot = detach;
     this.input = input;
     sync.start();
+    this.syncTabStop();
     return detach;
   }
 
@@ -171,7 +184,7 @@ export class ViewController {
     if (!sameSelection(selection, editor.state.selection)) {
       this.dispatch(editor.createTransaction().setSelection(selection));
     }
-    this.focusElement(editor.state.selection)?.focus();
+    this.focusElement()?.focus();
     this.syncSelectionToDom();
   }
 
@@ -217,7 +230,7 @@ export class ViewController {
   // React replaces a host whose block changes kind, which drops focus, and Firefox does not move focus into another
   // host when a script selects inside it.
   private keepFocus(): void {
-    const element = this.focusElement(this.editor.state.selection);
+    const element = this.focusElement();
     if (this.composing === null && element && element.ownerDocument.activeElement !== element) {
       element.focus();
     }
@@ -233,18 +246,17 @@ export class ViewController {
     return target === undefined ? selection : textSelection(target);
   }
 
-  private focusElement(selection: Selection | null): HTMLElement | undefined {
-    switch (selection?.kind) {
-      case 'text': {
-        const { block, region } = selection.head;
-        return this.registry.get(block, region) ?? this.blockElement(block);
-      }
-      case 'node':
-        return this.blockElement(selection.block);
-      case 'blocks':
-        return this.blockElement(selection.head);
-      default:
-        return undefined;
-    }
+  private focusElement(): HTMLElement | undefined {
+    return selectionElement(this.editor.state, this.rendered);
+  }
+
+  // React draws every host and shell with tabindex -1 and never rewrites a prop that did not change, so the one tab
+  // stop is moved here, onto the element that takes focus, whenever the selection or the drawn elements change.
+  private syncTabStop(): void {
+    const next = this.focusElement();
+    if (next === this.tabStop) return;
+    if (this.tabStop) this.tabStop.tabIndex = -1;
+    if (next) next.tabIndex = 0;
+    this.tabStop = next;
   }
 }

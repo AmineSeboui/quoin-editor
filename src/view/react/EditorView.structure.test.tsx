@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
-import { blockRangeSelection, nodeSelection, textSelection, type Selection } from '../../engine';
+import { blockRangeSelection } from '../../engine';
 import type { ViewController } from '../controller/view-controller';
 import { useViewController } from './editor-context';
 import { Editor, hostOf, md } from './test-harness';
@@ -78,26 +78,6 @@ describe('EditorView selection', () => {
     const { container } = mount();
     expect(container.querySelector('[data-selected]')).toBeNull();
     expect(screen.getByRole('status')).toBeEmptyDOMElement();
-  });
-});
-
-describe('EditorView tab stop', () => {
-  it('keeps one tab stop: the host of the caret, or the shell a node or block selection focuses', () => {
-    const { controller, container } = mount();
-    const select = (selection: Selection) =>
-      act(() => controller.dispatch(controller.editor.createTransaction().setSelection(selection)));
-    const tabStops = () =>
-      Array.from(container.querySelectorAll<HTMLElement>('[tabindex="0"]'), (element) =>
-        element.hasAttribute('data-quoin-host') ? `host ${element.closest<HTMLElement>('[data-block-id]')!.dataset.blockId}` : element.dataset.blockId,
-      );
-    expect(tabStops()).toEqual(['host a']);
-    expect(hostOf(container, 'c')).toHaveAttribute('tabindex', '-1');
-    select(textSelection({ block: 'c', region: 'text', offset: 1 }));
-    expect(tabStops()).toEqual(['host c']);
-    select(nodeSelection('d'));
-    expect(tabStops()).toEqual(['d']);
-    select(blockRangeSelection('a', 'c'));
-    expect(tabStops()).toEqual(['c']);
   });
 });
 

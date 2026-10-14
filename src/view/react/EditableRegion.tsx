@@ -4,7 +4,6 @@ import { inlineLength } from '../../engine/model/inline';
 import { hostDecorations, sameDecorations } from '../controller/host-decorations';
 import { regionInline } from '../controller/region-inline';
 import { useViewController } from './editor-context';
-import { isTabStop } from './tab-stop';
 import { useEditorState } from './use-editor-state';
 import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect';
 
@@ -32,7 +31,6 @@ export function EditableRegion({ block, region, label, placeholder, className }:
     [controller, block, region],
   );
   const { inline, decorations } = useEditorState(controller, select, samePainted);
-  const tabStop = useEditorState(controller, (state) => isTabStop(state.selection, block, region));
   const empty = inline === undefined || inlineLength(inline) === 0;
 
   useIsomorphicLayoutEffect(() => {
@@ -50,7 +48,7 @@ export function EditableRegion({ block, region, label, placeholder, className }:
       className={className}
       contentEditable={!controller.readOnly}
       suppressContentEditableWarning
-      tabIndex={tabStop ? 0 : -1}
+      tabIndex={-1}
       role="textbox"
       aria-multiline="true"
       aria-label={label}

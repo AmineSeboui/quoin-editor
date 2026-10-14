@@ -107,4 +107,19 @@ test.describe('navigation', () => {
     const inside = await page.evaluate(() => document.querySelector('.quoin-editor')!.contains(document.activeElement));
     expect(inside).toBe(false);
   });
+
+  test('Tab leaves and Shift+Tab comes back when the selected blocks end inside a closed toggle', async ({ page }) => {
+    await openHeadless(page, 'closed');
+    const toggle = page.locator('[data-block-id="t"]');
+    await caretAt(page, 0, 1);
+    await page.keyboard.press('ControlOrMeta+a');
+    await page.keyboard.press('ControlOrMeta+a');
+    expect(await modelSelection(page)).toEqual({ kind: 'blocks', anchor: 'a', head: 'c' });
+    await expect(toggle).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(toggle).not.toBeFocused();
+    expect(await page.evaluate(() => document.querySelector('.quoin-editor')!.contains(document.activeElement))).toBe(false);
+    await page.keyboard.press('Shift+Tab');
+    await expect(toggle).toBeFocused();
+  });
 });

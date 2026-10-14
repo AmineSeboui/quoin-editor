@@ -2,10 +2,30 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { caretAt, host, markdown, modelSelection, openHeadless } from '../../support/headless';
 
+const SAMPLE_KINDS = [
+  { type: 'MARKDOWN', label: 'Heading 1', text: 'Headless sample' },
+  { type: 'MARKDOWN', label: 'Paragraph', text: 'A paragraph with bold, italic and code.' },
+  { type: 'MARKDOWN', label: 'Bullet list item', text: 'a bullet' },
+  { type: 'MARKDOWN', label: 'Bullet list item', text: 'a nested bullet' },
+  { type: 'MARKDOWN', label: 'Task', text: 'a task' },
+  { type: 'MARKDOWN', label: 'Quote', text: 'a quote' },
+  { type: 'DIVIDER' },
+  { type: 'CALLOUT', label: 'Callout, info', text: 'A callout' },
+];
+
 test('renders every block kind as live formatted text', async ({ page }) => {
   await openHeadless(page);
-  await expect(page.getByRole('textbox', { name: 'Heading 1' })).toBeVisible();
-  await expect(page.locator('[data-quoin-block][data-type="DIVIDER"]')).toBeVisible();
+  const blocks = page.locator('[data-quoin-block]');
+  await expect(blocks).toHaveCount(SAMPLE_KINDS.length);
+  for (const [index, kind] of SAMPLE_KINDS.entries()) {
+    const block = blocks.nth(index);
+    await expect(block).toBeVisible();
+    await expect(block).toHaveAttribute('data-type', kind.type);
+    if (kind.label === undefined) continue;
+    const text = block.getByRole('textbox', { name: kind.label, exact: true });
+    await expect(text).toBeVisible();
+    await expect(text).toHaveText(kind.text);
+  }
 });
 
 test('formats inline content inside the host and labels every kind', async ({ page }) => {

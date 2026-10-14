@@ -1,13 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
 import type { QuoinBlock } from 'quoin-editor';
-import { caretAt, domCaret, markdown, modelMarkdown, modelSelection } from '../../support/headless';
+import { caretAt, domCaret, markdown, modelMarkdown, modelSelection, openHeadless } from '../../support/headless';
 
-const ECHOES = ['immediate', 'late', 'clone', 'never'];
+const ECHOES = ['immediate', 'late', 'clone', 'lateclone', 'mapped', 'never'];
 
-async function open(page: Page, echo: string) {
-  await page.goto(`/?view=headless&doc=three&echo=${echo}`);
-  await page.getByRole('group', { name: 'Document' }).waitFor();
-}
+const open = (page: Page, echo: string) => openHeadless(page, 'three', `echo=${echo}`);
 
 // Resolves with the caret the engine maps the change to, before anything in the page can read the DOM back.
 function rewrite(page: Page, id: string, before: string, after: string) {

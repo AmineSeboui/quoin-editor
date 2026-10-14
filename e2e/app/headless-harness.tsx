@@ -13,8 +13,12 @@ const md = (id: string, markdown: string, indent = 0): QuoinBlock => ({
 const MONOSPACE = new Set(['columns', 'ragged', 'breaks']);
 const ALPHABET = 'abcdefghijklmnopqrstuvwxyz';
 
-// How the page hands onChange's blocks back: at once, a tick later, as a deep copy, or never.
-const ECHO = new URLSearchParams(location.search).get('echo') ?? 'immediate';
+const PARAMS = new URLSearchParams(location.search);
+
+// How the page hands onChange's blocks back: at once, a tick later, as a deep copy, as a deep copy a tick later, as a new
+// array of the same blocks, or never.
+const ECHO = PARAMS.get('echo') ?? 'immediate';
+const READ_ONLY = PARAMS.get('readonly') === '1';
 
 const docs: Record<string, QuoinBlock[]> = {
   empty: [],
@@ -88,7 +92,10 @@ export function HeadlessHarness({ doc }: { doc: string }) {
       if (ECHO === 'immediate') setBlocks(next);
       else if (ECHO === 'late') setTimeout(() => setBlocks(next), 0);
       else if (ECHO === 'clone') setBlocks(structuredClone(next));
+      else if (ECHO === 'lateclone') setTimeout(() => setBlocks(structuredClone(next)), 0);
+      else if (ECHO === 'mapped') setBlocks(next.map((block) => block));
     },
+    readOnly: READ_ONLY,
     onFiles: (files, at) => window.__quoin.files?.push({ names: files.map((file) => file.name), at }),
   });
   window.__quoin = {

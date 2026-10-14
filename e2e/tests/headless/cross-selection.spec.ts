@@ -20,8 +20,13 @@ test.describe('cross-block selection', () => {
     const sel = (await modelSelection(page)) as { anchor: { block: string }; head: { block: string } };
     expect(sel.anchor.block).not.toBe(sel.head.block);
     await expect(page.locator('.quoin-editor')).toHaveAttribute('data-quoin-cross', '');
-    const painted = await page.evaluate(() => ('highlights' in CSS ? (CSS as unknown as { highlights: Map<string, unknown> }).highlights.has('quoin-selection') : document.querySelectorAll('.quoin-selected').length > 0));
-    expect(painted, browserName).toBe(true);
+    // The registry keeps its entry, empty, once it has been created, so only a non-empty highlight shows something painted.
+    const painted = () =>
+      page.evaluate(() => {
+        const highlights = (CSS as unknown as { highlights?: Map<string, { size: number }> }).highlights;
+        return highlights ? (highlights.get('quoin-selection')?.size ?? 0) > 0 : document.querySelectorAll('.quoin-selected').length > 0;
+      });
+    await expect.poll(painted, { message: browserName }).toBe(true);
   });
 
   test('typing replaces a cross-block selection', async ({ page }) => {

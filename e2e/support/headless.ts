@@ -1,7 +1,8 @@
 import type { Page } from '@playwright/test';
 
-export async function openHeadless(page: Page, doc = 'sample') {
-  await page.goto(`/?view=headless&doc=${doc}`);
+// extra is more query parameters the harness reads, such as 'readonly=1' or 'echo=late'.
+export async function openHeadless(page: Page, doc = 'sample', extra = '') {
+  await page.goto(`/?view=headless&doc=${doc}${extra === '' ? '' : `&${extra}`}`);
   await page.getByRole('group', { name: 'Document' }).waitFor();
 }
 
@@ -73,4 +74,17 @@ export function nativeSelection(page: Page) {
       text: selection.toString().replace(/\s+/g, ' ').trim(),
     };
   });
+}
+
+// The model selection once per animation frame, so a spec can show it stayed put while the page settled without waiting
+// a fixed time.
+export function selectionOverFrames(page: Page, frames: number) {
+  return page.evaluate(async (count) => {
+    const samples = [];
+    for (let i = 0; i < count; i++) {
+      samples.push(structuredClone(window.__quoin.controller!.editor.state.selection));
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+    }
+    return samples;
+  }, frames);
 }

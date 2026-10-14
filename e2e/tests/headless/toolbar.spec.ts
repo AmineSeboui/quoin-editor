@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { caretAt, markdown, modelSelection, openHeadless } from '../../support/headless';
+import { caretAt, markdown, modelSelection, openHeadless, selectionOverFrames } from '../../support/headless';
 
 test('a toolbar button that takes focus formats the selection and keeps it', async ({ page }) => {
   await openHeadless(page);
@@ -9,6 +9,5 @@ test('a toolbar button that takes focus formats the selection and keeps it', asy
   await expect.poll(() => modelSelection(page)).toMatchObject(selected);
   await page.getByRole('button', { name: 'Bold' }).click();
   expect((await markdown(page))[1]).toBe('A **paragraph** with **bold**, _italic_ and `code`.');
-  await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 50)));
-  expect(await modelSelection(page)).toMatchObject(selected);
+  await expect.poll(() => selectionOverFrames(page, 5)).toMatchObject(Array(5).fill(selected));
 });

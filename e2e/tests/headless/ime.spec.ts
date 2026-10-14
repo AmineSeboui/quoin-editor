@@ -12,9 +12,10 @@ test.describe('IME composition', () => {
     await cdp.send('Input.imeSetComposition', { text: 'にほ', selectionStart: 2, selectionEnd: 2 });
     await cdp.send('Input.imeSetComposition', { text: 'にほん', selectionStart: 3, selectionEnd: 3 });
     await cdp.send('Input.insertText', { text: '日本' });
-    await expect.poll(async () => (await markdown(page))[1]).toMatch(/^日本/);
+    const paragraph = 'A paragraph with **bold**, _italic_ and `code`.';
+    await expect.poll(async () => (await markdown(page))[1]).toBe(`\u65e5\u672c${paragraph}`);
     await page.keyboard.type('!');
-    await expect.poll(async () => (await markdown(page))[1]).toMatch(/^日本!/);
+    await expect.poll(async () => (await markdown(page))[1]).toBe(`\u65e5\u672c!${paragraph}`);
   });
 
   test('a composition keeps what the page wrote into its block meanwhile, and the marks after it', async ({ page }) => {

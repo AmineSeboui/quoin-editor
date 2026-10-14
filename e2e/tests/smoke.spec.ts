@@ -5,8 +5,7 @@ import { blocks, openEditor } from '../support/editor';
 test('typing into an empty document creates a block', async ({ page }) => {
   await openEditor(page);
   await page.keyboard.type('Hello');
-  await expect.poll(async () => (await blocks(page)).length).toBe(1);
-  expect((await blocks(page))[0].data.markdown).toContain('Hello');
+  await expect.poll(async () => (await blocks(page)).map((block) => block.data.markdown)).toEqual(['Hello']);
 });
 
 test('the sample document has no serious accessibility violations', async ({ page }) => {

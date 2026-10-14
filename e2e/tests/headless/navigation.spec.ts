@@ -99,8 +99,8 @@ test.describe('navigation', () => {
     await openHeadless(page, 'columns');
     await caretAt(page, 1, 0);
     await page.keyboard.press('ArrowLeft');
-    const sel = (await modelSelection(page)) as { head: { offset: number } };
-    expect(sel.head.offset).toBeGreaterThan(0);
+    const end = { block: 'c1', region: 'text', offset: 'abcdefgh'.length };
+    await expect.poll(() => modelSelection(page)).toEqual({ kind: 'text', anchor: end, head: end });
   });
 
   test('a divider is node-selected by arrows and deleted by Backspace', async ({ page }) => {

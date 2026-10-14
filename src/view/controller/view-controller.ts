@@ -1,21 +1,19 @@
 import type { Command, Decoration, Editor, Pos, Transaction } from '../../engine';
 import { sameSelection } from '../../engine/state/selection';
 import type { RenderOptions } from '../dom/render-inline';
-import { attachInput, type AttachedInput } from '../input/attach-input';
 import type { KeyInterceptor } from '../input/keydown';
 import { createCrossMode } from '../selection/cross-mode';
 import { isCrossSelection } from '../selection/selection-decorations';
 import { focusSink } from '../selection/selection-sink';
 import { readSelection, writeSelection } from './dom-selection';
-import { createElementSlot } from './element-slot';
+import { createDrawnElements } from './drawn-elements';
 import { hasFocus, ownsFocus } from './focus-ownership';
 import { focusTarget, type FocusTarget } from './focus-target';
 import { createHostRegistry, hostKey, type HostEntry, type HostRegistry } from './host-registry';
 import { hostDecorations } from './host-decorations';
 import { createHostRenderer, type HostRenderer } from './host-renderer';
-import { selectionElement, type RenderedElements } from './selection-element';
-import { createSelectionSync, samePoints, selectionPoints, type SelectionSync } from './selection-sync';
-import { createTabStop } from './tab-stop';
+import { bindRoot, type RootBinding } from './root-binding';
+import { samePoints, selectionPoints } from './selection-sync';
 
 export type ViewControllerOptions = {
   editor: Editor;
@@ -35,11 +33,11 @@ function first<T>(items: Iterable<T>): T | undefined {
 export class ViewController {
   readonly editor: Editor;
   readonly registry: HostRegistry = createHostRegistry((element) => {
-    this.input?.observe(element);
-    this.syncTabStop();
+    this.binding?.input.observe(element);
+    this.drawn.syncTabStop();
     return () => {
-      this.input?.unobserve(element);
-      this.syncTabStop();
+      this.binding?.input.unobserve(element);
+      this.drawn.syncTabStop();
     };
   });
   readonly keyInterceptors = new Set<KeyInterceptor>();
@@ -49,24 +47,10 @@ export class ViewController {
   composingKey: string | null = null;
   private readonly flush: (fn: () => void) => void;
   private readonly hosts: HostRenderer;
-  private readonly blockElements: HostRegistry = createHostRegistry(() => {
-    this.syncTabStop();
-    return () => this.syncTabStop();
-  });
-  private readonly rendered: RenderedElements = {
-    hosts: this.registry,
-    block: (id) => this.blockElement(id),
-    sink: () => this.sinkSlot.element,
-    empty: () => this.emptySlot.element,
-  };
+  private readonly drawn = createDrawnElements(this.registry, () => this.editor.state);
   private readonly cross = createCrossMode(this);
-  private readonly sinkSlot = createElementSlot(() => this.syncTabStop());
-  private readonly emptySlot = createElementSlot(() => this.syncTabStop());
-  private readonly tabStop = createTabStop();
-  private rootElement: HTMLElement | null = null;
-  private selectionSync: SelectionSync | null = null;
+  private binding: RootBinding | null = null;
   private detachRoot: (() => void) | null = null;
-  private input: AttachedInput | null = null;
   private readOnlyFlag: boolean;
   private readonly readOnlyListeners = new Set<() => void>();
 
@@ -75,12 +59,12 @@ export class ViewController {
     this.flush = options.flush ?? runNow;
     this.onFiles = options.onFiles;
     const decorationsOf = (block: string, region: string) => this.decorationsFor(block, region);
-    this.hosts = createHostRenderer(options.editor, options.render, decorationsOf, (host) => this.input?.drain(host));
+    this.hosts = createHostRenderer(options.editor, options.render, decorationsOf, (host) => this.binding?.input.drain(host));
     this.readOnlyFlag = options.readOnly ?? false;
   }
 
   get root(): HTMLElement | null {
-    return this.rootElement;
+    return this.binding?.root ?? null;
   }
 
   get readOnly(): boolean {
@@ -88,66 +72,54 @@ export class ViewController {
   }
 
   get sink(): HTMLElement | null {
-    return this.sinkSlot.element;
+    return this.drawn.sink;
   }
 
   get emptyHost(): HTMLElement | null {
-    return this.emptySlot.element;
+    return this.drawn.emptyHost;
   }
 
   attach(root: HTMLElement): () => void {
     this.detachRoot?.();
-    const sync = createSelectionSync(root.ownerDocument, () => this.readSelectionFromDom());
-    const input = attachInput(this, root);
-    const unsubscribe = this.editor.subscribe(() => {
-      this.syncTabStop();
+    const binding = bindRoot(this, root, this.cross, () => {
+      this.drawn.syncTabStop();
       this.cross.syncLater();
     });
-    const detachCross = this.cross.attach(root);
     const detach = () => {
-      sync.stop();
-      input.detach();
-      unsubscribe();
-      detachCross();
+      binding.detach();
       if (this.detachRoot !== detach) return;
       this.detachRoot = null;
-      this.selectionSync = null;
-      this.input = null;
-      this.rootElement = null;
+      this.binding = null;
     };
-    this.rootElement = root;
-    this.selectionSync = sync;
+    this.binding = binding;
     this.detachRoot = detach;
-    this.input = input;
-    sync.start();
-    this.syncTabStop();
+    this.drawn.syncTabStop();
     return detach;
   }
 
   registerBlockElement(id: string, element: HTMLElement): () => void {
-    return this.blockElements.register(id, '', element);
+    return this.drawn.registerBlock(id, element);
   }
 
   blockElement(id: string): HTMLElement | undefined {
-    return this.blockElements.get(id, '');
+    return this.drawn.block(id);
   }
 
   blockAt(node: Node): string | undefined {
-    return this.blockElements.locate(node)?.block;
+    return this.drawn.blockAt(node);
   }
 
   registerSink(element: HTMLElement): () => void {
-    return this.sinkSlot.register(element);
+    return this.drawn.registerSink(element);
   }
 
   // An empty document draws one host that stands for a paragraph not created yet, so it belongs to no block.
   registerEmptyHost(element: HTMLElement): () => void {
-    return this.emptySlot.register(element);
+    return this.drawn.registerEmptyHost(element);
   }
 
   isEditorElement(element: Element): boolean {
-    if (element === this.sinkSlot.element || element === this.emptySlot.element) return true;
-    return [this.registry, this.blockElements].some((registry) => registry.locate(element)?.element === element);
+    return this.drawn.isEditorElement(element);
   }
 
   decorationsFor(block: string, region: string): readonly Decoration[] {
@@ -213,7 +185,7 @@ export class ViewController {
     else if (isCrossSelection(selection)) focusSink(this);
     else writeSelection(this.registry, selection, domSelection, (id) => this.blockElement(id));
     const after = selectionPoints(domSelection);
-    if (!samePoints(before, after)) this.selectionSync?.suppressNext();
+    if (!samePoints(before, after)) this.binding?.selectionSync.suppressNext();
   }
 
   // A pointer drag across hosts sets the model selection itself, while the browser keeps extending its own. Leaving
@@ -240,7 +212,7 @@ export class ViewController {
     if (selection !== null && !sameSelection(selection, editor.state.selection)) {
       this.dispatch(editor.createTransaction().setSelection(selection));
     }
-    this.focusElement()?.focus();
+    this.drawn.focusElement()?.focus();
     this.syncSelectionToDom();
   }
 
@@ -265,23 +237,15 @@ export class ViewController {
   }
 
   private ownerDocument(): Document | null {
-    return (this.rootElement ?? first(this.registry.all())?.element)?.ownerDocument ?? null;
+    return (this.binding?.root ?? first(this.registry.all())?.element)?.ownerDocument ?? null;
   }
 
   // React replaces a host whose block changes kind, which drops focus, and Firefox does not move focus into another
   // host when a script selects inside it.
   private keepFocus(): void {
-    const element = this.focusElement();
+    const element = this.drawn.focusElement();
     if (this.composingKey === null && element && element.ownerDocument.activeElement !== element) {
       element.focus();
     }
-  }
-
-  private focusElement(): HTMLElement | undefined {
-    return selectionElement(this.editor.state, this.rendered);
-  }
-
-  private syncTabStop(): void {
-    this.tabStop.move(this.focusElement());
   }
 }

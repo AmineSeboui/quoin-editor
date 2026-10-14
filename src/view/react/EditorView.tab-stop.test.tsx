@@ -40,17 +40,18 @@ describe('EditorView tab stop', () => {
     expect(tabStops()).toEqual(['t']);
     expect(document.activeElement).toBe(shell('t'));
     select(textSelection({ block: 'c', region: 'text', offset: 1 }));
-    expect(tabStops()).toEqual(['t']);
+    expect(controller.editor.state.selection).toEqual(textSelection({ block: 't', region: 'text', offset: 1 }));
+    expect(tabStops()).toEqual(['host t']);
   });
 
-  it('moves the tab stop and focus to a toggle closed over the caret', () => {
-    const { controller, container, tabStops, shell } = mount([toggle(true), md('c', 'child', 1), md('b', 'after')]);
+  it('moves the caret, the tab stop and focus to the end of a toggle closed over the caret', () => {
+    const { controller, container, tabStops } = mount([toggle(true), md('c', 'child', 1), md('b', 'after')]);
     act(() => controller.focus({ block: 'c', region: 'text', offset: 2 }));
     expect(document.activeElement).toBe(hostOf(container, 'c'));
     act(() => screen.getByRole('button', { name: 'Toggle' }).click());
-    expect(controller.editor.state.selection).toMatchObject({ head: { block: 'c' } });
-    expect(tabStops()).toEqual(['t']);
-    expect(document.activeElement).toBe(shell('t'));
+    expect(controller.editor.state.selection).toEqual(textSelection({ block: 't', region: 'text', offset: 1 }));
+    expect(tabStops()).toEqual(['host t']);
+    expect(document.activeElement).toBe(hostOf(container, 't'));
   });
 
   it('falls back to the block shell for a head in a region drawn without a host', () => {

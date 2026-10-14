@@ -52,10 +52,7 @@ test.describe('the empty document', () => {
   test('cutting every block leaves focus in the empty host and undo brings them back', async ({ page }) => {
     await openHeadless(page, 'three');
     await selectEveryBlock(page);
-    await page.evaluate(() => {
-      const cut = new ClipboardEvent('cut', { clipboardData: new DataTransfer(), bubbles: true, cancelable: true });
-      document.activeElement!.dispatchEvent(cut);
-    });
+    await page.keyboard.press('ControlOrMeta+x');
     await expect.poll(() => markdown(page)).toEqual([]);
     await expectFocusInEmptyHost(page);
     await page.keyboard.press('ControlOrMeta+z');

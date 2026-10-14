@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { QuoinBlock } from 'quoin-editor';
+import { toggleMark } from 'quoin-editor/engine';
 import { EditorView, useQuoinEditor } from 'quoin-editor/headless';
 
 const md = (id: string, markdown: string, indent = 0): QuoinBlock => ({
@@ -34,5 +35,12 @@ export function HeadlessHarness({ doc }: { doc: string }) {
     },
   });
   window.__quoin = { blocks: () => blocks, changes: window.__quoin?.changes ?? 0, controller };
-  return <EditorView controller={controller} aria-label="Document" placeholder="Start writing" />;
+  return (
+    <>
+      <button type="button" onClick={() => controller.run(toggleMark('bold'))}>
+        Bold
+      </button>
+      <EditorView controller={controller} aria-label="Document" placeholder="Start writing" />
+    </>
+  );
 }

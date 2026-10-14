@@ -4,6 +4,7 @@ import { createEditor } from '../../engine/extension/editor';
 import type { Extension } from '../../engine/extension/types';
 import { textSelection } from '../../engine/state/selection';
 import { insertText } from '../../engine/commands/insert-text';
+import { toggleMark } from '../../engine/commands/marks';
 import { hostKey } from './host-registry';
 import { ViewController } from './view-controller';
 
@@ -131,6 +132,29 @@ describe('ViewController', () => {
     controller.dispatch(editor.createTransaction().setSelection(textSelection(at(1))));
     expect(editor.state.selection).toEqual(textSelection(at(1)));
     expect(sel.rangeCount).toBe(0);
+  });
+
+  it('keeps the model selection while a control outside the editor has focus', async () => {
+    const editor = createEditor({ blocks: [{ id: 'a', type: 'MARKDOWN', data: { markdown: 'hello' } }] });
+    const controller = new ViewController({ editor });
+    const root = document.createElement('div');
+    const host = document.createElement('div');
+    host.contentEditable = 'true';
+    root.appendChild(host);
+    const button = document.createElement('button');
+    document.body.append(root, button);
+    detachers.push(controller.attach(root));
+    controller.registry.register('a', 'text', host);
+    controller.renderHost('a', 'text');
+    controller.dispatch(editor.createTransaction().setSelection(textSelection(at(1), at(4))));
+    button.focus();
+    document.getSelection()!.setBaseAndExtent(host.firstChild!, 1, host.firstChild!, 4);
+    await nextTask();
+    controller.run(toggleMark('bold'));
+    document.dispatchEvent(new Event('selectionchange'));
+    await nextTask();
+    expect(host.innerHTML).toBe('h<strong>ell</strong>o');
+    expect(editor.state.selection).toEqual(textSelection(at(1), at(4)));
   });
 
   it('reads a selection inside a void block element as a node selection', () => {

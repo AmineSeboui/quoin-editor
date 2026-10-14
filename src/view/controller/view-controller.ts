@@ -149,9 +149,10 @@ export class ViewController {
 
   readSelectionFromDom(): void {
     const { editor } = this;
-    if (this.composing !== null) return;
-    const domSelection = this.domSelection();
-    const selection = readSelection(this.registry, domSelection, (node) => this.blockElements.locate(node)?.block);
+    const doc = this.ownerDocument();
+    if (this.composing !== null || !doc || !this.ownsFocus(doc)) return;
+    const blockAt = (node: Node) => this.blockElements.locate(node)?.block;
+    const selection = readSelection(this.registry, doc.getSelection(), blockAt);
     if (selection === null || sameSelection(selection, editor.state.selection)) return;
     this.flush(() => editor.dispatch(editor.createTransaction().setSelection(selection).setOrigin('input')));
   }
@@ -193,6 +194,8 @@ export class ViewController {
 
   // Chromium and WebKit move focus into an editable host when a script selects inside it, so the model selection is
   // only written while focus is on the editor or on nothing, never pulled away from a control the user is typing in.
+  // Chromium and Firefox leave the DOM selection in a host when a button outside takes focus, and a re-render then
+  // collapses it, so the DOM selection is not read back either until focus returns.
   private ownsFocus(doc: Document): boolean {
     const active = doc.activeElement;
     if (!active || active === doc.body || active === this.rootElement) return true;

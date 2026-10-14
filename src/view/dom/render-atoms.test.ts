@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import type { Decoration } from '../../engine';
+import type { AtomNode, Decoration } from '../../engine';
 import { atom, text } from '../../engine/model/inline';
-import { domMapOf, isRendering, renderInline, type RenderOptions } from './render-inline';
+import { readDomText } from './read-dom-text';
+import { domMapOf, renderInline, type RenderOptions } from './render-inline';
 
 const host = () => document.createElement('div');
 const bold = { type: 'bold' };
@@ -54,8 +55,20 @@ describe('atoms', () => {
         },
       },
     });
-    expect(el.innerHTML).toBe('a<b>Bo</b>');
+    expect(el.innerHTML).toBe('a<b contenteditable="false" data-quoin-atom="mention">Bo</b>');
     expect(seen).toEqual([document]);
+  });
+
+  it('marks what a custom renderer returns as an atom, so the host reads back as the model counts it', () => {
+    const el = host();
+    const mention = (node: AtomNode, doc: Document) => {
+      const chip = doc.createElement('b');
+      chip.textContent = `@${node.attrs.label}`;
+      return chip;
+    };
+    renderInline(el, [text('Hi '), atom('mention', { id: 'u1', label: 'Ada' }), text(' there')], [], { atoms: { mention } });
+    expect(el.querySelector('b')).toHaveTextContent('@Ada');
+    expect(readDomText(el)).toBe('Hi \uFFFC there');
   });
 
   it('lets atomText replace the default text of the default element', () => {
@@ -86,7 +99,8 @@ describe('widgets', () => {
         },
       },
     });
-    expect(el.innerHTML).toBe('a<i>Bo</i>b');
+    expect(el.innerHTML).toBe('a<i contenteditable="false" data-quoin-widget="caret">Bo</i>b');
+    expect(readDomText(el)).toBe('ab');
   });
 
   it('renders widgets in side order and never inside marks', () => {
@@ -100,7 +114,8 @@ describe('widgets', () => {
         },
       },
     });
-    expect(el.innerHTML).toBe('<strong>a</strong><i>left</i><i>right</i><strong>b</strong>');
+    const widget = (key: string) => `<i contenteditable="false" data-quoin-widget="caret">${key}</i>`;
+    expect(el.innerHTML).toBe(`<strong>a</strong>${widget('left')}${widget('right')}<strong>b</strong>`);
   });
 
   it('renders a widget in an empty region before the filler', () => {
@@ -111,7 +126,7 @@ describe('widgets', () => {
   });
 });
 
-describe('renderer changes and the rendering flag', () => {
+describe('renderer changes', () => {
   it('keeps atom and widget elements when every call builds its options afresh', () => {
     const el = host();
     const nodes = [text('a'), atom('mention', { id: '1', label: 'A' })];
@@ -148,33 +163,7 @@ describe('renderer changes and the rendering flag', () => {
     expect(el.firstChild).toBe(chip);
     el.replaceChildren();
     renderInline(el, nodes, [], { atoms: { mention: make('two') } });
-    expect(el.innerHTML).toBe('<b>two</b>');
-  });
-
-  it('reports rendering only while the host is being written, even when a renderer throws', () => {
-    const el = host();
-    const during: boolean[] = [];
-    expect(isRendering(el)).toBe(false);
-    renderInline(el, [atom('x', {})], [], {
-      atoms: {
-        x: (_node, doc) => {
-          during.push(isRendering(el));
-          return doc.createElement('b');
-        },
-      },
-    });
-    expect(during).toEqual([true]);
-    expect(isRendering(el)).toBe(false);
-    expect(() =>
-      renderInline(el, [atom('y', {})], [], {
-        atoms: {
-          y: () => {
-            throw new Error('boom');
-          },
-        },
-      }),
-    ).toThrow('boom');
-    expect(isRendering(el)).toBe(false);
+    expect(el.innerHTML).toBe('<b contenteditable="false" data-quoin-atom="mention">two</b>');
   });
 
   it('has no map for a host that was never rendered', () => {

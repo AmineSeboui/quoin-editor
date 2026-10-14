@@ -12,14 +12,9 @@ export type { DomMap, DomPoint } from './dom-map';
 export type { AtomRenderer, RenderOptions, WidgetRenderer } from './render-options';
 
 const maps = new WeakMap<HTMLElement, DomMap>();
-const rendering = new WeakSet<HTMLElement>();
 
 export function domMapOf(host: HTMLElement): DomMap | undefined {
   return maps.get(host);
-}
-
-export function isRendering(host: HTMLElement): boolean {
-  return rendering.has(host);
 }
 
 function specsFor(segment: Segment, options: RenderOptions, doc: Document): RenderSpec[] {
@@ -48,19 +43,14 @@ export function renderInline(
   options: RenderOptions = {},
 ): DomMap {
   const doc = host.ownerDocument;
-  rendering.add(host);
-  try {
-    const length = inlineLength(inline);
-    const specs = toSegments(inline, decorations).flatMap((segment) => specsFor(segment, options, doc));
-    if (needsFiller(inline)) specs.push(fillerSpec(doc, length));
-    reconcileChildren(host, specs);
-    const entries: MapEntry[] = [];
-    const nodes = Array.from(host.childNodes);
-    specs.forEach((spec, index) => spec.describe(nodes[index], entries));
-    const map = createDomMap(host, length, entries);
-    maps.set(host, map);
-    return map;
-  } finally {
-    rendering.delete(host);
-  }
+  const length = inlineLength(inline);
+  const specs = toSegments(inline, decorations).flatMap((segment) => specsFor(segment, options, doc));
+  if (needsFiller(inline)) specs.push(fillerSpec(doc, length));
+  reconcileChildren(host, specs);
+  const entries: MapEntry[] = [];
+  const nodes = Array.from(host.childNodes);
+  specs.forEach((spec, index) => spec.describe(nodes[index], entries));
+  const map = createDomMap(host, length, entries);
+  maps.set(host, map);
+  return map;
 }

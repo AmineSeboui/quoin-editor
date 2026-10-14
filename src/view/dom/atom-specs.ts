@@ -10,21 +10,22 @@ function defaultAtomText(node: AtomNode): string {
   return node.type === 'math' ? (node.attrs.latex ?? '') : node.type;
 }
 
-function defaultAtom(node: AtomNode, doc: Document, atomText: (node: AtomNode) => string): HTMLElement {
-  const element = doc.createElement('span');
+// Whatever a renderer returns is marked, so the host reads back as the model counts it: an atom as one character and a
+// widget as none.
+function mark(element: HTMLElement, attribute: 'data-quoin-atom' | 'data-quoin-widget', name: string): HTMLElement {
   element.setAttribute('contenteditable', 'false');
-  element.setAttribute('data-quoin-atom', node.type);
+  element.setAttribute(attribute, name);
+  return element;
+}
+
+function defaultAtom(node: AtomNode, doc: Document, atomText: (node: AtomNode) => string): HTMLElement {
+  const element = mark(doc.createElement('span'), 'data-quoin-atom', node.type);
   setAttributes(element, node.attrs, 'data-');
   element.textContent = atomText(node);
   return element;
 }
 
-const defaultWidget: WidgetRenderer = (decoration, doc) => {
-  const element = doc.createElement('span');
-  element.setAttribute('contenteditable', 'false');
-  element.setAttribute('data-quoin-widget', decoration.widget);
-  return element;
-};
+const defaultWidget: WidgetRenderer = (_decoration, doc) => doc.createElement('span');
 
 function own<T>(record: Readonly<Record<string, T>> | undefined, key: string): T | undefined {
   return record && Object.hasOwn(record, key) ? record[key] : undefined;
@@ -43,7 +44,9 @@ export function atomSpec(
     sig: segmentSignature(segment),
     create() {
       const render = own(options.atoms, node.type);
-      const content = render ? render(node, doc) : defaultAtom(node, doc, options.atomText ?? defaultAtomText);
+      const content = render
+        ? mark(render(node, doc), 'data-quoin-atom', node.type)
+        : defaultAtom(node, doc, options.atomText ?? defaultAtomText);
       const wrappers = createWrappers(node.marks, decorations, doc);
       wrappers[wrappers.length - 1]?.appendChild(content);
       return wrappers[0] ?? content;
@@ -67,7 +70,10 @@ export function widgetSpec(
   const { decoration, from } = segment;
   return {
     sig: segmentSignature(segment),
-    create: () => (own(options.widgets, decoration.widget) ?? defaultWidget)(decoration, doc),
+    create() {
+      const render = own(options.widgets, decoration.widget) ?? defaultWidget;
+      return mark(render(decoration, doc), 'data-quoin-widget', decoration.widget);
+    },
     describe: (node, out) => void out.push({ node, from, to: from, kind: 'widget' }),
   };
 }

@@ -8,7 +8,6 @@ describe('server import', () => {
     const module = await import('./render-inline');
     expect(typeof module.renderInline).toBe('function');
     expect(typeof module.domMapOf).toBe('function');
-    expect(typeof module.isRendering).toBe('function');
   });
 
   it('loads the text reader, the diff and the caret lookup', async () => {

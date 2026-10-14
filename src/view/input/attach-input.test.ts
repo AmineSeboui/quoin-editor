@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
+import { insertText } from '../../engine/commands/insert-text';
 import { createEditor } from '../../engine/extension/editor';
 import { inlineText } from '../../engine/model/inline';
 import { blockRangeSelection, textSelection } from '../../engine/state/selection';
@@ -72,6 +73,17 @@ describe('attached input', () => {
     type(late, 'yo?');
     await nextTask();
     expect(text(1)).toBe('yo!');
+  });
+
+  it('never reads its own renders back, even when the model moves on before their records arrive', async () => {
+    const { editor, controller, root, addHost, text } = mount();
+    addHost('a');
+    detachers.push(controller.attach(root));
+    controller.dispatch(editor.createTransaction().setSelection(textSelection({ block: 'a', region: 'text', offset: 2 })));
+    controller.run(insertText('!'));
+    insertText('?')(editor.state, (tr) => editor.dispatch(tr));
+    await nextTask();
+    expect(text(0)).toBe('hi!?');
   });
 
   it('runs the keymap on keydown in a host, but not for composing keys or in read-only mode', () => {

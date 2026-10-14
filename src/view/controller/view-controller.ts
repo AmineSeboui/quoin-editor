@@ -75,7 +75,7 @@ export class ViewController {
     this.flush = options.flush ?? runNow;
     this.onFiles = options.onFiles;
     const decorationsOf = (block: string, region: string) => this.decorationsFor(block, region);
-    this.hosts = createHostRenderer(options.editor, options.render, decorationsOf);
+    this.hosts = createHostRenderer(options.editor, options.render, decorationsOf, (host) => this.input?.drain(host));
     this.readOnlyFlag = options.readOnly ?? false;
   }
 

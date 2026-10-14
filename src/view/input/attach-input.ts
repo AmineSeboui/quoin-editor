@@ -9,6 +9,7 @@ import { handleKeydown, isComposingKey } from './keydown';
 export type AttachedInput = {
   observe(host: HTMLElement): void;
   unobserve(host: HTMLElement): void;
+  drain(host: HTMLElement): void;
   detach(): void;
 };
 
@@ -70,6 +71,7 @@ export function attachInput(controller: ViewController, root: HTMLElement): Atta
       observed.get(host)?.();
       observed.delete(host);
     },
+    drain: fallback.drain,
     detach() {
       detachClipboard();
       root.removeEventListener('keydown', onKeyDown);

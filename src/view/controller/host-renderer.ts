@@ -15,6 +15,7 @@ export function createHostRenderer(
   editor: Editor,
   options: RenderOptions | undefined,
   decorationsOf: (block: string, region: string) => readonly Decoration[],
+  afterRender: (element: HTMLElement) => void,
 ): HostRenderer {
   const rendered = new WeakMap<HTMLElement, Rendered>();
 
@@ -25,6 +26,7 @@ export function createHostRenderer(
     const last = rendered.get(host.element);
     if (!always && last?.inline === inline && sameDecorations(last.decorations, decorations)) return;
     renderInline(host.element, inline, decorations, options);
+    afterRender(host.element);
     rendered.set(host.element, { inline, decorations });
   }
 

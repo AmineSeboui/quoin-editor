@@ -1,13 +1,16 @@
-import type { Command, Editor, Pos, Selection, Transaction } from '../../engine';
-import { endOf, sameSelection, startOf, textSelection } from '../../engine/state/selection';
+import type { Command, Editor, Pos, Transaction } from '../../engine';
+import { sameSelection } from '../../engine/state/selection';
 import type { RenderOptions } from '../dom/render-inline';
 import { attachInput, type AttachedInput } from '../input/attach-input';
 import type { KeyInterceptor } from '../input/keydown';
 import { readSelection, writeSelection } from './dom-selection';
+import { hasFocus, ownsFocus } from './focus-ownership';
+import { focusTarget, type FocusTarget } from './focus-target';
 import { createHostRegistry, hostKey, type HostEntry, type HostRegistry } from './host-registry';
 import { createHostRenderer, type HostRenderer } from './host-renderer';
 import { selectionElement, type RenderedElements } from './selection-element';
 import { createSelectionSync, samePoints, selectionPoints, type SelectionSync } from './selection-sync';
+import { createTabStop } from './tab-stop';
 
 export type ViewControllerOptions = {
   editor: Editor;
@@ -43,7 +46,7 @@ export class ViewController {
     return () => this.syncTabStop();
   });
   private readonly rendered: RenderedElements = { hosts: this.registry, block: (id) => this.blockElement(id) };
-  private tabStop: HTMLElement | undefined;
+  private readonly tabStop = createTabStop();
   private rootElement: HTMLElement | null = null;
   private selectionSync: SelectionSync | null = null;
   private detachRoot: (() => void) | null = null;
@@ -122,7 +125,7 @@ export class ViewController {
   // the DOM selection up to date once.
   edit(change: () => boolean): boolean {
     const before = this.editor.state;
-    const focused = this.hasFocus();
+    const focused = hasFocus(this, this.ownerDocument());
     let handled = false;
     this.flush(() => {
       handled = change();
@@ -157,7 +160,7 @@ export class ViewController {
   syncSelectionToDom(): void {
     const doc = this.ownerDocument();
     const domSelection = doc?.getSelection();
-    if (this.composing !== null || !doc || !domSelection || !this.ownsFocus(doc)) return;
+    if (this.composing !== null || !doc || !domSelection || !ownsFocus(this, doc)) return;
     const before = selectionPoints(domSelection);
     const { selection } = this.editor.state;
     if (selection?.kind === 'blocks') domSelection.removeAllRanges();
@@ -169,7 +172,7 @@ export class ViewController {
   readSelectionFromDom(): void {
     const { editor } = this;
     const doc = this.ownerDocument();
-    if (this.composing !== null || !doc || !this.ownsFocus(doc)) return;
+    if (this.composing !== null || !doc || !ownsFocus(this, doc)) return;
     const blockAt = (node: Node) => this.blockElements.locate(node)?.block;
     const selection = readSelection(this.registry, doc.getSelection(), blockAt);
     if (selection === null || sameSelection(selection, editor.state.selection)) return;
@@ -177,9 +180,9 @@ export class ViewController {
     this.flush(() => editor.dispatch(editor.createTransaction().setSelection(selection).setOrigin('input')));
   }
 
-  focus(target?: Pos | 'start' | 'end'): void {
+  focus(target?: FocusTarget): void {
     const { editor } = this;
-    const selection = this.focusTarget(target);
+    const selection = focusTarget(editor.state, target);
     if (selection === null) return;
     if (!sameSelection(selection, editor.state.selection)) {
       this.dispatch(editor.createTransaction().setSelection(selection));
@@ -212,21 +215,6 @@ export class ViewController {
     return (this.rootElement ?? first(this.registry.all())?.element)?.ownerDocument ?? null;
   }
 
-  // Chromium and WebKit move focus into an editable host when a script selects inside it, so the model selection is
-  // only written while focus is on the editor or on nothing, never pulled away from a control the user is typing in.
-  // Chromium and Firefox leave the DOM selection in a host when a button outside takes focus, and a re-render then
-  // collapses it, so the DOM selection is not read back either until focus returns.
-  private ownsFocus(doc: Document): boolean {
-    const active = doc.activeElement;
-    if (!active || active === doc.body || active === this.rootElement) return true;
-    return this.isEditorElement(active);
-  }
-
-  private hasFocus(): boolean {
-    const active = this.ownerDocument()?.activeElement ?? null;
-    return active !== null && this.isEditorElement(active);
-  }
-
   // React replaces a host whose block changes kind, which drops focus, and Firefox does not move focus into another
   // host when a script selects inside it.
   private keepFocus(): void {
@@ -236,27 +224,11 @@ export class ViewController {
     }
   }
 
-  private focusTarget(target: Pos | 'start' | 'end' | undefined): Selection | null {
-    const { doc, schema, selection } = this.editor.state;
-    if (doc.blocks.length === 0) return null;
-    if (target === 'end') return endOf(doc, schema, doc.blocks[doc.blocks.length - 1].id);
-    if (target === 'start' || (target === undefined && selection === null)) {
-      return startOf(doc, schema, doc.blocks[0].id);
-    }
-    return target === undefined ? selection : textSelection(target);
-  }
-
   private focusElement(): HTMLElement | undefined {
     return selectionElement(this.editor.state, this.rendered);
   }
 
-  // React draws every host and shell with tabindex -1 and never rewrites a prop that did not change, so the one tab
-  // stop is moved here, onto the element that takes focus, whenever the selection or the drawn elements change.
   private syncTabStop(): void {
-    const next = this.focusElement();
-    if (next === this.tabStop) return;
-    if (this.tabStop) this.tabStop.tabIndex = -1;
-    if (next) next.tabIndex = 0;
-    this.tabStop = next;
+    this.tabStop.move(this.focusElement());
   }
 }

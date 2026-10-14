@@ -2,13 +2,23 @@ import { describe, expect, it } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
 import { axe } from 'vitest-axe';
 import { useState } from 'react';
+import type { Selection } from '../../engine';
+import { blockRangeSelection, nodeSelection } from '../../engine/state/selection';
+import type { ViewController } from '../controller/view-controller';
 import { EditorView } from './EditorView';
 import { useQuoinEditor } from './use-quoin-editor';
 import type { QuoinBlock } from '../../engine/model/quoin-block';
 
-function Harness({ initial, onBlocks }: { initial: QuoinBlock[]; onBlocks?: (b: QuoinBlock[]) => void }) {
+type HarnessProps = {
+  initial: QuoinBlock[];
+  onBlocks?: (b: QuoinBlock[]) => void;
+  onController?: (controller: ViewController) => void;
+};
+
+function Harness({ initial, onBlocks, onController }: HarnessProps) {
   const [blocks, setBlocks] = useState(initial);
   const controller = useQuoinEditor({ blocks, onChange: (next) => { setBlocks(next); onBlocks?.(next); } });
+  onController?.(controller);
   return <EditorView controller={controller} aria-label="Doc" />;
 }
 
@@ -37,5 +47,19 @@ describe('EditorView', () => {
   it('has no axe violations', async () => {
     const { container } = render(<Harness initial={doc} />);
     expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it('has no axe violations with a block range or a node selected', async () => {
+    let controller!: ViewController;
+    const { container } = render(<Harness initial={doc} onController={(c) => (controller = c)} />);
+    const select = (selection: Selection) =>
+      act(() => controller.dispatch(controller.editor.createTransaction().setSelection(selection)));
+    const selected = () => Array.from(container.querySelectorAll<HTMLElement>('[data-selected="true"]'), (shell) => shell.dataset.blockId);
+    select(blockRangeSelection('h', 'd'));
+    expect(await axe(container)).toHaveNoViolations();
+    expect(selected()).toEqual(['h', 't', 'd']);
+    select(nodeSelection('d'));
+    expect(await axe(container)).toHaveNoViolations();
+    expect(selected()).toEqual(['d']);
   });
 });

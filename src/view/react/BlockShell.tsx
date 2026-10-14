@@ -42,7 +42,7 @@ export const BlockShell = memo(function BlockShell({ block, index, renderers }: 
       data-indent={block.indent}
       style={{ '--quoin-indent': block.indent } as CSSProperties}
       tabIndex={-1}
-      aria-selected={status === 'selected' ? true : undefined}
+      data-selected={status === 'selected' ? 'true' : undefined}
     >
       <Renderer block={block} controller={controller} index={index} />
     </div>

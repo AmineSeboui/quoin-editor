@@ -66,8 +66,9 @@ describe('EditorView selection', () => {
     const status = screen.getByRole('status');
     expect(status).toBeEmptyDOMElement();
     act(() => controller.dispatch(controller.editor.createTransaction().setSelection(blockRangeSelection('a', 'd'))));
-    const selected = container.querySelectorAll('[data-quoin-block][aria-selected="true"]');
+    const selected = container.querySelectorAll('[data-quoin-block][data-selected="true"]');
     expect(Array.from(selected, (shell) => (shell as HTMLElement).dataset.blockId)).toEqual(['a', 'd']);
+    expect(container.querySelector('[aria-selected]')).toBeNull();
     expect(status).toHaveTextContent('2 blocks selected');
     act(() => controller.dispatch(controller.editor.createTransaction().setSelection(blockRangeSelection('c'))));
     expect(status).toHaveTextContent('1 block selected');
@@ -75,7 +76,7 @@ describe('EditorView selection', () => {
 
   it('shows no selection state while a caret is in text', () => {
     const { container } = mount();
-    expect(container.querySelector('[aria-selected]')).toBeNull();
+    expect(container.querySelector('[data-selected]')).toBeNull();
     expect(screen.getByRole('status')).toBeEmptyDOMElement();
   });
 });

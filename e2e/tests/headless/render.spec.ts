@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
-import { host, markdown, modelSelection, openHeadless } from '../../support/headless';
+import { caretAt, host, markdown, modelSelection, openHeadless } from '../../support/headless';
 
 test('renders every block kind as live formatted text', async ({ page }) => {
   await openHeadless(page);
@@ -46,7 +46,8 @@ test('a click on a void block selects it as a node and outlines it', async ({ pa
   const divider = page.locator('[data-quoin-block][data-type="DIVIDER"]');
   await divider.click();
   await expect.poll(() => modelSelection(page)).toEqual({ kind: 'node', block: 'd' });
-  await expect(divider).toHaveAttribute('aria-selected', 'true');
+  await expect(divider).toHaveAttribute('data-selected', 'true');
+  await expect(divider).not.toHaveAttribute('aria-selected');
   await expect(page.getByRole('status')).toHaveText('1 block selected');
 });
 
@@ -81,6 +82,17 @@ test('renders a thousand blocks', async ({ page }) => {
 
 test('the sample document has no serious accessibility violations', async ({ page }) => {
   await openHeadless(page);
+  const results = await new AxeBuilder({ page }).analyze();
+  const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
+  expect(serious).toEqual([]);
+});
+
+test('the sample document with every block selected has no serious accessibility violations', async ({ page }) => {
+  await openHeadless(page);
+  await caretAt(page, 1, 0);
+  await page.keyboard.press('ControlOrMeta+a');
+  await page.keyboard.press('ControlOrMeta+a');
+  await expect(page.locator('[data-quoin-block][data-selected="true"]')).toHaveCount(8);
   const results = await new AxeBuilder({ page }).analyze();
   const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
   expect(serious).toEqual([]);

@@ -1,5 +1,6 @@
 import { attachInput, type AttachedInput } from '../input/attach-input';
 import type { CrossMode } from '../selection/cross-mode';
+import { watchFocusReturn } from './focus-return';
 import { createSelectionSync, type SelectionSync } from './selection-sync';
 import type { ViewController } from './view-controller';
 
@@ -20,6 +21,9 @@ export function bindRoot(
   const input = attachInput(controller, root);
   const unsubscribe = controller.editor.subscribe(committed);
   const detachCross = cross.attach(root);
+  const stopFocusReturn = watchFocusReturn(root, (target) => {
+    if (controller.isEditorElement(target)) controller.syncSelectionToDom();
+  });
   selectionSync.start();
   return {
     root,
@@ -30,6 +34,7 @@ export function bindRoot(
       input.detach();
       unsubscribe();
       detachCross();
+      stopFocusReturn();
     },
   };
 }

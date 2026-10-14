@@ -7,6 +7,7 @@ import { createCrossMode } from '../selection/cross-mode';
 import { isCrossSelection } from '../selection/selection-decorations';
 import { focusSink } from '../selection/selection-sink';
 import { readSelection, writeSelection } from './dom-selection';
+import { createElementSlot } from './element-slot';
 import { hasFocus, ownsFocus } from './focus-ownership';
 import { focusTarget, type FocusTarget } from './focus-target';
 import { createHostRegistry, hostKey, type HostEntry, type HostRegistry } from './host-registry';
@@ -45,6 +46,7 @@ export class ViewController {
   readonly onFiles: ViewControllerOptions['onFiles'];
   goalX: number | null = null;
   dragging = false;
+  composingKey: string | null = null;
   private readonly flush: (fn: () => void) => void;
   private readonly hosts: HostRenderer;
   private readonly blockElements: HostRegistry = createHostRegistry(() => {
@@ -54,16 +56,17 @@ export class ViewController {
   private readonly rendered: RenderedElements = {
     hosts: this.registry,
     block: (id) => this.blockElement(id),
-    sink: () => this.sinkElement,
+    sink: () => this.sinkSlot.element,
+    empty: () => this.emptySlot.element,
   };
   private readonly cross = createCrossMode(this);
-  private sinkElement: HTMLElement | null = null;
+  private readonly sinkSlot = createElementSlot(() => this.syncTabStop());
+  private readonly emptySlot = createElementSlot(() => this.syncTabStop());
   private readonly tabStop = createTabStop();
   private rootElement: HTMLElement | null = null;
   private selectionSync: SelectionSync | null = null;
   private detachRoot: (() => void) | null = null;
   private input: AttachedInput | null = null;
-  private composing: string | null = null;
   private readOnlyFlag: boolean;
   private readonly readOnlyListeners = new Set<() => void>();
 
@@ -80,20 +83,16 @@ export class ViewController {
     return this.rootElement;
   }
 
-  get composingKey(): string | null {
-    return this.composing;
-  }
-
-  set composingKey(key: string | null) {
-    this.composing = key;
-  }
-
   get readOnly(): boolean {
     return this.readOnlyFlag;
   }
 
   get sink(): HTMLElement | null {
-    return this.sinkElement;
+    return this.sinkSlot.element;
+  }
+
+  get emptyHost(): HTMLElement | null {
+    return this.emptySlot.element;
   }
 
   attach(root: HTMLElement): () => void {
@@ -138,16 +137,16 @@ export class ViewController {
   }
 
   registerSink(element: HTMLElement): () => void {
-    this.sinkElement = element;
-    this.syncTabStop();
-    return () => {
-      if (this.sinkElement === element) this.sinkElement = null;
-      this.syncTabStop();
-    };
+    return this.sinkSlot.register(element);
+  }
+
+  // An empty document draws one host that stands for a paragraph not created yet, so it belongs to no block.
+  registerEmptyHost(element: HTMLElement): () => void {
+    return this.emptySlot.register(element);
   }
 
   isEditorElement(element: Element): boolean {
-    if (element === this.sinkElement) return true;
+    if (element === this.sinkSlot.element || element === this.emptySlot.element) return true;
     return [this.registry, this.blockElements].some((registry) => registry.locate(element)?.element === element);
   }
 
@@ -207,7 +206,7 @@ export class ViewController {
   syncSelectionToDom(): void {
     const doc = this.ownerDocument();
     const domSelection = doc?.getSelection();
-    if (this.composing !== null || !doc || !domSelection || !ownsFocus(this, doc)) return;
+    if (this.composingKey !== null || !doc || !domSelection || !ownsFocus(this, doc)) return;
     const before = selectionPoints(domSelection);
     const { selection } = this.editor.state;
     if (selection?.kind === 'blocks') domSelection.removeAllRanges();
@@ -223,7 +222,7 @@ export class ViewController {
   readSelectionFromDom(): void {
     const { editor } = this;
     const doc = this.ownerDocument();
-    if (this.composing !== null || this.dragging || !doc || !ownsFocus(this, doc)) return;
+    if (this.composingKey !== null || this.dragging || !doc || !ownsFocus(this, doc)) return;
     const selection = readSelection(this.registry, doc.getSelection(), (node) => this.blockAt(node));
     if (selection === null || sameSelection(selection, editor.state.selection)) return;
     const wasCross = this.cross.active;
@@ -238,8 +237,7 @@ export class ViewController {
   focus(target?: FocusTarget): void {
     const { editor } = this;
     const selection = focusTarget(editor.state, target);
-    if (selection === null) return;
-    if (!sameSelection(selection, editor.state.selection)) {
+    if (selection !== null && !sameSelection(selection, editor.state.selection)) {
       this.dispatch(editor.createTransaction().setSelection(selection));
     }
     this.focusElement()?.focus();
@@ -263,7 +261,7 @@ export class ViewController {
   }
 
   private isComposing(host: HostEntry): boolean {
-    return this.composing !== null && hostKey(host.block, host.region) === this.composing;
+    return this.composingKey !== null && hostKey(host.block, host.region) === this.composingKey;
   }
 
   private ownerDocument(): Document | null {
@@ -274,7 +272,7 @@ export class ViewController {
   // host when a script selects inside it.
   private keepFocus(): void {
     const element = this.focusElement();
-    if (this.composing === null && element && element.ownerDocument.activeElement !== element) {
+    if (this.composingKey === null && element && element.ownerDocument.activeElement !== element) {
       element.focus();
     }
   }

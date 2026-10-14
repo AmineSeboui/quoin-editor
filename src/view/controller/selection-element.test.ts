@@ -51,6 +51,14 @@ describe('selectionElement', () => {
     expect(selectionElement(cross, { ...rendered, sink: () => sink })).toBe(sink);
   });
 
+  it('is the empty document\'s host while the document has no blocks', () => {
+    const { rendered } = setup();
+    const state = createEditor({ blocks: [] }).state;
+    const empty = document.createElement('div');
+    expect(selectionElement(state, rendered)).toBeUndefined();
+    expect(selectionElement(state, { ...rendered, empty: () => empty })).toBe(empty);
+  });
+
   it('falls back to the first block when nothing stands for the head or there is no selection', () => {
     const { draw, at, rendered } = setup();
     const a = draw('a');

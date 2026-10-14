@@ -19,6 +19,7 @@ export function attachInput(controller: ViewController, root: HTMLElement): Atta
   const observed = new Map<HTMLElement, () => void>();
   const inHost = (event: Event) => controller.registry.locate(event.target as Node | null) !== null;
   const inSink = (event: Event) => controller.sink !== null && event.target === controller.sink;
+  const inEmptyHost = (event: Event) => controller.emptyHost !== null && event.target === controller.emptyHost;
 
   // Pending browser edits are applied and the caret is read before a model command runs: Chromium dispatches input
   // ahead of the selectionchange task a caret move queued, and mutation records wait for a microtask.
@@ -27,7 +28,7 @@ export function attachInput(controller: ViewController, root: HTMLElement): Atta
     controller.readSelectionFromDom();
   };
   const onBeforeInput = (event: InputEvent) => {
-    if (!inHost(event) && !inSink(event)) return;
+    if (controller.readOnly || (!inHost(event) && !inSink(event) && !inEmptyHost(event))) return;
     catchUp();
     handleBeforeInput(controller, event);
   };

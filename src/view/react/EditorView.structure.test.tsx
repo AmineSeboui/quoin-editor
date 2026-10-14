@@ -93,6 +93,7 @@ describe('EditorView empty document', () => {
   it('turns the first typed character into a paragraph and moves the caret into it', () => {
     const { controller, container } = mount([]);
     const host = screen.getByRole('textbox', { name: 'Paragraph' });
+    act(() => host.focus());
     const event = new InputEvent('beforeinput', { inputType: 'insertText', data: 'H', cancelable: true, bubbles: true });
     act(() => void host.dispatchEvent(event));
     expect(event.defaultPrevented).toBe(true);
@@ -108,29 +109,29 @@ describe('EditorView empty document', () => {
       <Editor options={{ blocks: [], onChange: () => {}, onTransaction: (tr) => origins.push(tr.origin) }} />,
     );
     const host = screen.getByRole('textbox', { name: 'Paragraph' });
-    act(() => void host.dispatchEvent(new InputEvent('beforeinput', { inputType: 'insertText', data: 'a', cancelable: true })));
+    act(() => void host.dispatchEvent(new InputEvent('beforeinput', { inputType: 'insertText', data: 'a', cancelable: true, bubbles: true })));
     expect(origins).toContain('input');
   });
 
-  it('handles that first character once: no listener further up sees the event again', () => {
-    const { controller } = mount([]);
-    const above: Event[] = [];
-    screen.getByRole('group', { name: 'Doc' }).addEventListener('beforeinput', (event) => above.push(event));
+  it('handles that first character once, in the input pipeline every host shares', () => {
+    const onChange = vi.fn();
+    let controller!: ViewController;
+    render(<Editor options={{ blocks: [], onChange }} onController={(c) => (controller = c)} />);
     const host = screen.getByRole('textbox', { name: 'Paragraph' });
     act(() => void host.dispatchEvent(new InputEvent('beforeinput', { inputType: 'insertText', data: 'a', cancelable: true, bubbles: true })));
-    expect(above).toHaveLength(0);
+    expect(onChange).toHaveBeenCalledTimes(1);
     expect(controller.editor.getBlocks().map((block) => block.data.markdown)).toEqual(['a']);
   });
 
-  it('does not touch composition or other input types', () => {
+  it('leaves composition to the browser and paste to the clipboard handlers, as in any host', () => {
     const { controller } = mount([]);
     const host = screen.getByRole('textbox', { name: 'Paragraph' });
-    const composing = new InputEvent('beforeinput', { inputType: 'insertText', data: 'a', isComposing: true, cancelable: true });
-    const other = new InputEvent('beforeinput', { inputType: 'insertFromPaste', data: 'a', cancelable: true });
+    const composing = new InputEvent('beforeinput', { inputType: 'insertText', data: 'a', isComposing: true, cancelable: true, bubbles: true });
+    const other = new InputEvent('beforeinput', { inputType: 'insertFromPaste', data: 'a', cancelable: true, bubbles: true });
     act(() => void host.dispatchEvent(composing));
     act(() => void host.dispatchEvent(other));
     expect(composing.defaultPrevented).toBe(false);
-    expect(other.defaultPrevented).toBe(false);
+    expect(other.defaultPrevented).toBe(true);
     expect(controller.editor.state.doc.blocks).toHaveLength(0);
   });
 
@@ -153,7 +154,7 @@ describe('EditorView empty document', () => {
   it('follows read-only while the document stays empty', () => {
     const onChange = vi.fn();
     const typeA = (host: HTMLElement) =>
-      act(() => void host.dispatchEvent(new InputEvent('beforeinput', { inputType: 'insertText', data: 'a', cancelable: true })));
+      act(() => void host.dispatchEvent(new InputEvent('beforeinput', { inputType: 'insertText', data: 'a', cancelable: true, bubbles: true })));
     const options = (readOnly: boolean) => ({ blocks: [], onChange, readOnly });
     const view = { placeholder: 'Start' };
     const { rerender } = render(<Editor options={options(false)} view={view} />);
@@ -181,7 +182,7 @@ describe('EditorView empty document', () => {
     const host = screen.getByRole('textbox', { name: 'Paragraph' });
     act(() => controller.setReadOnly(true));
     host.contentEditable = 'true';
-    const event = new InputEvent('beforeinput', { inputType: 'insertText', data: 'a', cancelable: true });
+    const event = new InputEvent('beforeinput', { inputType: 'insertText', data: 'a', cancelable: true, bubbles: true });
     act(() => void host.dispatchEvent(event));
     expect(event.defaultPrevented).toBe(false);
     expect(controller.editor.state.doc.blocks).toHaveLength(0);

@@ -3,7 +3,9 @@ import { isTextFlow } from '../../engine/commands/block-helpers';
 import { primaryRegion, textSelection } from '../../engine/state/selection';
 import { domToPos, posToDom } from '../controller/dom-selection';
 import type { ViewController } from '../controller/view-controller';
+import { isCrossSelection } from '../selection/selection-decorations';
 import { caretFromPoint } from './caret-from-point';
+import { collapseCross, crossHeadVertically } from './cross-moves';
 import { caretClientRect, isOnFirstLine, isOnLastLine, lineEdgeRect } from './line-edges';
 import { entryEdge, holdsTextHead, moveToNeighbour, neighbourBlock } from './neighbour-block';
 
@@ -37,6 +39,11 @@ export function moveVertically(controller: ViewController, direction: -1 | 1, ex
   const { selection, doc } = state;
   if (selection?.kind === 'node') return !extend && moveToNeighbour(controller, selection.block, direction);
   if (selection?.kind !== 'text') return false;
+  if (isCrossSelection(selection)) {
+    controller.goalX = null;
+    const move = extend ? crossHeadVertically : collapseCross;
+    return move(controller, selection, direction);
+  }
   const { head } = selection;
   const host = registry.get(head.block, head.region);
   const point = posToDom(registry, head);

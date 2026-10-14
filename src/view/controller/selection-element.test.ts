@@ -42,6 +42,15 @@ describe('selectionElement', () => {
     expect(selectionElement(at(textSelection({ block: 'c', region: 'text', offset: 1 })), rendered)).toBe(t.shell);
   });
 
+  it('is the sink for a selection across hosts, or the head host while no sink is drawn', () => {
+    const { draw, at, rendered } = setup();
+    const b = draw('b');
+    const cross = at(textSelection({ block: 'a', region: 'text', offset: 1 }, { block: 'b', region: 'text', offset: 1 }));
+    expect(selectionElement(cross, rendered)).toBe(b.host);
+    const sink = document.createElement('div');
+    expect(selectionElement(cross, { ...rendered, sink: () => sink })).toBe(sink);
+  });
+
   it('falls back to the first block when nothing stands for the head or there is no selection', () => {
     const { draw, at, rendered } = setup();
     const a = draw('a');

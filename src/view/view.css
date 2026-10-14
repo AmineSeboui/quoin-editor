@@ -28,6 +28,38 @@
   box-shadow: 0 0 0 2px var(--quoin-ring);
 }
 
+.quoin[data-quoin-cross] [data-quoin-host]::selection,
+.quoin[data-quoin-cross] [data-quoin-host] ::selection {
+  background: transparent;
+}
+
+.quoin .quoin-selected {
+  background: var(--quoin-selection);
+}
+
+.quoin ::highlight(quoin-selection) {
+  background: var(--quoin-selection);
+}
+
+.quoin[data-quoin-dragging] [data-quoin-host] {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Fixed so that focusing the sink or selecting its text never scrolls the page, and pre so that screen readers keep
+   the line break between blocks. */
+.quoin [data-quoin-sink] {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: pre;
+  outline: none;
+}
+
 .quoin .quoin-heading {
   font-weight: 600;
   line-height: 1.25;

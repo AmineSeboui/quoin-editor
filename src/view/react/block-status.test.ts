@@ -27,6 +27,12 @@ describe('blockStatus', () => {
     expect(blockStatus(buildState(['a'], null), 'b0')).toBe('plain');
   });
 
+  it('marks a block without text inside a selection across blocks, which no highlight reaches', () => {
+    const doc = ['a', { id: 'x', type: 'DIVIDER', data: {} }, 'c', { id: 'x', type: 'DIVIDER', data: {} }];
+    const state = buildState(doc, { anchor: { block: 2, offset: 1 }, head: { block: 0, offset: 0 } });
+    expect(['b0', 'b1', 'b2', 'b3'].map((id) => blockStatus(state, id))).toEqual(['plain', 'selected', 'plain', 'plain']);
+  });
+
   it('hides every block under a closed toggle and none under an open one', () => {
     const state = buildState(nested, null);
     expect(state.doc.blocks.map((block) => blockStatus(state, block.id))).toEqual([

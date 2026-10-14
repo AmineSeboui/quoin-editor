@@ -1,4 +1,5 @@
 import type { ViewController } from '../controller/view-controller';
+import { commitSinkComposition } from '../selection/selection-sink';
 import { handleBeforeInput } from './before-input';
 import { createCompositionHandlers } from './composition';
 import { createDomInputFallback } from './dom-input';
@@ -15,6 +16,7 @@ export function attachInput(controller: ViewController, root: HTMLElement): Atta
   const fallback = createDomInputFallback(controller);
   const observed = new Map<HTMLElement, () => void>();
   const inHost = (event: Event) => controller.registry.locate(event.target as Node | null) !== null;
+  const inSink = (event: Event) => controller.sink !== null && event.target === controller.sink;
 
   // Pending browser edits are applied and the caret is read before a model command runs: Chromium dispatches input
   // ahead of the selectionchange task a caret move queued, and mutation records wait for a microtask.
@@ -23,7 +25,7 @@ export function attachInput(controller: ViewController, root: HTMLElement): Atta
     controller.readSelectionFromDom();
   };
   const onBeforeInput = (event: InputEvent) => {
-    if (!inHost(event)) return;
+    if (!inHost(event) && !inSink(event)) return;
     catchUp();
     handleBeforeInput(controller, event);
   };
@@ -39,7 +41,10 @@ export function attachInput(controller: ViewController, root: HTMLElement): Atta
   const onCompositionStart = (event: CompositionEvent) => {
     if (inHost(event)) composition.start(event);
   };
-  const onCompositionEnd = (event: CompositionEvent) => composition.end(event);
+  const onCompositionEnd = (event: CompositionEvent) => {
+    if (inSink(event)) commitSinkComposition(controller);
+    else composition.end(event);
+  };
 
   root.addEventListener('keydown', onKeyDown);
   root.addEventListener('beforeinput', onBeforeInput);

@@ -1,7 +1,7 @@
 import { useCallback, useRef } from 'react';
 import type { Decoration, EditorState, Inline } from '../../engine';
 import { inlineLength } from '../../engine/model/inline';
-import { hostDecorations, sameDecorations } from '../controller/host-decorations';
+import { sameDecorations } from '../controller/host-decorations';
 import { regionInline } from '../controller/region-inline';
 import { useViewController } from './editor-context';
 import { useEditorState } from './use-editor-state';
@@ -26,7 +26,7 @@ export function EditableRegion({ block, region, label, placeholder, className }:
   const select = useCallback(
     (state: EditorState): Painted => ({
       inline: regionInline(state, block, region),
-      decorations: hostDecorations(controller.editor, block, region),
+      decorations: controller.decorationsFor(block, region),
     }),
     [controller, block, region],
   );

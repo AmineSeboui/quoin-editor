@@ -1,4 +1,4 @@
-import type { EngineBlock, EngineDoc, Selection } from '../../engine';
+import type { EngineBlock, EngineDoc, Pos, Selection } from '../../engine';
 import { isTextFlow } from '../../engine/commands/block-helpers';
 import { endOf, nodeSelection, startOf } from '../../engine/state/selection';
 import type { ViewController } from '../controller/view-controller';
@@ -30,6 +30,12 @@ export function entryEdge({ editor, registry }: ViewController, block: string, d
 
 export const holdsTextHead = (controller: ViewController) => (block: EngineBlock): boolean =>
   isTextFlow(controller.editor.state.schema, block) && entryEdge(controller, block.id, 1).kind === 'text';
+
+export function neighbourHead(controller: ViewController, from: string, direction: -1 | 1): Pos | null {
+  const target = neighbourBlock(controller.editor.state.doc, from, direction, holdsTextHead(controller));
+  const edge = target && entryEdge(controller, target.id, direction);
+  return edge?.kind === 'text' ? edge.head : null;
+}
 
 export function moveToNeighbour(controller: ViewController, from: string, direction: -1 | 1): boolean {
   const { editor } = controller;

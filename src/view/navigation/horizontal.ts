@@ -2,7 +2,9 @@ import { regionLength } from '../../engine/commands/block-helpers';
 import { requireBlockIndex } from '../../engine/model/doc';
 import { isCollapsed, textSelection } from '../../engine/state/selection';
 import type { ViewController } from '../controller/view-controller';
-import { entryEdge, holdsTextHead, moveToNeighbour, neighbourBlock } from './neighbour-block';
+import { isCrossSelection } from '../selection/selection-decorations';
+import { collapseCross, crossHeadHorizontally } from './cross-moves';
+import { moveToNeighbour, neighbourHead } from './neighbour-block';
 
 export function moveHorizontally(controller: ViewController, direction: -1 | 1, extend: boolean): boolean {
   controller.goalX = null;
@@ -10,14 +12,18 @@ export function moveHorizontally(controller: ViewController, direction: -1 | 1, 
   const { state } = editor;
   const { selection, doc } = state;
   if (selection?.kind === 'node') return !extend && moveToNeighbour(controller, selection.block, direction);
-  if (selection?.kind !== 'text' || (!extend && !isCollapsed(selection))) return false;
+  if (selection?.kind !== 'text') return false;
+  if (isCrossSelection(selection)) {
+    const move = extend ? crossHeadHorizontally : collapseCross;
+    return move(controller, selection, direction);
+  }
+  if (!extend && !isCollapsed(selection)) return false;
   const { head } = selection;
   const length = regionLength(doc.blocks[requireBlockIndex(doc, head.block)], head.region);
   if (direction < 0 ? head.offset > 0 : head.offset < length) return false;
   if (!extend) return moveToNeighbour(controller, head.block, direction);
-  const target = neighbourBlock(doc, head.block, direction, holdsTextHead(controller));
-  const edge = target && entryEdge(controller, target.id, direction);
-  if (edge?.kind !== 'text') return false;
-  controller.dispatch(editor.createTransaction().setSelection(textSelection(selection.anchor, edge.head)));
+  const edge = neighbourHead(controller, head.block, direction);
+  if (edge === null) return false;
+  controller.dispatch(editor.createTransaction().setSelection(textSelection(selection.anchor, edge)));
   return true;
 }

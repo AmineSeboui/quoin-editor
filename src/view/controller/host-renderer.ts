@@ -1,6 +1,6 @@
 import type { Decoration, Editor, Inline } from '../../engine';
 import { renderInline, type RenderOptions } from '../dom/render-inline';
-import { hostDecorations, sameDecorations } from './host-decorations';
+import { sameDecorations } from './host-decorations';
 import type { HostEntry } from './host-registry';
 import { regionInline } from './region-inline';
 
@@ -11,13 +11,17 @@ export type HostRenderer = {
 
 type Rendered = { readonly inline: Inline; readonly decorations: readonly Decoration[] };
 
-export function createHostRenderer(editor: Editor, options: RenderOptions | undefined): HostRenderer {
+export function createHostRenderer(
+  editor: Editor,
+  options: RenderOptions | undefined,
+  decorationsOf: (block: string, region: string) => readonly Decoration[],
+): HostRenderer {
   const rendered = new WeakMap<HTMLElement, Rendered>();
 
   function paint(host: HostEntry, always: boolean): void {
     const inline = regionInline(editor.state, host.block, host.region);
     if (inline === undefined) return;
-    const decorations = hostDecorations(editor, host.block, host.region);
+    const decorations = decorationsOf(host.block, host.region);
     const last = rendered.get(host.element);
     if (!always && last?.inline === inline && sameDecorations(last.decorations, decorations)) return;
     renderInline(host.element, inline, decorations, options);

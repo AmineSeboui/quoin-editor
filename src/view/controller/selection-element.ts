@@ -2,11 +2,13 @@ import type { EditorState, Selection } from '../../engine';
 import { headBlockId } from '../../engine/commands/block-helpers';
 import { hidingToggle } from '../../engine/commands/collapsed-toggle';
 import { startOf } from '../../engine/state/selection';
+import { isCrossSelection } from '../selection/selection-decorations';
 import type { HostRegistry } from './host-registry';
 
 export type RenderedElements = {
   readonly hosts: HostRegistry;
   readonly block: (id: string) => HTMLElement | undefined;
+  readonly sink?: () => HTMLElement | null;
 };
 
 function elementFor({ doc }: EditorState, selection: Selection | null, rendered: RenderedElements): HTMLElement | undefined {
@@ -19,10 +21,12 @@ function elementFor({ doc }: EditorState, selection: Selection | null, rendered:
   return host ?? rendered.block(id);
 }
 
-// The one element that takes focus and the editor's only tab stop. A head that is not drawn falls back to the closed
-// toggle hiding it, then to its block, then to the first block.
+// The one element that takes focus and the editor's only tab stop. A selection across hosts is held by the sink. A head
+// that is not drawn falls back to the closed toggle hiding it, then to its block, then to the first block.
 export function selectionElement(state: EditorState, rendered: RenderedElements): HTMLElement | undefined {
   const { doc, schema, selection } = state;
+  const sink = isCrossSelection(selection) ? rendered.sink?.() : null;
+  if (sink) return sink;
   const element = elementFor(state, selection, rendered);
   if (element || doc.blocks.length === 0) return element;
   return elementFor(state, startOf(doc, schema, doc.blocks[0].id), rendered);

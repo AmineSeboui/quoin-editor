@@ -117,6 +117,7 @@
     --quoin-info: oklch(0.55 0.17 250);
     --quoin-success: oklch(0.55 0.14 155);
     --quoin-warning: oklch(0.65 0.16 65);
+    --quoin-selection: oklch(0.62 0.17 250 / 28%);
     --quoin-radius: 0.625rem;
   }
 
@@ -140,6 +141,7 @@
     --quoin-info: oklch(0.72 0.14 250);
     --quoin-success: oklch(0.74 0.15 155);
     --quoin-warning: oklch(0.79 0.15 65);
+    --quoin-selection: oklch(0.72 0.14 250 / 35%);
     --quoin-radius: 0.625rem;
   }
 }

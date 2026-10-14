@@ -5,6 +5,7 @@ import type { BlockRenderer } from './block-renderer-types';
 import { QuoinEditorContext } from './editor-context';
 import { EmptyDocumentHost } from './EmptyDocumentHost';
 import { LiveRegion } from './LiveRegion';
+import { SelectionSink } from './SelectionSink';
 import { useEditorState } from './use-editor-state';
 import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect';
 
@@ -51,6 +52,7 @@ export function EditorView({
             <BlockShell key={block.id} block={block} index={index} renderers={renderers} />
           ))
         )}
+        <SelectionSink />
         <div id={hintId} className="quoin-visually-hidden">
           {HINT}
         </div>

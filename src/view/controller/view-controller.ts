@@ -1,12 +1,16 @@
-import type { Command, Editor, Pos, Transaction } from '../../engine';
+import type { Command, Decoration, Editor, Pos, Transaction } from '../../engine';
 import { sameSelection } from '../../engine/state/selection';
 import type { RenderOptions } from '../dom/render-inline';
 import { attachInput, type AttachedInput } from '../input/attach-input';
 import type { KeyInterceptor } from '../input/keydown';
+import { createCrossMode } from '../selection/cross-mode';
+import { isCrossSelection } from '../selection/selection-decorations';
+import { focusSink } from '../selection/selection-sink';
 import { readSelection, writeSelection } from './dom-selection';
 import { hasFocus, ownsFocus } from './focus-ownership';
 import { focusTarget, type FocusTarget } from './focus-target';
 import { createHostRegistry, hostKey, type HostEntry, type HostRegistry } from './host-registry';
+import { hostDecorations } from './host-decorations';
 import { createHostRenderer, type HostRenderer } from './host-renderer';
 import { selectionElement, type RenderedElements } from './selection-element';
 import { createSelectionSync, samePoints, selectionPoints, type SelectionSync } from './selection-sync';
@@ -39,13 +43,20 @@ export class ViewController {
   });
   readonly keyInterceptors = new Set<KeyInterceptor>();
   goalX: number | null = null;
+  dragging = false;
   private readonly flush: (fn: () => void) => void;
   private readonly hosts: HostRenderer;
   private readonly blockElements: HostRegistry = createHostRegistry(() => {
     this.syncTabStop();
     return () => this.syncTabStop();
   });
-  private readonly rendered: RenderedElements = { hosts: this.registry, block: (id) => this.blockElement(id) };
+  private readonly rendered: RenderedElements = {
+    hosts: this.registry,
+    block: (id) => this.blockElement(id),
+    sink: () => this.sinkElement,
+  };
+  private readonly cross = createCrossMode(this);
+  private sinkElement: HTMLElement | null = null;
   private readonly tabStop = createTabStop();
   private rootElement: HTMLElement | null = null;
   private selectionSync: SelectionSync | null = null;
@@ -58,7 +69,8 @@ export class ViewController {
   constructor(options: ViewControllerOptions) {
     this.editor = options.editor;
     this.flush = options.flush ?? runNow;
-    this.hosts = createHostRenderer(options.editor, options.render);
+    const decorationsOf = (block: string, region: string) => this.decorationsFor(block, region);
+    this.hosts = createHostRenderer(options.editor, options.render, decorationsOf);
     this.readOnlyFlag = options.readOnly ?? false;
   }
 
@@ -78,15 +90,24 @@ export class ViewController {
     return this.readOnlyFlag;
   }
 
+  get sink(): HTMLElement | null {
+    return this.sinkElement;
+  }
+
   attach(root: HTMLElement): () => void {
     this.detachRoot?.();
     const sync = createSelectionSync(root.ownerDocument, () => this.readSelectionFromDom());
     const input = attachInput(this, root);
-    const unsubscribe = this.editor.subscribe(() => this.syncTabStop());
+    const unsubscribe = this.editor.subscribe(() => {
+      this.syncTabStop();
+      this.cross.syncLater();
+    });
+    const detachCross = this.cross.attach(root);
     const detach = () => {
       sync.stop();
       input.detach();
       unsubscribe();
+      detachCross();
       if (this.detachRoot !== detach) return;
       this.detachRoot = null;
       this.selectionSync = null;
@@ -110,8 +131,26 @@ export class ViewController {
     return this.blockElements.get(id, '');
   }
 
+  blockAt(node: Node): string | undefined {
+    return this.blockElements.locate(node)?.block;
+  }
+
+  registerSink(element: HTMLElement): () => void {
+    this.sinkElement = element;
+    this.syncTabStop();
+    return () => {
+      if (this.sinkElement === element) this.sinkElement = null;
+      this.syncTabStop();
+    };
+  }
+
   isEditorElement(element: Element): boolean {
+    if (element === this.sinkElement) return true;
     return [this.registry, this.blockElements].some((registry) => registry.locate(element)?.element === element);
+  }
+
+  decorationsFor(block: string, region: string): readonly Decoration[] {
+    return hostDecorations(this.editor, block, region, this.cross.mode);
   }
 
   dispatch(tr: Transaction): void {
@@ -132,12 +171,17 @@ export class ViewController {
     });
     if (this.editor.state === before) return handled;
     if (this.editor.state.doc !== before.doc) this.goalX = null;
-    for (const host of this.registry.all()) {
-      if (!this.isComposing(host)) this.hosts.renderIfChanged(host);
-    }
+    this.refreshHosts();
+    this.cross.sync();
     if (focused) this.keepFocus();
     this.syncSelectionToDom();
     return handled;
+  }
+
+  refreshHosts(): void {
+    for (const host of this.registry.all()) {
+      if (!this.isComposing(host)) this.hosts.renderIfChanged(host);
+    }
   }
 
   run(command: Command): boolean {
@@ -156,7 +200,8 @@ export class ViewController {
 
   // While an IME composes, the composing host's offset map is stale and moving the DOM selection would cancel the
   // composition, so the selection is left alone in both directions. A block range has no native form, and a caret left
-  // behind in a host would be read back on the next key, so the native selection is emptied.
+  // behind in a host would be read back on the next key, so the native selection is emptied. A selection across hosts
+  // has none either and is held by the sink.
   syncSelectionToDom(): void {
     const doc = this.ownerDocument();
     const domSelection = doc?.getSelection();
@@ -164,20 +209,25 @@ export class ViewController {
     const before = selectionPoints(domSelection);
     const { selection } = this.editor.state;
     if (selection?.kind === 'blocks') domSelection.removeAllRanges();
+    else if (isCrossSelection(selection)) focusSink(this);
     else writeSelection(this.registry, selection, domSelection, (id) => this.blockElement(id));
     const after = selectionPoints(domSelection);
     if (!samePoints(before, after)) this.selectionSync?.suppressNext();
   }
 
+  // A pointer drag across hosts sets the model selection itself, while the browser keeps extending its own.
   readSelectionFromDom(): void {
     const { editor } = this;
     const doc = this.ownerDocument();
-    if (this.composing !== null || !doc || !ownsFocus(this, doc)) return;
-    const blockAt = (node: Node) => this.blockElements.locate(node)?.block;
-    const selection = readSelection(this.registry, doc.getSelection(), blockAt);
+    if (this.composing !== null || this.dragging || !doc || !ownsFocus(this, doc)) return;
+    const selection = readSelection(this.registry, doc.getSelection(), (node) => this.blockAt(node));
     if (selection === null || sameSelection(selection, editor.state.selection)) return;
     this.goalX = null;
     this.flush(() => editor.dispatch(editor.createTransaction().setSelection(selection).setOrigin('input')));
+    this.cross.sync();
+    if (!this.cross.active) return;
+    this.keepFocus();
+    this.syncSelectionToDom();
   }
 
   focus(target?: FocusTarget): void {

@@ -138,6 +138,77 @@ describe('handleKeydown across blocks', () => {
     expect(editor.state.selection).toEqual(textSelection(at('a', 3)));
   });
 
+  describe('Cmd, Ctrl and Alt arrows on a node or block selection', () => {
+    const modifiers: [string, KeyboardEventInit][] = [
+      ['Meta', { metaKey: true }],
+      ['Ctrl', { ctrlKey: true }],
+      ['Alt', { altKey: true }],
+    ];
+    const arrows = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+
+    it.each(modifiers)('%s arrows never reach the browser, which would treat them as history navigation', (_, init) => {
+      const { select, press } = mount();
+      for (const selection of [nodeSelection('d'), blockRangeSelection('a', 'b')]) {
+        for (const name of arrows) {
+          select(selection);
+          expect(press(name, init), `${name} over ${selection.kind}`).toBe(true);
+        }
+      }
+    });
+
+    it('leaves a node selection where it was for Cmd and Ctrl arrows', () => {
+      const { editor, select, press } = mount();
+      for (const init of [{ metaKey: true }, { ctrlKey: true }]) {
+        for (const name of arrows) {
+          select(nodeSelection('d'));
+          press(name, init);
+          expect(editor.state.selection).toEqual(nodeSelection('d'));
+        }
+      }
+    });
+
+    it('leaves a block range where it was for every modifier arrow', () => {
+      const { editor, select, press } = mount();
+      for (const [, init] of modifiers) {
+        for (const name of arrows) {
+          select(blockRangeSelection('a', 'b'));
+          press(name, init);
+          expect(editor.state.selection).toEqual(blockRangeSelection('a', 'b'));
+        }
+      }
+    });
+
+    it('still moves a node selection with a plain Alt arrow', () => {
+      const { editor, select, press } = mount();
+      select(nodeSelection('d'));
+      expect(press('ArrowRight', { altKey: true })).toBe(true);
+      expect(editor.state.selection).toEqual(textSelection(at('b', 0)));
+    });
+
+    it('runs the keymap first, so Mod+Shift+Arrow still moves the selected blocks', () => {
+      const { editor, select, press } = mount();
+      select(nodeSelection('d'));
+      expect(press('ArrowUp', { ctrlKey: true, shiftKey: true })).toBe(true);
+      expect(editor.getBlocks().map((block) => block.id)).toEqual(['d', 'a', 'b']);
+    });
+
+    it('leaves the same keys in text to the browser, where they move the caret by word or line', () => {
+      const { select, press } = mount();
+      select(textSelection(at('a', 1)));
+      for (const name of arrows) expect(press(name, { metaKey: true })).toBe(false);
+      for (const name of arrows) expect(press(name, { ctrlKey: true })).toBe(false);
+      for (const name of ['ArrowLeft', 'ArrowRight']) expect(press(name, { altKey: true })).toBe(false);
+    });
+
+    it('does not swallow a plain arrow, a Tab or a printable key it did not handle itself', () => {
+      const { select, press } = mount([md('a', 'one'), { id: 'd', type: 'DIVIDER', data: {} }, md('b', 'two')]);
+      select(blockRangeSelection('a', 'b'));
+      expect(press('Tab')).toBe(false);
+      expect(press('Shift')).toBe(false);
+      expect(press('F5', { metaKey: true })).toBe(false);
+    });
+  });
+
   it('deletes a node-selected block with Backspace', () => {
     const { editor, select, press } = mount();
     select(nodeSelection('d'));

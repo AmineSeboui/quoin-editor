@@ -42,10 +42,18 @@ function typeOverNode(controller: ViewController, event: KeyboardEvent): boolean
   return controller.edit(() => controller.editor.insertText(key));
 }
 
+// A node or block selection leaves focus on an element that is not editable, where WebKit and Chrome take Cmd or Alt with
+// a horizontal arrow for Back and Forward, so nothing the keymap did not claim reaches the browser.
+function holdHistoryKeys(controller: ViewController, event: KeyboardEvent): boolean {
+  const kind = controller.editor.state.selection?.kind;
+  if (kind !== 'node' && kind !== 'blocks') return false;
+  return Object.hasOwn(ARROWS, event.key) && (event.metaKey || event.ctrlKey || event.altKey);
+}
+
 function handle(controller: ViewController, event: KeyboardEvent): boolean {
   if (arrow(controller, event)) return true;
   if (event.key === 'Tab' && !event.ctrlKey && !event.metaKey && !event.altKey) return tab(controller, event);
-  return runKeymap(controller, event) || typeOverNode(controller, event);
+  return runKeymap(controller, event) || typeOverNode(controller, event) || holdHistoryKeys(controller, event);
 }
 
 export function handleKeydown(controller: ViewController, event: KeyboardEvent): void {

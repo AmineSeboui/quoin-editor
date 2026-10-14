@@ -4,6 +4,7 @@ import type { BlockRenderer } from './block-renderer-types';
 import { blockStatus } from './block-status';
 import { defaultRenderers, VoidBlockFallback } from './default-renderers';
 import { useViewController } from './editor-context';
+import { isTabStop } from './tab-stop';
 import { useEditorState } from './use-editor-state';
 import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect';
 
@@ -22,6 +23,7 @@ export const BlockShell = memo(function BlockShell({ block, index, renderers }: 
   const controller = useViewController();
   const ref = useRef<HTMLDivElement>(null);
   const status = useEditorState(controller, (state) => blockStatus(state, block.id));
+  const tabStop = useEditorState(controller, (state) => isTabStop(state.selection, block.id, null));
   const hidden = status === 'hidden';
 
   useIsomorphicLayoutEffect(() => {
@@ -41,7 +43,7 @@ export const BlockShell = memo(function BlockShell({ block, index, renderers }: 
       data-kind={typeof kind === 'string' ? kind : undefined}
       data-indent={block.indent}
       style={{ '--quoin-indent': block.indent } as CSSProperties}
-      tabIndex={-1}
+      tabIndex={tabStop ? 0 : -1}
       data-selected={status === 'selected' ? 'true' : undefined}
     >
       <Renderer block={block} controller={controller} index={index} />

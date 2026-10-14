@@ -65,3 +65,17 @@ export function isOnFirstLine(host: HTMLElement, point: CaretPoint): boolean {
 export function isOnLastLine(host: HTMLElement, point: CaretPoint): boolean {
   return onEdgeLine(host, point, true);
 }
+
+// The vertical middle of the nearest line above or below the caret's, from the boxes the host's content is drawn in.
+export function adjacentLineMiddle(host: HTMLElement, caret: DOMRect, direction: -1 | 1): number | null {
+  const range = host.ownerDocument.createRange();
+  range.selectNodeContents(host);
+  let nearest: number | null = null;
+  for (const rect of Array.from(range.getClientRects())) {
+    const middle = rect.top + rect.height / 2;
+    const beyond = direction > 0 ? middle > caret.bottom : middle < caret.top;
+    const closer = nearest === null || (direction > 0 ? middle < nearest : middle > nearest);
+    if (rect.height > 0 && beyond && closer) nearest = middle;
+  }
+  return nearest;
+}

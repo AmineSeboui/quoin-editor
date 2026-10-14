@@ -10,7 +10,8 @@ const md = (id: string, markdown: string, indent = 0): QuoinBlock => ({
   ...(indent > 0 ? { indent } : {}),
 });
 
-const MONOSPACE = new Set(['columns', 'ragged']);
+const MONOSPACE = new Set(['columns', 'ragged', 'breaks']);
+const ALPHABET = 'abcdefghijklmnopqrstuvwxyz';
 
 // How the page hands onChange's blocks back: at once, a tick later, as a deep copy, or never.
 const ECHO = new URLSearchParams(location.search).get('echo') ?? 'immediate';
@@ -31,6 +32,11 @@ const docs: Record<string, QuoinBlock[]> = {
   three: [md('a', 'Alpha beta gamma'), md('b', 'Delta epsilon'), md('c', 'Zeta eta theta')],
   columns: [md('c1', 'abcdefgh'), md('c2', 'ijklmnop'), md('c3', 'qrstuvwx')],
   ragged: [md('r1', 'abcdefgh'), md('r2', 'ij'), md('r3', 'qrstuvwx')],
+  breaks: [md('r1', ALPHABET), md('r2', `ab\\\n${ALPHABET}`), md('r3', ALPHABET), md('r4', 'ab'), md('r5', ALPHABET)],
+  wrapped: [
+    md('p', 'The quick brown fox jumps over the lazy dog and keeps running across the wide green field until dusk falls on the quiet hills nearby. Yes.'),
+    md('q', 'Another fairly long line of text that sits right below it here.'),
+  ],
   divider: [md('a', 'a'), { id: 'd', type: 'DIVIDER', data: {} }, md('b', 'b')],
   image: [md('a', 'one'), { id: 'i', type: 'IMAGE', data: { storageKey: 'k', alt: 'An image' } }, md('b', 'two')],
   list: [md('l1', '- one'), md('l2', '- two'), md('l3', '- three')],

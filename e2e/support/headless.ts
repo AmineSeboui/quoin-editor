@@ -27,7 +27,8 @@ export async function caretAt(page: Page, block: number, offset: number) {
   );
 }
 
-// The DOM selection's focus as a block and a text offset, measured on the host's text, for hosts without atoms.
+// The DOM selection's focus as a block and an offset in the host's text, where a hard break counts one, for hosts
+// without atoms.
 export function domCaret(page: Page) {
   return page.evaluate(() => {
     const selection = document.getSelection();
@@ -38,7 +39,8 @@ export function domCaret(page: Page) {
     const range = document.createRange();
     range.setStart(host, 0);
     range.setEnd(node, selection.focusOffset);
-    return { block: host.closest('[data-block-id]')?.getAttribute('data-block-id'), offset: range.toString().length };
+    const breaks = range.cloneContents().querySelectorAll('br[data-quoin-break]').length;
+    return { block: host.closest('[data-block-id]')?.getAttribute('data-block-id'), offset: range.toString().length + breaks };
   });
 }
 

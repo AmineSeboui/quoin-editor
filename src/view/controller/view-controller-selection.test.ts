@@ -2,10 +2,17 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createEditor } from '../../engine/extension/editor';
 import { blockRangeSelection, textSelection } from '../../engine/state/selection';
 import { toggleMark } from '../../engine/commands/marks';
+import { handleKeydown } from '../input/keydown';
 import { at, cleanUpAfterTest, detachAfterTest, mountController, nextTask } from './test-controller';
 import { ViewController } from './view-controller';
 
 afterEach(cleanUpAfterTest);
+
+// jsdom draws nothing and has no Range.getClientRects, so no caret has a box and vertical moves go to the browser.
+function withoutLayout(): void {
+  Object.defineProperty(Range.prototype, 'getClientRects', { configurable: true, value: () => [] });
+  detachAfterTest(() => delete (Range.prototype as Partial<Range>).getClientRects);
+}
 
 describe('ViewController selection sync', () => {
   it('reads the DOM selection into the model', () => {
@@ -58,6 +65,36 @@ describe('ViewController selection sync', () => {
     controller.readSelectionFromDom();
     expect(controller.goalX).toBe(40);
     document.getSelection()!.collapse(host.firstChild!, 2);
+    controller.readSelectionFromDom();
+    expect(controller.goalX).toBeNull();
+  });
+
+  it('keeps the goal column through the read after a move the browser makes for ArrowUp or ArrowDown', () => {
+    withoutLayout();
+    const { controller, editor, host } = mountController('hello');
+    controller.dispatch(editor.createTransaction().setSelection(textSelection(at(1))));
+    controller.goalX = 40;
+    const down = new KeyboardEvent('keydown', { key: 'ArrowDown', cancelable: true });
+    handleKeydown(controller, down);
+    expect(down.defaultPrevented).toBe(false);
+    document.getSelection()!.collapse(host.firstChild!, 3);
+    controller.readSelectionFromDom();
+    expect(editor.state.selection).toEqual(textSelection(at(3)));
+    expect(controller.goalX).toBe(40);
+    handleKeydown(controller, new KeyboardEvent('keydown', { key: 'End', cancelable: true }));
+    document.getSelection()!.collapse(host.firstChild!, 5);
+    controller.readSelectionFromDom();
+    expect(controller.goalX).toBeNull();
+  });
+
+  it('drops the goal column when a press moves the caret after an ArrowDown', () => {
+    withoutLayout();
+    const { controller, editor, host } = mountController('hello');
+    controller.dispatch(editor.createTransaction().setSelection(textSelection(at(1))));
+    controller.goalX = 40;
+    handleKeydown(controller, new KeyboardEvent('keydown', { key: 'ArrowDown', cancelable: true }));
+    host.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }));
+    document.getSelection()!.collapse(host.firstChild!, 4);
     controller.readSelectionFromDom();
     expect(controller.goalX).toBeNull();
   });

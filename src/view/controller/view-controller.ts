@@ -44,6 +44,7 @@ export class ViewController {
   readonly keyInterceptors = new Set<KeyInterceptor>();
   readonly onFiles: ViewControllerOptions['onFiles'];
   goalX: number | null = null;
+  nativeVerticalMove = false;
   dragging = false;
   composingKey: string | null = null;
   private readonly flush: (fn: () => void) => void;
@@ -213,7 +214,7 @@ export class ViewController {
     const selection = readSelection(this.registry, doc.getSelection(), (node) => this.blockAt(node));
     if (selection === null || sameSelection(selection, editor.state.selection)) return;
     const wasCross = this.cross.active;
-    this.goalX = null;
+    if (!this.nativeVerticalMove) this.goalX = null;
     this.flush(() =>
       this.outside.inside(() => editor.dispatch(editor.createTransaction().setSelection(selection).setOrigin('input'))),
     );

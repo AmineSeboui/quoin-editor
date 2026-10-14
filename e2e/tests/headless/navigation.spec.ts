@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { caretAt, host, markdown, modelSelection, openHeadless } from '../../support/headless';
+import { caretAt, domCaret, host, markdown, modelSelection, openHeadless } from '../../support/headless';
 
 test.describe('navigation', () => {
   test('ArrowDown and ArrowUp cross blocks and keep the column', async ({ page }) => {
@@ -26,6 +26,52 @@ test.describe('navigation', () => {
     expect(await modelSelection(page)).toMatchObject({ head: { block: 'r2', offset: 2 } });
     await page.keyboard.press('ArrowUp');
     expect(await modelSelection(page)).toMatchObject({ head: { block: 'r1', offset: 5 } });
+  });
+
+  test('the goal column survives the hard breaks inside a block and the short lines they make', async ({ page }) => {
+    await openHeadless(page, 'breaks');
+    await caretAt(page, 0, 20);
+    const heads = [];
+    for (const key of [...Array(5).fill('ArrowDown'), ...Array(5).fill('ArrowUp')]) {
+      await page.keyboard.press(key);
+      heads.push(await domCaret(page));
+    }
+    expect(heads.map((caret) => `${caret?.block}@${caret?.offset}`)).toEqual([
+      'r2@2', 'r2@23', 'r3@20', 'r4@2', 'r5@20',
+      'r4@2', 'r3@20', 'r2@23', 'r2@2', 'r1@20',
+    ]);
+    expect(await modelSelection(page)).toMatchObject({ head: { block: 'r1', offset: 20 } });
+  });
+
+  test('the goal column survives a wrapped paragraph whose last line is shorter', async ({ page }) => {
+    await openHeadless(page, 'wrapped');
+    const measure = () =>
+      page.evaluate(() => {
+        const range = document.createRange();
+        range.selectNodeContents(document.querySelector('[data-block-id="p"] [data-quoin-host]')!);
+        const rects = Array.from(range.getClientRects());
+        const box = (rect: DOMRect) => ({ top: rect.top, height: rect.height, left: rect.left, right: rect.right });
+        return { first: box(rects[0]), last: box(rects[rects.length - 1]) };
+      });
+    let lines = await measure();
+    for (const width of [420, 380, 460, 340, 500]) {
+      await page.setViewportSize({ width, height: 800 });
+      lines = await measure();
+      const short = lines.last.right - lines.last.left < (lines.first.right - lines.first.left) / 2;
+      if (lines.last.top > lines.first.top && short) break;
+    }
+    await page.mouse.click(lines.first.right - 8, lines.first.top + lines.first.height / 2);
+    const caretX = () => page.evaluate(() => document.getSelection()!.getRangeAt(0).getClientRects()[0].left);
+    const start = await caretX();
+    expect(start).toBeGreaterThan(lines.last.right + 20);
+    for (let i = 0; i < 12 && (await domCaret(page))?.block === 'p'; i++) await page.keyboard.press('ArrowDown');
+    expect((await domCaret(page))?.block).toBe('q');
+    const width = await page.evaluate(() => {
+      const range = document.getSelection()!.getRangeAt(0).cloneRange();
+      range.setEnd(range.startContainer, range.startOffset + 1);
+      return range.getBoundingClientRect().width;
+    });
+    expect(Math.abs((await caretX()) - start)).toBeLessThanOrEqual(width);
   });
 
   test('ArrowDown and ArrowUp stay inside a wrapped paragraph until its last or first line', async ({ page }) => {

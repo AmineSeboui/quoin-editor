@@ -50,6 +50,7 @@ function handle(controller: ViewController, event: KeyboardEvent): boolean {
 
 export function handleKeydown(controller: ViewController, event: KeyboardEvent): void {
   if (isComposingKey(controller, event)) return;
+  controller.nativeVerticalMove = false;
   for (const intercept of controller.keyInterceptors) if (intercept(event)) return;
   if (handle(controller, event)) event.preventDefault();
 }

@@ -21,8 +21,11 @@ export function bindRoot(
   const input = attachInput(controller, root);
   const unsubscribe = controller.editor.subscribe(committed);
   const detachCross = cross.attach(root);
-  const stopFocusReturn = watchFocusReturn(root, (target) => {
-    if (controller.isEditorElement(target)) controller.syncSelectionToDom();
+  const stopFocusReturn = watchFocusReturn(root, {
+    pressed: () => (controller.nativeVerticalMove = false),
+    returned: (target) => {
+      if (controller.isEditorElement(target)) controller.syncSelectionToDom();
+    },
   });
   selectionSync.start();
   return {

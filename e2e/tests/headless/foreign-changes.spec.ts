@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import type { QuoinBlock } from 'quoin-editor';
-import { caretAt, domCaret, modelMarkdown, modelSelection } from '../../support/headless';
+import { caretAt, domCaret, markdown, modelMarkdown, modelSelection } from '../../support/headless';
 
 const ECHOES = ['immediate', 'late', 'clone', 'never'];
 
@@ -93,7 +93,10 @@ for (const echo of ECHOES) {
         return id === caret.block ? `${text.slice(0, caret.offset)}U${text.slice(caret.offset)}` : text;
       });
       await expect.poll(() => modelMarkdown(page)).toEqual(typed);
+      // A late echo landing after the next load would put this document back, as the page asked.
+      if (echo !== 'never') await expect.poll(() => markdown(page)).toEqual(typed);
       await load(page, []);
+      await expect.poll(() => modelMarkdown(page)).toEqual([]);
       await expect(page.getByRole('textbox', { name: 'Paragraph' })).toBeFocused();
       await page.keyboard.type('V');
       await expect.poll(() => modelMarkdown(page)).toEqual(['V']);

@@ -24,7 +24,9 @@ export function reconcileHost(controller: ViewController, block: string, region:
   const element = controller.registry.get(block, region);
   const inline = regionInline(controller.editor.state, block, region);
   if (element === undefined || inline === undefined) return false;
-  const edit = textDiff(inlineText(inline), readDomText(element), caretHint ?? domCaretOffset(element));
+  const before = inlineText(inline);
+  const after = readDomText(element);
+  const edit = before === after ? null : textDiff(before, after, caretHint ?? domCaretOffset(element));
   if (edit === null) return false;
   const at = (offset: number): Pos => ({ block, region, offset });
   // Painted inside the edit so the selection is written back onto DOM the offset map describes, even when the model

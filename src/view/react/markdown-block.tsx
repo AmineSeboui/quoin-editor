@@ -16,8 +16,11 @@ function TextRegion({ block, label, placeholder }: TextRegionProps) {
   return <EditableRegion block={block.id} region={REGION} label={label} placeholder={placeholder} />;
 }
 
-function NumberedItem({ block, controller, index }: BlockRenderProps) {
-  const number = useEditorState(controller, ({ doc }) => orderedNumber(doc, doc.index.get(block.id) ?? index));
+function NumberedItem({ block, controller }: BlockRenderProps) {
+  const number = useEditorState(controller, ({ doc }) => {
+    const index = doc.index.get(block.id);
+    return index === undefined ? 1 : orderedNumber(doc, index);
+  });
   return (
     <div className="quoin-list-item" data-list="ordered">
       <span className="quoin-marker" aria-hidden="true">{`${number}.`}</span>

@@ -9,7 +9,6 @@ import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect';
 
 type BlockShellProps = {
   block: EngineBlock;
-  index: number;
   renderers: Readonly<Record<string, BlockRenderer>>;
 };
 
@@ -18,7 +17,7 @@ function rendererFor(renderers: Readonly<Record<string, BlockRenderer>>, type: s
   return VoidBlockFallback;
 }
 
-export const BlockShell = memo(function BlockShell({ block, index, renderers }: BlockShellProps) {
+export const BlockShell = memo(function BlockShell({ block, renderers }: BlockShellProps) {
   const controller = useViewController();
   const ref = useRef<HTMLDivElement>(null);
   const status = useEditorState(controller, (state) => blockStatus(state, block.id));
@@ -44,7 +43,7 @@ export const BlockShell = memo(function BlockShell({ block, index, renderers }: 
       tabIndex={-1}
       data-selected={status === 'selected' ? 'true' : undefined}
     >
-      <Renderer block={block} controller={controller} index={index} />
+      <Renderer block={block} controller={controller} />
     </div>
   );
 });

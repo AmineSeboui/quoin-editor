@@ -171,7 +171,7 @@ describe('block renderer lookup', () => {
       />,
     );
     expect(screen.getByText('custom a')).toBeInTheDocument();
-    expect(seen.map((props) => props.index)).toEqual([0, 1]);
+    expect(seen.map((props) => props.block.id)).toEqual(['a', 'b']);
     expect(seen[0].controller).toBe(controller);
     expect(seen[0].block.id).toBe('a');
   });

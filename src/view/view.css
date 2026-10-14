@@ -26,6 +26,7 @@
 .quoin [data-quoin-block][data-selected="true"] {
   background: var(--quoin-accent);
   box-shadow: 0 0 0 2px var(--quoin-ring);
+  outline: 2px solid transparent;
 }
 
 .quoin[data-quoin-cross] [data-quoin-host]::selection,
@@ -162,6 +163,12 @@
 
 .quoin .quoin-toggle-button[aria-expanded="true"] svg {
   transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quoin .quoin-toggle-button svg {
+    transition: none;
+  }
 }
 
 .quoin .quoin-void {

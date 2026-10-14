@@ -8,6 +8,7 @@ import { caretFromPoint } from './caret-from-point';
 import { collapseCross, crossHeadVertically } from './cross-moves';
 import { adjacentLineMiddle, caretClientRect, isOnFirstLine, isOnLastLine, lineEdgeRect } from './line-edges';
 import { entryEdge, holdsTextHead, moveToNeighbour, neighbourBlock } from './neighbour-block';
+import { stayOnLine } from './stay-on-line';
 
 // caretFromPoint only finds content inside the viewport.
 function lineInView(host: HTMLElement, last: boolean): DOMRect | null {
@@ -26,7 +27,11 @@ function caretAtGoal(controller: ViewController, host: HTMLElement, at: Omit<Pos
   const x = Math.min(Math.max(goalX, box.left), box.right - 1);
   const point = caretFromPoint(host.ownerDocument, x, y);
   const pos = point && domToPos(controller.registry, point.node, point.offset);
-  return pos && pos.block === at.block && pos.region === at.region ? pos : null;
+  if (!pos || pos.block !== at.block || pos.region !== at.region) return null;
+  return stayOnLine(pos, y, (p) => {
+    const dom = posToDom(controller.registry, p);
+    return dom && caretClientRect(dom);
+  });
 }
 
 function landAtGoal(controller: ViewController, block: EngineBlock, direction: -1 | 1): Selection | null {

@@ -74,6 +74,33 @@ test.describe('navigation', () => {
     expect(Math.abs((await caretX()) - start)).toBeLessThanOrEqual(width);
   });
 
+  test('the goal column holds at every width, also where a soft wrap falls on the goal', async ({ page }) => {
+    for (const width of [300, 320, 340, 360, 380, 400, 420, 440, 460, 480, 500]) {
+      await openHeadless(page, 'wrapped');
+      await page.setViewportSize({ width, height: 800 });
+      const geometry = await page.evaluate(() => {
+        const lineOf = (id: string) => {
+          const range = document.createRange();
+          range.selectNodeContents(document.querySelector(`[data-block-id="${id}"] [data-quoin-host]`)!);
+          return range.getClientRects()[0];
+        };
+        const text = document.querySelector('[data-block-id="p"] [data-quoin-host]')!.firstChild as Text;
+        const glyph = document.createRange();
+        glyph.setStart(text, 0);
+        glyph.setEnd(text, 1);
+        const first = lineOf('p');
+        return { right: first.right, top: first.top, height: first.height, qRight: lineOf('q').right, glyph: glyph.getBoundingClientRect().width };
+      });
+      await page.mouse.click(geometry.right - 8, geometry.top + geometry.height / 2);
+      const caretX = () => page.evaluate(() => document.getSelection()!.getRangeAt(0).getClientRects()[0].left);
+      const start = await caretX();
+      for (let i = 0; i < 12 && (await domCaret(page))?.block === 'p'; i++) await page.keyboard.press('ArrowDown');
+      expect((await domCaret(page))?.block, `width ${width}`).toBe('q');
+      const expected = Math.min(start, geometry.qRight);
+      expect(Math.abs((await caretX()) - expected), `width ${width}`).toBeLessThanOrEqual(geometry.glyph * 1.5);
+    }
+  });
+
   test('ArrowDown and ArrowUp stay inside a wrapped paragraph until its last or first line', async ({ page }) => {
     await page.setViewportSize({ width: 240, height: 800 });
     await openHeadless(page);

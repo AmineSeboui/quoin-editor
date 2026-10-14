@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { insertText } from '../../engine/commands/insert-text';
 import { createEditor } from '../../engine/extension/editor';
 import { inlineText } from '../../engine/model/inline';
@@ -125,5 +125,79 @@ describe('attached input', () => {
     shell.dispatchEvent(handled);
     expect(handled.defaultPrevented).toBe(true);
     expect(editor.getBlocks().map((block) => block.id)).toEqual(['a']);
+  });
+
+  it('ignores a beforeinput that belongs to a composition before reading anything from the DOM', () => {
+    const { editor, controller, root, addHost, text } = mount();
+    const host = addHost('a');
+    detachers.push(controller.attach(root));
+    controller.dispatch(editor.createTransaction().setSelection(textSelection({ block: 'a', region: 'text', offset: 2 })));
+    const read = vi.spyOn(controller, 'readSelectionFromDom');
+    const composing = new InputEvent('beforeinput', { inputType: 'insertText', data: 'x', isComposing: true, cancelable: true, bubbles: true });
+    host.dispatchEvent(composing);
+    controller.composingKey = 'a:text';
+    const during = beforeInput('y');
+    host.dispatchEvent(during);
+    controller.composingKey = null;
+    expect([composing, during].map((event) => event.defaultPrevented)).toEqual([false, false]);
+    expect(read).not.toHaveBeenCalled();
+    expect(text(0)).toBe('hi');
+    host.dispatchEvent(beforeInput('z'));
+    expect(read).toHaveBeenCalledTimes(1);
+    expect(text(0)).toBe('hiz');
+  });
+});
+
+describe('detaching during a composition', () => {
+  const compose = (target: HTMLElement, phase: 'start' | 'end', data = '') =>
+    target.dispatchEvent(new CompositionEvent(`composition${phase}`, { data, bubbles: true }));
+
+  it('lets go of a composition that is still running, so the controller takes input again', async () => {
+    const { editor, controller, root, addHost, text } = mount();
+    const host = addHost('a');
+    const detach = controller.attach(root);
+    controller.dispatch(editor.createTransaction().setSelection(textSelection({ block: 'a', region: 'text', offset: 2 })));
+    document.getSelection()!.collapse(host.firstChild, 2);
+    compose(host, 'start');
+    expect(controller.composingKey).not.toBeNull();
+    detach();
+    expect(controller.composingKey).toBeNull();
+    await nextTask();
+    expect(text(0)).toBe('hi');
+    detachers.push(controller.attach(root));
+    host.dispatchEvent(beforeInput('!'));
+    expect(text(0)).toBe('hi!');
+  });
+
+  it('commits a composition that had already ended, then lets go', async () => {
+    const { editor, controller, root, addHost, text } = mount();
+    const host = addHost('a');
+    const detach = controller.attach(root);
+    controller.dispatch(editor.createTransaction().setSelection(textSelection({ block: 'a', region: 'text', offset: 2 })));
+    document.getSelection()!.collapse(host.firstChild, 2);
+    compose(host, 'start');
+    type(host, 'hi\u65e5');
+    compose(host, 'end', '\u65e5');
+    detach();
+    expect(controller.composingKey).toBeNull();
+    expect(text(0)).toBe('hi\u65e5');
+    await nextTask();
+    expect(text(0)).toBe('hi\u65e5');
+  });
+
+  it('lets go of a composition in the sink', async () => {
+    const { editor, controller, root, addHost } = mount();
+    addHost('a');
+    const sink = document.createElement('div');
+    root.appendChild(sink);
+    controller.registerSink(sink);
+    const detach = controller.attach(root);
+    controller.dispatch(editor.createTransaction().setSelection(textSelection({ block: 'a', region: 'text', offset: 0 })));
+    compose(sink, 'start');
+    expect(controller.composingKey).not.toBeNull();
+    detach();
+    expect(controller.composingKey).toBeNull();
+    await nextTask();
+    expect(editor.getBlocks().map((block) => block.data.markdown)).toEqual(['hi', 'yo']);
   });
 });

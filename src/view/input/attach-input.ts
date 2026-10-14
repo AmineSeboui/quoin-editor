@@ -1,7 +1,7 @@
 import { attachClipboard } from '../clipboard/attach-clipboard';
 import type { ViewController } from '../controller/view-controller';
 import { createSinkComposition } from '../selection/sink-composition';
-import { handleBeforeInput } from './before-input';
+import { handleBeforeInput, isComposingInput } from './before-input';
 import { createCompositionHandlers } from './composition';
 import { createDomInputFallback } from './dom-input';
 import { handleKeydown, isComposingKey } from './keydown';
@@ -29,7 +29,8 @@ export function attachInput(controller: ViewController, root: HTMLElement): Atta
     controller.readSelectionFromDom();
   };
   const onBeforeInput = (event: InputEvent) => {
-    if (controller.readOnly || (!inHost(event) && !inSink(event) && !inEmptyHost(event))) return;
+    if (isComposingInput(controller, event) || controller.readOnly) return;
+    if (!inHost(event) && !inSink(event) && !inEmptyHost(event)) return;
     catchUp();
     handleBeforeInput(controller, event);
   };
@@ -74,6 +75,7 @@ export function attachInput(controller: ViewController, root: HTMLElement): Atta
     drain: fallback.drain,
     detach() {
       composition.release();
+      sinkComposition.release();
       detachClipboard();
       root.removeEventListener('keydown', onKeyDown);
       root.removeEventListener('beforeinput', onBeforeInput);

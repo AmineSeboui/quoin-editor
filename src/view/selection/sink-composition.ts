@@ -1,7 +1,7 @@
 import type { ViewController } from '../controller/view-controller';
 import { clearSink } from './selection-sink';
 
-export type SinkComposition = { start(): void; end(): void };
+export type SinkComposition = { start(): void; end(): void; release(): void };
 
 type Outside = { readonly before: string; readonly after: string };
 
@@ -72,6 +72,13 @@ export function createSinkComposition(controller: ViewController): SinkCompositi
         clearTimeout(timer);
         sink.removeEventListener('input', onInput);
       };
+    },
+    release() {
+      if (stopWaiting !== null) settle();
+      else if (outside !== null) {
+        outside = null;
+        controller.composingKey = null;
+      }
     },
   };
 }

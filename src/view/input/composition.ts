@@ -74,8 +74,12 @@ export function createCompositionHandlers(controller: ViewController): Compositi
       waitForInput(elementOf(controller, target));
     },
     release() {
+      if (stopWaiting !== null) settle();
       snapshot?.release();
       snapshot = null;
+      target = null;
+      if (active) controller.composingKey = null;
+      active = false;
     },
     get active() {
       return active;

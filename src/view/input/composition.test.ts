@@ -72,6 +72,37 @@ describe('composition', () => {
     expect(stops[0]).toHaveBeenCalledTimes(1);
   });
 
+  it('drops a composition that is still running when released, leaving the model as it was', async () => {
+    vi.useFakeTimers();
+    const { editor, controller, host, compose, composition } = setup();
+    composition.start(new CompositionEvent('compositionstart'));
+    compose('x\u65e5');
+    composition.release();
+    expect(composition.active).toBe(false);
+    expect(controller.composingKey).toBeNull();
+    composition.end(new CompositionEvent('compositionend', { data: '\u65e5' }));
+    await vi.runAllTimersAsync();
+    expect(editor.getBlocks()[0].data.markdown).toBe('x');
+    host.dispatchEvent(new InputEvent('input', { inputType: 'insertFromComposition' }));
+    expect(editor.getBlocks()[0].data.markdown).toBe('x');
+    vi.useRealTimers();
+  });
+
+  it('settles a composition that had ended and was waiting for its input event when released', async () => {
+    vi.useFakeTimers();
+    const { editor, controller, compose, composition } = setup();
+    composition.start(new CompositionEvent('compositionstart'));
+    compose('x\u65e5');
+    composition.end(new CompositionEvent('compositionend', { data: '\u65e5' }));
+    composition.release();
+    expect(editor.getBlocks()[0].data.markdown).toBe('x\u65e5');
+    expect(composition.active).toBe(false);
+    expect(controller.composingKey).toBeNull();
+    await vi.runAllTimersAsync();
+    expect(editor.getBlocks()[0].data.markdown).toBe('x\u65e5');
+    vi.useRealTimers();
+  });
+
   it('settles a composition still waiting when the next one starts', () => {
     const { editor, controller, compose, composition } = setup();
     composition.start(new CompositionEvent('compositionstart'));

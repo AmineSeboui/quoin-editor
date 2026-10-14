@@ -86,9 +86,12 @@ const actions: Readonly<Record<string, Action>> = {
   deleteByDrag: leaveToHandlers,
 };
 
+export const isComposingInput = (controller: ViewController, event: InputEvent): boolean =>
+  event.isComposing || controller.composingKey !== null;
+
 export function handleBeforeInput(controller: ViewController, event: InputEvent): void {
   const { inputType } = event;
-  if (event.isComposing || controller.composingKey !== null) return;
+  if (isComposingInput(controller, event)) return;
   if (!event.cancelable || !Object.hasOwn(actions, inputType)) return;
   event.preventDefault();
   actions[inputType](controller, event);

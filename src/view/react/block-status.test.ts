@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import type { EngineBlock } from '../../engine';
+import { createDoc } from '../../engine/model/doc';
 import { buildState } from '../../engine/test-support/build-state';
 import { blockStatus } from './block-status';
 
@@ -53,5 +55,29 @@ describe('blockStatus', () => {
 
   it('treats an id the document does not hold as plain', () => {
     expect(blockStatus(buildState([{ id: 'x', type: 'DIVIDER', data: {} }], { node: 0 }), 'gone')).toBe('plain');
+  });
+
+  it('asks which toggle hides a block once per document, not once per block and transaction', () => {
+    const base = buildState(
+      [
+        { id: 'x', type: 'TOGGLE', data: { markdown: 'closed', open: false } },
+        ...Array.from({ length: 300 }, (_, i) => ({ id: 'x', type: 'MARKDOWN', data: { markdown: `${i}` }, indent: 1 })),
+      ],
+      { block: 0, offset: 0 },
+    );
+    let reads = 0;
+    const counted = (block: EngineBlock): EngineBlock => ({
+      ...block,
+      get indent() {
+        reads += 1;
+        return block.indent;
+      },
+    });
+    const doc = createDoc(base.doc.blocks.map(counted));
+    const statuses = (state: typeof base) => state.doc.blocks.map((block) => blockStatus(state, block.id));
+    expect(statuses({ ...base, doc }).slice(0, 3)).toEqual(['plain', 'hidden', 'hidden']);
+    const once = reads;
+    expect(statuses({ ...base, doc, selection: null })).toHaveLength(301);
+    expect(reads).toBe(once);
   });
 });

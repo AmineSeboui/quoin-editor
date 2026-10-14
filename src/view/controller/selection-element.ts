@@ -1,7 +1,7 @@
 import type { EditorState, Selection } from '../../engine';
 import { headBlockId } from '../../engine/commands/block-helpers';
-import { hidingToggle } from '../../engine/commands/collapsed-toggle';
 import { startOf } from '../../engine/state/selection';
+import { hidingToggleAt } from '../navigation/visible-blocks';
 import { isCrossSelection } from '../selection/selection-decorations';
 import type { HostRegistry } from './host-registry';
 
@@ -16,7 +16,7 @@ function elementFor({ doc }: EditorState, selection: Selection | null, rendered:
   const id = headBlockId(selection);
   const index = id === null ? undefined : doc.index.get(id);
   if (id === null || index === undefined) return undefined;
-  const hiding = hidingToggle(doc, index + 1);
+  const hiding = hidingToggleAt(doc, index);
   if (hiding !== null) return rendered.block(doc.blocks[hiding].id);
   const host = selection?.kind === 'text' ? rendered.hosts.get(id, selection.head.region) : undefined;
   return host ?? rendered.block(id);

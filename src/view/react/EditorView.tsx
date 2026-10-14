@@ -5,6 +5,7 @@ import { QuoinEditorContext } from './editor-context';
 import { EmptyDocumentHost } from './EmptyDocumentHost';
 import { LiveRegion } from './LiveRegion';
 import { SelectionSink } from './SelectionSink';
+import { SelectionWriter } from './SelectionWriter';
 import { useBlockElements } from './use-block-elements';
 import { useEditorState } from './use-editor-state';
 import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect';
@@ -52,6 +53,7 @@ export function EditorView({
           {HINT}
         </div>
         <LiveRegion />
+        <SelectionWriter />
       </div>
     </QuoinEditorContext.Provider>
   );

@@ -2,6 +2,7 @@ import { reconcileChildren } from './reconcile';
 import type { RenderSpec } from './render-spec';
 import { createWrappers, unwrap, wrapperDepth, wrapperEntries } from './wrappers';
 import { segmentSignature, type Segment } from './segments';
+import { textDiff } from './text-diff';
 
 const TEXT = 'text';
 const BREAK = 'break';
@@ -10,9 +11,11 @@ function textPiece(doc: Document, value: string, from: number): RenderSpec {
   return {
     sig: TEXT,
     create: () => doc.createTextNode(value),
+    // Assigning data collapses a range inside the node to its start; an edit moves only the points after it.
     refresh(node) {
       const target = node as Text;
-      if (target.data !== value) target.data = value;
+      const edit = textDiff(target.data, value);
+      if (edit !== null) target.replaceData(edit.from, edit.to - edit.from, edit.insert);
       return true;
     },
     describe: (node, out) => void out.push({ node, from, to: from + value.length, kind: 'text' }),

@@ -137,4 +137,20 @@ describe('reconciliation', () => {
     renderInline(el, [text('ab')], []);
     expect(el.innerHTML).toBe('ab');
   });
+
+  it('edits a kept text node in place, so a caret inside it keeps its place in the text', () => {
+    const el = host();
+    document.body.appendChild(el);
+    renderInline(el, [text('Delta epsilon')], []);
+    const node = el.firstChild as Text;
+    const selection = document.getSelection()!;
+    selection.collapse(node, 8);
+    renderInline(el, [text('Delta epsilon and more')], []);
+    expect([el.firstChild, selection.focusNode, selection.focusOffset]).toEqual([node, node, 8]);
+    renderInline(el, [text('XXDelta epsilon and more')], []);
+    expect([selection.focusNode, selection.focusOffset]).toEqual([node, 10]);
+    renderInline(el, [text('XXDelta')], []);
+    expect([selection.focusNode, selection.focusOffset]).toEqual([node, 7]);
+    el.remove();
+  });
 });

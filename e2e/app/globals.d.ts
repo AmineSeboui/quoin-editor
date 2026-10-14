@@ -5,6 +5,7 @@ declare global {
   interface Window {
     __quoin: {
       blocks(): QuoinBlock[];
+      setBlocks?: (update: (blocks: QuoinBlock[]) => QuoinBlock[]) => void;
       changes: number;
       controller?: ViewController;
       files?: { names: string[]; at: unknown }[];

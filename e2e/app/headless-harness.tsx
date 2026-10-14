@@ -12,6 +12,9 @@ const md = (id: string, markdown: string, indent = 0): QuoinBlock => ({
 
 const MONOSPACE = new Set(['columns', 'ragged']);
 
+// How the page hands onChange's blocks back: at once, a tick later, as a deep copy, or never.
+const ECHO = new URLSearchParams(location.search).get('echo') ?? 'immediate';
+
 const docs: Record<string, QuoinBlock[]> = {
   empty: [],
   sample: [
@@ -68,12 +71,15 @@ export function HeadlessHarness({ doc }: { doc: string }) {
     render: doc === 'atoms' ? MENTION_CHIPS : undefined,
     onChange: (next) => {
       window.__quoin.changes += 1;
-      setBlocks(next);
+      if (ECHO === 'immediate') setBlocks(next);
+      else if (ECHO === 'late') setTimeout(() => setBlocks(next), 0);
+      else if (ECHO === 'clone') setBlocks(structuredClone(next));
     },
     onFiles: (files, at) => window.__quoin.files?.push({ names: files.map((file) => file.name), at }),
   });
   window.__quoin = {
     blocks: () => blocks,
+    setBlocks,
     changes: window.__quoin?.changes ?? 0,
     controller,
     files: window.__quoin?.files ?? [],

@@ -12,6 +12,7 @@ import { focusTarget, type FocusTarget } from './focus-target';
 import { createHostRegistry, hostKey, type HostEntry, type HostRegistry } from './host-registry';
 import { hostDecorations } from './host-decorations';
 import { createHostRenderer, type HostRenderer } from './host-renderer';
+import { createOutsideChanges } from './outside-changes';
 import { bindRoot, type RootBinding } from './root-binding';
 import { samePoints, selectionPoints } from './selection-sync';
 
@@ -49,6 +50,7 @@ export class ViewController {
   private readonly hosts: HostRenderer;
   private readonly drawn = createDrawnElements(this.registry, () => this.editor.state);
   private readonly cross = createCrossMode(this);
+  private readonly outside = createOutsideChanges(() => hasFocus(this, this.ownerDocument()));
   private binding: RootBinding | null = null;
   private detachRoot: (() => void) | null = null;
   private readOnlyFlag: boolean;
@@ -82,6 +84,7 @@ export class ViewController {
   attach(root: HTMLElement): () => void {
     this.detachRoot?.();
     const binding = bindRoot(this, root, this.cross, () => {
+      this.outside.committed();
       this.drawn.syncTabStop();
       this.cross.syncLater();
     });
@@ -139,9 +142,11 @@ export class ViewController {
     const before = this.editor.state;
     const focused = hasFocus(this, this.ownerDocument());
     let handled = false;
-    this.flush(() => {
-      handled = change();
-    });
+    this.flush(() =>
+      this.outside.inside(() => {
+        handled = change();
+      }),
+    );
     if (this.editor.state === before) return handled;
     if (this.editor.state.doc !== before.doc) this.goalX = null;
     this.refreshHosts();
@@ -149,6 +154,16 @@ export class ViewController {
     if (focused) this.keepFocus();
     this.syncSelectionToDom();
     return handled;
+  }
+
+  // A change made outside edit() reaches the hosts when React draws them, so the selection is written back once that
+  // has happened, and focus follows a host the change replaced.
+  afterRender(): void {
+    const doc = this.ownerDocument();
+    if (!this.outside.takeFocused() || !doc || !ownsFocus(this, doc)) return;
+    this.cross.sync();
+    this.keepFocus();
+    this.syncSelectionToDom();
   }
 
   refreshHosts(): void {
@@ -199,7 +214,9 @@ export class ViewController {
     if (selection === null || sameSelection(selection, editor.state.selection)) return;
     const wasCross = this.cross.active;
     this.goalX = null;
-    this.flush(() => editor.dispatch(editor.createTransaction().setSelection(selection).setOrigin('input')));
+    this.flush(() =>
+      this.outside.inside(() => editor.dispatch(editor.createTransaction().setSelection(selection).setOrigin('input'))),
+    );
     this.cross.sync();
     if (!wasCross && !this.cross.active) return;
     this.keepFocus();

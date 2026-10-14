@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
+import { insertText } from '../../engine/commands/insert-text';
 import { createEditor } from '../../engine/extension/editor';
 import { inlineText } from '../../engine/model/inline';
+import { textSelection } from '../../engine/state/selection';
 import { hostKey } from '../controller/host-registry';
 import { ViewController } from '../controller/view-controller';
 import { createDomInputFallback } from './dom-input';
@@ -74,6 +76,27 @@ describe('DOM input fallback', () => {
     host.dispatchEvent(typed());
     await nextTask();
     expect(text()).toBe('ab');
+  });
+
+  it('does not read its own renders back as edits', async () => {
+    const { controller, fallback, host, text, changes } = setup();
+    fallback.observe(host);
+    controller.dispatch(controller.editor.createTransaction().setSelection(textSelection({ block: 'a', region: 'text', offset: 2 })));
+    controller.run(insertText('!'));
+    await nextTask();
+    expect(text()).toBe('ab!');
+    expect(changes()).toBe(1);
+  });
+
+  it('leaves a read-only document alone when something else rewrites a host', async () => {
+    const { controller, fallback, host, edit, text, changes } = setup();
+    controller.setReadOnly(true);
+    fallback.observe(host);
+    edit('translated');
+    host.dispatchEvent(typed());
+    await nextTask();
+    expect(text()).toBe('ab');
+    expect(changes()).toBe(0);
   });
 
   it('flushes pending edits, including records not delivered yet, right away', () => {

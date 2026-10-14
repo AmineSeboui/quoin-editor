@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { caretAt, markdown, openHeadless } from '../../support/headless';
+import { caretAt, host, markdown, openHeadless } from '../../support/headless';
 
 const mod = process.platform === 'darwin' ? 'Meta' : 'Control';
 const lineStart = process.platform === 'darwin' ? 'Meta+ArrowLeft' : 'Home';
@@ -49,6 +49,23 @@ test.describe('typing', () => {
     await caretAt(page, 1, 0);
     await page.keyboard.insertText('Pasted-ish ');
     expect((await markdown(page))[1].startsWith('Pasted-ish ')).toBe(true);
+  });
+
+  test('an edit made without input events reaches the model', async ({ page }) => {
+    await openHeadless(page);
+    await host(page, 1).evaluate((element) => {
+      (element.firstChild as Text).data = 'One paragraph with ';
+    });
+    await expect.poll(async () => (await markdown(page))[1]).toBe('One paragraph with **bold**, _italic_ and `code`.');
+  });
+
+  test('each keystroke changes the document once', async ({ page }) => {
+    await openHeadless(page);
+    await caretAt(page, 1, 0);
+    const before = await page.evaluate(() => window.__quoin.changes);
+    await page.keyboard.type('xyz');
+    expect((await markdown(page))[1]).toBe('xyzA paragraph with **bold**, _italic_ and `code`.');
+    expect(await page.evaluate(() => window.__quoin.changes)).toBe(before + 3);
   });
 
   test('word deletion removes the previous word', async ({ page }) => {

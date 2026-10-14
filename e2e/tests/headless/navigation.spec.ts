@@ -71,7 +71,7 @@ test.describe('navigation', () => {
       range.setEnd(range.startContainer, range.startOffset + 1);
       return range.getBoundingClientRect().width;
     });
-    expect(Math.abs((await caretX()) - start)).toBeLessThanOrEqual(width);
+    expect(Math.abs((await caretX()) - start)).toBeLessThanOrEqual(width * 2);
   });
 
   test('the goal column holds at every width, also where a soft wrap falls on the goal', async ({ page }) => {

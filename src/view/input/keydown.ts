@@ -20,6 +20,8 @@ export function isComposingKey(controller: ViewController, event: KeyboardEvent)
 const runKeymap = (controller: ViewController, event: KeyboardEvent): boolean =>
   controller.edit(() => controller.editor.handleKey(event));
 
+// Alt arrows cross blocks at an edge. Ctrl and Meta arrows are line and word moves the browser makes, so they go to the
+// keymap and then to the browser.
 function arrow(controller: ViewController, event: KeyboardEvent): boolean {
   if (!Object.hasOwn(ARROWS, event.key) || event.ctrlKey || event.metaKey) return false;
   const [move, direction] = ARROWS[event.key];

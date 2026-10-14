@@ -60,6 +60,16 @@ test.describe('cross-block selection', () => {
     expect(await markdown(page)).toEqual([]);
   });
 
+  test('typing replaces selected blocks with a paragraph, and the caret stays in it', async ({ page }) => {
+    await openHeadless(page, 'three');
+    await host(page, 1).click();
+    await page.keyboard.press(`${mod}+a`);
+    await page.keyboard.press(`${mod}+a`);
+    await page.keyboard.type('XY');
+    await expect.poll(() => markdown(page)).toEqual(['XY']);
+    await expect(host(page, 0)).toBeFocused();
+  });
+
   test('works without the highlight API', async ({ page }) => {
     await page.addInitScript(() => {
       delete (CSS as unknown as { highlights?: unknown }).highlights;

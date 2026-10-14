@@ -13,14 +13,18 @@ function mount(blocks: QuoinBlock[]) {
     act(() => controller.dispatch(controller.editor.createTransaction().setSelection(selection)));
   const tabStops = () =>
     Array.from(container.querySelectorAll<HTMLElement>('[tabindex="0"]'), (element) =>
-      element.hasAttribute('data-quoin-host') ? `host ${element.closest<HTMLElement>('[data-block-id]')!.dataset.blockId}` : element.dataset.blockId,
+      element.hasAttribute('data-quoin-host')
+        ? `host ${element.closest<HTMLElement>('[data-block-id]')!.dataset.blockId}`
+        : element.hasAttribute('data-quoin-sink')
+          ? 'sink'
+          : element.dataset.blockId,
     );
   const shell = (id: string) => container.querySelector<HTMLElement>(`[data-block-id="${id}"]`);
   return { controller, container, select, tabStops, shell };
 }
 
 describe('EditorView tab stop', () => {
-  it('keeps one tab stop: the host of the caret, or the shell a node or block selection focuses', () => {
+  it('keeps one tab stop: the host of the caret, the shell a node selection focuses, or the sink for a block range', () => {
     const { container, select, tabStops } = mount([md('a', 'one'), { id: 'd', type: 'DIVIDER', data: {} }, md('c', 'three')]);
     expect(tabStops()).toEqual(['host a']);
     expect(hostOf(container, 'c')).toHaveAttribute('tabindex', '-1');
@@ -29,16 +33,17 @@ describe('EditorView tab stop', () => {
     select(nodeSelection('d'));
     expect(tabStops()).toEqual(['d']);
     select(blockRangeSelection('a', 'c'));
-    expect(tabStops()).toEqual(['c']);
+    expect(tabStops()).toEqual(['sink']);
+    expect(hostOf(container, 'c')).toHaveAttribute('tabindex', '-1');
   });
 
-  it('falls back to the closed toggle that hides the head, and keeps focus there', () => {
-    const { controller, select, tabStops, shell } = mount([md('a', 'one'), toggle(false), md('c', 'child', 1)]);
+  it('keeps a block range whose head a closed toggle hides in the sink, and lands a caret on the toggle', () => {
+    const { controller, container, select, tabStops, shell } = mount([md('a', 'one'), toggle(false), md('c', 'child', 1)]);
     act(() => controller.focus({ block: 'a', region: 'text', offset: 1 }));
     select(blockRangeSelection('a', 'c'));
     expect(shell('c')).toBeNull();
-    expect(tabStops()).toEqual(['t']);
-    expect(document.activeElement).toBe(shell('t'));
+    expect(tabStops()).toEqual(['sink']);
+    expect(document.activeElement).toBe(container.querySelector('[data-quoin-sink]'));
     select(textSelection({ block: 'c', region: 'text', offset: 1 }));
     expect(controller.editor.state.selection).toEqual(textSelection({ block: 't', region: 'text', offset: 1 }));
     expect(tabStops()).toEqual(['host t']);

@@ -47,3 +47,30 @@ export function domCaret(page: Page) {
 export function modelMarkdown(page: Page): Promise<string[]> {
   return page.evaluate(() => window.__quoin.controller!.editor.getBlocks().map((b) => String(b.data.markdown)));
 }
+
+// Selects text from one block's offset to another's through the controller, so a spec starts from an exact range whatever
+// the browser's metrics. The editor must be focused for focus to follow the selection.
+export function selectText(page: Page, from: readonly [block: number, offset: number], to: readonly [block: number, offset: number]) {
+  return page.evaluate(
+    ([a, b]) => {
+      const { controller } = window.__quoin;
+      const { doc } = controller!.editor.state;
+      const pos = ([block, offset]: readonly [number, number]) => ({ block: doc.blocks[block].id, region: 'text', offset });
+      controller!.dispatch(controller!.editor.createTransaction().setSelection({ kind: 'text', anchor: pos(a), head: pos(b) }));
+    },
+    [from, to] as const,
+  );
+}
+
+// What the browser itself has selected: Firefox and Safari fire copy and cut only for a native, non-collapsed selection.
+export function nativeSelection(page: Page) {
+  return page.evaluate(() => {
+    const selection = document.getSelection()!;
+    const sink = document.querySelector('[data-quoin-sink]');
+    return {
+      collapsed: selection.isCollapsed,
+      inSink: sink !== null && sink.contains(selection.anchorNode) && sink.contains(selection.focusNode),
+      text: selection.toString().replace(/\s+/g, ' ').trim(),
+    };
+  });
+}

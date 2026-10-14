@@ -3,7 +3,7 @@ import type { ViewController } from '../controller/view-controller';
 import { createCrossBlockPointer } from './cross-block-pointer';
 import { createPainter, type Painter } from './paint-selection';
 import { isCrossSelection, type PaintMode } from './selection-decorations';
-import { clearSink } from './selection-sink';
+import { clearSink, heldBySink } from './selection-sink';
 
 export type CrossMode = {
   readonly active: boolean;
@@ -33,8 +33,8 @@ export function createCrossMode(controller: ViewController): CrossMode {
     } else if (active) {
       attached?.root.removeAttribute(CROSS);
       attached?.painter.clear();
-      clearSink(controller);
     }
+    if (!heldBySink(state.selection)) clearSink(controller);
     active = cross;
   }
 

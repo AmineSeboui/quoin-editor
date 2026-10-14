@@ -1,11 +1,10 @@
 import { useRef } from 'react';
-import { isCrossSelection } from '../selection/selection-decorations';
-import { focusSink } from '../selection/selection-sink';
+import { focusSink, heldBySink } from '../selection/selection-sink';
 import { useViewController } from './editor-context';
 import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect';
 import { useReadOnly } from './use-read-only';
 
-// Holds the focus and the text of a selection across blocks. The controller fills it, never React.
+// Holds the focus and the text of a selection across blocks or of whole blocks. The controller fills it, never React.
 export function SelectionSink() {
   const controller = useViewController();
   const ref = useRef<HTMLDivElement>(null);
@@ -29,7 +28,7 @@ export function SelectionSink() {
       spellCheck={false}
       data-quoin-sink=""
       onFocus={() => {
-        if (isCrossSelection(controller.editor.state.selection)) focusSink(controller);
+        if (heldBySink(controller.editor.state.selection)) focusSink(controller);
       }}
     />
   );

@@ -51,6 +51,15 @@ describe('selectionElement', () => {
     expect(selectionElement(cross, { ...rendered, sink: () => sink })).toBe(sink);
   });
 
+  it('is the sink for a block range, so its text can be selected natively, or its head shell while no sink is drawn', () => {
+    const { draw, at, rendered } = setup();
+    const b = draw('b');
+    const range = at(blockRangeSelection('a', 'b'));
+    const sink = document.createElement('div');
+    expect(selectionElement(range, { ...rendered, sink: () => sink })).toBe(sink);
+    expect(selectionElement(range, rendered)).toBe(b.shell);
+  });
+
   it('is the empty document\'s host while the document has no blocks', () => {
     const { rendered } = setup();
     const state = createEditor({ blocks: [] }).state;

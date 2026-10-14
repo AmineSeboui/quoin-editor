@@ -4,8 +4,7 @@ import { sameSelection } from '../../engine/state/selection';
 import type { RenderOptions } from '../dom/render-inline';
 import type { KeyInterceptor } from '../input/keydown';
 import { createCrossMode } from '../selection/cross-mode';
-import { isCrossSelection } from '../selection/selection-decorations';
-import { focusSink } from '../selection/selection-sink';
+import { focusSink, heldBySink } from '../selection/selection-sink';
 import { createAnnouncer } from './announcer';
 import { readSelection, writeSelection } from './dom-selection';
 import { createDrawnElements } from './drawn-elements';
@@ -195,17 +194,17 @@ export class ViewController {
   }
 
   // While an IME composes, the composing host's offset map is stale and moving the DOM selection would cancel the
-  // composition, so the selection is left alone in both directions. A block range has no native form, and a caret left
-  // behind in a host would be read back on the next key, so the native selection is emptied. A selection across hosts
-  // has none either and is held by the sink.
+  // composition, so the selection is left alone in both directions. A selection across hosts or of whole blocks has no
+  // native form in the hosts and is held by the sink, and where no sink is drawn a caret left behind in a host would be
+  // read back on the next key, so a block range empties the native selection.
   syncSelectionToDom(): void {
     const doc = this.ownerDocument();
     const domSelection = doc?.getSelection();
     if (this.composingKey !== null || !doc || !domSelection || !ownsFocus(this, doc)) return;
     const before = selectionPoints(domSelection);
     const { selection } = this.editor.state;
-    if (selection?.kind === 'blocks') domSelection.removeAllRanges();
-    else if (isCrossSelection(selection)) focusSink(this);
+    if (selection?.kind === 'blocks' && this.sink === null) domSelection.removeAllRanges();
+    else if (heldBySink(selection)) focusSink(this);
     else writeSelection(this.registry, selection, domSelection, (id) => this.blockElement(id));
     const after = selectionPoints(domSelection);
     if (!samePoints(before, after)) this.binding?.selectionSync.suppressNext();

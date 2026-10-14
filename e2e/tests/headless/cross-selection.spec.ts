@@ -159,4 +159,30 @@ test.describe('cross-block selection, beyond the basics', () => {
     await page.keyboard.type('!');
     await expect.poll(async () => (await markdown(page))[0]).toContain('\u65e5\u672c!');
   });
+
+  test('a composition after Home replaces only the selection', async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium', 'CDP IME input is Chromium only');
+    await openHeadless(page, 'three');
+    await dragAcross(page, 0, 2);
+    await page.keyboard.press('Home');
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Input.imeSetComposition', { text: '\u306b', selectionStart: 1, selectionEnd: 1 });
+    await cdp.send('Input.insertText', { text: '\u65e5' });
+    await expect.poll(() => markdown(page)).toEqual([expect.stringContaining('\u65e5')]);
+    expect((await markdown(page))[0]).not.toContain('Delta');
+  });
+
+  test('a click inside a selection painted without the highlight API puts the caret there', async ({ page }) => {
+    await page.addInitScript(() => {
+      delete (CSS as unknown as { highlights?: unknown }).highlights;
+    });
+    await openHeadless(page, 'three');
+    await dragAcross(page, 0, 2);
+    await expect(page.locator('.quoin-selected').first()).toBeVisible();
+    const b = (await host(page, 1).boundingBox())!;
+    await page.mouse.click(b.x + b.width - 4, b.y + b.height / 2);
+    await expect(crossed(page)).toHaveCount(0);
+    await page.keyboard.type('Z');
+    expect((await markdown(page))[1]).toBe('Delta epsilonZ');
+  });
 });

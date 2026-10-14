@@ -1,5 +1,5 @@
 import type { ViewController } from '../controller/view-controller';
-import { commitSinkComposition } from '../selection/selection-sink';
+import { createSinkComposition } from '../selection/sink-composition';
 import { handleBeforeInput } from './before-input';
 import { createCompositionHandlers } from './composition';
 import { createDomInputFallback } from './dom-input';
@@ -13,6 +13,7 @@ export type AttachedInput = {
 
 export function attachInput(controller: ViewController, root: HTMLElement): AttachedInput {
   const composition = createCompositionHandlers(controller);
+  const sinkComposition = createSinkComposition(controller);
   const fallback = createDomInputFallback(controller);
   const observed = new Map<HTMLElement, () => void>();
   const inHost = (event: Event) => controller.registry.locate(event.target as Node | null) !== null;
@@ -40,9 +41,10 @@ export function attachInput(controller: ViewController, root: HTMLElement): Atta
   const onInput = (event: Event) => fallback.onInput(event as InputEvent);
   const onCompositionStart = (event: CompositionEvent) => {
     if (inHost(event)) composition.start(event);
+    else if (inSink(event)) sinkComposition.start();
   };
   const onCompositionEnd = (event: CompositionEvent) => {
-    if (inSink(event)) commitSinkComposition(controller);
+    if (inSink(event)) sinkComposition.end();
     else composition.end(event);
   };
 

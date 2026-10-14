@@ -23,19 +23,3 @@ export function focusSink(controller: ViewController): void {
 export function clearSink(controller: ViewController): void {
   if (controller.sink !== null) controller.sink.textContent = '';
 }
-
-// Some browsers apply the committed text in an input event after compositionend, so the sink is read once that event
-// has run, or after a zero delay timeout when none comes.
-export function commitSinkComposition(controller: ViewController): void {
-  const { sink } = controller;
-  if (sink === null) return;
-  const commit = (): void => {
-    clearTimeout(timer);
-    sink.removeEventListener('input', commit);
-    const text = sink.textContent ?? '';
-    sink.textContent = '';
-    if (text !== '') controller.edit(() => controller.editor.insertText(text));
-  };
-  const timer = setTimeout(commit, 0);
-  sink.addEventListener('input', commit);
-}

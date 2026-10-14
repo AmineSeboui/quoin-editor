@@ -215,17 +215,20 @@ export class ViewController {
     if (!samePoints(before, after)) this.selectionSync?.suppressNext();
   }
 
-  // A pointer drag across hosts sets the model selection itself, while the browser keeps extending its own.
+  // A pointer drag across hosts sets the model selection itself, while the browser keeps extending its own. Leaving
+  // cross mode re-renders the hosts that drew it as decorations, which can remove the node holding the caret, so the
+  // selection is written back.
   readSelectionFromDom(): void {
     const { editor } = this;
     const doc = this.ownerDocument();
     if (this.composing !== null || this.dragging || !doc || !ownsFocus(this, doc)) return;
     const selection = readSelection(this.registry, doc.getSelection(), (node) => this.blockAt(node));
     if (selection === null || sameSelection(selection, editor.state.selection)) return;
+    const wasCross = this.cross.active;
     this.goalX = null;
     this.flush(() => editor.dispatch(editor.createTransaction().setSelection(selection).setOrigin('input')));
     this.cross.sync();
-    if (!this.cross.active) return;
+    if (!wasCross && !this.cross.active) return;
     this.keepFocus();
     this.syncSelectionToDom();
   }

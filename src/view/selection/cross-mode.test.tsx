@@ -6,6 +6,8 @@ import { Editor, hostOf, md } from '../react/test-harness';
 
 const at = (block: string, offset: number) => ({ block, region: 'text', offset });
 const nextTask = () => new Promise((resolve) => setTimeout(resolve, 0));
+const compose = (sink: HTMLElement, phase: 'start' | 'end', data = '') =>
+  act(() => void sink.dispatchEvent(new CompositionEvent(`composition${phase}`, { data, bubbles: true })));
 
 afterEach(() => {
   cleanup();
@@ -66,6 +68,19 @@ describe('cross mode', () => {
     expect(hostOf(container, 'c').contains(document.getSelection()!.anchorNode)).toBe(true);
   });
 
+  it('keeps the caret where a click inside the painted selection lands', () => {
+    const { controller, container } = crossSelected();
+    const b = hostOf(container, 'b');
+    b.focus();
+    document.getSelection()!.collapse(b.querySelector('.quoin-selected')!.firstChild, 1);
+    act(() => void document.dispatchEvent(new Event('selectionchange')));
+    expect(controller.editor.state.selection).toEqual(textSelection(at('b', 1)));
+    const { anchorNode, anchorOffset } = document.getSelection()!;
+    expect([anchorNode, anchorOffset]).toEqual([b.firstChild, 1]);
+    act(() => void document.dispatchEvent(new Event('selectionchange')));
+    expect(controller.editor.state.selection).toEqual(textSelection(at('b', 1)));
+  });
+
   it('paints but leaves focus alone while a control outside the editor has it', () => {
     const { root, select, painted } = mount();
     const button = document.createElement('button');
@@ -100,11 +115,57 @@ describe('cross mode', () => {
   });
 
   it('commits a composition in the sink once it ends, then empties the sink', async () => {
-    const { sink, markdown } = crossSelected();
+    const { container, sink, markdown } = crossSelected();
+    compose(sink, 'start');
     sink.textContent = '\u65e5\u672c';
-    sink.dispatchEvent(new CompositionEvent('compositionend', { data: '\u65e5\u672c', bubbles: true }));
+    compose(sink, 'end', '\u65e5\u672c');
     await act(nextTask);
     expect(markdown()).toEqual(['he\u65e5\u672cld']);
     expect(sink.textContent).toBe('');
+    expect(document.activeElement).toBe(hostOf(container, 'a'));
+  });
+});
+
+describe('composition in the sink', () => {
+  it('keeps composing in the sink when the next syllable starts as the previous one ends', async () => {
+    const { container, sink, markdown } = crossSelected();
+    compose(sink, 'start');
+    sink.textContent = '\ud55c';
+    compose(sink, 'end', '\ud55c');
+    compose(sink, 'start');
+    sink.textContent = '\ud55c\u3131';
+    act(() => void sink.dispatchEvent(new InputEvent('input', { isComposing: true, bubbles: true })));
+    await act(nextTask);
+    expect(markdown()).toEqual(['hello', 'mid', 'world']);
+    expect(sink.textContent).toBe('\ud55c\u3131');
+    expect(document.activeElement).toBe(sink);
+    sink.textContent = '\ud55c\uae00';
+    compose(sink, 'end', '\uae00');
+    await act(nextTask);
+    expect(markdown()).toEqual(['he\ud55c\uae00ld']);
+    expect(document.activeElement).toBe(hostOf(container, 'a'));
+  });
+
+  it('commits only what was composed when the sink selection had collapsed before it started', async () => {
+    const { sink, markdown } = crossSelected();
+    document.getSelection()!.collapse(sink.firstChild, 4);
+    compose(sink, 'start');
+    sink.textContent = 'llo\n\u65e5\u672cmid\nwor';
+    compose(sink, 'end', '\u65e5\u672c');
+    await act(nextTask);
+    expect(markdown()).toEqual(['he\u65e5\u672cld']);
+  });
+
+  it('keeps the selection and refills the sink when the composition is cancelled', async () => {
+    const { root, sink, markdown } = crossSelected();
+    compose(sink, 'start');
+    sink.textContent = '';
+    compose(sink, 'end', '');
+    await act(nextTask);
+    expect(markdown()).toEqual(['hello', 'mid', 'world']);
+    expect(root).toHaveAttribute('data-quoin-cross', '');
+    expect(sink.textContent).toBe('llo\nmid\nwor');
+    expect(document.activeElement).toBe(sink);
+    expect(document.getSelection()!.toString()).toBe('llo\nmid\nwor');
   });
 });

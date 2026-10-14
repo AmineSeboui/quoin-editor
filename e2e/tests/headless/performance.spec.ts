@@ -2,9 +2,11 @@ import { expect, test, type Page } from '@playwright/test';
 import { caretAt, openHeadless } from '../../support/headless';
 
 // A shared runner is several times slower than the development machine, so there the 1,000 block document is judged
-// against the same typing in a 40 block one from the same run. Healthy runs measure 3.5 to 4.5 times under the 6 times CPU
-// slowdown that reproduces CI's 17 to 19 ms, so the allowance is wider than 4 to leave room for a noisy neighbour.
-const SLOWDOWN_LIMIT = 8;
+// against the same typing in a 40 block one from the same run. Twenty five times the blocks costs about 3.5 times the
+// time, and a single round lands between 3 and 4.8, so a round that is over the limit is measured again: noise only adds
+// time, and a cost that grows with the document is over the limit in every round.
+const SLOWDOWN_LIMIT = 4;
+const ROUNDS = 6;
 const CAP_MS = 80;
 const GATE =
   'The 16 ms p95 budget is enforced when CI is not set. A shared runner is held to a ratio against a 40 block document and to a cap.';
@@ -24,6 +26,14 @@ async function typingP95(page: Page, doc: string, block: number): Promise<number
 
 const note = (type: string, description: string) => test.info().annotations.push({ type, description });
 
+type Round = { readonly small: number; readonly large: number; readonly ratio: number };
+
+async function measureRound(page: Page): Promise<Round> {
+  const small = await typingP95(page, 'forty', 20);
+  const large = await typingP95(page, 'large', 500);
+  return { small, large, ratio: large / small };
+}
+
 test('typing in a 1,000 block document stays under one frame', async ({ page, browserName }) => {
   test.skip(browserName !== 'chromium', 'the budget is set for Chromium');
   note('gate', GATE);
@@ -33,14 +43,19 @@ test('typing in a 1,000 block document stays under one frame', async ({ page, br
     expect(large).toBeLessThan(16);
     return;
   }
+  test.setTimeout(120_000);
   await typingP95(page, 'forty', 20);
-  const small = await typingP95(page, 'forty', 20);
-  const large = await typingP95(page, 'large', 500);
-  note('p95 of 40 blocks', `${small.toFixed(1)} ms`);
-  note('p95 of 1,000 blocks', `${large.toFixed(1)} ms`);
-  note('ratio', (large / small).toFixed(2));
-  expect(large).toBeLessThan(SLOWDOWN_LIMIT * small);
-  expect(large).toBeLessThan(CAP_MS);
+  const rounds: Round[] = [];
+  while (rounds.length < ROUNDS && !rounds.some(({ ratio }) => ratio < SLOWDOWN_LIMIT)) rounds.push(await measureRound(page));
+  rounds.forEach(({ small, large, ratio }, index) =>
+    note(`round ${index + 1}`, `40 blocks ${small.toFixed(1)} ms, 1,000 blocks ${large.toFixed(1)} ms, ratio ${ratio.toFixed(2)}`),
+  );
+  const best = rounds.reduce((lowest, round) => (round.ratio < lowest.ratio ? round : lowest));
+  note('p95 of 40 blocks', `${best.small.toFixed(1)} ms`);
+  note('p95 of 1,000 blocks', `${best.large.toFixed(1)} ms`);
+  note('ratio', best.ratio.toFixed(2));
+  expect(best.ratio).toBeLessThan(SLOWDOWN_LIMIT);
+  expect(best.large).toBeLessThan(CAP_MS);
 });
 
 test('Enter near the top of a 1,000 block document stays under one frame', async ({ page, browserName }) => {

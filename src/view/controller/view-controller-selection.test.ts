@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createEditor } from '../../engine/extension/editor';
-import { textSelection } from '../../engine/state/selection';
+import { blockRangeSelection, textSelection } from '../../engine/state/selection';
 import { toggleMark } from '../../engine/commands/marks';
 import { at, cleanUpAfterTest, detachAfterTest, mountController, nextTask } from './test-controller';
 import { ViewController } from './view-controller';
@@ -40,6 +40,26 @@ describe('ViewController selection sync', () => {
     await nextTask();
     expect(host.innerHTML).toBe('h<strong>ell</strong>o');
     expect(editor.state.selection).toEqual(textSelection(at(1), at(4)));
+  });
+
+  it('clears the native selection for a block range, so a caret left in a host is not read back', () => {
+    const { controller, editor } = mountController();
+    controller.dispatch(editor.createTransaction().setSelection(textSelection(at(1))));
+    controller.dispatch(editor.createTransaction().setSelection(blockRangeSelection('a')));
+    expect(document.getSelection()!.rangeCount).toBe(0);
+    controller.readSelectionFromDom();
+    expect(editor.state.selection).toEqual(blockRangeSelection('a'));
+  });
+
+  it('forgets the goal column when the caret moves in the DOM, and only then', () => {
+    const { controller, editor, host } = mountController();
+    controller.dispatch(editor.createTransaction().setSelection(textSelection(at(1))));
+    controller.goalX = 40;
+    controller.readSelectionFromDom();
+    expect(controller.goalX).toBe(40);
+    document.getSelection()!.collapse(host.firstChild!, 2);
+    controller.readSelectionFromDom();
+    expect(controller.goalX).toBeNull();
   });
 
   it('reads a selection inside a void block element as a node selection', () => {

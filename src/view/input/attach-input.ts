@@ -2,6 +2,7 @@ import type { ViewController } from '../controller/view-controller';
 import { handleBeforeInput } from './before-input';
 import { createCompositionHandlers } from './composition';
 import { createDomInputFallback } from './dom-input';
+import { handleKeydown, isComposingKey } from './keydown';
 
 export type AttachedInput = {
   observe(host: HTMLElement): void;
@@ -29,10 +30,10 @@ export function attachInput(controller: ViewController, root: HTMLElement): Atta
   // Browsers fire no beforeinput for some keymap keys (Mod+Z with an empty native undo stack, Backspace at the start of
   // a host, Shift+Enter and Mod+B in WebKit), so the keymap runs on keydown.
   const onKeyDown = (event: KeyboardEvent) => {
-    if (event.isComposing || event.keyCode === 229 || controller.composingKey !== null) return;
-    if (controller.readOnly || !inHost(event)) return;
+    if (isComposingKey(controller, event) || controller.readOnly) return;
+    if (!controller.isEditorElement(event.target as Element)) return;
     catchUp();
-    if (controller.edit(() => controller.editor.handleKey(event))) event.preventDefault();
+    handleKeydown(controller, event);
   };
   const onInput = (event: Event) => fallback.onInput(event as InputEvent);
   const onCompositionStart = (event: CompositionEvent) => {

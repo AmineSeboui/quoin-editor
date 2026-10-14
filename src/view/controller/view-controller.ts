@@ -2,6 +2,7 @@ import type { Command, Editor, Pos, Selection, Transaction } from '../../engine'
 import { endOf, sameSelection, startOf, textSelection } from '../../engine/state/selection';
 import type { RenderOptions } from '../dom/render-inline';
 import { attachInput, type AttachedInput } from '../input/attach-input';
+import type { KeyInterceptor } from '../input/keydown';
 import { readSelection, writeSelection } from './dom-selection';
 import { createHostRegistry, hostKey, type HostEntry, type HostRegistry } from './host-registry';
 import { createHostRenderer, type HostRenderer } from './host-renderer';
@@ -28,6 +29,7 @@ export class ViewController {
     this.input?.observe(element);
     return () => this.input?.unobserve(element);
   });
+  readonly keyInterceptors = new Set<KeyInterceptor>();
   goalX: number | null = null;
   private readonly flush: (fn: () => void) => void;
   private readonly hosts: HostRenderer;
@@ -92,6 +94,10 @@ export class ViewController {
     return this.blockElements.get(id, '');
   }
 
+  isEditorElement(element: Element): boolean {
+    return [this.registry, this.blockElements].some((registry) => registry.locate(element)?.element === element);
+  }
+
   dispatch(tr: Transaction): void {
     this.edit(() => {
       this.editor.dispatch(tr);
@@ -133,13 +139,16 @@ export class ViewController {
   }
 
   // While an IME composes, the composing host's offset map is stale and moving the DOM selection would cancel the
-  // composition, so the selection is left alone in both directions.
+  // composition, so the selection is left alone in both directions. A block range has no native form, and a caret left
+  // behind in a host would be read back on the next key, so the native selection is emptied.
   syncSelectionToDom(): void {
     const doc = this.ownerDocument();
     const domSelection = doc?.getSelection();
     if (this.composing !== null || !doc || !domSelection || !this.ownsFocus(doc)) return;
     const before = selectionPoints(domSelection);
-    writeSelection(this.registry, this.editor.state.selection, domSelection, (id) => this.blockElement(id));
+    const { selection } = this.editor.state;
+    if (selection?.kind === 'blocks') domSelection.removeAllRanges();
+    else writeSelection(this.registry, selection, domSelection, (id) => this.blockElement(id));
     const after = selectionPoints(domSelection);
     if (!samePoints(before, after)) this.selectionSync?.suppressNext();
   }
@@ -151,6 +160,7 @@ export class ViewController {
     const blockAt = (node: Node) => this.blockElements.locate(node)?.block;
     const selection = readSelection(this.registry, doc.getSelection(), blockAt);
     if (selection === null || sameSelection(selection, editor.state.selection)) return;
+    this.goalX = null;
     this.flush(() => editor.dispatch(editor.createTransaction().setSelection(selection).setOrigin('input')));
   }
 
@@ -197,10 +207,6 @@ export class ViewController {
     const active = doc.activeElement;
     if (!active || active === doc.body || active === this.rootElement) return true;
     return this.isEditorElement(active);
-  }
-
-  private isEditorElement(element: Element): boolean {
-    return [this.registry, this.blockElements].some((registry) => registry.locate(element)?.element === element);
   }
 
   private hasFocus(): boolean {

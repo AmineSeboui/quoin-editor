@@ -10,6 +10,8 @@ const md = (id: string, markdown: string, indent = 0): QuoinBlock => ({
   ...(indent > 0 ? { indent } : {}),
 });
 
+const MONOSPACE = new Set(['columns', 'ragged']);
+
 const docs: Record<string, QuoinBlock[]> = {
   empty: [],
   sample: [
@@ -23,6 +25,10 @@ const docs: Record<string, QuoinBlock[]> = {
     { id: 'c', type: 'CALLOUT', data: { tone: 'info', body: 'A callout' } },
   ],
   large: Array.from({ length: 1000 }, (_, i) => md(`p${i}`, `Paragraph ${i} of a large document, with some words in it.`)),
+  columns: [md('c1', 'abcdefgh'), md('c2', 'ijklmnop'), md('c3', 'qrstuvwx')],
+  ragged: [md('r1', 'abcdefgh'), md('r2', 'ij'), md('r3', 'qrstuvwx')],
+  divider: [md('a', 'a'), { id: 'd', type: 'DIVIDER', data: {} }, md('b', 'b')],
+  list: [md('l1', '- one'), md('l2', '- two'), md('l3', '- three')],
 };
 
 export function HeadlessHarness({ doc }: { doc: string }) {
@@ -40,7 +46,13 @@ export function HeadlessHarness({ doc }: { doc: string }) {
       <button type="button" onClick={() => controller.run(toggleMark('bold'))}>
         Bold
       </button>
-      <EditorView controller={controller} aria-label="Document" placeholder="Start writing" />
+      <EditorView
+        controller={controller}
+        aria-label="Document"
+        placeholder="Start writing"
+        className={MONOSPACE.has(doc) ? 'harness-monospace' : undefined}
+      />
+      <button type="button">After the editor</button>
     </>
   );
 }

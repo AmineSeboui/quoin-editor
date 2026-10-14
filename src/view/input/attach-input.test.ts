@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { createEditor } from '../../engine/extension/editor';
 import { inlineText } from '../../engine/model/inline';
-import { textSelection } from '../../engine/state/selection';
+import { blockRangeSelection, textSelection } from '../../engine/state/selection';
 import { ViewController } from '../controller/view-controller';
 
 const detachers: (() => void)[] = [];
@@ -92,5 +92,26 @@ describe('attached input', () => {
     host.dispatchEvent(readOnly);
     expect([...ignored, readOnly].map((event) => event.defaultPrevented)).toEqual([false, false, false, false]);
     expect(text(0)).toBe('hi\n');
+  });
+
+  it('runs keys on a selected block element, but not on other elements inside the root', () => {
+    const { editor, controller, root, addHost } = mount();
+    addHost('a');
+    const shell = document.createElement('div');
+    shell.tabIndex = -1;
+    const button = document.createElement('button');
+    root.append(shell, button);
+    controller.registerBlockElement('b', shell);
+    detachers.push(controller.attach(root));
+    controller.dispatch(editor.createTransaction().setSelection(blockRangeSelection('b')));
+    const backspace = () => new KeyboardEvent('keydown', { key: 'Backspace', cancelable: true, bubbles: true });
+    const stray = backspace();
+    button.dispatchEvent(stray);
+    expect(stray.defaultPrevented).toBe(false);
+    expect(editor.getBlocks()).toHaveLength(2);
+    const handled = backspace();
+    shell.dispatchEvent(handled);
+    expect(handled.defaultPrevented).toBe(true);
+    expect(editor.getBlocks().map((block) => block.id)).toEqual(['a']);
   });
 });

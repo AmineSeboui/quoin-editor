@@ -89,10 +89,15 @@ const actions: Readonly<Record<string, Action>> = {
 export const isComposingInput = (controller: ViewController, event: InputEvent): boolean =>
   event.isComposing || controller.composingKey !== null;
 
+// The sink holds a block range editable only so that the browser fires clipboard events for it, so what is typed into
+// it is ignored, as it was when focus sat on a shell that could not be typed into.
+const TYPED_INPUT: ReadonlySet<string> = new Set(['insertText', 'insertReplacementText']);
+
 export function handleBeforeInput(controller: ViewController, event: InputEvent): void {
   const { inputType } = event;
   if (isComposingInput(controller, event)) return;
   if (!event.cancelable || !Object.hasOwn(actions, inputType)) return;
   event.preventDefault();
+  if (TYPED_INPUT.has(inputType) && controller.editor.state.selection?.kind === 'blocks') return;
   actions[inputType](controller, event);
 }

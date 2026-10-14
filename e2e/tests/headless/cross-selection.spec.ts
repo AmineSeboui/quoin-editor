@@ -65,14 +65,34 @@ test.describe('cross-block selection', () => {
     expect(await markdown(page)).toEqual([]);
   });
 
-  test('typing replaces selected blocks with a paragraph, and the caret stays in it', async ({ page }) => {
+  test('typing over selected blocks changes nothing and keeps them selected', async ({ page }) => {
     await openHeadless(page, 'three');
     await host(page, 1).click();
     await page.keyboard.press(`${mod}+a`);
     await page.keyboard.press(`${mod}+a`);
+    const sink = page.getByRole('textbox', { name: 'Selected content' });
+    const text = await sink.textContent();
     await page.keyboard.type('XY');
-    await expect.poll(() => markdown(page)).toEqual(['XY']);
-    await expect(host(page, 0)).toBeFocused();
+    await expect(sink).toHaveText(text!);
+    expect(await markdown(page)).toEqual(['Alpha beta gamma', 'Delta epsilon', 'Zeta eta theta']);
+    expect(await modelSelection(page)).toEqual({ kind: 'blocks', anchor: 'a', head: 'c' });
+    await expect(sink).toBeFocused();
+  });
+
+  test('a composition over selected blocks changes nothing', async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium', 'CDP IME input is Chromium only');
+    await openHeadless(page, 'three');
+    await host(page, 1).click();
+    await page.keyboard.press(`${mod}+a`);
+    await page.keyboard.press(`${mod}+a`);
+    const sink = page.getByRole('textbox', { name: 'Selected content' });
+    const text = await sink.textContent();
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Input.imeSetComposition', { text: '\u306b', selectionStart: 1, selectionEnd: 1 });
+    await cdp.send('Input.insertText', { text: '\u65e5\u672c' });
+    await expect(sink).toHaveText(text!);
+    expect(await markdown(page)).toEqual(['Alpha beta gamma', 'Delta epsilon', 'Zeta eta theta']);
+    expect(await modelSelection(page)).toEqual({ kind: 'blocks', anchor: 'a', head: 'c' });
   });
 
   test('works without the highlight API', async ({ page }) => {

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { act, cleanup, render } from '@testing-library/react';
+import { act, cleanup, render, waitFor } from '@testing-library/react';
 import { blockRangeSelection, nodeSelection, textSelection, type Selection } from '../../engine';
 import { clipboardEvent, fakeTransfer } from '../clipboard/test-transfer';
 import type { ViewController } from '../controller/view-controller';
@@ -60,13 +60,36 @@ describe('a block range in the sink', () => {
     expect(store.get('text/plain')).toBe('hello\n\nmid');
   });
 
-  it('replaces the blocks with a paragraph holding the text typed into the sink', () => {
+  it.each(['insertText', 'insertReplacementText'])(
+    'ignores %s typed into the sink and leaves the blocks as they are',
+    (inputType) => {
+      const { controller, sink, select } = mount();
+      select(blockRangeSelection('a', 'c'));
+      const event = new InputEvent('beforeinput', { inputType, data: 'X', bubbles: true, cancelable: true });
+      act(() => void sink.dispatchEvent(event));
+      expect(event.defaultPrevented).toBe(true);
+      expect(controller.editor.getBlocks().map((block) => block.data.markdown)).toEqual(['hello', 'mid', 'world']);
+      expect(controller.editor.state.selection).toEqual(blockRangeSelection('a', 'c'));
+    },
+  );
+
+  it('still types over a selection across blocks held by the sink', () => {
     const { controller, sink, select } = mount();
-    select(blockRangeSelection('a', 'c'));
+    select(textSelection(at('a', 2), at('c', 3)));
     const event = new InputEvent('beforeinput', { inputType: 'insertText', data: 'X', bubbles: true, cancelable: true });
     act(() => void sink.dispatchEvent(event));
-    expect(event.defaultPrevented).toBe(true);
-    expect(controller.editor.getBlocks().map((block) => block.data.markdown)).toEqual(['X']);
+    expect(controller.editor.getBlocks().map((block) => block.data.markdown)).toEqual(['heXld']);
+  });
+
+  it('discards a composition over the blocks and puts their text back in the sink', async () => {
+    const { controller, sink, select } = mount();
+    select(blockRangeSelection('a', 'c'));
+    act(() => void sink.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true })));
+    sink.textContent = '日本';
+    act(() => void sink.dispatchEvent(new CompositionEvent('compositionend', { data: '日本', bubbles: true })));
+    await waitFor(() => expect(sink.textContent).toBe('hello\nmid\nworld'));
+    expect(controller.editor.getBlocks().map((block) => block.data.markdown)).toEqual(['hello', 'mid', 'world']);
+    expect(controller.editor.state.selection).toEqual(blockRangeSelection('a', 'c'));
   });
 
   it('empties the sink and hands focus back to a host when the range becomes a caret', () => {

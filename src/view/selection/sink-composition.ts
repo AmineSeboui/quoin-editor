@@ -45,7 +45,8 @@ export function createSinkComposition(controller: ViewController): SinkCompositi
     stopWaiting?.();
     stopWaiting = null;
     const { sink } = controller;
-    const text = sink !== null && outside !== null ? composedText(sink, outside) : '';
+    const ignored = controller.editor.state.selection?.kind === 'blocks';
+    const text = sink !== null && outside !== null && !ignored ? composedText(sink, outside) : '';
     outside = null;
     controller.composingKey = null;
     clearSink(controller);

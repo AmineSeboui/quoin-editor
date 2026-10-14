@@ -1,8 +1,10 @@
-import { describe, expect, it } from 'vitest';
-import type { Selection } from '../../engine';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { act, render } from '@testing-library/react';
+import { createElement } from 'react';
+import type { QuoinBlock, Selection } from '../../engine';
 import { createEditor } from '../../engine/extension/editor';
 import { blockRangeSelection, nodeSelection, textSelection } from '../../engine/state/selection';
-import { md } from '../react/test-harness';
+import { Editor, hostOf, md } from '../react/test-harness';
 import { ViewController } from '../controller/view-controller';
 import { handleKeydown } from './keydown';
 
@@ -45,18 +47,24 @@ describe('handleKeydown', () => {
 });
 
 describe('handleKeydown across blocks', () => {
+  afterEach(() => vi.restoreAllMocks());
   const at = (block: string, offset: number) => ({ block, region: 'text', offset });
 
-  function mount(blocks = [md('a', 'one'), { id: 'd', type: 'DIVIDER', data: {} }, md('b', 'two')]) {
-    const editor = createEditor({ blocks, isMac: false });
-    const controller = new ViewController({ editor });
-    const select = (selection: Selection) => controller.dispatch(editor.createTransaction().setSelection(selection));
+  const image: QuoinBlock = { id: 'i', type: 'IMAGE', data: { storageKey: 'k', alt: 'An image' } };
+
+  function mount(blocks: QuoinBlock[] = [md('a', 'one'), { id: 'd', type: 'DIVIDER', data: {} }, md('b', 'two')]) {
+    let controller!: ViewController;
+    const options = { blocks, onChange: () => {} };
+    const { container } = render(createElement(Editor, { options, onController: (c) => (controller = c) }));
+    const { editor } = controller;
+    const select = (selection: Selection) =>
+      act(() => controller.dispatch(editor.createTransaction().setSelection(selection)));
     const press = (name: string, init: KeyboardEventInit = {}) => {
       const event = key(name, init);
-      handleKeydown(controller, event);
+      act(() => handleKeydown(controller, event));
       return event.defaultPrevented;
     };
-    return { editor, controller, select, press };
+    return { editor, controller, container, select, press };
   }
 
   it('moves Left and Right across a block edge, node-selecting a void block on the way', () => {
@@ -157,5 +165,61 @@ describe('handleKeydown across blocks', () => {
     const { select, press } = mount();
     select(textSelection(at('a', 1)));
     expect(press('x')).toBe(false);
+  });
+
+  it('node-selects a block drawn without a host for its region, with Left and Right', () => {
+    const { editor, container, select, press } = mount([md('a', 'one'), image, md('b', 'two')]);
+    select(textSelection(at('a', 3)));
+    press('ArrowRight');
+    expect(editor.state.selection).toEqual(nodeSelection('i'));
+    expect(container.querySelector('[data-block-id="i"]')).toHaveAttribute('data-selected', 'true');
+    press('ArrowRight');
+    expect(editor.state.selection).toEqual(textSelection(at('b', 0)));
+    press('ArrowLeft');
+    expect(editor.state.selection).toEqual(nodeSelection('i'));
+    press('ArrowLeft');
+    expect(editor.state.selection).toEqual(textSelection(at('a', 3)));
+  });
+
+  it('node-selects a block drawn without a host for its region, with Up and Down', () => {
+    const { editor, select, press } = mount([md('a', ''), image, md('b', '')]);
+    select(textSelection(at('a', 0)));
+    press('ArrowDown');
+    expect(editor.state.selection).toEqual(nodeSelection('i'));
+    press('ArrowDown');
+    expect(editor.state.selection).toEqual(textSelection(at('b', 0)));
+    press('ArrowUp');
+    expect(editor.state.selection).toEqual(nodeSelection('i'));
+    press('ArrowUp');
+    expect(editor.state.selection).toEqual(textSelection(at('a', 0)));
+  });
+
+  // jsdom moves the selection into an element it focuses; Chromium and WebKit leave it where it was.
+  function keepSelectionOnFocus() {
+    const focus = HTMLElement.prototype.focus;
+    return vi.spyOn(HTMLElement.prototype, 'focus').mockImplementation(function (this: HTMLElement, options) {
+      const selection = document.getSelection()!;
+      const ranges = Array.from({ length: selection.rangeCount }, (_, index) => selection.getRangeAt(index));
+      focus.call(this, options);
+      selection.removeAllRanges();
+      ranges.forEach((range) => selection.addRange(range));
+    });
+  }
+
+  it('gets past such a block on the next key, whatever caret the browser kept', () => {
+    const { editor, controller, container } = mount([md('a', 'one'), image, md('b', 'two')]);
+    keepSelectionOnFocus();
+    const shell = container.querySelector<HTMLElement>('[data-block-id="i"]')!;
+    const keydown = (target: HTMLElement, name: string) => act(() => void target.dispatchEvent(key(name)));
+    act(() => controller.focus(at('a', 3)));
+    keydown(hostOf(container, 'a'), 'ArrowRight');
+    expect(document.activeElement).toBe(shell);
+    keydown(shell, 'ArrowRight');
+    expect(editor.state.selection).toEqual(textSelection(at('b', 0)));
+    act(() => controller.focus(at('b', 0)));
+    keydown(hostOf(container, 'b'), 'ArrowLeft');
+    expect(document.activeElement).toBe(shell);
+    keydown(shell, 'ArrowLeft');
+    expect(editor.state.selection).toEqual(textSelection(at('a', 3)));
   });
 });

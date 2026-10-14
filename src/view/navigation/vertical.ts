@@ -5,7 +5,7 @@ import { domToPos, posToDom } from '../controller/dom-selection';
 import type { ViewController } from '../controller/view-controller';
 import { caretFromPoint } from './caret-from-point';
 import { caretClientRect, isOnFirstLine, isOnLastLine, lineEdgeRect } from './line-edges';
-import { entryEdge, moveToNeighbour, neighbourBlock } from './neighbour-block';
+import { entryEdge, holdsTextHead, moveToNeighbour, neighbourBlock } from './neighbour-block';
 
 // caretFromPoint only finds content inside the viewport.
 function lineInView(host: HTMLElement, last: boolean): DOMRect | null {
@@ -34,18 +34,17 @@ function landAtGoal(controller: ViewController, block: EngineBlock, direction: -
 export function moveVertically(controller: ViewController, direction: -1 | 1, extend: boolean): boolean {
   const { editor, registry } = controller;
   const { state } = editor;
-  const { selection, doc, schema } = state;
+  const { selection, doc } = state;
   if (selection?.kind === 'node') return !extend && moveToNeighbour(controller, selection.block, direction);
   if (selection?.kind !== 'text') return false;
   const { head } = selection;
   const host = registry.get(head.block, head.region);
   const point = posToDom(registry, head);
   if (!host || !point || !(direction < 0 ? isOnFirstLine(host, point) : isOnLastLine(host, point))) return false;
-  const accept = extend ? (block: EngineBlock) => isTextFlow(schema, block) : undefined;
-  const target = neighbourBlock(doc, head.block, direction, accept);
+  const target = neighbourBlock(doc, head.block, direction, extend ? holdsTextHead(controller) : undefined);
   if (target === null) return false;
   controller.goalX ??= caretClientRect(point)?.left ?? null;
-  const landing = landAtGoal(controller, target, direction) ?? entryEdge(state, target.id, direction);
+  const landing = landAtGoal(controller, target, direction) ?? entryEdge(controller, target.id, direction);
   const next = extend && landing.kind === 'text' ? textSelection(selection.anchor, landing.head) : landing;
   controller.dispatch(editor.createTransaction().setSelection(next));
   return true;

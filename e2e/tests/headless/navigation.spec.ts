@@ -67,6 +67,33 @@ test.describe('navigation', () => {
     expect(await markdown(page)).toEqual(['a', 'b']);
   });
 
+  test('an image drawn without a host is node-selected by arrows, which then move past it', async ({ page }) => {
+    await openHeadless(page, 'image');
+    const image = page.locator('[data-type="IMAGE"]');
+    const onImage = async () => {
+      expect(await modelSelection(page)).toEqual({ kind: 'node', block: 'i' });
+      await expect(image).toHaveAttribute('data-selected', 'true');
+      await expect(image).toBeFocused();
+    };
+    await caretAt(page, 0, 3);
+    await page.keyboard.press('ArrowDown');
+    await onImage();
+    await page.keyboard.press('ArrowDown');
+    expect(await modelSelection(page)).toMatchObject({ head: { block: 'b', offset: 0 } });
+    await page.keyboard.press('ArrowUp');
+    await onImage();
+    await page.keyboard.press('ArrowUp');
+    expect(await modelSelection(page)).toMatchObject({ head: { block: 'a', offset: 3 } });
+    await page.keyboard.press('ArrowRight');
+    await onImage();
+    await page.keyboard.press('ArrowRight');
+    expect(await modelSelection(page)).toMatchObject({ head: { block: 'b', offset: 0 } });
+    await page.keyboard.press('ArrowLeft');
+    await onImage();
+    await page.keyboard.press('ArrowLeft');
+    expect(await modelSelection(page)).toMatchObject({ head: { block: 'a', offset: 3 } });
+  });
+
   test('Tab indents, Shift+Tab outdents, Escape then Tab leaves the editor', async ({ page }) => {
     await openHeadless(page, 'list');
     await caretAt(page, 1, 0);

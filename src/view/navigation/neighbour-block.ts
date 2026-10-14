@@ -1,5 +1,6 @@
-import type { EditorState, EngineBlock, EngineDoc, Selection } from '../../engine';
-import { endOf, startOf } from '../../engine/state/selection';
+import type { EngineBlock, EngineDoc, Selection } from '../../engine';
+import { isTextFlow } from '../../engine/commands/block-helpers';
+import { endOf, nodeSelection, startOf } from '../../engine/state/selection';
 import type { ViewController } from '../controller/view-controller';
 import { visibleBlockIndexes } from './visible-blocks';
 
@@ -19,14 +20,21 @@ export function neighbourBlock(
   return found === undefined ? null : doc.blocks[found];
 }
 
-export function entryEdge({ doc, schema }: EditorState, block: string, direction: -1 | 1): Selection {
-  return direction < 0 ? endOf(doc, schema, block) : startOf(doc, schema, block);
+// A block whose entry region is drawn without a host, such as an image or a table under the void fallback, can hold
+// no caret, so it is node-selected like a void block.
+export function entryEdge({ editor, registry }: ViewController, block: string, direction: -1 | 1): Selection {
+  const { doc, schema } = editor.state;
+  const edge = direction < 0 ? endOf(doc, schema, block) : startOf(doc, schema, block);
+  return edge.kind === 'text' && !registry.get(edge.head.block, edge.head.region) ? nodeSelection(block) : edge;
 }
+
+export const holdsTextHead = (controller: ViewController) => (block: EngineBlock): boolean =>
+  isTextFlow(controller.editor.state.schema, block) && entryEdge(controller, block.id, 1).kind === 'text';
 
 export function moveToNeighbour(controller: ViewController, from: string, direction: -1 | 1): boolean {
   const { editor } = controller;
   const target = neighbourBlock(editor.state.doc, from, direction);
   if (target === null) return false;
-  controller.dispatch(editor.createTransaction().setSelection(entryEdge(editor.state, target.id, direction)));
+  controller.dispatch(editor.createTransaction().setSelection(entryEdge(controller, target.id, direction)));
   return true;
 }

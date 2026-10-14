@@ -1,6 +1,7 @@
 import type { ViewController } from '../controller/view-controller';
 import { moveHorizontally } from '../navigation/horizontal';
 import { moveVertically } from '../navigation/vertical';
+import { flipSelectedBlock } from './flip-block';
 
 export type KeyInterceptor = (event: KeyboardEvent) => boolean;
 
@@ -52,10 +53,24 @@ function holdHistoryKeys(controller: ViewController, event: KeyboardEvent): bool
   return Object.hasOwn(ARROWS, event.key) && (event.metaKey || event.ctrlKey || event.altKey);
 }
 
+// Mod+Enter checks the task or opens the toggle that holds the caret, the two controls a keyboard never tabs to. Where
+// nothing flips it is still taken, so that no browser can read it as a plain Enter.
+function flip(controller: ViewController, event: KeyboardEvent): boolean {
+  const mod = controller.isMac ? event.metaKey && !event.ctrlKey : event.ctrlKey && !event.metaKey;
+  if (event.key !== 'Enter' || !mod || event.shiftKey || event.altKey) return false;
+  flipSelectedBlock(controller);
+  return true;
+}
+
 function handle(controller: ViewController, event: KeyboardEvent): boolean {
   if (arrow(controller, event)) return true;
   if (event.key === 'Tab' && !event.ctrlKey && !event.metaKey && !event.altKey) return tab(controller, event);
-  return runKeymap(controller, event) || typeOverNode(controller, event) || holdHistoryKeys(controller, event);
+  return (
+    runKeymap(controller, event) ||
+    flip(controller, event) ||
+    typeOverNode(controller, event) ||
+    holdHistoryKeys(controller, event)
+  );
 }
 
 export function handleKeydown(controller: ViewController, event: KeyboardEvent): void {

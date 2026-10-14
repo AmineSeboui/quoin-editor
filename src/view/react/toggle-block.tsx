@@ -1,4 +1,4 @@
-import { setAttrs } from '../../engine/commands/block-style';
+import { flipCommand } from '../input/flip-block';
 import { onBlock } from './block-command';
 import type { BlockRenderer } from './block-renderer-types';
 import { EditableRegion } from './EditableRegion';
@@ -6,6 +6,7 @@ import { keepFocus } from './prevent-mouse-focus';
 
 export const ToggleBlock: BlockRenderer = ({ block, controller }) => {
   const open = block.attrs.open === true;
+  const flip = flipCommand(block);
   return (
     <div className="quoin-toggle" data-open={open}>
       <button
@@ -17,7 +18,7 @@ export const ToggleBlock: BlockRenderer = ({ block, controller }) => {
         tabIndex={-1}
         onMouseDown={keepFocus}
         onClick={() => {
-          if (!controller.readOnly) controller.run(onBlock(block.id, setAttrs({ open: !open })));
+          if (flip && !controller.readOnly) controller.run(onBlock(block.id, flip));
         }}
       >
         <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">

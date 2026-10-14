@@ -1,10 +1,11 @@
-import { toggleTask } from '../../engine/commands/block-structure';
+import { flipCommand } from '../input/flip-block';
 import { onBlock } from './block-command';
 import type { BlockRenderProps } from './block-renderer-types';
 import { keepFocus } from './prevent-mouse-focus';
 
 export function TaskCheckbox({ block, controller }: Pick<BlockRenderProps, 'block' | 'controller'>) {
   const checked = block.attrs.checked === true;
+  const flip = flipCommand(block);
   return (
     <button
       type="button"
@@ -16,7 +17,7 @@ export function TaskCheckbox({ block, controller }: Pick<BlockRenderProps, 'bloc
       tabIndex={-1}
       onMouseDown={keepFocus}
       onClick={() => {
-        if (!controller.readOnly) controller.run(onBlock(block.id, toggleTask));
+        if (flip && !controller.readOnly) controller.run(onBlock(block.id, flip));
       }}
     >
       {checked ? (

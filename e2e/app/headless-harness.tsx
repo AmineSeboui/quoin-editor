@@ -41,6 +41,13 @@ const docs: Record<string, QuoinBlock[]> = {
   image: [md('a', 'one'), { id: 'i', type: 'IMAGE', data: { storageKey: 'k', alt: 'An image' } }, md('b', 'two')],
   list: [md('l1', '- one'), md('l2', '- two'), md('l3', '- three')],
   closed: [md('a', 'one'), { id: 't', type: 'TOGGLE', data: { markdown: 'T', open: false } }, md('c', 'child', 1)],
+  flip: [
+    md('p', 'plain'),
+    md('k', '- [ ] a task'),
+    { id: 't', type: 'TOGGLE', data: { markdown: 'Toggle text', open: true } },
+    md('c', 'child', 1),
+    md('s', 'sibling'),
+  ],
   atoms: [md('a', 'Hi [@Ada](mention:u1) there')],
 };
 

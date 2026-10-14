@@ -1,10 +1,12 @@
 import type { Command, Decoration, Editor, Pos, Transaction } from '../../engine';
+import { detectMac } from '../../engine/extension/detect-mac';
 import { sameSelection } from '../../engine/state/selection';
 import type { RenderOptions } from '../dom/render-inline';
 import type { KeyInterceptor } from '../input/keydown';
 import { createCrossMode } from '../selection/cross-mode';
 import { isCrossSelection } from '../selection/selection-decorations';
 import { focusSink } from '../selection/selection-sink';
+import { createAnnouncer } from './announcer';
 import { readSelection, writeSelection } from './dom-selection';
 import { createDrawnElements } from './drawn-elements';
 import { hasFocus, ownsFocus } from './focus-ownership';
@@ -22,6 +24,8 @@ export type ViewControllerOptions = {
   render?: RenderOptions;
   onFiles?: (files: File[], at: Pos | null) => void;
   readOnly?: boolean;
+  /** Which key is Mod. Defaults to the platform, as the editor's own isMac does, and must agree with it. */
+  isMac?: boolean;
 };
 
 const runNow = (fn: () => void): void => fn();
@@ -42,6 +46,8 @@ export class ViewController {
     };
   });
   readonly keyInterceptors = new Set<KeyInterceptor>();
+  readonly announcer = createAnnouncer(() => this.editor.state);
+  readonly isMac: boolean;
   readonly onFiles: ViewControllerOptions['onFiles'];
   goalX: number | null = null;
   nativeVerticalMove = false;
@@ -61,6 +67,7 @@ export class ViewController {
     this.editor = options.editor;
     this.flush = options.flush ?? runNow;
     this.onFiles = options.onFiles;
+    this.isMac = options.isMac ?? detectMac();
     const decorationsOf = (block: string, region: string) => this.decorationsFor(block, region);
     this.hosts = createHostRenderer(options.editor, options.render, decorationsOf, (host) => this.binding?.input.drain(host));
     this.readOnlyFlag = options.readOnly ?? false;

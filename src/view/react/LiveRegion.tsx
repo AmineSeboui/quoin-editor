@@ -1,7 +1,8 @@
+import { useCallback, useSyncExternalStore } from 'react';
 import type { EditorState } from '../../engine';
+import type { ViewController } from '../controller/view-controller';
 import { isCrossSelection } from '../selection/selection-decorations';
 import { useViewController } from './editor-context';
-import { useEditorState } from './use-editor-state';
 
 function announcement({ doc, selection }: EditorState): string {
   if (selection === null || (selection.kind === 'text' && !isCrossSelection(selection))) return '';
@@ -14,8 +15,26 @@ function announcement({ doc, selection }: EditorState): string {
   return `${count} ${count === 1 ? 'block' : 'blocks'} selected`;
 }
 
+function messageOf({ editor, announcer }: ViewController): string {
+  const spoken = announcer.current();
+  return spoken !== null && spoken.state === editor.state ? spoken.message : announcement(editor.state);
+}
+
 export function LiveRegion() {
-  const message = useEditorState(useViewController(), announcement);
+  const controller = useViewController();
+  const subscribe = useCallback(
+    (notify: () => void) => {
+      const stopState = controller.editor.subscribe(() => notify());
+      const stopSpoken = controller.announcer.subscribe(notify);
+      return () => {
+        stopState();
+        stopSpoken();
+      };
+    },
+    [controller],
+  );
+  const read = useCallback(() => messageOf(controller), [controller]);
+  const message = useSyncExternalStore(subscribe, read, read);
   return (
     <div className="quoin-visually-hidden" role="status" aria-live="polite" aria-atomic="true">
       {message}

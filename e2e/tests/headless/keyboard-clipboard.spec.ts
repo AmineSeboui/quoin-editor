@@ -30,12 +30,19 @@ test.describe('the clipboard keys over a selection across blocks', () => {
   });
 
   test('Mod+C leaves the document alone and Mod+V pastes the copied range elsewhere', async ({ page }) => {
-    await selectText(page, [1, 0], [1, 5]);
+    await selectText(page, [0, 6], [2, 4]);
+    await expect.poll(() => nativeSelection(page)).toMatchObject({ inSink: true, collapsed: false });
     await page.keyboard.press('ControlOrMeta+c');
     expect(await markdown(page)).toEqual(original);
-    await caretAt(page, 2, 0);
+    await caretAt(page, 2, 14);
     await page.keyboard.press('ControlOrMeta+v');
-    await expect.poll(() => markdown(page)).toEqual(['Alpha beta gamma', 'Delta epsilon', 'DeltaZeta eta theta']);
+    await expect.poll(() => markdown(page)).toEqual([
+      'Alpha beta gamma',
+      'Delta epsilon',
+      'Zeta eta thetabeta gamma',
+      'Delta epsilon',
+      'Zeta',
+    ]);
   });
 });
 

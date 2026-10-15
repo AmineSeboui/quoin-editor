@@ -2,6 +2,14 @@
 
 Quoin is 0.x: a minor version may contain breaking changes, and each one is listed here under "Breaking".
 
+## 0.4.2 (2026-10-15)
+
+A metadata-only patch. The code is the same as 0.4.1 and nothing in the public API changes.
+
+### Changed
+- The repository moved to `AmineSeboui/quoin-editor`, so the `repository`, `homepage` and `bugs` fields of the package, and the README badges and links, point at the new repository and its documentation site, `https://amineseboui.github.io/quoin-editor`.
+- This version is published with npm provenance from the new repository. The provenance of earlier versions still names the former repository, which no longer exists.
+
 ## 0.4.1 (2026-10-12)
 
 A patch release that fixes the data-loss, accessibility and React 18 problems found in a review of 0.4.0. Nothing is removed from the public API.

@@ -1,7 +1,7 @@
 import { Package } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 
-export const REPO_URL = 'https://github.com/AmineSeboui/quoin';
+export const REPO_URL = 'https://github.com/AmineSeboui/quoin-editor';
 export const NPM_URL = 'https://www.npmjs.com/package/quoin-editor';
 
 export function Header({ dark, onToggleTheme }: { dark: boolean; onToggleTheme: () => void }) {

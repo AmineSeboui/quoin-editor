@@ -1,12 +1,13 @@
 # Quoin
 
-[![CI](https://github.com/AmineSeboui/quoin/actions/workflows/ci.yml/badge.svg)](https://github.com/AmineSeboui/quoin/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/quoin-editor)](https://www.npmjs.com/package/quoin-editor)
+[![CI](https://github.com/AmineSeboui/quoin-editor/actions/workflows/ci.yml/badge.svg)](https://github.com/AmineSeboui/quoin-editor/actions/workflows/ci.yml)
 
 A React block editor: typed blocks, drag to reorder, a markdown surface with a slash palette, and an open block type registry.
 
 Quoin edits markdown. It does not render it. A markdown block is edited in a plain textarea with shortcuts, list continuation and a slash palette, and it is drawn at rest as plain text. There is no remark or rehype pipeline in the package. A host that wants rich rendering registers its own `preview` on a block definition (see [Custom blocks](#custom-blocks)), so Quoin never forces a markdown renderer on you.
 
-Documentation: [amineseboui.github.io/quoin](https://amineseboui.github.io/quoin)
+Documentation: [amineseboui.github.io/quoin-editor](https://amineseboui.github.io/quoin-editor). Package: [`quoin-editor` on npm](https://www.npmjs.com/package/quoin-editor).
 
 Quoin is published on npm as `quoin-editor`, because npm rejects the bare name `quoin` as too similar to an existing package. Everywhere below, `quoin-editor` is the package you install and import.
 

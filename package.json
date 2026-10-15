@@ -9,11 +9,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AmineSeboui/quoin.git"
+    "url": "git+https://github.com/AmineSeboui/quoin-editor.git"
   },
-  "homepage": "https://amineseboui.github.io/quoin",
+  "homepage": "https://amineseboui.github.io/quoin-editor",
   "bugs": {
-    "url": "https://github.com/AmineSeboui/quoin/issues"
+    "url": "https://github.com/AmineSeboui/quoin-editor/issues"
   },
   "keywords": [
     "react",

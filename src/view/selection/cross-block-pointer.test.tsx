@@ -59,3 +59,34 @@ describe('a press inside a block shell', () => {
     expect(selection).toEqual(nodeSelection('plain'));
   });
 });
+
+describe('a press on a block that holds no caret', () => {
+  function mountDivider() {
+    let controller!: ViewController;
+    const doc = [md('a', 'one'), { id: 'd', type: 'DIVIDER', data: {} }, md('b', 'two')];
+    const { container } = render(<Editor options={{ blocks: doc, onChange: () => {} }} onController={(c) => (controller = c)} />);
+    act(() => controller.focus({ block: 'a', region: 'text', offset: 1 }));
+    const shell = (id: string) => container.querySelector<HTMLElement>(`[data-block-id="${id}"]`)!;
+    return { controller, shell };
+  }
+
+  it('node-selects it at once, with no native selection to read it from, as Firefox leaves none', () => {
+    const { controller, shell } = mountDivider();
+    const separator = screen.getByRole('separator');
+    fire(separator, 'pointerdown', { button: 0, buttons: 1, clientX: 10, clientY: 10 });
+    fire(document, 'pointerup', { button: 0, clientX: 10, clientY: 10 });
+    expect(controller.editor.state.selection).toEqual(nodeSelection('d'));
+    expect(shell('d')).toHaveAttribute('data-selected', 'true');
+    expect(document.activeElement).toBe(shell('d'));
+  });
+
+  it('leaves a Shift press, and a press beside the host of a block that holds a caret, to the browser', () => {
+    const { controller, shell } = mountDivider();
+    const caret = controller.editor.state.selection;
+    fire(screen.getByRole('separator'), 'pointerdown', { button: 0, buttons: 1, shiftKey: true });
+    fire(document, 'pointerup', { button: 0 });
+    fire(shell('b'), 'pointerdown', { button: 0, buttons: 1 });
+    fire(document, 'pointerup', { button: 0 });
+    expect(controller.editor.state.selection).toEqual(caret);
+  });
+});

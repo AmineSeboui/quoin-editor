@@ -1,8 +1,9 @@
 import type { Pos, Selection } from '../../engine';
-import { blockRangeSelection, sameSelection, textSelection } from '../../engine/state/selection';
+import { blockRangeSelection, nodeSelection, sameSelection, textSelection } from '../../engine/state/selection';
 import { domToPos } from '../controller/dom-selection';
 import type { HostEntry } from '../controller/host-registry';
 import type { ViewController } from '../controller/view-controller';
+import { entryEdge } from '../navigation/neighbour-block';
 import { createAutoScroll } from './auto-scroll';
 import { blockAt, caretPosAt, hostAt } from './pointer-targets';
 import { NATIVE_INTERACTION } from './native-interaction';
@@ -122,6 +123,9 @@ export function createCrossBlockPointer(controller: ViewController): CrossBlockP
           if (event.shiftKey) extendFrom(host, event.clientX, event.clientY);
         } else if (block !== undefined && !(control && root.contains(control))) {
           press = { kind: 'blocks', start: block, x: event.clientX, y: event.clientY };
+          // A node selection is otherwise read from the native one, and Firefox leaves none after a press on a block
+          // with no text, such as a divider.
+          if (!event.shiftKey && entryEdge(controller, block, 1).kind === 'node') select(nodeSelection(block));
         } else {
           return;
         }

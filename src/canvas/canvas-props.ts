@@ -12,8 +12,9 @@ export type BlockCanvasProps = {
   blocks: QuoinBlock[];
   onChange: (blocks: QuoinBlock[]) => void;
   /**
-   * Called for each block a command deleted whole, with the index it held, once `onChange` has reported the document
-   * without it. Restore it by supplying `blocks` with the block spliced back at that index.
+   * Called for each block a command removed, with the index it held, once `onChange` has reported the document without
+   * it. A line that Backspace or Delete merges into its neighbour, or drops when empty, is not reported. Restore a block
+   * by supplying `blocks` with it spliced back at that index.
    */
   onDelete?: (block: QuoinBlock, index: number) => void;
   blockTypes?: AnyBlockDefinition[];

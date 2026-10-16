@@ -1,6 +1,6 @@
 import { createRef, useState, type Ref } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { blockRangeSelection, nodeSelection, type Selection } from '../engine';
+import { blockRangeSelection, nodeSelection, textSelection, type Selection } from '../engine';
 import type { QuoinBlock } from '../types';
 import { BlockCanvas } from './BlockCanvas';
 import type { QuoinEditorHandle } from './canvas-props';
@@ -14,6 +14,9 @@ const md = (id: string, markdown: string, indent?: number): QuoinBlock => ({
   ...(indent === undefined ? {} : { indent }),
 });
 const divider: QuoinBlock = { id: 'd', type: 'DIVIDER', data: {} };
+const image: QuoinBlock = { id: 'i', type: 'IMAGE', data: { storageKey: 'cat.png', alt: 'A cat' } };
+const closedToggle: QuoinBlock = { id: 't', type: 'TOGGLE', data: { markdown: 'Summary', open: false } };
+const at = (block: string, offset: number) => ({ block, region: 'text', offset });
 const ids = (blocks: QuoinBlock[]) => blocks.map((block) => block.id).join(',');
 
 type HostProps = { initial: QuoinBlock[]; log: string[]; removals: Removal[]; handle: Ref<QuoinEditorHandle> };
@@ -96,6 +99,24 @@ describe('BlockCanvas onDelete', () => {
     ]);
   });
 
+  it('reports a divider inside a text range deleted with Backspace, after onChange', async () => {
+    const { log, removals, caret, select, press } = mount([md('a', 'one'), divider, md('b', 'two')]);
+    caret('a');
+    select(textSelection(at('a', 1), at('b', 1)));
+    await press('Backspace');
+    expect(log).toEqual(['change a', 'delete d at 1']);
+    expect(removals).toEqual([{ block: divider, index: 1 }]);
+  });
+
+  it('reports an image inside a text range deleted with Delete, after onChange', async () => {
+    const { log, removals, caret, select, press } = mount([md('a', 'one'), image, md('b', 'two')]);
+    caret('a');
+    select(textSelection(at('a', 3), at('b', 0)));
+    await press('Delete');
+    expect(log).toEqual(['change a', 'delete i at 1']);
+    expect(removals).toEqual([{ block: image, index: 1 }]);
+  });
+
   it('counts a 0.4 markdown block it split into paragraphs as the one block the host holds', async () => {
     const legacy = md('m', 'first\n\nsecond');
     const { log, caret, select, press } = mount([legacy, divider, md('b', 'below')]);
@@ -112,9 +133,18 @@ describe('BlockCanvas onDelete', () => {
     expect(log).toEqual(['change a']);
   });
 
-  it('does not report a line that Backspace joins into a closed toggle', async () => {
-    const toggle: QuoinBlock = { id: 't', type: 'TOGGLE', data: { markdown: 'Summary', open: false } };
-    const { log, caret, press } = mount([toggle, md('c', 'hidden', 1), md('s', 'line')]);
+  it('does not report the empty line Backspace drops after a divider', async () => {
+    const { log, caret, press } = mount([md('a', 'one'), divider, md('e', '')]);
+    caret('e');
+    await press('Backspace');
+    expect(log).toEqual(['change a,d']);
+  });
+
+  it.each([
+    ['a line', 'line'],
+    ['an empty line', ''],
+  ])('does not report %s that Backspace joins into a closed toggle', async (_case, text) => {
+    const { log, caret, press } = mount([closedToggle, md('c', 'hidden', 1), md('s', text)]);
     caret('s');
     await press('Backspace');
     expect(log).toEqual(['change t,c']);

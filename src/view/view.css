@@ -176,6 +176,12 @@
   color: var(--quoin-muted-foreground);
 }
 
+.quoin .quoin-void[role="separator"]::before {
+  content: "";
+  display: block;
+  border-block-start: 1px solid var(--quoin-border);
+}
+
 .quoin .quoin-visually-hidden {
   position: absolute;
   width: 1px;

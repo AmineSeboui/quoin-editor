@@ -2,6 +2,7 @@ import { insertBlockAfter, nodeSelection, replaceBlockStep, type EngineBlock } f
 import { specFor } from '../../engine/blocks/unknown-spec';
 import type { InternalEditor } from '../../engine/extension/editor';
 import { sameValue } from '../../engine/model/same-value';
+import { HISTORY_GROUP } from '../../engine/state/history';
 import type { ViewController } from '../../view';
 
 type Data = Record<string, unknown>;
@@ -21,7 +22,8 @@ export function writeBlockData(controller: ViewController, blockId: string, data
   const block = doc.blocks[index];
   const { attrs, regions } = specFor(schema, block.type).fromData(data, editor.codec.context);
   if (sameValue(attrs, block.attrs) && sameValue(regions, block.regions)) return;
-  controller.dispatch(editor.createTransaction().step(replaceBlockStep({ ...block, attrs, regions })));
+  const tr = editor.createTransaction().step(replaceBlockStep({ ...block, attrs, regions }));
+  controller.dispatch(tr.setMeta(HISTORY_GROUP, `block-data:${blockId}`));
 }
 
 export function insertAfterBlock(controller: ViewController, blockId: string, type: string, data?: Data): void {

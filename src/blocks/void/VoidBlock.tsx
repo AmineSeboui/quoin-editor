@@ -9,6 +9,7 @@ import type { BlockPreviewProps } from '../../types';
 import { Button } from '../../ui/button';
 import type { BlockRenderProps } from '../../view';
 import { useReadOnly } from '../../view/react/use-read-only';
+import { NATIVE_INTERACTION } from '../../view/selection/native-interaction';
 import { insertAfterBlock, readBlockData, writeBlockData } from './block-data';
 import { selectNode } from './select-node';
 import { useEditingFocus } from './use-editing-focus';
@@ -49,6 +50,10 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
     selectNode(controller, blockId);
     controller.focus();
   }, [controller, blockId]);
+  const leave = useCallback(() => {
+    stop();
+    select();
+  }, [stop, select]);
   const onChange = useCallback(
     (data: Record<string, unknown>) => writeBlockData(controller, blockId, data),
     [controller, blockId],
@@ -70,8 +75,7 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.key !== 'Escape' || !editorShown || !root.current?.contains(event.target as Node)) return;
     event.preventDefault();
-    stop();
-    select();
+    leave();
   };
   const onClick = (event: MouseEvent) => {
     if (!editorShown && !isInteractive(event)) select();
@@ -88,13 +92,14 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
       role="group"
       aria-label={label}
       tabIndex={editorShown ? -1 : undefined}
+      {...{ [NATIVE_INTERACTION]: editorShown ? '' : undefined }}
       onKeyDown={onKeyDown}
       onBlur={onBlur}
       onClick={onClick}
       onDoubleClick={onDoubleClick}
     >
       {editorShown && Editor ? (
-        <Editor data={data} onChange={onChange} onInsertBlock={onInsertBlock} onDone={stop} />
+        <Editor data={data} onChange={onChange} onInsertBlock={onInsertBlock} onDone={leave} />
       ) : (
         <VoidPreview definition={definition} data={data} blockId={blockId} />
       )}

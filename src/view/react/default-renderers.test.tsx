@@ -153,27 +153,34 @@ describe('toggle blocks', () => {
 });
 
 describe('block renderer lookup', () => {
-  it('falls back to a plain box naming the type for a type nothing renders', () => {
+  it('falls back to a separator with no text for a divider nothing renders', () => {
     const { container } = mount([{ id: 'd', type: 'DIVIDER', data: {} }]);
     const box = container.querySelector('[data-type="DIVIDER"] .quoin-void');
-    expect(box).toHaveTextContent('DIVIDER');
+    expect(box).toHaveAttribute('role', 'separator');
+    expect(box).toHaveTextContent('');
     expect(box).toHaveAttribute('contenteditable', 'false');
+  });
+
+  it('falls back to a box named "Unsupported block", never by its type, for any other type nothing renders', () => {
+    const { container } = mount([{ id: 'z', type: 'CHART', data: {} }]);
+    const box = screen.getByRole('group', { name: 'Unsupported block' });
+    expect(box).toHaveTextContent('Unsupported block');
+    expect(container.querySelector('[data-type="CHART"]')).not.toHaveTextContent('CHART');
+  });
+
+  it('names the fallback box as the caller asks', () => {
+    render(
+      <Editor
+        options={{ blocks: [{ id: 'z', type: 'CHART', data: {} }], onChange: () => {} }}
+        view={{ unsupportedBlockLabel: 'Bloc non pris en charge' }}
+      />,
+    );
+    expect(screen.getByRole('group', { name: 'Bloc non pris en charge' })).toHaveTextContent('Bloc non pris en charge');
   });
 
   it('does not mistake a type named like an Object property for a renderer', () => {
     const { container } = mount([{ id: 'x', type: 'constructor', data: {} }, { id: 'y', type: '__proto__', data: {} }]);
     expect(container.querySelectorAll('.quoin-void')).toHaveLength(2);
-  });
-
-  it('draws a type nothing renders with the caller\'s fallback, and follows a new one', () => {
-    const blocks = [md('a', 'one'), { id: 'd', type: 'DIVIDER', data: {} }];
-    const fallback = (tag: string) => (props: BlockRenderProps) => <p>{`${tag} ${props.block.id}`}</p>;
-    const options = { blocks, onChange: () => {} };
-    const { rerender } = render(<Editor options={options} view={{ fallback: fallback('first') }} />);
-    expect(screen.getByText('first d')).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Paragraph' })).toHaveTextContent('one');
-    rerender(<Editor options={options} view={{ fallback: fallback('second') }} />);
-    expect(screen.getByText('second d')).toBeInTheDocument();
   });
 
   it('prefers the caller\'s renderer and hands it the block and the controller', () => {

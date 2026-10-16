@@ -5,6 +5,7 @@ import type { HostEntry } from '../controller/host-registry';
 import type { ViewController } from '../controller/view-controller';
 import { createAutoScroll } from './auto-scroll';
 import { blockAt, caretPosAt, hostAt } from './pointer-targets';
+import { NATIVE_INTERACTION } from './native-interaction';
 import { isCrossSelection } from './selection-decorations';
 
 export type CrossBlockPointer = { attach(root: HTMLElement): () => void };
@@ -15,7 +16,7 @@ type Press =
 
 const DRAGGING = 'data-quoin-dragging';
 const DRAG_DISTANCE = 4;
-const CONTROLS = 'button, a, input, select, textarea';
+const CONTROLS = `button, a, input, select, textarea, [${NATIVE_INTERACTION}]`;
 
 const sameHost = (pos: Pos, host: HostEntry): boolean => pos.block === host.block && pos.region === host.region;
 

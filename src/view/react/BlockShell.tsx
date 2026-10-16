@@ -10,15 +10,14 @@ import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect';
 type BlockShellProps = {
   block: EngineBlock;
   renderers: Readonly<Record<string, BlockRenderer>>;
-  fallback?: BlockRenderer;
 };
 
-function rendererFor(renderers: Readonly<Record<string, BlockRenderer>>, type: string): BlockRenderer | undefined {
+function rendererFor(renderers: Readonly<Record<string, BlockRenderer>>, type: string): BlockRenderer {
   for (const table of [renderers, defaultRenderers]) if (Object.hasOwn(table, type)) return table[type];
-  return undefined;
+  return VoidBlockFallback;
 }
 
-export const BlockShell = memo(function BlockShell({ block, renderers, fallback = VoidBlockFallback }: BlockShellProps) {
+export const BlockShell = memo(function BlockShell({ block, renderers }: BlockShellProps) {
   const controller = useViewController();
   const ref = useRef<HTMLDivElement>(null);
   const status = useEditorState(controller, (state) => blockStatus(state, block.id));
@@ -30,7 +29,7 @@ export const BlockShell = memo(function BlockShell({ block, renderers, fallback 
   }, [controller, block.id, hidden]);
 
   if (hidden) return null;
-  const Renderer = rendererFor(renderers, block.type) ?? fallback;
+  const Renderer = rendererFor(renderers, block.type);
   const { kind } = block.attrs;
   return (
     <div

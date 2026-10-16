@@ -1,11 +1,11 @@
 import { screen } from '@testing-library/react';
 import { axe } from 'vitest-axe';
-import { mountCanvas, paragraph } from './test-canvas';
+import { mountCanvas, paragraph } from '../blocks/void/test-canvas';
 
 describe('a block the canvas has no definition or renderer for', () => {
-  it('is a separator named Divider when it is a divider', () => {
+  it('is a separator with no text when it is a divider', () => {
     mountCanvas([paragraph('a', 'above'), { id: 'd', type: 'DIVIDER', data: {} }]);
-    const divider = screen.getByRole('separator', { name: 'Divider' });
+    const divider = screen.getByRole('separator');
     expect(divider).toHaveAttribute('contenteditable', 'false');
     expect(divider).toHaveTextContent('');
   });
@@ -16,12 +16,9 @@ describe('a block the canvas has no definition or renderer for', () => {
     expect(shell('z')).not.toHaveTextContent('CHART');
   });
 
-  it('words both names from the labels', () => {
-    mountCanvas([{ id: 'd', type: 'DIVIDER', data: {} }, { id: 'z', type: 'CHART', data: {} }], {
-      labels: { divider: 'Séparateur', unsupportedBlock: 'Bloc non pris en charge' },
-    });
-    expect(screen.getByRole('separator', { name: 'Séparateur' })).toBeInTheDocument();
-    expect(screen.getByRole('group', { name: 'Bloc non pris en charge' })).toBeInTheDocument();
+  it('takes that name from the canvas labels', () => {
+    mountCanvas([{ id: 'z', type: 'CHART', data: {} }], { labels: { unsupportedBlock: 'Bloc non pris en charge' } });
+    expect(screen.getByRole('group', { name: 'Bloc non pris en charge' })).toHaveTextContent('Bloc non pris en charge');
   });
 
   it('has no accessibility violations beside void blocks and text', async () => {

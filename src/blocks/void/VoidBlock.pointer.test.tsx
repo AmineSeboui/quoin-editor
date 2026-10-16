@@ -1,5 +1,6 @@
 import { act, fireEvent, screen } from '@testing-library/react';
 import { nodeSelection, textSelection } from '../../engine';
+import { NATIVE_INTERACTION } from '../../view/selection/native-interaction';
 import { bookmarkBlock, mountCanvas, paragraph } from './test-canvas';
 
 const doc = [paragraph('a', 'above'), bookmarkBlock('b', 'quoin.dev'), { id: 'l', type: 'LINK_PREVIEW', data: { url: 'x.dev' } }];
@@ -44,5 +45,17 @@ describe('VoidBlock under the pointer', () => {
     press('Enter');
     expect(changes).toHaveLength(1);
     expect(changes[0].map((block) => block.type)).toEqual(['MARKDOWN', 'BOOKMARK', 'LINK_PREVIEW', 'MARKDOWN']);
+  });
+
+  it('marks its root as a native interaction area while its editor is shown, and always for alwaysEditing', () => {
+    const { nodeSelect, press } = mountCanvas([...doc, { id: 'n', type: 'PINNED', data: { note: 'Remember' } }]);
+    const bookmark = screen.getByRole('group', { name: 'Bookmark' });
+    expect(bookmark).not.toHaveAttribute(NATIVE_INTERACTION);
+    nodeSelect('b');
+    press('Enter');
+    expect(bookmark).toHaveAttribute(NATIVE_INTERACTION, '');
+    press('Escape', urlField()!);
+    expect(bookmark).not.toHaveAttribute(NATIVE_INTERACTION);
+    expect(screen.getByRole('group', { name: 'Pinned note' })).toHaveAttribute(NATIVE_INTERACTION, '');
   });
 });

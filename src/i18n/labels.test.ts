@@ -47,9 +47,8 @@ describe('englishLabels', () => {
     expect(englishLabels.close).toBe('Close');
   });
 
-  it('names void blocks, their Edit button, dividers and blocks no definition draws', () => {
+  it('names the Edit button of void blocks and the blocks no definition draws', () => {
     expect(englishLabels.editBlock('Bookmark')).toBe('Edit Bookmark');
-    expect(englishLabels.divider).toBe('Divider');
     expect(englishLabels.unsupportedBlock).toBe('Unsupported block');
   });
 

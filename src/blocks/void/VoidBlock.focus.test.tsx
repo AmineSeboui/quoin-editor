@@ -46,10 +46,14 @@ describe('VoidBlock editing ends', () => {
     overlay.remove();
   });
 
-  it('when the editor calls onDone', () => {
-    openBookmark();
-    fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+  it('when the editor calls onDone, leaving the block node-selected with focus', () => {
+    const { selection, shell } = openBookmark();
+    const done = screen.getByRole('button', { name: 'Done' });
+    act(() => done.focus());
+    fireEvent.click(done);
     expect(urlField()).toBeNull();
+    expect(selection()).toEqual(nodeSelection('b'));
+    expect(document.activeElement).toBe(shell('b'));
   });
 
   it('when the editor inserts a block after its own, which takes the selection and focus', () => {

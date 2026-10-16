@@ -6,6 +6,7 @@ import { EmptyDocumentHost } from './EmptyDocumentHost';
 import { LiveRegion } from './LiveRegion';
 import { SelectionSink } from './SelectionSink';
 import { SelectionWriter } from './SelectionWriter';
+import { UNSUPPORTED_BLOCK, UnsupportedBlockLabel } from './unsupported-block-label';
 import { useBlockElements } from './use-block-elements';
 import { useEditorState } from './use-editor-state';
 import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect';
@@ -13,8 +14,6 @@ import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect';
 export type EditorViewProps = {
   controller: ViewController;
   renderers?: Readonly<Record<string, BlockRenderer>>;
-  /** Draws a block whose type no renderer covers, in place of a box naming its type. */
-  fallback?: BlockRenderer;
   className?: string;
   id?: string;
   'aria-label'?: string;
@@ -24,6 +23,8 @@ export type EditorViewProps = {
   paragraphLabel?: string;
   /** The accessible name of the hidden textbox that holds a selection across blocks. */
   selectedContentLabel?: string;
+  /** The text and accessible name of a block whose type no renderer draws, in place of the English one. */
+  unsupportedBlockLabel?: string;
   placeholder?: string;
 };
 
@@ -33,19 +34,19 @@ const HINT = 'Press Escape, then Tab, to leave the editor.';
 export function EditorView({
   controller,
   renderers = NO_RENDERERS,
-  fallback,
   className,
   id,
   'aria-label': label = 'Editor',
   hint = HINT,
   paragraphLabel,
   selectedContentLabel,
+  unsupportedBlockLabel = UNSUPPORTED_BLOCK,
   placeholder,
 }: EditorViewProps) {
   const root = useRef<HTMLDivElement>(null);
   const hintId = useId();
   const blocks = useEditorState(controller, (state) => state.doc.blocks);
-  const shells = useBlockElements(blocks, renderers, fallback);
+  const shells = useBlockElements(blocks, renderers);
 
   useIsomorphicLayoutEffect(() => (root.current === null ? undefined : controller.attach(root.current)), [controller]);
 
@@ -59,7 +60,9 @@ export function EditorView({
         aria-label={label}
         aria-describedby={hintId}
       >
-        {blocks.length === 0 ? <EmptyDocumentHost placeholder={placeholder} label={paragraphLabel} /> : shells}
+        <UnsupportedBlockLabel.Provider value={unsupportedBlockLabel}>
+          {blocks.length === 0 ? <EmptyDocumentHost placeholder={placeholder} label={paragraphLabel} /> : shells}
+        </UnsupportedBlockLabel.Provider>
         <SelectionSink label={selectedContentLabel} />
         <div id={hintId} className="quoin-visually-hidden">
           {hint}

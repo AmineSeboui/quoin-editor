@@ -8,7 +8,10 @@ export const bookmarkDemo = defineBlock<BookmarkData>({
   label: 'Bookmark',
   icon: Bookmark,
   editor: ({ data, onChange }) => (
-    <input aria-label="Bookmark URL" value={data.url} onChange={(event) => onChange({ url: event.target.value })} />
+    <div>
+      <p>Paste the address of the page to bookmark.</p>
+      <input aria-label="Bookmark URL" value={data.url} onChange={(event) => onChange({ url: event.target.value })} />
+    </div>
   ),
   preview: ({ data }) => <p>{data.url}</p>,
   initialData: () => ({ url: '' }),

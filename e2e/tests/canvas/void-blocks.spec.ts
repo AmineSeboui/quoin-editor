@@ -51,6 +51,20 @@ test('a click on the preview node-selects the block, and its Edit button opens t
   await expect(paragraphs(page).nth(1)).toBeFocused();
 });
 
+test('a drag across text inside an open editor leaves the editor open', async ({ page }) => {
+  await selectBookmarkFromAbove(page);
+  await page.keyboard.press('Enter');
+  await expect(urlField(page)).toBeFocused();
+  const hint = (await page.getByText('Paste the address of the page to bookmark.').boundingBox())!;
+  const y = hint.y + hint.height / 2;
+  await page.mouse.move(hint.x + 4, y);
+  await page.mouse.down();
+  await page.mouse.move(hint.x + 14, y, { steps: 5 });
+  await page.mouse.up();
+  await expect(urlField(page)).toBeVisible();
+  await expect(page.locator('[data-quoin-dragging]')).toHaveCount(0);
+});
+
 test('a custom block has no accessibility violations at rest or while it is edited', async ({ page }) => {
   await selectBookmarkFromAbove(page);
   expect(await axeViolations(page)).toEqual([]);

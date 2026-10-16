@@ -58,6 +58,17 @@ describe('VoidBlock', () => {
     expect(urlField()).toHaveValue('quoin.dev/docs');
   });
 
+  it('undoes everything typed in its editor in one step', () => {
+    const { handle, last, press, shell } = openBookmark();
+    for (const url of ['quoin.dev/', 'quoin.dev/d', 'quoin.dev/do', 'quoin.dev/doc']) {
+      fireEvent.change(urlField()!, { target: { value: url } });
+    }
+    press('Escape', urlField()!);
+    const mod = handle().controller.isMac ? { metaKey: true } : { ctrlKey: true };
+    act(() => void fireEvent.keyDown(shell('b'), { key: 'z', ...mod }));
+    expect(last()).toEqual(doc);
+  });
+
   it('returns to the preview on Escape and leaves the block node-selected with focus', () => {
     const { press, selection, shell } = openBookmark();
     press('Escape', urlField()!);

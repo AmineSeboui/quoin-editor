@@ -71,7 +71,6 @@ export type QuoinLabels = {
   close: string;
   selectedContent: string;
   editBlock: (label: string) => string;
-  divider: string;
   unsupportedBlock: string;
 };
 
@@ -162,7 +161,6 @@ export const englishLabels: QuoinLabels = {
   close: 'Close',
   selectedContent: 'Selected content',
   editBlock: (label) => `Edit ${label}`,
-  divider: 'Divider',
   unsupportedBlock: 'Unsupported block',
 };
 

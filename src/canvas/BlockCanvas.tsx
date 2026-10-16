@@ -2,7 +2,6 @@
 
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { coreBlocks } from '../blocks/core';
-import { UnregisteredBlock } from '../blocks/void/UnregisteredBlock';
 import { VoidEditingContext } from '../blocks/void/use-void-editing';
 import { createVoidEditing } from '../blocks/void/void-editing';
 import { QuoinProvider } from '../context';
@@ -62,13 +61,13 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
         <EditorView
           controller={controller}
           renderers={renderers}
-          fallback={UnregisteredBlock}
           className={className}
           id={id}
           aria-label={ariaLabel ?? labels.document}
           hint={labels.editorHint}
           paragraphLabel={labels.paragraph}
           selectedContentLabel={labels.selectedContent}
+          unsupportedBlockLabel={labels.unsupportedBlock}
           placeholder={placeholder}
         />
       </VoidEditingContext.Provider>

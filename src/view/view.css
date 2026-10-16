@@ -23,6 +23,22 @@
   outline: none;
 }
 
+.quoin [data-quoin-block][data-align="left"] {
+  text-align: left;
+}
+
+.quoin [data-quoin-block][data-align="center"] {
+  text-align: center;
+}
+
+.quoin [data-quoin-block][data-align="right"] {
+  text-align: right;
+}
+
+.quoin [data-quoin-block][data-align="justify"] {
+  text-align: justify;
+}
+
 .quoin [data-quoin-block][data-selected="true"] {
   background: var(--quoin-accent);
   box-shadow: 0 0 0 2px var(--quoin-ring);

@@ -3,13 +3,6 @@ import { axe } from 'vitest-axe';
 import { mountCanvas, paragraph } from '../blocks/void/test-canvas';
 
 describe('a block the canvas has no definition or renderer for', () => {
-  it('is a separator with no text when it is a divider', () => {
-    mountCanvas([paragraph('a', 'above'), { id: 'd', type: 'DIVIDER', data: {} }]);
-    const divider = screen.getByRole('separator');
-    expect(divider).toHaveAttribute('contenteditable', 'false');
-    expect(divider).toHaveTextContent('');
-  });
-
   it('is named and drawn as an unsupported block, never by its raw type', () => {
     const { shell } = mountCanvas([paragraph('a', 'above'), { id: 'z', type: 'CHART', data: { series: [1] } }]);
     expect(screen.getByRole('group', { name: 'Unsupported block' })).toHaveTextContent('Unsupported block');

@@ -1,5 +1,6 @@
 import { useId, useRef } from 'react';
 import type { ViewController } from '../controller/view-controller';
+import { BlockDomIdScope } from './block-dom-id';
 import type { BlockRenderer } from './block-renderer-types';
 import { QuoinEditorContext } from './editor-context';
 import { EmptyDocumentHost } from './EmptyDocumentHost';
@@ -45,6 +46,7 @@ export function EditorView({
 }: EditorViewProps) {
   const root = useRef<HTMLDivElement>(null);
   const hintId = useId();
+  const blockIdScope = useId();
   const blocks = useEditorState(controller, (state) => state.doc.blocks);
   const shells = useBlockElements(blocks, renderers);
 
@@ -60,9 +62,11 @@ export function EditorView({
         aria-label={label}
         aria-describedby={hintId}
       >
-        <UnsupportedBlockLabel.Provider value={unsupportedBlockLabel}>
-          {blocks.length === 0 ? <EmptyDocumentHost placeholder={placeholder} label={paragraphLabel} /> : shells}
-        </UnsupportedBlockLabel.Provider>
+        <BlockDomIdScope.Provider value={blockIdScope}>
+          <UnsupportedBlockLabel.Provider value={unsupportedBlockLabel}>
+            {blocks.length === 0 ? <EmptyDocumentHost placeholder={placeholder} label={paragraphLabel} /> : shells}
+          </UnsupportedBlockLabel.Provider>
+        </BlockDomIdScope.Provider>
         <SelectionSink label={selectedContentLabel} />
         <div id={hintId} className="quoin-visually-hidden">
           {hint}

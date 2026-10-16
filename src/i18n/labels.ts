@@ -2,6 +2,8 @@ import type { PaletteName } from '../engine/markdown/palette-rgb';
 
 export type SlashGroup = 'basic' | 'lists' | 'media' | 'advanced' | 'embeds' | 'ai' | 'custom';
 
+export type CalloutTone = 'info' | 'tip' | 'success' | 'warning' | 'danger';
+
 /** Every string the editor shows or speaks. A label that depends on a value is a function of it. */
 export type QuoinLabels = {
   document: string;
@@ -12,8 +14,15 @@ export type QuoinLabels = {
   numberedItem: (n: number) => string;
   task: string;
   quote: string;
+  /** The name of a callout's text, given the name of its tone from `calloutTones`. */
   callout: (tone: string) => string;
+  calloutTones: Record<CalloutTone, string>;
+  calloutIcon: string;
+  /** The name of the button that shows a callout's tone and opens the menu of tones, given the tone's name. */
+  calloutToneMenu: (tone: string) => string;
   toggle: string;
+  /** The name of a toggle's chevron, given how many blocks the closed toggle hides, 0 while it is open. */
+  toggleButton: (hidden: number) => string;
   placeholderEmpty: string;
   placeholderHeading: (level: number) => string;
   placeholderList: string;
@@ -83,8 +92,15 @@ export const englishLabels: QuoinLabels = {
   numberedItem: (n) => `Numbered list item ${n}`,
   task: 'Task',
   quote: 'Quote',
-  callout: (tone) => `Callout, ${tone}`,
+  callout: (tone) => `Callout, ${tone.toLowerCase()}`,
+  calloutTones: { info: 'Info', tip: 'Tip', success: 'Success', warning: 'Warning', danger: 'Danger' },
+  calloutIcon: 'Callout icon',
+  calloutToneMenu: (tone) => `Callout tone: ${tone}`,
   toggle: 'Toggle',
+  toggleButton: (hidden) => {
+    if (hidden === 0) return 'Toggle';
+    return `Toggle, ${hidden} ${hidden === 1 ? 'block' : 'blocks'} hidden`;
+  },
   placeholderEmpty: "Type '/' for commands",
   placeholderHeading: (level) => `Heading ${level}`,
   placeholderList: 'List',

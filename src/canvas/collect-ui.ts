@@ -1,8 +1,9 @@
+import { textRenderers } from '../blocks/text/text-renderers';
 import { voidRenderers } from '../blocks/void/void-renderers';
 import type { AnyBlockDefinition } from '../registry';
-import { defaultRenderers, type BlockRenderer } from '../view';
+import type { BlockRenderer } from '../view';
 
-/** Every definition draws as a void block, except the types the canvas types in place. */
+/** Every definition draws as a void block, except the types the canvas draws itself: its text blocks and the divider. */
 export function canvasRenderers(definitions: readonly AnyBlockDefinition[]): Readonly<Record<string, BlockRenderer>> {
-  return { ...voidRenderers(definitions), ...defaultRenderers };
+  return { ...voidRenderers(definitions), ...textRenderers };
 }

@@ -42,6 +42,27 @@ describe('EditorView root', () => {
     expect(shells[1]).toHaveAttribute('tabindex', '-1');
   });
 
+  it('carries the colour, background and alignment of a block for the palette and the layout to paint', () => {
+    const coloured = { id: 'a', type: 'MARKDOWN', data: { markdown: 'one', color: 'red', background: 'yellow', align: 'center' } };
+    const { container } = mount([coloured, md('b', 'two')]);
+    const [painted, plain] = container.querySelectorAll<HTMLElement>('[data-quoin-block]');
+    expect(painted.dataset).toMatchObject({ color: 'red', bg: 'yellow', align: 'center' });
+    for (const name of ['data-color', 'data-bg', 'data-align']) expect(plain).not.toHaveAttribute(name);
+  });
+
+  it('gives each shell an id of its own, which two editors showing one document never share', () => {
+    const blocks = [md('a', 'one'), md('b', 'two')];
+    const { container } = render(
+      <>
+        <Editor options={{ blocks, onChange: () => {} }} />
+        <Editor options={{ blocks, onChange: () => {} }} />
+      </>,
+    );
+    const ids = Array.from(container.querySelectorAll('[data-quoin-block]'), (shell) => shell.id);
+    expect(ids.every((id) => id !== '')).toBe(true);
+    expect(new Set(ids).size).toBe(4);
+  });
+
   it('gives a block of a type without a kind no data-kind', () => {
     const { container } = mount();
     expect(container.querySelector('[data-type="DIVIDER"]')).not.toHaveAttribute('data-kind');

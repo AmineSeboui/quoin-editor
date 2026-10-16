@@ -3,7 +3,9 @@ import { onBlock } from './block-command';
 import type { BlockRenderProps } from './block-renderer-types';
 import { keepFocus } from './prevent-mouse-focus';
 
-export function TaskCheckbox({ block, controller }: Pick<BlockRenderProps, 'block' | 'controller'>) {
+type TaskCheckboxProps = Pick<BlockRenderProps, 'block' | 'controller'> & { label?: string };
+
+export function TaskCheckbox({ block, controller, label = 'Task' }: TaskCheckboxProps) {
   const checked = block.attrs.checked === true;
   const flip = flipCommand(block);
   return (
@@ -11,7 +13,7 @@ export function TaskCheckbox({ block, controller }: Pick<BlockRenderProps, 'bloc
       type="button"
       role="checkbox"
       aria-checked={checked}
-      aria-label="Task"
+      aria-label={label}
       className="quoin-task-box"
       contentEditable={false}
       tabIndex={-1}

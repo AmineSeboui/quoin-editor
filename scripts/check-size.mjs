@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
 const budgets = [
-  ['dist/index.js', 133_300],
+  ['dist/index.js', 143_300],
   ['dist/headless.js', 69_500],
   ['dist/engine.js', 51_700],
 ];

@@ -1,8 +1,10 @@
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { Star } from 'lucide-react';
 import { axe } from 'vitest-axe';
 import { mountCanvas, paragraph } from '../blocks/void/test-canvas';
-import { textSelection } from '../engine';
+import { defineExtension, textSelection } from '../engine';
+import type { ExtensionUI } from '../extensions/ui-types';
 import type { QuoinBlock } from '../types';
 import { md } from '../view/react/test-harness';
 
@@ -55,6 +57,19 @@ describe('the block menu', () => {
     openMenuFromText('a');
     await user.click(item('Duplicate'));
     expect(last().map((block) => block.data.markdown)).toEqual(['## Title', '## Title', 'para']);
+  });
+
+  it('offers the items extensions add before Delete, and runs them on the menu blocks', async () => {
+    const user = userEvent.setup();
+    const run = vi.fn();
+    const ui: ExtensionUI = { blockMenuItems: [{ id: 'star', label: 'Star', icon: Star, run }] };
+    const canvas = mountCanvas([paragraph('a', 'one')], { extensions: [defineExtension({ name: 'stars', ui })] });
+    act(() => canvas.handle().focus('start'));
+    fireEvent.keyDown(document.activeElement!, { key: '/', ctrlKey: true });
+    const names = within(menu()).getAllByRole('menuitem').map(visibleText);
+    expect(names.slice(-3)).toEqual(['Copy link to block', 'Star', 'Delete']);
+    await user.click(item('Star'));
+    expect(run).toHaveBeenCalledWith(canvas.handle().controller, ['a']);
   });
 
   it('colours the text of the block, with a check on the current colour', async () => {

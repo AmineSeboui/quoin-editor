@@ -7,7 +7,6 @@ describe('createCanvasUiStore', () => {
       blockMenu: null,
       drag: null,
       linkPopover: { open: false },
-      slashOpen: false,
     });
   });
 
@@ -18,7 +17,6 @@ describe('createCanvasUiStore', () => {
     store.set({ hoveredBlock: 'a' });
     store.set({ hoveredBlock: 'a' });
     expect(store.get().hoveredBlock).toBe('a');
-    expect(store.get().slashOpen).toBe(false);
     expect(listener).toHaveBeenCalledTimes(1);
     unsubscribe();
     store.set({ hoveredBlock: 'b' });

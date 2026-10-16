@@ -25,26 +25,29 @@ describe('the gutter', () => {
     expect(handleButton()).toHaveAttribute('tabindex', '-1');
   });
 
-  it('adds a paragraph after the block and its children, with the caret in it', async () => {
+  it('adds a paragraph after the block and its children, and opens the slash menu in it', async () => {
     const user = userEvent.setup();
-    const { last, selection, shell } = mountCanvas([md('a', '- parent'), md('c', '- child', 1), md('z', 'after')]);
+    const { changes, last, selection, shell } = mountCanvas([md('a', '- parent'), md('c', '- child', 1), md('z', 'after')]);
     fireEvent.pointerMove(hostOf(shell('a')));
     await user.click(addButton());
+    expect(changes).toHaveLength(1);
     const added = last()[2];
     expect(last().map((block) => block.id)).toEqual(['a', 'c', added.id, 'z']);
-    expect(added).toMatchObject({ type: 'MARKDOWN', data: { markdown: '' } });
+    expect(added).toMatchObject({ type: 'MARKDOWN', data: { markdown: '/' } });
     expect(added.indent ?? 0).toBe(0);
-    expect(selection()).toEqual(textSelection({ block: added.id, region: 'text', offset: 0 }));
+    expect(selection()).toEqual(textSelection({ block: added.id, region: 'text', offset: 1 }));
     expect(hostOf(shell(added.id))).toHaveFocus();
+    expect(screen.getByRole('listbox', { name: 'Commands' })).toBeInTheDocument();
   });
 
-  it('puts the caret in an empty paragraph rather than adding another below it', async () => {
+  it('opens the slash menu in an empty paragraph rather than adding another below it', async () => {
     const user = userEvent.setup();
-    const { changes, selection, shell } = mountCanvas([paragraph('a', 'intro'), paragraph('e', '')]);
+    const { last, selection, shell } = mountCanvas([paragraph('a', 'intro'), paragraph('e', '')]);
     fireEvent.pointerMove(hostOf(shell('e')));
     await user.click(addButton());
-    expect(changes).toHaveLength(0);
-    expect(selection()).toEqual(textSelection({ block: 'e', region: 'text', offset: 0 }));
+    expect(last().map((block) => block.data.markdown)).toEqual(['intro', '/']);
+    expect(selection()).toEqual(textSelection({ block: 'e', region: 'text', offset: 1 }));
+    expect(screen.getByRole('listbox', { name: 'Commands' })).toBeInTheDocument();
   });
 
   it('does not draw the blocks again while the pointer moves across them', () => {

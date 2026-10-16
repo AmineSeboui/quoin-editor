@@ -47,6 +47,19 @@ describe('BlockCanvas', () => {
     expect(onTransaction).toHaveBeenCalledTimes(1);
   });
 
+  it('draws the overlays its extensions add, handing them the controller', () => {
+    const ref = createRef<QuoinEditorHandle>();
+    const seen = vi.fn();
+    const Overlay = ({ controller }: { controller: unknown }) => {
+      seen(controller);
+      return <p>Overlay</p>;
+    };
+    const extensions = [defineExtension({ name: 'overlay', ui: { overlays: [Overlay] } })];
+    render(<BlockCanvas ref={ref} blocks={blocks} onChange={() => {}} extensions={extensions} />);
+    expect(screen.getByText('Overlay')).toBeInTheDocument();
+    expect(seen).toHaveBeenLastCalledWith(ref.current!.controller);
+  });
+
   it('draws a block type it has no renderer for instead of dropping it, under a readable name', () => {
     const { container } = render(
       <BlockCanvas blocks={[md('a', 'before'), { id: 'z', type: 'CHART', data: {} }]} onChange={() => {}} />,

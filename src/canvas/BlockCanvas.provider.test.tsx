@@ -1,23 +1,23 @@
 import { createRef } from 'react';
 import { render } from '@testing-library/react';
 import { coreBlocks } from '../blocks/core';
-import type { QuoinConfig } from '../context';
+import { useQuoin, type QuoinConfig } from '../context';
+import { defineExtension } from '../engine';
+import type { ExtensionUI } from '../extensions/ui-types';
 import { englishLabels } from '../i18n/labels';
 import type { QuoinBlock } from '../types';
 import { BlockCanvas } from './BlockCanvas';
 import type { QuoinEditorHandle } from './canvas-props';
 
-const probe = vi.hoisted(() => ({ config: null as QuoinConfig | null }));
+const probe = { config: null as QuoinConfig | null };
 
-vi.mock('./collect-ui', async () => {
-  const { useQuoin } = await import('../context');
-  const { defaultRenderers } = await import('../view');
-  function Probe() {
-    probe.config = useQuoin();
-    return <div contentEditable={false}>probe</div>;
-  }
-  return { canvasRenderers: () => ({ ...defaultRenderers, PROBE: Probe }) };
-});
+function Probe() {
+  probe.config = useQuoin();
+  return <div contentEditable={false}>probe</div>;
+}
+
+const probeUi: ExtensionUI = { renderers: { PROBE: Probe } };
+const extensions = [defineExtension({ name: 'probe', ui: probeUi })];
 
 const blocks: QuoinBlock[] = [{ id: 'p', type: 'PROBE', data: {} }];
 
@@ -35,6 +35,7 @@ describe('what BlockCanvas hands its blocks through useQuoin', () => {
     render(
       <BlockCanvas
         ref={ref}
+        extensions={extensions}
         blocks={blocks}
         onChange={() => {}}
         blockTypes={blockTypes}
@@ -48,16 +49,16 @@ describe('what BlockCanvas hands its blocks through useQuoin', () => {
   });
 
   it('defaults the registry to the core blocks and leaves uploads unwired', () => {
-    render(<BlockCanvas blocks={blocks} onChange={() => {}} />);
+    render(<BlockCanvas extensions={extensions} blocks={blocks} onChange={() => {}} />);
     expect(probe.config?.blockTypes).toBe(coreBlocks);
     expect(probe.config?.upload).toBeUndefined();
     expect(probe.config?.resolveAssetUrl('k')).toBe('k');
   });
 
   it('carries the English labels, with the keys the host overrides', () => {
-    const { rerender } = render(<BlockCanvas blocks={blocks} onChange={() => {}} />);
+    const { rerender } = render(<BlockCanvas extensions={extensions} blocks={blocks} onChange={() => {}} />);
     expect(probe.config?.labels).toEqual(englishLabels);
-    rerender(<BlockCanvas blocks={blocks} onChange={() => {}} labels={{ bold: 'Gras' }} />);
+    rerender(<BlockCanvas extensions={extensions} blocks={blocks} onChange={() => {}} labels={{ bold: 'Gras' }} />);
     expect(probe.config?.labels).toEqual({ ...englishLabels, bold: 'Gras' });
   });
 });

@@ -14,7 +14,12 @@ export type BlockName =
   | 'callout'
   | 'toggle'
   | 'code'
-  | 'divider';
+  | 'divider'
+  | 'image'
+  | 'file';
+
+/** The slash commands that insert a block, which the menu explains under their names. */
+export type SlashBlockCommand = BlockName | 'heading1' | 'heading2' | 'heading3';
 
 export type ModifierKey = 'ctrl' | 'alt' | 'shift';
 
@@ -62,6 +67,9 @@ export type QuoinLabels = {
   dragHandle: string;
   slashMenu: string;
   noResults: string;
+  /** What the open slash menu says once its list settles, given how many commands match. */
+  resultCount: (n: number) => string;
+  slashDescriptions: Record<SlashBlockCommand, string>;
   groups: Record<SlashGroup, string>;
   bold: string;
   italic: string;
@@ -137,6 +145,8 @@ export const englishLabels: QuoinLabels = {
     toggle: 'Toggle',
     code: 'Code',
     divider: 'Divider',
+    image: 'Image',
+    file: 'File',
   },
   turnInto: 'Turn into',
   color: 'Color',
@@ -156,6 +166,23 @@ export const englishLabels: QuoinLabels = {
   dragHandle: 'Drag to move, click for options',
   slashMenu: 'Commands',
   noResults: 'No results',
+  resultCount: (n) => `${n} ${n === 1 ? 'result' : 'results'}`,
+  slashDescriptions: {
+    text: 'Plain paragraph text',
+    heading1: 'Large section heading',
+    heading2: 'Medium section heading',
+    heading3: 'Small section heading',
+    bulletedList: 'A list with bullets',
+    numberedList: 'A list with numbers',
+    todoList: 'Tasks to check off',
+    quote: 'A quotation, set apart',
+    divider: 'A line between sections',
+    callout: 'A note that stands out',
+    toggle: 'Content to show or hide',
+    code: 'A block of code',
+    image: 'Upload or link an image',
+    file: 'Attach a file',
+  },
   groups: {
     basic: 'Basic',
     lists: 'Lists',

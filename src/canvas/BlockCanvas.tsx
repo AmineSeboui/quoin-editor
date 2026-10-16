@@ -15,11 +15,11 @@ import { cn } from '../ui/cn';
 import { EditorView, useQuoinEditor } from '../view';
 import { defaultBlockLink } from './block-link';
 import type { BlockCanvasProps, QuoinEditorHandle } from './canvas-props';
-import { canvasRenderers } from './collect-ui';
 import { insertUploads } from './insert-uploads';
 import { createCanvasUiStore } from './ui-store';
 import { useBlockLinkTarget } from './use-block-link-target';
 import { useDeleteReporter } from './use-delete-reporter';
+import { useExtensionUi } from './use-extension-ui';
 
 // Room at the start of every line for the gutter, whose controls grow to 44 px squares on a touch screen.
 const GUTTER_ROOM = 'ps-12 pointer-coarse:ps-24';
@@ -47,28 +47,31 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
 ) {
   const [voidEditing] = useState(createVoidEditing);
   const [uiStore] = useState(createCanvasUiStore);
+  const [hostExtensions] = useState(() => extensions ?? []);
+  const labels = useMemo(() => resolveLabels(labelOverrides), [labelOverrides]);
+  const { ui, slash, overlays } = useExtensionUi(hostExtensions, blockTypes, labels);
   const [allExtensions] = useState(() => [
     ...coreExtensions(),
     voidEditing.extension,
     blockMenuKeymap(uiStore),
-    ...(extensions ?? []),
+    slash,
+    ...hostExtensions,
   ]);
-  const labels = useMemo(() => resolveLabels(labelOverrides), [labelOverrides]);
-  const renderers = useMemo(() => canvasRenderers(blockTypes), [blockTypes]);
   const [focusOnMount] = useState(autoFocus);
   const controller = useQuoinEditor({
     blocks,
     onChange,
     readOnly,
     extensions: allExtensions,
+    render: ui.render,
     onFiles: (files, at) => void insertUploads(controller, files, at, { upload, onError: onError ?? console.error }),
   });
   useDeleteReporter(controller, onDelete);
   useBlockLinkTarget(controller, focusOnMount);
   const actions = useMemo(() => {
     const onCopied = () => controller.announcer.announce(labels.copied);
-    return menuActions(coreBlockMenuActions(labels, { blockLink, onCopied, resolveAssetUrl }));
-  }, [controller, labels, blockLink, resolveAssetUrl]);
+    return menuActions(coreBlockMenuActions(labels, { blockLink, onCopied, resolveAssetUrl }), ui.blockMenuItems);
+  }, [controller, labels, blockLink, resolveAssetUrl, ui.blockMenuItems]);
 
   useImperativeHandle(
     ref,
@@ -86,7 +89,7 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
       <VoidEditingContext.Provider value={voidEditing}>
         <EditorView
           controller={controller}
-          renderers={renderers}
+          renderers={ui.renderers}
           className={cn(GUTTER_ROOM, className)}
           id={id}
           aria-label={ariaLabel ?? labels.document}
@@ -98,6 +101,9 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
         >
           {!readOnly && <Gutter controller={controller} store={uiStore} actions={actions} />}
           {!readOnly && <BlockContextMenu controller={controller} store={uiStore} actions={actions} />}
+          {overlays.map((Overlay, index) => (
+            <Overlay key={index} controller={controller} />
+          ))}
         </EditorView>
       </VoidEditingContext.Provider>
     </QuoinProvider>

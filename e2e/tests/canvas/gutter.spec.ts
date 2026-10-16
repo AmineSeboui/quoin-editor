@@ -126,11 +126,11 @@ test('+ adds a paragraph below the block with the caret in it', async ({ page })
   await addBelow(page).click();
   await expect.poll(async () => (await blocks(page)).length).toBe(3);
   const added = (await blocks(page))[1];
-  expect(added.data).toEqual({ markdown: '' });
+  expect(added.data).toEqual({ markdown: '/' });
   await expect(host(page, added.id)).toBeFocused();
 });
 
-test.fixme('+ opens the slash menu in the paragraph it adds', async ({ page }) => {
+test('+ opens the slash menu in the paragraph it adds', async ({ page }) => {
   await openEditor(page, 'sample');
   await host(page, 'a').hover();
   await addBelow(page).click();

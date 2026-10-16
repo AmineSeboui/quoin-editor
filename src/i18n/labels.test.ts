@@ -101,8 +101,18 @@ describe('englishLabels', () => {
       toggle: 'Toggle',
       code: 'Code',
       divider: 'Divider',
+      image: 'Image',
+      file: 'File',
     });
     expect([englishLabels.tone, englishLabels.icon, englishLabels.copied]).toEqual(['Tone', 'Icon', 'Copied']);
+  });
+
+  it('counts the matching slash commands in the singular for one and describes each block command', () => {
+    expect(englishLabels.resultCount(1)).toBe('1 result');
+    expect(englishLabels.resultCount(3)).toBe('3 results');
+    expect(Object.keys(englishLabels.slashDescriptions).sort()).toEqual(
+      [...Object.keys(englishLabels.blockNames), 'heading1', 'heading2', 'heading3'].sort(),
+    );
   });
 
   it('names the modifier keys of a shortcut hint', () => {

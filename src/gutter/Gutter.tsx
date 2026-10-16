@@ -45,7 +45,7 @@ export function Gutter({ controller, store, actions }: GutterProps) {
     if (target !== null && state.doc.index.has(target)) openBlockMenu(store, state, target);
   };
   const addBelow = () => {
-    if (target !== null && addBlockBelow(controller, target)) store.set({ slashOpen: true });
+    if (target !== null) addBlockBelow(controller, target);
   };
 
   return (

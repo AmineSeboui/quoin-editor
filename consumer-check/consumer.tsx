@@ -4,9 +4,12 @@ import {
   BlockCanvas,
   coreBlocks,
   defineBlock,
+  defineExtension,
+  replaceTrigger,
   useAutosave,
   type AnyBlockDefinition,
   type BlockEditorProps,
+  type ExtensionUI,
   type QuoinBlock,
   type QuoinEditorHandle,
   type QuoinLabels,
@@ -35,6 +38,24 @@ const upload: UploadFn = async (file) => ({ storageKey: file.name, filename: fil
 
 const french: Partial<QuoinLabels> = { bold: 'Gras', heading: (level) => `Titre ${level}` };
 
+const datesUi: ExtensionUI = {
+  slashItems: [
+    {
+      id: 'today',
+      title: 'Today',
+      group: 'basic',
+      icon: Star,
+      keywords: ['date'],
+      run: ({ controller, range }) => {
+        replaceTrigger(controller, range);
+        controller.edit(() => controller.editor.insertText(new Date().toDateString()));
+      },
+    },
+  ],
+};
+
+const extensions = [defineExtension({ name: 'dates', ui: datesUi })];
+
 export function Consumer() {
   const [blocks, setBlocks] = useState<QuoinBlock[]>([]);
   const editor = useRef<QuoinEditorHandle>(null);
@@ -47,6 +68,7 @@ export function Consumer() {
       blockTypes={blockTypes}
       upload={upload}
       labels={french}
+      extensions={extensions}
     />
   );
 }

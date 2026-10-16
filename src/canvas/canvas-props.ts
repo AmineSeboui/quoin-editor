@@ -19,7 +19,10 @@ export type BlockCanvasProps = {
    */
   onDelete?: (block: QuoinBlock, index: number) => void;
   blockTypes?: AnyBlockDefinition[];
-  /** Added after the core extensions when the canvas mounts. Remount it with a new `key` to change them. */
+  /**
+   * Added after the core extensions when the canvas mounts. Remount it with a new `key` to change them. An extension's
+   * `ui` field, an `ExtensionUI`, adds slash commands, block menu items, block renderers and overlays to the canvas.
+   */
   extensions?: readonly Extension[];
   upload?: UploadFn;
   resolveAssetUrl?: (storageKey: string) => string;

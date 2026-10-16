@@ -18,6 +18,10 @@ export type EditorViewProps = {
   'aria-label'?: string;
   /** What the editor's accessible description says, in place of the English way out. */
   hint?: string;
+  /** The accessible name of the paragraph an empty document offers to type into. */
+  paragraphLabel?: string;
+  /** The accessible name of the hidden textbox that holds a selection across blocks. */
+  selectedContentLabel?: string;
   placeholder?: string;
 };
 
@@ -31,6 +35,8 @@ export function EditorView({
   id,
   'aria-label': label = 'Editor',
   hint = HINT,
+  paragraphLabel,
+  selectedContentLabel,
   placeholder,
 }: EditorViewProps) {
   const root = useRef<HTMLDivElement>(null);
@@ -50,8 +56,8 @@ export function EditorView({
         aria-label={label}
         aria-describedby={hintId}
       >
-        {blocks.length === 0 ? <EmptyDocumentHost placeholder={placeholder} /> : shells}
-        <SelectionSink />
+        {blocks.length === 0 ? <EmptyDocumentHost placeholder={placeholder} label={paragraphLabel} /> : shells}
+        <SelectionSink label={selectedContentLabel} />
         <div id={hintId} className="quoin-visually-hidden">
           {hint}
         </div>

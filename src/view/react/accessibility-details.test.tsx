@@ -51,6 +51,15 @@ describe('the editor group', () => {
     expect(hint?.textContent).not.toContain('/');
   });
 
+  it('names the empty document host and the selection sink as the caller asks', () => {
+    const { rerender } = render(<Editor options={options(false, [])} />);
+    expect(screen.getByRole('textbox', { name: 'Paragraph' })).toHaveAttribute('data-quoin-empty');
+    expect(screen.getByRole('textbox', { name: 'Selected content' })).toHaveAttribute('data-quoin-sink');
+    rerender(<Editor options={options(false, [])} view={{ paragraphLabel: 'Paragraphe', selectedContentLabel: 'Contenu choisi' }} />);
+    expect(screen.getByRole('textbox', { name: 'Paragraphe' })).toHaveAttribute('data-quoin-empty');
+    expect(screen.getByRole('textbox', { name: 'Contenu choisi' })).toHaveAttribute('data-quoin-sink');
+  });
+
   it('words the hint the caller gives instead', () => {
     render(<Editor options={options(false)} view={{ hint: 'Appuyez sur Echap, puis Tab, pour sortir.' }} />);
     expect(screen.getByRole('group', { name: 'Doc' })).toHaveAccessibleDescription('Appuyez sur Echap, puis Tab, pour sortir.');

@@ -60,6 +60,8 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
         id={id}
         aria-label={ariaLabel ?? labels.document}
         hint={labels.editorHint}
+        paragraphLabel={labels.paragraph}
+        selectedContentLabel={labels.selectedContent}
         placeholder={placeholder}
       />
     </QuoinProvider>

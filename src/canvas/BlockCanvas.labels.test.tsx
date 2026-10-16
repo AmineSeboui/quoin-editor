@@ -19,6 +19,12 @@ describe('the labels a BlockCanvas speaks', () => {
     expect(screen.getByRole('group', { name: 'Document' })).toHaveAccessibleDescription(labels.editorHint);
   });
 
+  it('name the empty document host and the selection sink in the words the host gives', () => {
+    render(<BlockCanvas blocks={[]} onChange={noop} labels={{ paragraph: 'Paragraphe', selectedContent: 'Contenu choisi' }} />);
+    expect(screen.getByRole('textbox', { name: 'Paragraphe' })).toHaveAttribute('data-quoin-empty');
+    expect(screen.getByRole('textbox', { name: 'Contenu choisi' })).toHaveAttribute('data-quoin-sink');
+  });
+
   it('give way to an aria-label the host sets on the canvas', () => {
     render(<BlockCanvas blocks={blocks} onChange={noop} labels={{ document: 'Document' }} aria-label="Notes" />);
     expect(screen.getByRole('group', { name: 'Notes' })).toBeInTheDocument();

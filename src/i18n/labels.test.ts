@@ -42,6 +42,9 @@ describe('englishLabels', () => {
     expect(englishLabels.editorHint).toBe('Press Escape, then Tab, to leave the editor.');
     expect(englishLabels.heading(2)).toBe('Heading 2');
     expect(englishLabels.callout('warning')).toBe('Callout, warning');
+    expect(englishLabels.paragraph).toBe('Paragraph');
+    expect(englishLabels.selectedContent).toBe('Selected content');
+    expect(englishLabels.close).toBe('Close');
   });
 
   it('counts one selected block in the singular and more in the plural', () => {
@@ -57,7 +60,7 @@ describe('englishLabels', () => {
   it('writes no empty label and no em or en dash', () => {
     for (const text of KEYS.flatMap((key) => sampleText(englishLabels[key]))) {
       expect(text.trim()).not.toBe('');
-      expect(text).not.toMatch(/[–—]/);
+      expect(text).not.toMatch(/[\u2013\u2014]/);
     }
   });
 });

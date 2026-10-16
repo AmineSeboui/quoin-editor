@@ -1,5 +1,5 @@
 import type { ReactElement, RefCallback } from 'react';
-import { fireEvent, render } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { Button } from './button';
 import {
   ContextMenu,
@@ -200,5 +200,27 @@ describe('a primitive given a ref', () => {
     expect((component as { $$typeof?: symbol }).$$typeof).toBe(FORWARD_REF);
     expect(received).toBeInstanceOf(HTMLElement);
     expect(received).toBe(document.querySelector(`[data-slot="${slotOf(name)}"]`));
+  });
+});
+
+describe('the dialog close button', () => {
+  const dialogClosedBy = (closeLabel?: string) => (
+    <Dialog open>
+      <DialogContent closeLabel={closeLabel}>
+        <DialogTitle>Title</DialogTitle>
+        <DialogDescription>Body</DialogDescription>
+      </DialogContent>
+    </Dialog>
+  );
+
+  it('is named Close in English', () => {
+    render(dialogClosedBy());
+    expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
+  });
+
+  it('is named by the label the caller gives', () => {
+    render(dialogClosedBy('Fermer'));
+    expect(screen.getByRole('button', { name: 'Fermer' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument();
   });
 });

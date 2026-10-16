@@ -4,6 +4,20 @@ export type SlashGroup = 'basic' | 'lists' | 'media' | 'advanced' | 'embeds' | '
 
 export type CalloutTone = 'info' | 'tip' | 'success' | 'warning' | 'danger';
 
+/** The block types the menus name. Headings are named by `heading`. */
+export type BlockName =
+  | 'text'
+  | 'bulletedList'
+  | 'numberedList'
+  | 'todoList'
+  | 'quote'
+  | 'callout'
+  | 'toggle'
+  | 'code'
+  | 'divider';
+
+export type ModifierKey = 'ctrl' | 'alt' | 'shift';
+
 /** Every string the editor shows or speaks. A label that depends on a value is a function of it. */
 export type QuoinLabels = {
   document: string;
@@ -28,13 +42,18 @@ export type QuoinLabels = {
   placeholderList: string;
   placeholderQuote: string;
   blockMenu: (type: string) => string;
+  blockNames: Record<BlockName, string>;
   turnInto: string;
   color: string;
   textColor: string;
   backgroundColor: string;
+  /** The submenus of a callout's block menu that set its tone and its icon. */
+  tone: string;
+  icon: string;
   duplicate: string;
   copy: string;
   copyLink: string;
+  copied: string;
   moveUp: string;
   moveDown: string;
   delete: string;
@@ -71,6 +90,8 @@ export type QuoinLabels = {
   blocksSelected: (n: number) => string;
   undoHint: string;
   shortcuts: string;
+  /** The modifier keys a shortcut hint names away from a Mac, where it draws their symbols instead. */
+  keyNames: Record<ModifierKey, string>;
   formattingToolbar: string;
   mobileToolbar: string;
   indent: string;
@@ -106,19 +127,33 @@ export const englishLabels: QuoinLabels = {
   placeholderList: 'List',
   placeholderQuote: 'Quote',
   blockMenu: (type) => `${type} block menu`,
+  blockNames: {
+    text: 'Text',
+    bulletedList: 'Bulleted list',
+    numberedList: 'Numbered list',
+    todoList: 'To-do list',
+    quote: 'Quote',
+    callout: 'Callout',
+    toggle: 'Toggle',
+    code: 'Code',
+    divider: 'Divider',
+  },
   turnInto: 'Turn into',
   color: 'Color',
   textColor: 'Text color',
   backgroundColor: 'Background color',
+  tone: 'Tone',
+  icon: 'Icon',
   duplicate: 'Duplicate',
   copy: 'Copy',
   copyLink: 'Copy link to block',
+  copied: 'Copied',
   moveUp: 'Move up',
   moveDown: 'Move down',
   delete: 'Delete',
   askAi: 'Ask AI',
   addBelow: 'Add block below',
-  dragHandle: 'Drag to move',
+  dragHandle: 'Drag to move, click for options',
   slashMenu: 'Commands',
   noResults: 'No results',
   groups: {
@@ -168,6 +203,7 @@ export const englishLabels: QuoinLabels = {
   blocksSelected: (n) => `${n} ${n === 1 ? 'block' : 'blocks'} selected`,
   undoHint: 'Undo to bring it back',
   shortcuts: 'Keyboard shortcuts',
+  keyNames: { ctrl: 'Ctrl', alt: 'Alt', shift: 'Shift' },
   formattingToolbar: 'Text formatting',
   mobileToolbar: 'Editing tools',
   indent: 'Indent',

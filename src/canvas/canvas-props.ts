@@ -32,6 +32,11 @@ export type BlockCanvasProps = {
    * hoisted or memoised: a new one each render re-renders everything that reads the canvas configuration.
    */
   labels?: Partial<QuoinLabels>;
+  /**
+   * The address the block menu's "Copy link to block" copies. By default the current page with `#block-<id>`, a fragment
+   * the canvas follows on load and on hash changes to select the block and scroll it into view.
+   */
+  blockLink?: (blockId: string) => string;
   className?: string;
   id?: string;
   'aria-label'?: string;

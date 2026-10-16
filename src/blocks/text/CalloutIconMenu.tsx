@@ -4,10 +4,9 @@ import { useLabels } from '../../i18n/use-labels';
 import { Button } from '../../ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../../ui/dropdown-menu';
 import type { ViewController } from '../../view';
+import { CALLOUT_ICONS } from './callout-tone';
 import { returnFocusToText } from './return-focus-to-text';
 import { setBlockAttrs } from './set-block-attrs';
-
-const ICONS = ['\u{1F4A1}', '\u26A0\uFE0F', '\u2705', '\u2757', '\u2139\uFE0F', '\u{1F4CC}'] as const;
 
 type CalloutIconMenuProps = { blockId: string; controller: ViewController; icon: string };
 
@@ -28,7 +27,7 @@ export function CalloutIconMenu({ blockId, controller, icon }: CalloutIconMenuPr
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="min-w-0" onCloseAutoFocus={returnFocusToText(controller)}>
-        {ICONS.map((choice) => (
+        {CALLOUT_ICONS.map((choice) => (
           <DropdownMenuItem
             key={choice}
             className="justify-center text-base"

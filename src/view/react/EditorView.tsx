@@ -1,4 +1,4 @@
-import { useId, useRef } from 'react';
+import { useId, useRef, type ReactNode } from 'react';
 import type { ViewController } from '../controller/view-controller';
 import { BlockDomIdScope } from './block-dom-id';
 import type { BlockRenderer } from './block-renderer-types';
@@ -27,6 +27,8 @@ export type EditorViewProps = {
   /** The text and accessible name of a block whose type no renderer draws, in place of the English one. */
   unsupportedBlockLabel?: string;
   placeholder?: string;
+  /** Controls drawn over the blocks, such as a gutter, positioned against the editor's root. */
+  children?: ReactNode;
 };
 
 const NO_RENDERERS: Readonly<Record<string, BlockRenderer>> = {};
@@ -43,6 +45,7 @@ export function EditorView({
   selectedContentLabel,
   unsupportedBlockLabel = UNSUPPORTED_BLOCK,
   placeholder,
+  children,
 }: EditorViewProps) {
   const root = useRef<HTMLDivElement>(null);
   const hintId = useId();
@@ -67,6 +70,7 @@ export function EditorView({
             {blocks.length === 0 ? <EmptyDocumentHost placeholder={placeholder} label={paragraphLabel} /> : shells}
           </UnsupportedBlockLabel.Provider>
         </BlockDomIdScope.Provider>
+        {children}
         <SelectionSink label={selectedContentLabel} />
         <div id={hintId} className="quoin-visually-hidden">
           {hint}

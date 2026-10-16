@@ -100,8 +100,11 @@ const DropdownMenuRadioGroup = React.forwardRef<
 
 const DropdownMenuRadioItem = React.forwardRef<
   React.ComponentRef<typeof DropdownMenuPrimitive.RadioItem>,
-  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.RadioItem>
->(function DropdownMenuRadioItem({ className, children, ...props }, ref) {
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.RadioItem> & { indicator?: React.ReactNode }
+>(function DropdownMenuRadioItem(
+  { className, children, indicator = <CircleIcon className="size-2 fill-current" />, ...props },
+  ref,
+) {
   return (
     <DropdownMenuPrimitive.RadioItem
       ref={ref}
@@ -110,9 +113,7 @@ const DropdownMenuRadioItem = React.forwardRef<
       {...props}
     >
       <span className={MENU_ITEM_INDICATOR}>
-        <DropdownMenuPrimitive.ItemIndicator>
-          <CircleIcon className="size-2 fill-current" />
-        </DropdownMenuPrimitive.ItemIndicator>
+        <DropdownMenuPrimitive.ItemIndicator>{indicator}</DropdownMenuPrimitive.ItemIndicator>
       </span>
       {children}
     </DropdownMenuPrimitive.RadioItem>

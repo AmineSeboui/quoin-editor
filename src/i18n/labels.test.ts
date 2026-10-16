@@ -90,6 +90,31 @@ describe('englishLabels', () => {
     expect(Object.keys(englishLabels.groups)).toHaveLength(7);
   });
 
+  it('names the block types a block turns into, the callout submenus and a finished copy', () => {
+    expect(englishLabels.blockNames).toEqual({
+      text: 'Text',
+      bulletedList: 'Bulleted list',
+      numberedList: 'Numbered list',
+      todoList: 'To-do list',
+      quote: 'Quote',
+      callout: 'Callout',
+      toggle: 'Toggle',
+      code: 'Code',
+      divider: 'Divider',
+    });
+    expect([englishLabels.tone, englishLabels.icon, englishLabels.copied]).toEqual(['Tone', 'Icon', 'Copied']);
+  });
+
+  it('names the modifier keys of a shortcut hint', () => {
+    expect(englishLabels.keyNames).toEqual({ ctrl: 'Ctrl', alt: 'Alt', shift: 'Shift' });
+  });
+
+  it('names the gutter controls by what they do, the handle by both its drag and its click', () => {
+    expect(englishLabels.addBelow).toBe('Add block below');
+    expect(englishLabels.dragHandle).toBe('Drag to move, click for options');
+    expect(englishLabels.blockMenu('Heading 2')).toBe('Heading 2 block menu');
+  });
+
   it('writes no empty label and no em or en dash', () => {
     for (const text of KEYS.flatMap(sampleText)) {
       expect(text.trim()).not.toBe('');

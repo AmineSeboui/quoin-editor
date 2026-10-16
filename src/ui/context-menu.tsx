@@ -99,8 +99,11 @@ const ContextMenuRadioGroup = React.forwardRef<
 
 const ContextMenuRadioItem = React.forwardRef<
   React.ComponentRef<typeof ContextMenuPrimitive.RadioItem>,
-  React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.RadioItem>
->(function ContextMenuRadioItem({ className, children, ...props }, ref) {
+  React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.RadioItem> & { indicator?: React.ReactNode }
+>(function ContextMenuRadioItem(
+  { className, children, indicator = <CircleIcon className="size-2 fill-current" />, ...props },
+  ref,
+) {
   return (
     <ContextMenuPrimitive.RadioItem
       ref={ref}
@@ -109,9 +112,7 @@ const ContextMenuRadioItem = React.forwardRef<
       {...props}
     >
       <span className={MENU_ITEM_INDICATOR}>
-        <ContextMenuPrimitive.ItemIndicator>
-          <CircleIcon className="size-2 fill-current" />
-        </ContextMenuPrimitive.ItemIndicator>
+        <ContextMenuPrimitive.ItemIndicator>{indicator}</ContextMenuPrimitive.ItemIndicator>
       </span>
       {children}
     </ContextMenuPrimitive.RadioItem>

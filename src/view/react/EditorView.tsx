@@ -16,6 +16,8 @@ export type EditorViewProps = {
   className?: string;
   id?: string;
   'aria-label'?: string;
+  /** What the editor's accessible description says, in place of the English way out. */
+  hint?: string;
   placeholder?: string;
 };
 
@@ -28,6 +30,7 @@ export function EditorView({
   className,
   id,
   'aria-label': label = 'Editor',
+  hint = HINT,
   placeholder,
 }: EditorViewProps) {
   const root = useRef<HTMLDivElement>(null);
@@ -50,7 +53,7 @@ export function EditorView({
         {blocks.length === 0 ? <EmptyDocumentHost placeholder={placeholder} /> : shells}
         <SelectionSink />
         <div id={hintId} className="quoin-visually-hidden">
-          {HINT}
+          {hint}
         </div>
         <LiveRegion />
         <SelectionWriter />

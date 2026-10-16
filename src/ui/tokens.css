@@ -1,0 +1,93 @@
+:root {
+  --quoin-background: oklch(1 0 0);
+  --quoin-foreground: oklch(0.145 0 0);
+  --quoin-muted: oklch(0.97 0 0);
+  --quoin-muted-foreground: oklch(0.54 0 0);
+  --quoin-popover: oklch(1 0 0);
+  --quoin-popover-foreground: oklch(0.145 0 0);
+  --quoin-border: oklch(0.922 0 0);
+  --quoin-input: oklch(0.922 0 0);
+  --quoin-ring: oklch(0.45 0 0);
+  --quoin-primary: oklch(0.205 0 0);
+  --quoin-primary-foreground: oklch(0.985 0 0);
+  --quoin-accent: oklch(0.97 0 0);
+  --quoin-accent-foreground: oklch(0.205 0 0);
+  --quoin-destructive: oklch(0.55 0.245 27.325);
+  --quoin-secondary: oklch(0.97 0 0);
+  --quoin-secondary-foreground: oklch(0.205 0 0);
+  /* The callout tones. They exist because the rest of this palette cannot tell five
+     tones apart: it carries one accent and one destructive, so info, tip and success
+     all resolved to the same near-black and the tone a writer picked said nothing.
+     Non-text, like --destructive: a rule and a wash, never type. */
+  --quoin-info: oklch(0.55 0.17 250);
+  --quoin-success: oklch(0.55 0.14 155);
+  --quoin-warning: oklch(0.65 0.16 65);
+  --quoin-selection: oklch(0.62 0.17 250 / 28%);
+  --quoin-radius: 0.625rem;
+  /* The palette a writer colours text and backgrounds with. Each text colour reaches 4.5:1 on the page, and body text
+     reaches 4.5:1 on each background. */
+  --quoin-color-default: oklch(0.145 0 0);
+  --quoin-color-gray: oklch(0.53 0 0);
+  --quoin-color-brown: oklch(0.52 0.06 50);
+  --quoin-color-orange: oklch(0.56 0.14 52);
+  --quoin-color-yellow: oklch(0.55 0.11 80);
+  --quoin-color-green: oklch(0.53 0.11 155);
+  --quoin-color-blue: oklch(0.53 0.13 245);
+  --quoin-color-purple: oklch(0.53 0.15 305);
+  --quoin-color-pink: oklch(0.54 0.17 355);
+  --quoin-color-red: oklch(0.55 0.19 27);
+  --quoin-bg-default: oklch(1 0 0);
+  --quoin-bg-gray: oklch(0.955 0 0);
+  --quoin-bg-brown: oklch(0.95 0.012 50);
+  --quoin-bg-orange: oklch(0.955 0.03 65);
+  --quoin-bg-yellow: oklch(0.965 0.045 95);
+  --quoin-bg-green: oklch(0.955 0.03 155);
+  --quoin-bg-blue: oklch(0.955 0.025 235);
+  --quoin-bg-purple: oklch(0.955 0.025 305);
+  --quoin-bg-pink: oklch(0.955 0.025 350);
+  --quoin-bg-red: oklch(0.95 0.022 20);
+}
+
+.dark {
+  --quoin-background: oklch(0.145 0 0);
+  --quoin-foreground: oklch(0.985 0 0);
+  --quoin-muted: oklch(0.269 0 0);
+  --quoin-muted-foreground: oklch(0.708 0 0);
+  --quoin-popover: oklch(0.205 0 0);
+  --quoin-popover-foreground: oklch(0.985 0 0);
+  --quoin-border: oklch(1 0 0 / 10%);
+  --quoin-input: oklch(1 0 0 / 15%);
+  --quoin-ring: oklch(0.708 0 0);
+  --quoin-primary: oklch(0.922 0 0);
+  --quoin-primary-foreground: oklch(0.205 0 0);
+  --quoin-accent: oklch(0.269 0 0);
+  --quoin-accent-foreground: oklch(0.985 0 0);
+  --quoin-secondary: oklch(0.269 0 0);
+  --quoin-secondary-foreground: oklch(0.985 0 0);
+  --quoin-destructive: oklch(0.704 0.191 22.216);
+  --quoin-info: oklch(0.72 0.14 250);
+  --quoin-success: oklch(0.74 0.15 155);
+  --quoin-warning: oklch(0.79 0.15 65);
+  --quoin-selection: oklch(0.72 0.14 250 / 35%);
+  --quoin-radius: 0.625rem;
+  --quoin-color-default: oklch(0.985 0 0);
+  --quoin-color-gray: oklch(0.72 0 0);
+  --quoin-color-brown: oklch(0.72 0.06 55);
+  --quoin-color-orange: oklch(0.76 0.13 60);
+  --quoin-color-yellow: oklch(0.83 0.13 90);
+  --quoin-color-green: oklch(0.76 0.13 155);
+  --quoin-color-blue: oklch(0.74 0.12 245);
+  --quoin-color-purple: oklch(0.74 0.13 305);
+  --quoin-color-pink: oklch(0.74 0.14 355);
+  --quoin-color-red: oklch(0.72 0.16 25);
+  --quoin-bg-default: oklch(0.145 0 0);
+  --quoin-bg-gray: oklch(0.29 0 0);
+  --quoin-bg-brown: oklch(0.29 0.025 50);
+  --quoin-bg-orange: oklch(0.3 0.05 55);
+  --quoin-bg-yellow: oklch(0.31 0.05 90);
+  --quoin-bg-green: oklch(0.29 0.045 155);
+  --quoin-bg-blue: oklch(0.29 0.05 245);
+  --quoin-bg-purple: oklch(0.29 0.055 305);
+  --quoin-bg-pink: oklch(0.29 0.055 355);
+  --quoin-bg-red: oklch(0.29 0.06 25);
+}

@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from './context-menu';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from './dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './dropdown-menu';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
@@ -15,6 +16,19 @@ describe('the quoin scope class on content portalled out of the editor', () => {
         </DropdownMenuContent>
       </DropdownMenu>,
     );
+    expect(screen.getByRole('menu')).toHaveClass('quoin');
+  });
+
+  it('is on a context menu', () => {
+    render(
+      <ContextMenu>
+        <ContextMenuTrigger>Area</ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem>Item</ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>,
+    );
+    fireEvent.contextMenu(screen.getByText('Area'));
     expect(screen.getByRole('menu')).toHaveClass('quoin');
   });
 

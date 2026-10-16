@@ -15,6 +15,12 @@ describe('the main entry', () => {
     expect(main.FilePickerButton).toBeTypeOf('function');
   });
 
+  it('exports the English labels and the means to override and read them', () => {
+    expect(main.englishLabels.bold).toBe('Bold');
+    expect(main.resolveLabels({ bold: 'Gras' }).bold).toBe('Gras');
+    expect(main.useLabels).toBeTypeOf('function');
+  });
+
   it('still exports the editor surface alongside them', () => {
     expect(main.BlockCanvas).toBeDefined();
     expect(main.coreBlocks.length).toBeGreaterThan(0);

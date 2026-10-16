@@ -1,0 +1,32 @@
+/* data-color and data-bg sit on inline marks and on block shells alike. A highlight is a <mark> whose data-color names
+   its background, so it keeps the text colour around it. */
+.quoin mark,
+.quoin mark[data-color] {
+  color: inherit;
+}
+
+.quoin mark {
+  background-color: var(--quoin-bg-yellow);
+}
+
+.quoin [data-color="default"] { color: var(--quoin-color-default); }
+.quoin [data-color="gray"] { color: var(--quoin-color-gray); }
+.quoin [data-color="brown"] { color: var(--quoin-color-brown); }
+.quoin [data-color="orange"] { color: var(--quoin-color-orange); }
+.quoin [data-color="yellow"] { color: var(--quoin-color-yellow); }
+.quoin [data-color="green"] { color: var(--quoin-color-green); }
+.quoin [data-color="blue"] { color: var(--quoin-color-blue); }
+.quoin [data-color="purple"] { color: var(--quoin-color-purple); }
+.quoin [data-color="pink"] { color: var(--quoin-color-pink); }
+.quoin [data-color="red"] { color: var(--quoin-color-red); }
+
+.quoin :is([data-bg="default"], mark[data-color="default"]) { background-color: var(--quoin-bg-default); }
+.quoin :is([data-bg="gray"], mark[data-color="gray"]) { background-color: var(--quoin-bg-gray); }
+.quoin :is([data-bg="brown"], mark[data-color="brown"]) { background-color: var(--quoin-bg-brown); }
+.quoin :is([data-bg="orange"], mark[data-color="orange"]) { background-color: var(--quoin-bg-orange); }
+.quoin :is([data-bg="yellow"], mark[data-color="yellow"]) { background-color: var(--quoin-bg-yellow); }
+.quoin :is([data-bg="green"], mark[data-color="green"]) { background-color: var(--quoin-bg-green); }
+.quoin :is([data-bg="blue"], mark[data-color="blue"]) { background-color: var(--quoin-bg-blue); }
+.quoin :is([data-bg="purple"], mark[data-color="purple"]) { background-color: var(--quoin-bg-purple); }
+.quoin :is([data-bg="pink"], mark[data-color="pink"]) { background-color: var(--quoin-bg-pink); }
+.quoin :is([data-bg="red"], mark[data-color="red"]) { background-color: var(--quoin-bg-red); }

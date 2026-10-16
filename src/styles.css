@@ -8,14 +8,16 @@
    Tailwind's theme is imported by reference, so its tokens are resolved into these utilities at
    build time rather than declared on the host's :root. Declared, `--spacing`, `--text-base` and
    `--container-md` would take over the host's own values and resize its whole page, editor or
-   not. The only custom properties this file ships are the --quoin- ones below. */
+   not. The only custom properties this file ships are the --quoin- ones of ui/tokens.css. */
 @layer quoin.theme, quoin.base, quoin.components, quoin.utilities;
 @import "tailwindcss/theme.css" layer(quoin.theme) theme(inline reference);
 @import "tailwindcss/utilities.css" layer(quoin.utilities) source(none);
 @import "tw-animate-css";
+@import "./ui/tokens.css" layer(quoin.base);
 @import "./view/view.css" layer(quoin.components);
+@import "./ui/palette.css" layer(quoin.components);
 
-/* Tailwind's default dark: variant keys on prefers-color-scheme, while the variables below
+/* Tailwind's default dark: variant keys on prefers-color-scheme, while the --quoin- variables
    switch on a .dark class; without this line the two disagree for a consumer whose OS theme
    differs from their app theme. */
 @custom-variant dark (&:is(.dark *));
@@ -51,6 +53,12 @@
     line-height: 1.5;
     tab-size: 4;
     -webkit-tap-highlight-color: transparent;
+    color-scheme: light;
+  }
+
+  .dark .quoin,
+  .quoin.dark {
+    color-scheme: dark;
   }
 
   .quoin ul,
@@ -93,56 +101,28 @@
     opacity: 1;
   }
 
-  :root {
-    --quoin-background: oklch(1 0 0);
-    --quoin-foreground: oklch(0.145 0 0);
-    --quoin-muted: oklch(0.97 0 0);
-    --quoin-muted-foreground: oklch(0.54 0 0);
-    --quoin-popover: oklch(1 0 0);
-    --quoin-popover-foreground: oklch(0.145 0 0);
-    --quoin-border: oklch(0.922 0 0);
-    --quoin-input: oklch(0.922 0 0);
-    --quoin-ring: oklch(0.45 0 0);
-    --quoin-primary: oklch(0.205 0 0);
-    --quoin-primary-foreground: oklch(0.985 0 0);
-    --quoin-accent: oklch(0.97 0 0);
-    --quoin-accent-foreground: oklch(0.205 0 0);
-    --quoin-destructive: oklch(0.55 0.245 27.325);
-    --quoin-secondary: oklch(0.97 0 0);
-    --quoin-secondary-foreground: oklch(0.205 0 0);
-    /* The callout tones. They exist because the rest of this palette cannot tell five
-       tones apart: it carries one accent and one destructive, so info, tip and success
-       all resolved to the same near-black and the tone a writer picked said nothing.
-       Non-text, like --destructive: a rule and a wash, never type. */
-    --quoin-info: oklch(0.55 0.17 250);
-    --quoin-success: oklch(0.55 0.14 155);
-    --quoin-warning: oklch(0.65 0.16 65);
-    --quoin-selection: oklch(0.62 0.17 250 / 28%);
-    --quoin-radius: 0.625rem;
+  /* The reader's own settings. Important, because this base layer sits under the utilities a control carries. */
+  @media (forced-colors: active) {
+    .quoin:focus-visible,
+    .quoin :focus-visible {
+      outline: 2px solid CanvasText !important;
+      outline-offset: 2px !important;
+    }
+
+    .quoin [data-highlighted] {
+      outline: 2px solid CanvasText !important;
+      outline-offset: -2px !important;
+    }
   }
 
-  .dark {
-    --quoin-background: oklch(0.145 0 0);
-    --quoin-foreground: oklch(0.985 0 0);
-    --quoin-muted: oklch(0.269 0 0);
-    --quoin-muted-foreground: oklch(0.708 0 0);
-    --quoin-popover: oklch(0.205 0 0);
-    --quoin-popover-foreground: oklch(0.985 0 0);
-    --quoin-border: oklch(1 0 0 / 10%);
-    --quoin-input: oklch(1 0 0 / 15%);
-    --quoin-ring: oklch(0.708 0 0);
-    --quoin-primary: oklch(0.922 0 0);
-    --quoin-primary-foreground: oklch(0.205 0 0);
-    --quoin-accent: oklch(0.269 0 0);
-    --quoin-accent-foreground: oklch(0.985 0 0);
-    --quoin-secondary: oklch(0.269 0 0);
-    --quoin-secondary-foreground: oklch(0.985 0 0);
-    --quoin-destructive: oklch(0.704 0.191 22.216);
-    --quoin-info: oklch(0.72 0.14 250);
-    --quoin-success: oklch(0.74 0.15 155);
-    --quoin-warning: oklch(0.79 0.15 65);
-    --quoin-selection: oklch(0.72 0.14 250 / 35%);
-    --quoin-radius: 0.625rem;
+  @media (prefers-reduced-motion: reduce) {
+    .quoin,
+    .quoin *,
+    .quoin *::before,
+    .quoin *::after {
+      transition: none !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 

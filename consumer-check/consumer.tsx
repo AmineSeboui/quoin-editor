@@ -9,6 +9,7 @@ import {
   type BlockEditorProps,
   type QuoinBlock,
   type QuoinEditorHandle,
+  type QuoinLabels,
   type UploadFn,
 } from 'quoin-editor';
 import { EditorView, useQuoinEditor } from 'quoin-editor/headless';
@@ -32,11 +33,22 @@ const blockTypes: AnyBlockDefinition[] = [...coreBlocks, rating];
 
 const upload: UploadFn = async (file) => ({ storageKey: file.name, filename: file.name, size: file.size });
 
+const french: Partial<QuoinLabels> = { bold: 'Gras', heading: (level) => `Titre ${level}` };
+
 export function Consumer() {
   const [blocks, setBlocks] = useState<QuoinBlock[]>([]);
   const editor = useRef<QuoinEditorHandle>(null);
   useAutosave({ deps: [blocks], build: () => blocks, save: () => {} });
-  return <BlockCanvas ref={editor} blocks={blocks} onChange={setBlocks} blockTypes={blockTypes} upload={upload} />;
+  return (
+    <BlockCanvas
+      ref={editor}
+      blocks={blocks}
+      onChange={setBlocks}
+      blockTypes={blockTypes}
+      upload={upload}
+      labels={french}
+    />
+  );
 }
 
 export const exportMarkdown = (handle: QuoinEditorHandle): string => handle.toMarkdown({ comments: true });

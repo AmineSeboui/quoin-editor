@@ -2,6 +2,7 @@ import { createRef } from 'react';
 import { render } from '@testing-library/react';
 import { coreBlocks } from '../blocks/core';
 import type { QuoinConfig } from '../context';
+import { englishLabels } from '../i18n/labels';
 import type { QuoinBlock } from '../types';
 import { BlockCanvas } from './BlockCanvas';
 import type { QuoinEditorHandle } from './canvas-props';
@@ -51,5 +52,12 @@ describe('what BlockCanvas hands its blocks through useQuoin', () => {
     expect(probe.config?.blockTypes).toBe(coreBlocks);
     expect(probe.config?.upload).toBeUndefined();
     expect(probe.config?.resolveAssetUrl('k')).toBe('k');
+  });
+
+  it('carries the English labels, with the keys the host overrides', () => {
+    const { rerender } = render(<BlockCanvas blocks={blocks} onChange={() => {}} />);
+    expect(probe.config?.labels).toEqual(englishLabels);
+    rerender(<BlockCanvas blocks={blocks} onChange={() => {}} labels={{ bold: 'Gras' }} />);
+    expect(probe.config?.labels).toEqual({ ...englishLabels, bold: 'Gras' });
   });
 });

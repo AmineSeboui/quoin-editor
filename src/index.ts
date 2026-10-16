@@ -15,6 +15,8 @@ export type {
 export { UploadField, type UploadFieldProps } from './upload/UploadField';
 export { FilePickerButton, type FilePickerButtonProps } from './upload/FilePickerButton';
 export { QuoinProvider, useQuoin, type QuoinConfig, type QuoinConfigInput } from './context';
+export { englishLabels, resolveLabels, type QuoinLabels } from './i18n/labels';
+export { useLabels } from './i18n/use-labels';
 export {
   useAutosave,
   type AutosaveStatus,

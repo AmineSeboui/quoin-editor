@@ -1,4 +1,5 @@
 import type { Editor, Extension, Pos, QuoinBlock } from '../engine';
+import type { QuoinLabels } from '../i18n/labels';
 import type { AnyBlockDefinition } from '../registry';
 import type { UploadFn } from '../types';
 import type { ViewController } from '../view';
@@ -26,6 +27,11 @@ export type BlockCanvasProps = {
   readOnly?: boolean;
   autoFocus?: boolean;
   placeholder?: string;
+  /**
+   * Every string the canvas shows or speaks, English by default. A key left out stays English. Keep the object stable,
+   * hoisted or memoised: a new one each render re-renders everything that reads the canvas configuration.
+   */
+  labels?: Partial<QuoinLabels>;
   className?: string;
   id?: string;
   'aria-label'?: string;

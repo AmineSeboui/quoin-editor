@@ -50,4 +50,9 @@ describe('the editor group', () => {
     expect(hint).toHaveTextContent('Press Escape, then Tab, to leave the editor.');
     expect(hint?.textContent).not.toContain('/');
   });
+
+  it('words the hint the caller gives instead', () => {
+    render(<Editor options={options(false)} view={{ hint: 'Appuyez sur Echap, puis Tab, pour sortir.' }} />);
+    expect(screen.getByRole('group', { name: 'Doc' })).toHaveAccessibleDescription('Appuyez sur Echap, puis Tab, pour sortir.');
+  });
 });

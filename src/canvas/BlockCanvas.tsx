@@ -1,9 +1,10 @@
 'use client';
 
-import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { coreBlocks } from '../blocks/core';
 import { QuoinProvider } from '../context';
 import { coreExtensions } from '../engine';
+import { resolveLabels } from '../i18n/labels';
 import { EditorView, useQuoinEditor } from '../view';
 import type { BlockCanvasProps, QuoinEditorHandle } from './canvas-props';
 import { canvasRenderers } from './collect-ui';
@@ -22,6 +23,7 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
     readOnly = false,
     autoFocus = false,
     placeholder,
+    labels: labelOverrides,
     className,
     id,
     'aria-label': ariaLabel,
@@ -29,6 +31,7 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
   ref,
 ) {
   const [allExtensions] = useState(() => [...coreExtensions(), ...(extensions ?? [])]);
+  const labels = useMemo(() => resolveLabels(labelOverrides), [labelOverrides]);
   const [focusOnMount] = useState(autoFocus);
   const controller = useQuoinEditor({ blocks, onChange, readOnly, extensions: allExtensions });
   useDeleteReporter(controller, onDelete);
@@ -49,13 +52,14 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
   }, [controller, focusOnMount]);
 
   return (
-    <QuoinProvider value={{ blockTypes, upload, resolveAssetUrl, onError, controller }}>
+    <QuoinProvider value={{ blockTypes, upload, resolveAssetUrl, onError, controller, labels }}>
       <EditorView
         controller={controller}
         renderers={canvasRenderers}
         className={className}
         id={id}
-        aria-label={ariaLabel}
+        aria-label={ariaLabel ?? labels.document}
+        hint={labels.editorHint}
         placeholder={placeholder}
       />
     </QuoinProvider>

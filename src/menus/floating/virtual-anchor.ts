@@ -9,10 +9,13 @@ const ROOM_BELOW = 240;
  * Floating UI repositions the menu when an ancestor of `contextElement` scrolls, so a menu anchored in text inside a
  * scrolling container follows its line.
  */
-export function virtualAnchor(measure: () => DOMRect | null, contextElement?: Element): VirtualAnchor {
+export function virtualAnchor(measure: () => DOMRect | null, context: () => Element | undefined): VirtualAnchor {
   let last = new DOMRect();
   return {
-    contextElement,
+    // Read when Floating UI starts watching, after the commit that drew the anchor's host has registered it.
+    get contextElement() {
+      return context();
+    },
     getBoundingClientRect() {
       last = measure() ?? last;
       return last;

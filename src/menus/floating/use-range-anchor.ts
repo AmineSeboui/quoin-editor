@@ -12,10 +12,17 @@ type RangeAnchor = { anchor: RefObject<VirtualAnchor | null>; side: MenuSide };
  * chosen once where the range starts so it does not flip while the query is typed.
  */
 export function useRangeAnchor(controller: ViewController, range: SuggestionRange | null): RangeAnchor {
-  const anchor = useMemo(() => {
-    const host = range && controller.registry.get(range.block, range.region);
-    return { current: range && virtualAnchor(() => rangeRect(controller, range), host ?? undefined) };
-  }, [controller, range]);
+  const anchor = useMemo(
+    () => ({
+      current:
+        range &&
+        virtualAnchor(
+          () => rangeRect(controller, range),
+          () => controller.registry.get(range.block, range.region),
+        ),
+    }),
+    [controller, range],
+  );
   const [side, setSide] = useState<MenuSide>('bottom');
   const latest = useRef(range);
   const start = range === null ? null : `${range.block} ${range.region} ${range.from}`;

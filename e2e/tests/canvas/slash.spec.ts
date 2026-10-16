@@ -39,21 +39,37 @@ test('the menu opens above a line near the bottom of the window', async ({ page 
   expect(menu.y + menu.height).toBeLessThanOrEqual(moved.y);
 });
 
+const scrollingRoot = (page: Page) =>
+  page.locator('#root').evaluate((element) => Object.assign(element.style, { height: '320px', overflowY: 'auto' }));
+
+async function expectMenuToFollowScrolling(page: Page, line: Locator) {
+  const gapUnderLine = async () => {
+    const lineBox = await box(line);
+    return (await box(popup(page))).y - (lineBox.y + lineBox.height);
+  };
+  await page.locator('#root').evaluate((element) => element.scrollBy(0, 40));
+  await expect.poll(gapUnderLine).toBeLessThan(16);
+  expect(await gapUnderLine()).toBeGreaterThanOrEqual(0);
+}
+
 test('the menu follows its line when the editor scrolls inside a container', async ({ page }) => {
   await openEditor(page, 'text');
-  await page.locator('#root').evaluate((element) => Object.assign(element.style, { height: '320px', overflowY: 'auto' }));
+  await scrollingRoot(page);
   const paragraph = page.locator('[data-block-id="r"] [data-quoin-host]');
   await paragraph.click();
   await page.keyboard.press('End');
   await page.keyboard.type(' /');
   await expect(listbox(page)).toBeVisible();
-  const gapUnderLine = async () => {
-    const line = await box(paragraph);
-    return (await box(popup(page))).y - (line.y + line.height);
-  };
-  await page.locator('#root').evaluate((element) => element.scrollBy(0, 40));
-  await expect.poll(gapUnderLine).toBeLessThan(16);
-  expect(await gapUnderLine()).toBeGreaterThanOrEqual(0);
+  await expectMenuToFollowScrolling(page, paragraph);
+});
+
+test('the menu the gutter + opens follows its new line when the editor scrolls inside a container', async ({ page }) => {
+  await openEditor(page, 'text');
+  await scrollingRoot(page);
+  await page.locator('[data-block-id="r"] [data-quoin-host]').hover();
+  await page.getByRole('button', { name: 'Add block below' }).click();
+  await expect(listbox(page)).toBeVisible();
+  await expectMenuToFollowScrolling(page, page.locator('[data-quoin-host][aria-expanded="true"]'));
 });
 
 test('typing a query and Enter turns the paragraph into the chosen block', async ({ page }) => {

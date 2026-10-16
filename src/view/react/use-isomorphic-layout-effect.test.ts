@@ -1,4 +1,5 @@
-import * as React from 'react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { useEffect, useLayoutEffect } from 'react';
 
 const SOURCES = import.meta.glob<string>('/src/**/*.{ts,tsx}', { query: '?raw', import: 'default', eager: true });
 
@@ -10,14 +11,14 @@ describe('useIsomorphicLayoutEffect', () => {
 
   it('is a layout effect in the browser', async () => {
     const { useIsomorphicLayoutEffect } = await import('./use-isomorphic-layout-effect');
-    expect(useIsomorphicLayoutEffect).toBe(React.useLayoutEffect);
+    expect(useIsomorphicLayoutEffect).toBe(useLayoutEffect);
   });
 
   it('is a passive effect on the server, where React 18 warns about layout effects', async () => {
     vi.stubGlobal('document', undefined);
     vi.resetModules();
     const { useIsomorphicLayoutEffect } = await import('./use-isomorphic-layout-effect');
-    expect(useIsomorphicLayoutEffect).toBe(React.useEffect);
+    expect(useIsomorphicLayoutEffect).toBe(useEffect);
   });
 
   it('is what every source uses in place of useLayoutEffect', () => {
@@ -28,9 +29,9 @@ describe('useIsomorphicLayoutEffect', () => {
     expect(offenders).toEqual([]);
   });
 
-  it('finds the component and the hook that run layout work', () => {
+  it('finds the components and hooks that run layout work', () => {
     const paths = Object.keys(SOURCES);
-    expect(paths.some((path) => path.endsWith('/canvas/BlockCard.tsx'))).toBe(true);
-    expect(paths.some((path) => path.endsWith('/hooks/useAutoGrow.ts'))).toBe(true);
+    expect(paths.some((path) => path.endsWith('/view/react/EditableRegion.tsx'))).toBe(true);
+    expect(paths.some((path) => path.endsWith('/view/react/use-quoin-editor.ts'))).toBe(true);
   });
 });

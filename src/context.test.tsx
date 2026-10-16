@@ -1,8 +1,14 @@
 import { render, screen } from '@testing-library/react';
-import { QuoinProvider, useQuoin } from './context';
+import { createEditor } from './engine';
+import { ViewController } from './view';
+import { QuoinProvider, useQuoin, type QuoinConfig } from './context';
+
+let seen: QuoinConfig | null = null;
 
 function Probe() {
-  const { upload, resolveAssetUrl, onError, blockTypes } = useQuoin();
+  const config = useQuoin();
+  const { upload, resolveAssetUrl, onError, blockTypes } = config;
+  seen = config;
   return (
     <div>
       <span data-testid="upload">{upload ? 'yes' : 'no'}</span>
@@ -28,6 +34,17 @@ describe('QuoinProvider', () => {
     const types = [{ type: 'X', label: 'X', icon: (() => null) as never, editor: () => null }];
     render(<QuoinProvider value={{ blockTypes: types }}><Probe /></QuoinProvider>);
     expect(screen.getByTestId('types')).toHaveTextContent('1');
+  });
+
+  it('carries no editor controller when no canvas supplied one', () => {
+    render(<QuoinProvider value={{ blockTypes: [] }}><Probe /></QuoinProvider>);
+    expect(seen?.controller).toBeNull();
+  });
+
+  it('carries the editor controller it is given', () => {
+    const controller = new ViewController({ editor: createEditor({ blocks: [] }) });
+    render(<QuoinProvider value={{ blockTypes: [], controller }}><Probe /></QuoinProvider>);
+    expect(seen?.controller).toBe(controller);
   });
 
   it('throws a named error when used outside a provider', () => {

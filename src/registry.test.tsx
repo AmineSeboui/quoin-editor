@@ -1,3 +1,4 @@
+import { render } from '@testing-library/react';
 import { FileText } from 'lucide-react';
 import { defineBlock, blockByType, paletteBlocks, type AnyBlockDefinition } from './registry';
 
@@ -112,5 +113,13 @@ describe('registry', () => {
       editor: ({ data }) => <p>{data.points.length}</p>,
     });
     expect(chart.type).toBe('CHART');
+  });
+
+  it('takes any component that accepts a class name as its icon, not only a lucide one', () => {
+    const Dot = ({ className }: { className?: string }) => <svg className={className} />;
+    const dotted = defineBlock({ type: 'DOT', label: 'Dot', icon: Dot, editor: () => null });
+    const Icon = dotted.icon;
+    const { container } = render(<Icon className="size-4" aria-hidden />);
+    expect(container.querySelector('svg')).toHaveClass('size-4');
   });
 });

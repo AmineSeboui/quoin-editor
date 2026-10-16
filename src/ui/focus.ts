@@ -10,6 +10,3 @@ export const FOCUS_RING = [
 /** An inset bar that marks the highlighted row of a Radix menu or select, so the row is not
  *  told apart from its neighbours by background colour alone. */
 export const HIGHLIGHT_BAR = 'data-[highlighted]:shadow-[inset_2px_0_0_var(--quoin-foreground)]';
-
-/** The same bar for a cmdk row, which reports its highlight as data-selected. */
-export const SELECTED_BAR = 'data-[selected=true]:shadow-[inset_2px_0_0_var(--quoin-foreground)]';

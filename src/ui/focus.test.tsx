@@ -14,11 +14,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from './dropdown-menu';
-import { Select, SelectContent, SelectItem, SelectTrigger } from './select';
-import { Command, CommandItem, CommandList } from './command';
-import { DocumentStarter } from '../canvas/DocumentStarter';
 import { FilePickerButton } from '../upload/FilePickerButton';
-import { renderCanvas } from '../../test/support/render-canvas';
 
 const SOURCES = import.meta.glob<string>('../**/*.{ts,tsx}', { query: '?raw', import: 'default', eager: true });
 
@@ -60,15 +56,6 @@ describe('keyboard focus is a solid outline', () => {
     expectFocusRing(screen.getByLabelText('Notes'));
   });
 
-  it('on a select trigger', () => {
-    render(
-      <Select>
-        <SelectTrigger aria-label="Tone" />
-      </Select>,
-    );
-    expectFocusRing(screen.getByRole('combobox', { name: 'Tone' }));
-  });
-
   it('on the dialog close button', () => {
     render(
       <Dialog open>
@@ -79,11 +66,6 @@ describe('keyboard focus is a solid outline', () => {
       </Dialog>,
     );
     expectFocusRing(screen.getByRole('button', { name: 'Close' }));
-  });
-
-  it('on the line that starts a document', () => {
-    renderCanvas(<DocumentStarter onStart={() => {}} onInsertBlock={() => {}} />);
-    expectFocusRing(screen.getByLabelText('Write something'));
   });
 
   it('around the file picker, which paints it on a wrapper because the input is invisible', () => {
@@ -128,29 +110,6 @@ describe('a highlighted row carries a bar as well as a background', () => {
       expect(classesOf(row)).toContain(`data-[highlighted]:${BAR}`);
       expect(classesOf(row)).toContain('outline-hidden');
     }
-  });
-
-  it('in a select', () => {
-    render(
-      <Select open defaultValue="a">
-        <SelectTrigger aria-label="Tone" />
-        <SelectContent>
-          <SelectItem value="a">Alpha</SelectItem>
-        </SelectContent>
-      </Select>,
-    );
-    expect(classesOf(screen.getByRole('option', { name: 'Alpha' }))).toContain(`data-[highlighted]:${BAR}`);
-  });
-
-  it('in the palette', () => {
-    render(
-      <Command>
-        <CommandList>
-          <CommandItem>Heading</CommandItem>
-        </CommandList>
-      </Command>,
-    );
-    expect(classesOf(screen.getByRole('option', { name: 'Heading' }))).toContain(`data-[selected=true]:${BAR}`);
   });
 });
 

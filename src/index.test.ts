@@ -16,8 +16,29 @@ describe('the main entry', () => {
   });
 
   it('still exports the editor surface alongside them', () => {
-    expect(main.BlockCanvas).toBeTypeOf('function');
+    expect(main.BlockCanvas).toBeDefined();
     expect(main.coreBlocks.length).toBeGreaterThan(0);
+  });
+
+  it('no longer exports the textarea editor or its helpers', () => {
+    const removed = [
+      'useBlockList',
+      'useAutoGrow',
+      'TEXT_COMMANDS',
+      'applyEdit',
+      'lineAt',
+      'toggleLinePrefix',
+      'continueList',
+      'indentList',
+      'wrapSelection',
+      'linkPaste',
+      'insertCommand',
+      'shouldOpenPalette',
+      'formatShortcut',
+      'caretRect',
+      'useMarkdownKeymap',
+    ];
+    expect(removed.filter((name) => name in main)).toEqual([]);
   });
 });
 

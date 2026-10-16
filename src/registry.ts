@@ -1,12 +1,12 @@
 import type { ComponentType } from 'react';
-import type { LucideIcon } from 'lucide-react';
 import type { BlockEditorProps, BlockPreviewProps } from './types';
 
 /** The fields every block definition carries, whatever it can do with its data. */
 type BlockDefinitionCommon<D extends object> = {
   type: string;
   label: string;
-  icon: LucideIcon;
+  /** Any icon component, such as a lucide one, that takes a class name and can be hidden from assistive technology. */
+  icon: ComponentType<{ className?: string; 'aria-hidden'?: boolean | 'true' | 'false' }>;
   /**
    * Called when a new block of this type is inserted, to seed its data.
    * `NoInfer` keeps `D` inferred from `editor` and `preview` alone, so the seed is checked

@@ -649,80 +649,30 @@ Importing the stylesheet from a root layout, or with a plain `import 'quoin-edit
 
 ## Headless
 
-`quoin-editor/headless` is the text-editing core with no UI in it: pure transforms over a string and a selection, plus two hooks. It has no component or UI library dependency, and its bundle carries no `'use client'` banner, so the pure functions can be imported from a React Server Component.
-
-| Export | What it does |
-| --- | --- |
-| `wrapSelection`, `linkPaste` | Bold, italic, inline code and link wrapping, and pasting a URL over a selection. |
-| `toggleLinePrefix` | Heading, bullet and ordered list prefixes on the selected lines. |
-| `continueList`, `indentList` | List continuation on Enter, climbing out on an empty item, and Tab indentation. |
-| `insertCommand` | Inserts a slash-palette command at the caret. |
-| `shouldOpenPalette`, `lineAt` | Slash trigger detection and line lookup. |
-| `applyEdit` | Writes an `Edit` into a textarea through the native undo stack so Ctrl+Z keeps working. |
-| `formatShortcut`, `caretRect` | A platform-aware shortcut label, and the caret's pixel position in a textarea. |
-| `useMarkdownKeymap` | The keyboard and paste handlers that wire the above onto a textarea. |
-| `useAutoGrow` | A ref that makes a textarea's height follow its content. |
-
-The text transforms return an `Edit`, `{ value, selectionStart, selectionEnd }`, or `null` when they do not apply.
-
-```ts
-import { wrapSelection } from 'quoin-editor/headless';
-
-export function bold(text: string, start: number, end: number): string {
-  return wrapSelection('bold', text, start, end).value;
-}
-```
-
-`useMarkdownKeymap` and `useAutoGrow` are importable from a React Server Component, because the module that exports them carries no `'use client'` banner. Being hooks, they are callable only from a client component.
+`quoin-editor/headless` is the editing engine and its editable view, with none of the canvas UI. `useQuoinEditor` creates the editor and the controller that binds it to the page, and `EditorView` draws the document with one editable host per text block. It has no component or UI library dependency.
 
 ```tsx
 'use client';
 
 import { useState } from 'react';
-import { useAutoGrow, useMarkdownKeymap } from 'quoin-editor/headless';
+import { EditorView, useQuoinEditor, type QuoinBlock } from 'quoin-editor/headless';
 
 export function Notes() {
-  const [text, setText] = useState('');
-  const [paletteOpen, setPaletteOpen] = useState(false);
-  const ref = useAutoGrow<HTMLTextAreaElement>(text);
-  const keymap = useMarkdownKeymap({
-    commit: setText,
-    onOpenPalette: () => setPaletteOpen(true),
-  });
-
-  return (
-    <>
-      <textarea
-        ref={ref}
-        value={text}
-        onChange={(event) => setText(event.target.value)}
-        {...keymap}
-      />
-      {paletteOpen && <p role="status">Open your own command palette here.</p>}
-    </>
-  );
+  const [blocks, setBlocks] = useState<QuoinBlock[]>([]);
+  const controller = useQuoinEditor({ blocks, onChange: setBlocks });
+  return <EditorView controller={controller} aria-label="Notes" />;
 }
 ```
 
-The keymap swallows a `/` typed at the start of a word (at the start of the text, or after a newline, space or tab, outside a code fence) and calls `onOpenPalette` instead, so open a palette of your own there, or insert the slash yourself.
-
-Everything in the table is re-exported from the main `quoin-editor` entry too, alongside `TEXT_COMMANDS`, the built-in slash-palette entries. Import from `quoin-editor/headless` when you want the transforms without the components behind them, and from `quoin-editor` when you are already importing `BlockCanvas`.
-
-```ts
-import { toggleLinePrefix } from 'quoin-editor';
-
-export function heading(text: string, start: number, end: number): string {
-  return toggleLinePrefix('h2', text, start, end).value;
-}
-```
-
-The main entry carries a `'use client'` banner, so a React Server Component has to import from `quoin-editor/headless` rather than from `quoin-editor`.
+Everything in it is re-exported from the main `quoin-editor` entry too. Both entries carry a `'use client'` banner, so a React Server Component imports the pure functions, such as `toMarkdown` and `toHTML`, from `quoin-editor/engine`, which has none.
 
 ## Exports
 
-From `quoin-editor`: `BlockCanvas`, `QuoinProvider`, `useQuoin`, `defineBlock`, `blockByType`, `paletteBlocks`, `coreBlocks`, `UploadField`, `FilePickerButton`, `TEXT_COMMANDS`, `useBlockList`, `useAutosave`, `useAutoGrow`, and the headless transforms and hooks, with their types (`QuoinBlock`, `UploadFn`, `UploadResult`, `BlockDefinition`, `AnyBlockDefinition`, `BlockEditorProps`, `BlockPreviewProps`, `BlockCanvasProps`, `UploadFieldProps`, `FilePickerButtonProps` and others), and the [core block data shapes](#what-the-core-blocks-store): `MarkdownBlockData`, `CalloutBlockData`, `CodeBlockData`, `ImageBlockData`, `FileBlockData` and `CoreBlockData`.
+From `quoin-editor`: `BlockCanvas`, `QuoinProvider`, `useQuoin`, `defineBlock`, `blockByType`, `paletteBlocks`, `coreBlocks`, `UploadField`, `FilePickerButton`, `useAutosave`, and everything in `quoin-editor/headless`, with their types (`QuoinBlock`, `QuoinEditorHandle`, `UploadFn`, `UploadResult`, `BlockDefinition`, `AnyBlockDefinition`, `BlockEditorProps`, `BlockPreviewProps`, `BlockCanvasProps`, `UploadFieldProps`, `FilePickerButtonProps` and others), and the [core block data shapes](#what-the-core-blocks-store): `MarkdownBlockData`, `CalloutBlockData`, `CodeBlockData`, `ImageBlockData`, `FileBlockData` and `CoreBlockData`.
 
-From `quoin-editor/headless`: the transforms and the two hooks listed above, with no UI.
+From `quoin-editor/headless`: the editing engine and its editable view, with no canvas UI.
+
+From `quoin-editor/engine`: the engine alone, with no React and no `'use client'` banner.
 
 From `quoin-editor/styles.css`: the stylesheet.
 

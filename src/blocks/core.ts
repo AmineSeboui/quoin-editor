@@ -1,7 +1,5 @@
 import { Code, FileText, MessageSquare, Image, Paperclip } from 'lucide-react';
 import { defineBlock, type AnyBlockDefinition } from '../registry';
-import { MarkdownBlockEditor } from './MarkdownBlockEditor';
-import { CalloutBlockEditor } from './CalloutBlockEditor';
 import { CodeBlockEditor } from './CodeBlockEditor';
 import { ImageBlockEditor } from './ImageBlockEditor';
 import { FileBlockEditor } from './FileBlockEditor';
@@ -19,7 +17,6 @@ export const coreBlocks: AnyBlockDefinition[] = [
     type: 'MARKDOWN',
     label: 'Markdown',
     icon: FileText,
-    editor: MarkdownBlockEditor,
     preview: MarkdownPreview,
     initialData: () => ({ markdown: '' }),
   }),
@@ -27,7 +24,6 @@ export const coreBlocks: AnyBlockDefinition[] = [
     type: 'CALLOUT',
     label: 'Callout',
     icon: MessageSquare,
-    editor: CalloutBlockEditor,
     preview: CalloutPreview,
     initialData: () => ({ tone: 'info', body: '' }),
   }),

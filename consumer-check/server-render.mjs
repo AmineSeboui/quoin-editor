@@ -16,7 +16,7 @@ const blocks = [
 
 const html = renderToString(createElement(BlockCanvas, { blocks, onChange: () => {} }));
 
-if (!html.includes('Mind the gap.')) errors.push('The server-rendered canvas is missing the sample document.');
+if (!html.includes('data-block-id="callout"')) errors.push('The server-rendered canvas is missing the sample document.');
 if (errors.length > 0) {
   process.stderr.write(`${errors.join('\n\n')}\n`);
   process.exit(1);

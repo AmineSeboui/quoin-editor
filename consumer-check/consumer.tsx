@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Star } from 'lucide-react';
 import {
   BlockCanvas,
@@ -8,9 +8,10 @@ import {
   type AnyBlockDefinition,
   type BlockEditorProps,
   type QuoinBlock,
+  type QuoinEditorHandle,
   type UploadFn,
 } from 'quoin-editor';
-import { wrapSelection } from 'quoin-editor/headless';
+import { EditorView, useQuoinEditor } from 'quoin-editor/headless';
 import 'quoin-editor/styles.css';
 
 type RatingData = { stars: number };
@@ -33,8 +34,15 @@ const upload: UploadFn = async (file) => ({ storageKey: file.name, filename: fil
 
 export function Consumer() {
   const [blocks, setBlocks] = useState<QuoinBlock[]>([]);
+  const editor = useRef<QuoinEditorHandle>(null);
   useAutosave({ deps: [blocks], build: () => blocks, save: () => {} });
-  return <BlockCanvas blocks={blocks} onChange={setBlocks} blockTypes={blockTypes} upload={upload} />;
+  return <BlockCanvas ref={editor} blocks={blocks} onChange={setBlocks} blockTypes={blockTypes} upload={upload} />;
 }
 
-export const bolded: string = wrapSelection('bold', 'text', 0, 4).value;
+export const exportMarkdown = (handle: QuoinEditorHandle): string => handle.toMarkdown({ comments: true });
+
+export function HeadlessConsumer() {
+  const [blocks, setBlocks] = useState<QuoinBlock[]>([]);
+  const controller = useQuoinEditor({ blocks, onChange: setBlocks });
+  return <EditorView controller={controller} aria-label="Notes" />;
+}

@@ -1,48 +1,44 @@
-import * as React from 'react';
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { BlockCanvas } from './BlockCanvas';
+import { createRef, useState, type Ref } from 'react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import { blockRangeSelection, nodeSelection, type Selection } from '../engine';
 import type { QuoinBlock } from '../types';
+import { BlockCanvas } from './BlockCanvas';
+import type { QuoinEditorHandle } from './canvas-props';
 
-type User = ReturnType<typeof userEvent.setup>;
+type Removal = { block: QuoinBlock; index: number };
 
-const blocks: QuoinBlock[] = [
-  { id: 'a', type: 'MARKDOWN', data: { markdown: 'first' } },
-  { id: 'b', type: 'MARKDOWN', data: { markdown: 'second' } },
-];
+const md = (id: string, markdown: string, indent?: number): QuoinBlock => ({
+  id,
+  type: 'MARKDOWN',
+  data: { markdown },
+  ...(indent === undefined ? {} : { indent }),
+});
+const divider: QuoinBlock = { id: 'd', type: 'DIVIDER', data: {} };
+const ids = (blocks: QuoinBlock[]) => blocks.map((block) => block.id).join(',');
 
-async function deleteBlock(user: User, position: number) {
-  await user.click(screen.getAllByRole('button', { name: new RegExp(`block ${position} options`, 'i') })[0]);
-  await user.click(await screen.findByRole('menuitem', { name: `Delete block ${position}` }));
-}
+type HostProps = { initial: QuoinBlock[]; log: string[]; removals: Removal[]; handle: Ref<QuoinEditorHandle> };
 
-function Host({
-  initial = blocks,
-  onDelete,
-}: {
-  initial?: QuoinBlock[];
-  onDelete?: (block: QuoinBlock, index: number) => void;
-}) {
-  const [current, setCurrent] = React.useState<QuoinBlock[]>(initial);
-  const [removed, setRemoved] = React.useState<{ block: QuoinBlock; index: number } | null>(null);
+function Host({ initial, log, removals, handle }: HostProps) {
+  const [blocks, setBlocks] = useState(initial);
+  const [removed, setRemoved] = useState<Removal | null>(null);
+  const restore = () => {
+    if (removed) setBlocks([...blocks.slice(0, removed.index), removed.block, ...blocks.slice(removed.index)]);
+  };
   return (
     <>
-      <button
-        onClick={() => {
-          if (!removed) return;
-          const next = [...current];
-          next.splice(removed.index, 0, removed.block);
-          setCurrent(next);
-          setRemoved(null);
-        }}
-      >
-        restore
+      <button type="button" onClick={restore}>
+        Restore
       </button>
       <BlockCanvas
-        blocks={current}
-        onChange={setCurrent}
+        ref={handle}
+        blocks={blocks}
+        onChange={(next) => {
+          log.push(`change ${ids(next)}`);
+          setBlocks(next);
+        }}
         onDelete={(block, index) => {
-          onDelete?.(block, index);
+          log.push(`delete ${block.id} at ${index}`);
+          removals.push({ block, index });
           setRemoved({ block, index });
         }}
       />
@@ -50,101 +46,77 @@ function Host({
   );
 }
 
+function mount(initial: QuoinBlock[]) {
+  const log: string[] = [];
+  const removals: Removal[] = [];
+  const handle = createRef<QuoinEditorHandle>();
+  const { container } = render(<Host initial={initial} log={log} removals={removals} handle={handle} />);
+  const caret = (block: string) => act(() => handle.current!.focus({ block, region: 'text', offset: 0 }));
+  const select = (selection: Selection) =>
+    act(() => {
+      const { controller } = handle.current!;
+      controller.dispatch(controller.editor.createTransaction().setSelection(selection));
+    });
+  const press = async (key: string) => {
+    fireEvent.keyDown(document.activeElement!, { key });
+    await act(async () => {});
+  };
+  const shown = () => Array.from(container.querySelectorAll<HTMLElement>('[data-quoin-block]'), (shell) => shell.dataset.blockId);
+  return { log, removals, caret, select, press, shown };
+}
+
 describe('BlockCanvas onDelete', () => {
-  it('hands the host the removed block and the index it occupied', async () => {
-    const user = userEvent.setup();
-    const onDelete = vi.fn();
-    render(<BlockCanvas blocks={blocks} onChange={() => {}} onDelete={onDelete} />);
-    await deleteBlock(user, 2);
-    expect(onDelete).toHaveBeenCalledTimes(1);
-    expect(onDelete).toHaveBeenCalledWith(blocks[1], 1);
+  it('reports a node-selected divider deleted with Backspace, after onChange reported the document without it', async () => {
+    const { log, removals, caret, select, press } = mount([md('a', 'above'), divider, md('b', 'below')]);
+    caret('a');
+    select(nodeSelection('d'));
+    await press('Backspace');
+    expect(log).toEqual(['change a,b', 'delete d at 1']);
+    expect(removals).toEqual([{ block: divider, index: 1 }]);
   });
 
-  it('reports the new document through onChange before it reports the deletion', async () => {
-    const user = userEvent.setup();
-    const calls: string[] = [];
-    render(
-      <BlockCanvas
-        blocks={blocks}
-        onChange={(next) => calls.push(`change:${next.length}`)}
-        onDelete={(block) => calls.push(`delete:${block.id}`)}
-      />,
-    );
-    await deleteBlock(user, 1);
-    expect(calls).toEqual(['change:1', 'delete:a']);
+  it('shows the block again when the host splices it back on a later interaction', async () => {
+    const { caret, select, press, shown } = mount([md('a', 'above'), divider, md('b', 'below')]);
+    caret('a');
+    select(nodeSelection('d'));
+    await press('Backspace');
+    expect(shown()).toEqual(['a', 'b']);
+    fireEvent.click(screen.getByRole('button', { name: 'Restore' }));
+    expect(shown()).toEqual(['a', 'd', 'b']);
   });
 
-  it('is not called for an edit, a move or a mount', async () => {
-    const user = userEvent.setup();
-    const onDelete = vi.fn();
-    render(<BlockCanvas blocks={blocks} onChange={() => {}} onDelete={onDelete} />);
-    await user.click(screen.getByText('first'));
-    await user.type(screen.getByLabelText('Markdown'), '!');
-    await user.click(screen.getAllByRole('button', { name: /block 1 options/i })[0]);
-    await user.click(await screen.findByRole('menuitem', { name: 'Move block 1 down' }));
-    expect(onDelete).not.toHaveBeenCalled();
+  it('reports every block of a deleted block range with the index it held', async () => {
+    const { removals, caret, select, press } = mount([md('a', 'one'), md('b', 'two'), md('c', 'three')]);
+    caret('a');
+    select(blockRangeSelection('b', 'c'));
+    await press('Backspace');
+    expect(removals).toEqual([
+      { block: md('b', 'two'), index: 1 },
+      { block: md('c', 'three'), index: 2 },
+    ]);
   });
 
-  it('is optional', async () => {
-    const user = userEvent.setup();
-    render(<BlockCanvas blocks={blocks} onChange={() => {}} />);
-    await deleteBlock(user, 1);
-    expect(screen.queryByText('first')).not.toBeInTheDocument();
+  it('counts a 0.4 markdown block it split into paragraphs as the one block the host holds', async () => {
+    const legacy = md('m', 'first\n\nsecond');
+    const { log, caret, select, press } = mount([legacy, divider, md('b', 'below')]);
+    caret('m');
+    select(nodeSelection('d'));
+    await press('Backspace');
+    expect(log).toEqual(['change m,b', 'delete d at 1']);
   });
 
-  it('restores the document when the host splices the block back at its index', async () => {
-    const user = userEvent.setup();
-    render(<Host />);
-    await deleteBlock(user, 1);
-    expect(screen.queryByText('first')).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'restore' }));
-    const texts = screen.getAllByRole('listitem').map((item) => item.textContent);
-    expect(texts[0]).toContain('first');
-    expect(texts[1]).toContain('second');
+  it('does not report the paragraph a Backspace merges into the one above', async () => {
+    const { log, caret, press } = mount([md('a', 'one'), md('b', 'two')]);
+    caret('b');
+    await press('Backspace');
+    expect(log).toEqual(['change a']);
   });
 
-  it('ignores a restore applied synchronously inside onDelete, which is why a later tick is documented', async () => {
-    const user = userEvent.setup();
-    function SynchronousHost() {
-      const [current, setCurrent] = React.useState<QuoinBlock[]>(blocks);
-      return (
-        <BlockCanvas
-          blocks={current}
-          onChange={setCurrent}
-          onDelete={(block, index) =>
-            setCurrent((latest) => {
-              const next = [...latest];
-              next.splice(index, 0, block);
-              return next;
-            })
-          }
-        />
-      );
-    }
-    render(<SynchronousHost />);
-    await deleteBlock(user, 1);
-    // The echo and the restore land in one commit, so what the canvas is handed is structurally
-    // equal to the document it was last given and is read as an unrelated re-render, not a load.
-    expect(screen.queryByText('first')).not.toBeInTheDocument();
-  });
-
-  it('accepts a restore applied on a later interaction', async () => {
-    const user = userEvent.setup();
-    render(<Host />);
-    await deleteBlock(user, 2);
-    await user.click(screen.getByRole('button', { name: 'restore' }));
-    expect(screen.getByText('second')).toBeInTheDocument();
-  });
-
-  it('brings a freshly inserted block back at rest when the host restores it', async () => {
-    const user = userEvent.setup();
-    render(<Host initial={[]} />);
-    await user.click(screen.getByRole('button', { name: /insert a block at the start/i }));
-    await user.click(await screen.findByRole('menuitem', { name: 'Markdown' }));
-    expect(screen.getByLabelText('Markdown')).toBeInTheDocument();
-    await deleteBlock(user, 1);
-    await user.click(screen.getByRole('button', { name: 'restore' }));
-    expect(screen.getAllByRole('listitem')).toHaveLength(1);
-    expect(screen.queryByLabelText('Markdown')).not.toBeInTheDocument();
+  it('does not report a line that Backspace joins into a closed toggle', async () => {
+    const toggle: QuoinBlock = { id: 't', type: 'TOGGLE', data: { markdown: 'Summary', open: false } };
+    const { log, caret, press } = mount([toggle, md('c', 'hidden', 1), md('s', 'line')]);
+    caret('s');
+    await press('Backspace');
+    expect(log).toEqual(['change t,c']);
   });
 });

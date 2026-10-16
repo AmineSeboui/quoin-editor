@@ -15,6 +15,7 @@ export function Harness({ doc }: { doc: string }) {
   return (
     <BlockCanvas
       aria-label="Document"
+      placeholder="Write something"
       blocks={blocks}
       onChange={(next) => {
         window.__quoin.changes += 1;

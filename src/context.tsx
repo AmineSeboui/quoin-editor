@@ -3,6 +3,7 @@
 import * as React from 'react';
 import type { AnyBlockDefinition } from './registry';
 import type { UploadFn } from './types';
+import type { ViewController } from './view';
 
 /** The resolved canvas configuration every block editor reads through `useQuoin`. */
 export type QuoinConfig = {
@@ -11,6 +12,8 @@ export type QuoinConfig = {
   upload?: UploadFn;
   resolveAssetUrl: (storageKey: string) => string;
   onError: (error: Error) => void;
+  /** The controller of the canvas the block is drawn in; null under a provider no canvas set up. */
+  controller: ViewController | null;
 };
 
 /** What a host passes to `QuoinProvider`: only the block types are required. */
@@ -20,7 +23,7 @@ export type QuoinConfigInput = Partial<QuoinConfig> & {
 
 const QuoinContext = React.createContext<QuoinConfig | null>(null);
 
-/** Supplies the block registry and the host couplings (upload, asset URLs, error reporting) to every block below it. */
+/** Supplies the block registry, the host couplings (upload, asset URLs, error reporting) and the canvas controller to every block below it. */
 export function QuoinProvider({
   value,
   children,
@@ -28,7 +31,7 @@ export function QuoinProvider({
   value: QuoinConfigInput;
   children: React.ReactNode;
 }) {
-  const { blockTypes, upload, resolveAssetUrl, onError } = value;
+  const { blockTypes, upload, resolveAssetUrl, onError, controller = null } = value;
   const config = React.useMemo<QuoinConfig>(
     () => ({
       blockTypes,
@@ -37,8 +40,9 @@ export function QuoinProvider({
       // wherever a resolved URL is tested for "no asset chosen yet".
       resolveAssetUrl: resolveAssetUrl ?? ((key: string) => key),
       onError: onError ?? ((error: Error) => console.error(error)),
+      controller,
     }),
-    [blockTypes, upload, resolveAssetUrl, onError],
+    [blockTypes, upload, resolveAssetUrl, onError, controller],
   );
   return <QuoinContext.Provider value={config}>{children}</QuoinContext.Provider>;
 }

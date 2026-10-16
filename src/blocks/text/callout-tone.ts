@@ -3,7 +3,6 @@ import type { CalloutTone } from '../../i18n/labels';
 
 export const CALLOUT_TONES: readonly CalloutTone[] = ['info', 'tip', 'success', 'warning', 'danger'];
 
-/** The icons a writer can pick for a callout, in the order its menus offer them. */
 export const CALLOUT_ICONS = ['\u{1F4A1}', '\u26A0\uFE0F', '\u2705', '\u2757', '\u2139\uFE0F', '\u{1F4CC}'] as const;
 
 const TONE_ICONS: Readonly<Record<CalloutTone, string>> = {

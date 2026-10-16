@@ -32,17 +32,27 @@ export type CoreBlockMenuOptions = {
 
 const rangeOf = (blockIds: readonly string[]) => blockRangeSelection(blockIds[0], blockIds[blockIds.length - 1]);
 
-/** The selected blocks when `blockId` is among them, else the block and the blocks nested under it. */
-export function menuTargets(state: EditorState, blockId: string): string[] {
+function selectedWith(state: EditorState, blockId: string): string[] | null {
   const { doc, selection } = state;
   const selected = selectedBlockIds(doc, selection);
   const ofBlocks = selection?.kind === 'blocks' || (selection?.kind === 'text' && selected.length > 1);
-  if (ofBlocks && selected.includes(blockId)) return selected;
+  return ofBlocks && selected.includes(blockId) ? selected : null;
+}
+
+export function menuTargets(state: EditorState, blockId: string): string[] {
+  const selected = selectedWith(state, blockId);
+  if (selected !== null) return selected;
+  const { doc } = state;
   const index = requireBlockIndex(doc, blockId);
   return doc.blocks.slice(index, descendantsEnd(doc, index)).map((block) => block.id);
 }
 
-/** The core actions with those of extensions after them, and the destructive ones last. */
+// A block moved, copied or deleted takes its nested blocks along, but Turn into, Color, Tone and Icon restyle only the
+// block itself: applied to the nested blocks they would rewrite their types and colours.
+export function styleTargets(state: EditorState, blockId: string): string[] {
+  return selectedWith(state, blockId) ?? [blockId];
+}
+
 export function menuActions(core: readonly BlockMenuAction[], extra: readonly BlockMenuAction[] = []): BlockMenuAction[] {
   return [...core.filter((action) => !action.destructive), ...extra, ...core.filter((action) => action.destructive)];
 }
@@ -53,7 +63,7 @@ function markdownOf(editor: Editor, blockIds: readonly string[], resolveAssetUrl
   const range = selectedBlockRange(doc, rangeOf(blockIds));
   if (range === null) return '';
   const blocks = (editor as InternalEditor).codec.blocksFromDoc(createDoc(doc.blocks.slice(range.start, range.end)));
-  return toMarkdown(blocks, { schema: editor.schema, resolveAssetUrl });
+  return toMarkdown(blocks, { schema: editor.schema, resolveAssetUrl, comments: false });
 }
 
 const applies = (command: Command) => (state: EditorState, blockIds: string[]) =>

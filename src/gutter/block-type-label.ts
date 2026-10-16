@@ -20,7 +20,6 @@ const TYPE_NAMES: Readonly<Record<string, BlockName>> = {
 const nameIn = (names: Readonly<Record<string, BlockName>>, key: unknown): BlockName | undefined =>
   typeof key === 'string' && Object.hasOwn(names, key) ? names[key] : undefined;
 
-/** What the block menu calls a block: its kind for a markdown line, else its type's name. */
 export function blockTypeLabel(labels: QuoinLabels, block: EngineBlock, definitions: AnyBlockDefinition[]): string {
   const { kind, level } = block.attrs;
   if (block.type === 'MARKDOWN' && kind === 'heading') return labels.heading(typeof level === 'number' ? level : 1);

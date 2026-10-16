@@ -24,6 +24,13 @@ describe('copying from the block menu', () => {
     expect(await screen.findByText('Copied')).toBeInTheDocument();
   });
 
+  it('copies the text of a commented block without its comment markup, as a copy of the text does', async () => {
+    const user = userEvent.setup();
+    const canvas = mountCanvas([paragraph('a', 'a <span data-comment="c1">noted</span> word')]);
+    await user.click(within(openMenu(canvas, 'a')).getByRole('menuitem', { name: 'Copy' }));
+    await copied('a noted word\n');
+  });
+
   it('copies a link to the block on this page by default', async () => {
     const user = userEvent.setup();
     history.replaceState(null, '', '/docs/page?draft=1');

@@ -6,7 +6,6 @@ export function defaultBlockLink(blockId: string): string {
   return `${origin}${pathname}${search}${FRAGMENT}${encodeURIComponent(blockId)}`;
 }
 
-/** The block a `#block-<id>` fragment names, or null for any other fragment. */
 export function linkedBlockId(hash: string): string | null {
   if (!hash.startsWith(FRAGMENT) || hash.length === FRAGMENT.length) return null;
   try {

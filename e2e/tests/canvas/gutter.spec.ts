@@ -8,7 +8,6 @@ const menu = (page: Page) => page.getByRole('menu');
 const host = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
 const ids = async (page: Page) => (await blocks(page)).map((block) => block.id);
 
-// The top of the host's first line and its height, which the gutter centres on.
 const firstLine = (page: Page, id: string) =>
   host(page, id).evaluate((element) => {
     const { top, left } = element.getBoundingClientRect();

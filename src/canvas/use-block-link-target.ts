@@ -18,11 +18,6 @@ function revealLinkedBlock(controller: ViewController, hash: string): boolean {
   return true;
 }
 
-/**
- * Selects the block the page's `#block-<id>` fragment links to, on mount and whenever the hash changes, and scrolls it
- * into view. On mount it takes focus only when the canvas focuses itself, then going to the linked block rather than
- * the start; a hash change is the reader following a link, so focus moves to the block.
- */
 export function useBlockLinkTarget(controller: ViewController, focusOnMount: boolean): void {
   useEffect(() => {
     const view = controller.root?.ownerDocument.defaultView ?? window;

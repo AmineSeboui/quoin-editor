@@ -4,6 +4,7 @@ import { axe } from 'vitest-axe';
 import { mountCanvas, paragraph } from '../blocks/void/test-canvas';
 import { textSelection } from '../engine';
 import type { QuoinBlock } from '../types';
+import { md } from '../view/react/test-harness';
 
 const callout = (id: string, data: Record<string, unknown>): QuoinBlock => ({ id, type: 'CALLOUT', data });
 
@@ -111,7 +112,36 @@ describe('the block menu', () => {
   });
 });
 
+describe('the style rows of the block menu', () => {
+  it('turn the block into another type and leave the blocks nested under it as they were', async () => {
+    const user = userEvent.setup();
+    const toggle: QuoinBlock = { id: 't', type: 'TOGGLE', data: { markdown: 'Summary', open: true } };
+    const { last, handle } = setup([toggle, md('h', '## Child', 1)]);
+    act(() => handle().focus({ block: 't', region: 'text', offset: 0 }));
+    fireEvent.keyDown(document.activeElement!, { key: '/', ctrlKey: true });
+    await user.click(item('Turn into'));
+    choose(screen.getByRole('menuitem', { name: 'Text' }));
+    expect(last().map((block) => block.data.markdown)).toEqual(['Summary', '## Child']);
+  });
+
+  it('colour the block and leave the blocks nested under it uncoloured', async () => {
+    const user = userEvent.setup();
+    const { last, openMenuFromText } = setup([md('p', '- parent'), md('c', '- child', 1)]);
+    openMenuFromText('p');
+    await user.click(item('Color'));
+    choose(within(screen.getByRole('group', { name: 'Text color' })).getByRole('menuitemradio', { name: 'Red' }));
+    expect(last().map((block) => block.data.color)).toEqual(['red', undefined]);
+  });
+});
+
 describe('the block menu of a callout', () => {
+  it('offers its Tone and Icon submenus when blocks are nested under it', () => {
+    const { openMenuFromText } = setup([callout('c', { tone: 'info', body: 'Note' }), md('n', 'nested', 1)]);
+    openMenuFromText('c');
+    expect(item('Tone')).toBeInTheDocument();
+    expect(item('Icon')).toBeInTheDocument();
+  });
+
   it('sets the tone from the keyboard alone, then gives the caret back to the callout', async () => {
     const user = userEvent.setup();
     const { last, openMenuFromText } = setup([callout('c', { tone: 'info', body: 'Note' })]);

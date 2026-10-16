@@ -5,7 +5,6 @@ import { useIsomorphicLayoutEffect } from '../view/react/use-isomorphic-layout-e
 const GAP = 4;
 const VOID_LINE = 24;
 
-// The first line of a block's text, or the top of a block without text, which the gutter centres on.
 function firstLine(shell: HTMLElement): { top: number; height: number } {
   const host = shell.querySelector<HTMLElement>('[data-quoin-host]');
   if (host === null) {
@@ -31,11 +30,8 @@ function place(controller: ViewController, root: HTMLElement, gutter: HTMLElemen
   gutter.style.visibility = '';
 }
 
-/**
- * Keeps the gutter beside the first line of its block. It is moved in place rather than through React state, so the
- * pointer crossing blocks and every edit that shifts the layout draw nothing but the gutter. Positions are read once the
- * frame's edits have reached the hosts.
- */
+// The gutter is moved in place rather than through React state, so the pointer crossing blocks and every edit that
+// shifts the layout draw nothing but the gutter. Positions are read once the frame's edits have reached the hosts.
 export function useGutterPosition(
   controller: ViewController,
   gutter: RefObject<HTMLElement | null>,

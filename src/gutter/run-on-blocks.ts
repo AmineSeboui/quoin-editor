@@ -20,11 +20,7 @@ function settle(tr: Transaction, before: Selection | null): Selection | null {
   return endOf(doc, schema, ids[0]);
 }
 
-/**
- * Runs a selection-based command on the blocks a menu was opened for, as one transaction that also leaves the selection
- * on them. A command that changes nothing still moves the selection there, so a menu action always returns focus to the
- * block. Returns what the command returned.
- */
+// A command that changes nothing still moves the selection to the blocks, so every menu action returns focus there.
 export function runOnBlocks(controller: ViewController, blockIds: readonly string[], command: Command): boolean {
   const { state } = controller.editor;
   const ids = blockIds.filter((id) => state.doc.index.has(id));
@@ -40,5 +36,4 @@ export function runOnBlocks(controller: ViewController, blockIds: readonly strin
   return ok;
 }
 
-/** For an action that only needs the selection on its blocks. */
 export const noChange: Command = () => true;

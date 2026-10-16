@@ -6,10 +6,6 @@ import { blockById } from '../engine/model/doc';
 import { primaryRegion, startOf } from '../engine/state/selection';
 import type { ViewController } from '../view';
 
-/**
- * Puts the caret in a new paragraph after the block and the blocks nested under it, or in the block itself when it is
- * an empty paragraph already, and focuses it. Returns whether the block was still there to add below.
- */
 export function addBlockBelow(controller: ViewController, blockId: string): boolean {
   const { state } = controller.editor;
   const { doc, schema } = state;

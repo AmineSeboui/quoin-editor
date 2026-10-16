@@ -27,7 +27,6 @@ const keepFocus = (event: PointerEvent) => {
 
 type GutterProps = { controller: ViewController; store: CanvasUiStore; actions: readonly BlockMenuAction[] };
 
-/** The controls beside the block under the pointer, or beside the block being edited: add below, and the handle. */
 export function Gutter({ controller, store, actions }: GutterProps) {
   const labels = useLabels();
   const element = useRef<HTMLDivElement>(null);

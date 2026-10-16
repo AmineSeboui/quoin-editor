@@ -21,7 +21,6 @@ function copyThroughTextArea(text: string, doc: Document): boolean {
   }
 }
 
-/** Puts plain text on the clipboard, through a hidden text area where the clipboard API is missing or refuses. */
 export async function copyText(text: string, doc: Document = document): Promise<boolean> {
   const clipboard = doc.defaultView?.navigator.clipboard;
   if (clipboard === undefined) return copyThroughTextArea(text, doc);

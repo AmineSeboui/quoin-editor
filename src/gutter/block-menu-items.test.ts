@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { buildState } from '../engine/test-support/build-state';
 import { englishLabels } from '../i18n/labels';
-import { coreBlockMenuActions, menuActions, menuTargets, type BlockMenuAction } from './block-menu-items';
+import { coreBlockMenuActions, menuActions, menuTargets, styleTargets, type BlockMenuAction } from './block-menu-items';
+
+const nested = ['- a', { id: 'x', type: 'MARKDOWN', data: { markdown: '- child' }, indent: 1 }, 'b', 'c'] as const;
 
 describe('menuTargets', () => {
   it('uses the selection when the handle block is in it, else the block and its children', () => {
@@ -16,6 +18,19 @@ describe('menuTargets', () => {
     expect(menuTargets(across, 'b1')).toEqual(['b0', 'b1']);
     const caret = buildState(['a', 'b'], { block: 1, offset: 0 });
     expect(menuTargets(caret, 'b1')).toEqual(['b1']);
+  });
+});
+
+describe('styleTargets', () => {
+  it('styles the handle block alone, never the blocks nested under it', () => {
+    expect(styleTargets(buildState([...nested], null), 'b0')).toEqual(['b0']);
+    expect(styleTargets(buildState([...nested], { block: 0, offset: 0 }), 'b0')).toEqual(['b0']);
+  });
+
+  it('styles the selected blocks when the handle block is among them, and the handle block alone otherwise', () => {
+    const range = buildState([...nested], { blocks: [2, 3] });
+    expect(styleTargets(range, 'b2')).toEqual(['b2', 'b3']);
+    expect(styleTargets(range, 'b0')).toEqual(['b0']);
   });
 });
 

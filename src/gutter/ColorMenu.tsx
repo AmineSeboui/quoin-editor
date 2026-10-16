@@ -16,7 +16,6 @@ type ColorKey = 'color' | 'background';
 
 type ColorMenuProps = { kit: MenuKit; controller: ViewController; blocks: readonly EngineBlock[] };
 
-// The colour every coloured block shares, so the check marks it; none when they differ.
 function sharedColor(blocks: readonly EngineBlock[], key: ColorKey): string {
   const coloured = blocks.filter((block) => block.type === 'MARKDOWN');
   const colors = new Set(coloured.map((block) => paletteOrUndefined(block.attrs[key]) ?? 'default'));

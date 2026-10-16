@@ -15,11 +15,6 @@ function blockAcross(controller: ViewController, root: HTMLElement, y: number): 
   return probe && root.contains(probe) ? controller.blockAt(probe) : undefined;
 }
 
-/**
- * The block the gutter stands beside: the one under the pointer, or, while the pointer is away and the editor has focus,
- * the one holding the selection head. While a block menu is open the gutter stays where it was. `focused` says the
- * gutter is beside the block being edited.
- */
 export function useGutterTarget(
   controller: ViewController,
   store: CanvasUiStore,

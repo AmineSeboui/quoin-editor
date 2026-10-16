@@ -25,7 +25,6 @@ export type TurnIntoTarget = {
 
 const HEADING_ICONS = [Heading1, Heading2, Heading3] as const;
 
-/** What a text block can become, in menu order. Code becomes the CODE block. */
 export function turnIntoTargets(labels: QuoinLabels): TurnIntoTarget[] {
   const { blockNames } = labels;
   const line = (id: string, label: string, icon: TurnIntoTarget['icon'], attrs: BlockAttrs): TurnIntoTarget => ({

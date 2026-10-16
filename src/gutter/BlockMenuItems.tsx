@@ -21,8 +21,8 @@ const wholeState = (state: EditorState) => state;
 type BlockMenuItemsProps = {
   kit: MenuKit;
   controller: ViewController;
-  /** The blocks the menu acts on, all still in the document. */
   blocks: readonly EngineBlock[];
+  styled: readonly EngineBlock[];
   title: string;
   actions: readonly BlockMenuAction[];
 };
@@ -45,20 +45,19 @@ function ActionItem({ kit, controller, action, blockIds }: ActionItemProps) {
   );
 }
 
-/** The rows of the block menu, drawn with the parts of whichever menu shows them. */
-export function BlockMenuItems({ kit, controller, blocks, title, actions }: BlockMenuItemsProps) {
+export function BlockMenuItems({ kit, controller, blocks, styled, title, actions }: BlockMenuItemsProps) {
   const state = useEditorState(controller, wholeState);
   const blockIds = blocks.map((block) => block.id);
   const shown = actions.filter((action) => action.available?.(state, blockIds) ?? true);
-  const anyText = blocks.some((block) => isTextFlow(state.schema, block));
-  const anyMarkdown = blocks.some((block) => block.type === 'MARKDOWN');
-  const allCallouts = blocks.every((block) => block.type === 'CALLOUT');
+  const anyText = styled.some((block) => isTextFlow(state.schema, block));
+  const anyMarkdown = styled.some((block) => block.type === 'MARKDOWN');
+  const allCallouts = styled.length > 0 && styled.every((block) => block.type === 'CALLOUT');
   return (
     <>
       <kit.Label className="text-muted-foreground text-xs">{title}</kit.Label>
-      {anyText && <TurnIntoMenu kit={kit} controller={controller} blockIds={blockIds} />}
-      {anyMarkdown && <ColorMenu kit={kit} controller={controller} blocks={blocks} />}
-      {allCallouts && <CalloutMenus kit={kit} controller={controller} blocks={blocks} />}
+      {anyText && <TurnIntoMenu kit={kit} controller={controller} blockIds={styled.map((block) => block.id)} />}
+      {anyMarkdown && <ColorMenu kit={kit} controller={controller} blocks={styled} />}
+      {allCallouts && <CalloutMenus kit={kit} controller={controller} blocks={styled} />}
       {(anyText || anyMarkdown || allCallouts) && <kit.Separator />}
       {shown.map((action) => (
         <Fragment key={action.id}>

@@ -12,10 +12,6 @@ const ARROWS: Readonly<Record<string, string>> = {
 
 const keyText = (key: string) => ARROWS[key] ?? (key.length === 1 ? key.toUpperCase() : key);
 
-/**
- * A keymap key such as `Mod-Shift-ArrowUp` as the platform writes it, symbols on a Mac and named modifiers elsewhere,
- * and in the form `aria-keyshortcuts` takes.
- */
 export function shortcutHint(
   key: string,
   isMac: boolean,
@@ -26,6 +22,7 @@ export function shortcutHint(
   const text = isMac
     ? [...modifiers.map((modifier) => MAC_SYMBOLS[modifier] ?? modifier), keyText(name)].join('')
     : [...modifiers.map((modifier) => keyNames[MODIFIER_KEYS[modifier]] ?? modifier), keyText(name)].join('+');
+  // aria-keyshortcuts names modifiers by their DOM key values, Control and Meta, whatever the hint shows.
   const ariaModifier = (modifier: string) => {
     if (modifier === 'Mod') return isMac ? 'Meta' : 'Control';
     return ARIA_MODIFIERS[modifier] ?? modifier;

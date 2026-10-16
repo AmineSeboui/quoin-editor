@@ -39,6 +39,23 @@ test('the menu opens above a line near the bottom of the window', async ({ page 
   expect(menu.y + menu.height).toBeLessThanOrEqual(moved.y);
 });
 
+test('the menu follows its line when the editor scrolls inside a container', async ({ page }) => {
+  await openEditor(page, 'text');
+  await page.locator('#root').evaluate((element) => Object.assign(element.style, { height: '320px', overflowY: 'auto' }));
+  const paragraph = page.locator('[data-block-id="r"] [data-quoin-host]');
+  await paragraph.click();
+  await page.keyboard.press('End');
+  await page.keyboard.type(' /');
+  await expect(listbox(page)).toBeVisible();
+  const gapUnderLine = async () => {
+    const line = await box(paragraph);
+    return (await box(popup(page))).y - (line.y + line.height);
+  };
+  await page.locator('#root').evaluate((element) => element.scrollBy(0, 40));
+  await expect.poll(gapUnderLine).toBeLessThan(16);
+  expect(await gapUnderLine()).toBeGreaterThanOrEqual(0);
+});
+
 test('typing a query and Enter turns the paragraph into the chosen block', async ({ page }) => {
   await typeInEmptyParagraph(page, '/bul');
   await expect(listbox(page).getByRole('option', { selected: true })).toContainText('Bulleted list');

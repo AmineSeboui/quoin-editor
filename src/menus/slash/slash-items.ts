@@ -1,12 +1,11 @@
 import type { ComponentType } from 'react';
 import { Image, Minus, Paperclip } from 'lucide-react';
-import { insertBlockAfter, type BlockAttrs } from '../../engine';
-import { attrsForData } from '../../blocks/void/block-data';
+import { createBlockCodec, insertBlockAfter, type BlockAttrs, type EditorState } from '../../engine';
+import { specFor } from '../../engine/blocks/unknown-spec';
 import type { SlashGroup, SlashItem } from '../../extensions/ui-types';
 import { turnIntoTargets } from '../../gutter/turn-into-targets';
 import type { QuoinLabels, SlashBlockCommand } from '../../i18n/labels';
 import { paletteBlocks, type AnyBlockDefinition } from '../../registry';
-import { replaceTrigger } from '../suggestion/replace-trigger';
 
 type Details = { group: SlashGroup; keywords: readonly string[]; shortcut?: string };
 
@@ -41,9 +40,7 @@ function insertionItem(id: SlashBlockCommand, insertion: Insertion, labels: Quoi
     description: labels.slashDescriptions[id],
     icon,
     ...DETAILS[id],
-    run: ({ controller, range }) => {
-      replaceTrigger(controller, range, insertBlockAfter(type, attrs));
-    },
+    command: () => insertBlockAfter(type, attrs),
   };
 }
 
@@ -61,6 +58,11 @@ export function builtInSlashItems(labels: QuoinLabels): SlashItem[] {
   });
 }
 
+function initialAttrs({ schema }: EditorState, { type, initialData }: AnyBlockDefinition): BlockAttrs | undefined {
+  const data = initialData?.();
+  return data && specFor(schema, type).fromData(data, createBlockCodec(schema).context).attrs;
+}
+
 /** A command under Custom for each registered block type the palette offers and no built-in command inserts. */
 export function blockTypeSlashItems(definitions: AnyBlockDefinition[]): SlashItem[] {
   return paletteBlocks(definitions)
@@ -70,9 +72,6 @@ export function blockTypeSlashItems(definitions: AnyBlockDefinition[]): SlashIte
       title: definition.label,
       group: 'custom',
       icon: definition.icon,
-      run: ({ controller, range }) => {
-        const attrs = attrsForData(controller, definition.type, definition.initialData?.());
-        replaceTrigger(controller, range, insertBlockAfter(definition.type, attrs));
-      },
+      command: ({ state }) => insertBlockAfter(definition.type, initialAttrs(state, definition)),
     }));
 }

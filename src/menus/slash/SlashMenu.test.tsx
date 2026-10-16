@@ -1,9 +1,13 @@
-import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { createRef, useState } from 'react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { axe } from 'vitest-axe';
-import { mountCanvas, paragraph } from '../../blocks/void/test-canvas';
+import { coreBlocks } from '../../blocks/core';
+import { bookmark, mountCanvas, paragraph } from '../../blocks/void/test-canvas';
+import { BlockCanvas } from '../../canvas/BlockCanvas';
+import type { QuoinEditorHandle } from '../../canvas/canvas-props';
 import { defineExtension } from '../../engine';
-import type { ExtensionUI } from '../../extensions/ui-types';
-import { replaceTrigger } from '../suggestion/replace-trigger';
+import { insertText } from '../../engine/commands/insert-text';
+import type { ExtensionUI, SlashItem } from '../../extensions/ui-types';
 
 function type(text: string): void {
   for (const data of text) {
@@ -22,6 +26,16 @@ function openCanvas(props: Parameters<typeof mountCanvas>[1] = {}) {
 const listbox = () => screen.queryByRole('listbox', { name: 'Commands' });
 const activeOption = () => within(listbox()!).getByRole('option', { selected: true });
 const markdown = (canvas: ReturnType<typeof openCanvas>) => canvas.last()?.map((block) => block.data.markdown);
+
+function undo(canvas: ReturnType<typeof openCanvas>): void {
+  const mod = canvas.handle().controller.isMac ? 'metaKey' : 'ctrlKey';
+  fireEvent.keyDown(canvas.host(), { key: 'z', [mod]: true });
+}
+
+const withSlashItem = (item: SlashItem) => {
+  const ui: ExtensionUI = { slashItems: [item] };
+  return { extensions: [defineExtension({ name: 'extra', ui })] };
+};
 
 describe('the slash menu', () => {
   it('filters as the query grows, walks with the arrows and turns the block into the chosen one', () => {
@@ -115,24 +129,64 @@ describe('the slash menu', () => {
     expect(canvas.last()).toEqual([{ id: 'a', type: 'BOOKMARK', data: { url: 'new.example' } }]);
   });
 
-  it('runs a command another extension adds, which replaces the slash and the query', () => {
-    const ui: ExtensionUI = {
-      slashItems: [
-        {
-          id: 'date',
-          title: 'Today',
-          group: 'basic',
-          run: ({ controller, range }) => {
-            replaceTrigger(controller, range);
-            controller.edit(() => controller.editor.insertText('16 October'));
-          },
-        },
-      ],
-    };
-    const canvas = openCanvas({ extensions: [defineExtension({ name: 'dates', ui })] });
+  it('undoes a built-in command in one step, back to the slash and the query', () => {
+    const canvas = openCanvas();
+    type('/hea');
+    fireEvent.keyDown(canvas.host(), { key: 'Enter' });
+    expect(markdown(canvas)).toEqual(['# ']);
+    undo(canvas);
+    expect(markdown(canvas)).toEqual(['/hea']);
+  });
+
+  it('runs the command an extension adds in the transaction that removes the slash and the query', () => {
+    const item: SlashItem = { id: 'today', title: 'Today', group: 'basic', command: () => insertText('16 October') };
+    const canvas = openCanvas(withSlashItem(item));
     type('note /tod');
     fireEvent.keyDown(canvas.host(), { key: 'Enter' });
     expect(markdown(canvas)).toEqual(['note 16 October']);
+    expect(listbox()).toBeNull();
+    undo(canvas);
+    expect(markdown(canvas)).toEqual(['note /tod']);
+  });
+
+  it('removes the slash and the query before it runs an extension item that only runs', () => {
+    const run = vi.fn();
+    const canvas = openCanvas(withSlashItem({ id: 'help', title: 'Help', group: 'basic', run }));
+    type('/hel');
+    fireEvent.keyDown(canvas.host(), { key: 'Enter' });
+    expect(markdown(canvas)).toEqual(['']);
+    expect(listbox()).toBeNull();
+    expect(run).toHaveBeenCalledTimes(1);
+    expect(run).toHaveBeenCalledWith({
+      controller: canvas.handle().controller,
+      range: { block: 'a', region: 'text', from: 0, to: 0 },
+    });
+  });
+
+  it('keeps the open menu and its active item while the canvas re-renders with new block types and labels', () => {
+    const ref = createRef<QuoinEditorHandle>();
+    function InlineHost() {
+      const [blocks, setBlocks] = useState([paragraph('a', '')]);
+      return (
+        <BlockCanvas
+          ref={ref}
+          blocks={blocks}
+          onChange={setBlocks}
+          blockTypes={[...coreBlocks, bookmark]}
+          labels={{ slashMenu: 'Commands' }}
+        />
+      );
+    }
+    const { rerender } = render(<InlineHost />);
+    act(() => ref.current!.focus('start'));
+    type('/hea');
+    const host = document.activeElement as HTMLElement;
+    fireEvent.keyDown(host, { key: 'ArrowDown' });
+    const menu = listbox();
+    rerender(<InlineHost />);
+    expect(listbox()).toBe(menu);
+    expect(activeOption()).toHaveTextContent('Heading 2');
+    expect(host.getAttribute('aria-activedescendant')).toBe(activeOption().id);
   });
 
   it('selects an option on click and keeps the caret in the text', () => {

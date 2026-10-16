@@ -18,7 +18,6 @@ export { QuoinProvider, useQuoin, type QuoinConfig, type QuoinConfigInput } from
 export { englishLabels, resolveLabels, type QuoinLabels } from './i18n/labels';
 export type { ExtensionUI, SlashGroup, SlashItem, SuggestionRange, ToolbarItem } from './extensions/ui-types';
 export type { BlockMenuAction } from './gutter/block-menu-items';
-export { replaceTrigger } from './menus/suggestion/replace-trigger';
 export { useLabels } from './i18n/use-labels';
 export {
   useAutosave,

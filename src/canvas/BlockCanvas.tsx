@@ -11,15 +11,16 @@ import { coreBlockMenuActions, menuActions } from '../gutter/block-menu-items';
 import { blockMenuKeymap } from '../gutter/block-menu-keymap';
 import { Gutter } from '../gutter/Gutter';
 import { resolveLabels } from '../i18n/labels';
+import { slashExtension, SlashItemsProvider } from '../menus/slash/slash-extension';
 import { cn } from '../ui/cn';
 import { EditorView, useQuoinEditor } from '../view';
 import { defaultBlockLink } from './block-link';
 import type { BlockCanvasProps, QuoinEditorHandle } from './canvas-props';
+import { collectUi } from './collect-ui';
 import { insertUploads } from './insert-uploads';
 import { createCanvasUiStore } from './ui-store';
 import { useBlockLinkTarget } from './use-block-link-target';
 import { useDeleteReporter } from './use-delete-reporter';
-import { useExtensionUi } from './use-extension-ui';
 
 // Room at the start of every line for the gutter, whose controls grow to 44 px squares on a touch screen.
 const GUTTER_ROOM = 'ps-12 pointer-coarse:ps-24';
@@ -47,16 +48,15 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
 ) {
   const [voidEditing] = useState(createVoidEditing);
   const [uiStore] = useState(createCanvasUiStore);
-  const [hostExtensions] = useState(() => extensions ?? []);
-  const labels = useMemo(() => resolveLabels(labelOverrides), [labelOverrides]);
-  const { ui, slash, overlays } = useExtensionUi(hostExtensions, blockTypes, labels);
   const [allExtensions] = useState(() => [
     ...coreExtensions(),
     voidEditing.extension,
     blockMenuKeymap(uiStore),
-    slash,
-    ...hostExtensions,
+    slashExtension(),
+    ...(extensions ?? []),
   ]);
+  const labels = useMemo(() => resolveLabels(labelOverrides), [labelOverrides]);
+  const ui = useMemo(() => collectUi(allExtensions, blockTypes), [allExtensions, blockTypes]);
   const [focusOnMount] = useState(autoFocus);
   const controller = useQuoinEditor({
     blocks,
@@ -87,24 +87,26 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
   return (
     <QuoinProvider value={{ blockTypes, upload, resolveAssetUrl, onError, controller, labels }}>
       <VoidEditingContext.Provider value={voidEditing}>
-        <EditorView
-          controller={controller}
-          renderers={ui.renderers}
-          className={cn(GUTTER_ROOM, className)}
-          id={id}
-          aria-label={ariaLabel ?? labels.document}
-          hint={labels.editorHint}
-          paragraphLabel={labels.paragraph}
-          selectedContentLabel={labels.selectedContent}
-          unsupportedBlockLabel={labels.unsupportedBlock}
-          placeholder={placeholder}
-        >
-          {!readOnly && <Gutter controller={controller} store={uiStore} actions={actions} />}
-          {!readOnly && <BlockContextMenu controller={controller} store={uiStore} actions={actions} />}
-          {overlays.map((Overlay, index) => (
-            <Overlay key={index} controller={controller} />
-          ))}
-        </EditorView>
+        <SlashItemsProvider value={ui.slashItems}>
+          <EditorView
+            controller={controller}
+            renderers={ui.renderers}
+            className={cn(GUTTER_ROOM, className)}
+            id={id}
+            aria-label={ariaLabel ?? labels.document}
+            hint={labels.editorHint}
+            paragraphLabel={labels.paragraph}
+            selectedContentLabel={labels.selectedContent}
+            unsupportedBlockLabel={labels.unsupportedBlock}
+            placeholder={placeholder}
+          >
+            {!readOnly && <Gutter controller={controller} store={uiStore} actions={actions} />}
+            {!readOnly && <BlockContextMenu controller={controller} store={uiStore} actions={actions} />}
+            {ui.overlays.map((Overlay, index) => (
+              <Overlay key={index} controller={controller} />
+            ))}
+          </EditorView>
+        </SlashItemsProvider>
       </VoidEditingContext.Provider>
     </QuoinProvider>
   );

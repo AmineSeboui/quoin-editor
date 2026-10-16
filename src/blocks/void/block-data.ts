@@ -1,4 +1,4 @@
-import { insertBlockAfter, nodeSelection, replaceBlockStep, type BlockAttrs, type EngineBlock } from '../../engine';
+import { insertBlockAfter, nodeSelection, replaceBlockStep, type EngineBlock } from '../../engine';
 import { specFor } from '../../engine/blocks/unknown-spec';
 import type { InternalEditor } from '../../engine/extension/editor';
 import { sameValue } from '../../engine/model/same-value';
@@ -26,15 +26,9 @@ export function writeBlockData(controller: ViewController, blockId: string, data
   controller.dispatch(tr.setMeta(HISTORY_GROUP, `block-data:${blockId}`));
 }
 
-/** The attributes a new block of the type takes for its initial data, or none to take its spec's own. */
-export function attrsForData(controller: ViewController, type: string, data?: Data): BlockAttrs | undefined {
-  const editor = internal(controller);
-  return data && specFor(editor.state.schema, type).fromData(data, editor.codec.context).attrs;
-}
-
 export function insertAfterBlock(controller: ViewController, blockId: string, type: string, data?: Data): void {
   const editor = internal(controller);
-  const attrs = attrsForData(controller, type, data);
+  const attrs = data && specFor(editor.state.schema, type).fromData(data, editor.codec.context).attrs;
   controller.edit(() => {
     editor.dispatch(editor.createTransaction().setSelection(nodeSelection(blockId)));
     return insertBlockAfter(type, attrs)(editor.state, editor.dispatch);

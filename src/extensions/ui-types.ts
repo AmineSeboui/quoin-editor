@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import type { EditorState } from '../engine';
+import type { Command, EditorState } from '../engine';
 import type { BlockMenuAction } from '../gutter/block-menu-items';
 import type { SlashGroup } from '../i18n/labels';
 import type { BlockRenderer, RenderOptions, ViewController } from '../view';
@@ -19,10 +19,15 @@ export type SlashItem = {
   shortcut?: string;
   available?(state: EditorState): boolean;
   /**
-   * `range` covers the slash and the query, which are still in the text: `run` replaces them, through `replaceTrigger`,
-   * in the transaction that makes its own change.
+   * The change the item makes, run once the menu has removed the slash and the query, in the same transaction, so one
+   * undo brings the query back. `state` and `range` are those of the moment the item is chosen.
    */
-  run(ctx: { controller: ViewController; range: SuggestionRange }): void;
+  command?(ctx: { state: EditorState; range: SuggestionRange }): Command;
+  /**
+   * Work no command can do, such as opening a dialog, called once the slash and the query are gone. `range` is the
+   * empty range where they were.
+   */
+  run?(ctx: { controller: ViewController; range: SuggestionRange }): void;
 };
 
 export type ToolbarItem = {

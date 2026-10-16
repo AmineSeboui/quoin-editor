@@ -58,16 +58,22 @@ export function useSuggestion<T>({
   const results = useSuggestionResults(source, trigger?.query ?? null, onError);
   const sections = useMemo(() => groupItems(results.items, groupOf), [results.items, groupOf]);
   const ordered = useMemo(() => sections.flatMap((section) => section.entries.map(({ item }) => item)), [sections]);
-  const [highlighted, setHighlighted] = useState<{ ordered: readonly T[]; index: number } | null>(null);
-  const activeIndex = highlighted?.ordered === ordered ? highlighted.index : 0;
+  const [highlighted, setHighlighted] = useState<{ trigger: ActiveTrigger; key: string } | null>(null);
+  const kept = highlighted?.trigger === trigger ? ordered.findIndex((item) => itemKey(item) === highlighted.key) : -1;
+  const activeIndex = Math.max(0, kept);
   const baseId = useId();
   const listboxId = `${baseId}-listbox`;
   const optionId = useCallback((item: T) => `${baseId}-option-${idPart(itemKey(item))}`, [baseId, itemKey]);
   const activeId = activeIndex < ordered.length ? optionId(ordered[activeIndex]) : null;
 
+  // The highlight follows the item, not its place, so a new list of the same items for the same trigger keeps it.
   const highlight = useCallback(
-    (index: number) => setHighlighted((last) => (last?.ordered === ordered && last.index === index ? last : { ordered, index })),
-    [ordered],
+    (index: number) => {
+      if (trigger === null || index >= ordered.length) return;
+      const key = itemKey(ordered[index]);
+      setHighlighted((last) => (last?.trigger === trigger && last.key === key ? last : { trigger, key }));
+    },
+    [trigger, ordered, itemKey],
   );
   const select = useCallback(
     (index: number) => {
@@ -83,12 +89,13 @@ export function useSuggestion<T>({
   useComboboxHost(controller, trigger?.block ?? null, trigger?.region ?? null, listboxId, activeId);
 
   const query = trigger?.query ?? null;
+  const count = ordered.length;
+  const resultMessage = count === 0 ? emptyLabel : labels.resultCount(count);
   useEffect(() => {
     if (query === null || results.pending) return;
-    const count = ordered.length;
-    const timer = setTimeout(() => controller.announcer.announce(count === 0 ? emptyLabel : labels.resultCount(count)), SETTLE_MS);
+    const timer = setTimeout(() => controller.announcer.announce(resultMessage), SETTLE_MS);
     return () => clearTimeout(timer);
-  }, [controller, query, ordered, results.pending, emptyLabel, labels]);
+  }, [controller, query, resultMessage, results.pending]);
 
   return { trigger, sections, pending: results.pending, activeIndex, listboxId, optionId, highlight, select, dismiss };
 }

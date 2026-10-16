@@ -134,10 +134,10 @@ describe('command helpers', () => {
     expect(Object.keys(coreCommandFactories).sort()).toEqual([
       'clearFormatting', 'deleteBackward', 'deleteBlocks', 'deleteForward', 'deleteSelection', 'deleteToLineEnd',
       'deleteToLineStart', 'deleteWordBackward', 'deleteWordForward', 'duplicateBlocks', 'indent', 'insertAtom',
-      'insertBlockAfter', 'insertHardBreak', 'insertMention', 'insertText', 'moveBlocksDown', 'moveBlocksUp', 'outdent',
-      'redo', 'selectAll', 'selectBlock', 'setAttrs', 'setBlockColor', 'setBlockType', 'setLink', 'setMark',
-      'setSelection', 'setTextAlign', 'splitBlock', 'toggleMark', 'toggleTask', 'undo', 'undoInputRule', 'unsetLink',
-      'unsetMark',
+      'insertBlockAfter', 'insertHardBreak', 'insertMention', 'insertText', 'moveBlocksDown', 'moveBlocksTo',
+      'moveBlocksUp', 'outdent', 'redo', 'selectAll', 'selectBlock', 'setAttrs', 'setBlockColor', 'setBlockType',
+      'setLink', 'setMark', 'setSelection', 'setTextAlign', 'splitBlock', 'toggleMark', 'toggleTask', 'undo',
+      'undoInputRule', 'unsetLink', 'unsetMark',
     ]);
     const state = buildState(['a'], { block: 0, offset: 0 });
     for (const make of Object.values(coreCommandFactories).filter((factory) => factory.length === 0)) {

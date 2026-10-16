@@ -3,6 +3,8 @@
 import { useEffect, useRef, type PointerEvent } from 'react';
 import { GripVertical, Plus } from 'lucide-react';
 import { useCanvasUi, type CanvasUiStore } from '../canvas/ui-store';
+import { DragOverlay, type DragOverlayHandle } from '../drag/DragOverlay';
+import { useBlockDrag } from '../drag/use-block-drag';
 import { useLabels } from '../i18n/use-labels';
 import { Button } from '../ui/button';
 import { cn } from '../ui/cn';
@@ -30,8 +32,10 @@ type GutterProps = { controller: ViewController; store: CanvasUiStore; actions: 
 export function Gutter({ controller, store, actions }: GutterProps) {
   const labels = useLabels();
   const element = useRef<HTMLDivElement>(null);
+  const overlay = useRef<DragOverlayHandle>(null);
   const { target, focused } = useGutterTarget(controller, store, element);
   const menuOpen = useCanvasUi(store, (state) => state.blockMenu !== null);
+  const drag = useBlockDrag(controller, store, target, overlay);
   useGutterPosition(controller, element, target);
 
   useEffect(() => () => closeBlockMenu(store), [store]);
@@ -45,38 +49,46 @@ export function Gutter({ controller, store, actions }: GutterProps) {
   };
 
   return (
-    <div
-      ref={element}
-      className={cn(GUTTER, target === null && 'hidden')}
-      data-current={focused || menuOpen ? '' : undefined}
-      {...{ [GUTTER_BLOCK]: target ?? undefined }}
-    >
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon-xs"
-        tabIndex={-1}
-        aria-label={labels.addBelow}
-        className="text-muted-foreground"
-        onPointerDown={keepFocus}
-        onClick={addBelow}
+    <>
+      <div
+        ref={element}
+        className={cn(GUTTER, target === null && 'hidden')}
+        data-current={focused || menuOpen ? '' : undefined}
+        {...{ [GUTTER_BLOCK]: target ?? undefined }}
       >
-        <Plus />
-      </Button>
-      <BlockMenu controller={controller} store={store} actions={actions} onOpen={openMenu}>
         <Button
           type="button"
           variant="ghost"
-          size={null}
+          size="icon-xs"
           tabIndex={-1}
-          aria-label={labels.dragHandle}
-          className={cn('text-muted-foreground h-6 w-4 rounded-md', SQUARE_TAP_TARGET_FLOOR)}
+          aria-label={labels.addBelow}
+          className="text-muted-foreground"
           onPointerDown={keepFocus}
-          onClick={openMenu}
+          onClick={addBelow}
         >
-          <GripVertical />
+          <Plus />
         </Button>
-      </BlockMenu>
-    </div>
+        <BlockMenu controller={controller} store={store} actions={actions} onOpen={openMenu}>
+          <Button
+            type="button"
+            variant="ghost"
+            size={null}
+            tabIndex={-1}
+            aria-label={labels.dragHandle}
+            className={cn('text-muted-foreground h-6 w-4 cursor-grab rounded-md', SQUARE_TAP_TARGET_FLOOR)}
+            onPointerDown={(event) => {
+              keepFocus(event);
+              drag.onPointerDown(event);
+            }}
+            onClick={(event) => {
+              if (!drag.takeClick(event)) openMenu();
+            }}
+          >
+            <GripVertical />
+          </Button>
+        </BlockMenu>
+      </div>
+      <DragOverlay ref={overlay} />
+    </>
   );
 }

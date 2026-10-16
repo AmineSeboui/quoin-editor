@@ -27,7 +27,7 @@ export function useGutterTarget(
   useEffect(() => {
     const root = controller.root;
     if (root === null) return;
-    const pinned = () => store.get().blockMenu !== null;
+    const pinned = () => store.get().blockMenu !== null || store.get().drag !== null;
     const onPointerMove = (event: PointerEvent) => {
       const target = event.target as Node;
       if (event.pointerType === 'touch' || pinned() || gutter.current?.contains(target)) return;

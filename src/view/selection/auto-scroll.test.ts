@@ -28,6 +28,18 @@ describe('createAutoScroll', () => {
     expect(scrollBy).toHaveBeenLastCalledWith(0, -20);
   });
 
+  it('takes a wider edge when asked', () => {
+    const { win, scrollBy, nextFrame } = fakeWindow();
+    const scroll = createAutoScroll(win, () => {}, 48);
+    scroll.update(45);
+    nextFrame();
+    scroll.update(560);
+    nextFrame();
+    scroll.update(551);
+    nextFrame();
+    expect(scrollBy.mock.calls).toEqual([[0, -2], [0, 4]]);
+  });
+
   it('does nothing away from the edges and stops when asked', () => {
     const { win, scrollBy, nextFrame } = fakeWindow();
     const scroll = createAutoScroll(win, () => {});

@@ -25,6 +25,13 @@ const docs: Record<string, QuoinBlock[]> = {
     { id: 'd', type: 'DIVIDER', data: {} },
     { id: 'e', type: 'MARKDOWN', data: { markdown: 'The end' } },
   ],
+  drag: [
+    { id: 'a', type: 'MARKDOWN', data: { markdown: 'Alpha' } },
+    { id: 'b', type: 'MARKDOWN', data: { markdown: 'Bravo' } },
+    { id: 'c', type: 'MARKDOWN', data: { markdown: 'Charlie' } },
+    { id: 'l', type: 'MARKDOWN', data: { markdown: '- List item' } },
+    { id: 'd', type: 'MARKDOWN', data: { markdown: 'Delta' } },
+  ],
   custom: [
     { id: 'above', type: 'MARKDOWN', data: { markdown: 'Paragraph above' } },
     { id: 'bm', type: 'BOOKMARK_DEMO', data: { url: 'https://quoin.dev' } },

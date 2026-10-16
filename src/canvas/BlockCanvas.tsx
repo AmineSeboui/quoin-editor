@@ -16,6 +16,7 @@ import { EditorView, useQuoinEditor } from '../view';
 import { defaultBlockLink } from './block-link';
 import type { BlockCanvasProps, QuoinEditorHandle } from './canvas-props';
 import { canvasRenderers } from './collect-ui';
+import { insertUploads } from './insert-uploads';
 import { createCanvasUiStore } from './ui-store';
 import { useBlockLinkTarget } from './use-block-link-target';
 import { useDeleteReporter } from './use-delete-reporter';
@@ -55,7 +56,13 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
   const labels = useMemo(() => resolveLabels(labelOverrides), [labelOverrides]);
   const renderers = useMemo(() => canvasRenderers(blockTypes), [blockTypes]);
   const [focusOnMount] = useState(autoFocus);
-  const controller = useQuoinEditor({ blocks, onChange, readOnly, extensions: allExtensions });
+  const controller = useQuoinEditor({
+    blocks,
+    onChange,
+    readOnly,
+    extensions: allExtensions,
+    onFiles: (files, at) => void insertUploads(controller, files, at, { upload, onError: onError ?? console.error }),
+  });
   useDeleteReporter(controller, onDelete);
   useBlockLinkTarget(controller, focusOnMount);
   const actions = useMemo(() => {

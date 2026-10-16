@@ -38,6 +38,24 @@ describe('handleKeydown', () => {
     expect(leave.defaultPrevented).toBe(false);
   });
 
+  it('extends a block range with Shift and the vertical arrows, up to the last block', () => {
+    const { editor, controller } = setup();
+    controller.dispatch(editor.createTransaction().setSelection(blockRangeSelection('a')));
+    const down = key('ArrowDown', { shiftKey: true });
+    handleKeydown(controller, down);
+    expect(down.defaultPrevented).toBe(true);
+    expect(editor.state.selection).toEqual(blockRangeSelection('a', 'b'));
+    const past = key('ArrowDown', { shiftKey: true });
+    handleKeydown(controller, past);
+    expect(past.defaultPrevented).toBe(false);
+    handleKeydown(controller, key('ArrowUp', { shiftKey: true }));
+    expect(editor.state.selection).toEqual(blockRangeSelection('a', 'a'));
+    const plain = key('ArrowDown');
+    handleKeydown(controller, plain);
+    expect(plain.defaultPrevented).toBe(false);
+    expect(editor.state.selection).toEqual(blockRangeSelection('a', 'a'));
+  });
+
   it('ignores keys during composition', () => {
     const { controller } = setup();
     const event = key('Enter', { isComposing: true });

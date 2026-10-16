@@ -2,6 +2,7 @@ import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import { arbitraryBlocks } from '../blocks/blocks-arbitrary';
 import type { EngineDoc } from '../model/types';
+import { selectedBlockIds } from '../state/selection';
 import { buildState, newIds, run } from '../test-support/build-state';
 import { orphans } from '../test-support/orphans';
 import { selectionChoice, selectionFor, type SelectionChoice } from '../test-support/selection-arbitrary';
@@ -15,10 +16,16 @@ import {
   deleteWordForward,
 } from './delete-commands';
 import { insertText } from './insert-text';
+import { moveBlocksTo } from './move-blocks-to';
 import { setSelection } from './selection-commands';
 import { splitBlock } from './split-block';
 
 type Action = SelectionChoice | { kind: 'command'; at: number; times: number };
+
+const moveSelectionTo =
+  (toIndex: number, indent: number): Command =>
+  (state, dispatch) =>
+    moveBlocksTo(selectedBlockIds(state.doc, state.selection), toIndex, indent)(state, dispatch);
 
 const times = fc.integer({ min: 1, max: 3 });
 const press = fc.record({ kind: fc.constant('command' as const), at: fc.nat(99), times });
@@ -46,6 +53,9 @@ function editingCommands(): Command[] {
     moveBlocksUp,
     moveBlocksDown,
     duplicateBlocks({ newId }),
+    moveSelectionTo(0, 0),
+    moveSelectionTo(1, 3),
+    moveSelectionTo(2, 1),
   ];
 }
 

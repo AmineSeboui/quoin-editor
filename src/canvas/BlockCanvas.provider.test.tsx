@@ -16,7 +16,7 @@ vi.mock('./collect-ui', async () => {
     probe.config = useQuoin();
     return <div contentEditable={false}>probe</div>;
   }
-  return { canvasRenderers: { ...defaultRenderers, PROBE: Probe } };
+  return { canvasRenderers: () => ({ ...defaultRenderers, PROBE: Probe }) };
 });
 
 const blocks: QuoinBlock[] = [{ id: 'p', type: 'PROBE', data: {} }];

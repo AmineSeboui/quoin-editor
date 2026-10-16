@@ -81,22 +81,6 @@ describe('ImageBlockEditor', () => {
     expect(writes).toHaveLength(2);
   });
 
-  it('ends with the second key and its size when the measurements finish out of order', async () => {
-    const finishMeasuring = measuring();
-    const { last } = setup();
-    let first!: Promise<void>;
-    let second!: Promise<void>;
-    act(() => {
-      first = Promise.resolve(picker.onUploaded!(result('a')));
-      second = Promise.resolve(picker.onUploaded!(result('b')));
-    });
-    finishMeasuring('b', { width: 20, height: 10 });
-    await settled(second);
-    finishMeasuring('a', { width: 99, height: 99 });
-    await settled(first);
-    expect(last()).toMatchObject({ storageKey: 'b', width: 20, height: 10 });
-  });
-
   it('never lets a slow measurement for the first key overwrite the second', async () => {
     const finishMeasuring = measuring();
     const { writes, last } = setup();

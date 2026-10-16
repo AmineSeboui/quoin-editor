@@ -13,6 +13,8 @@ import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect';
 export type EditorViewProps = {
   controller: ViewController;
   renderers?: Readonly<Record<string, BlockRenderer>>;
+  /** Draws a block whose type no renderer covers, in place of a box naming its type. */
+  fallback?: BlockRenderer;
   className?: string;
   id?: string;
   'aria-label'?: string;
@@ -31,6 +33,7 @@ const HINT = 'Press Escape, then Tab, to leave the editor.';
 export function EditorView({
   controller,
   renderers = NO_RENDERERS,
+  fallback,
   className,
   id,
   'aria-label': label = 'Editor',
@@ -42,7 +45,7 @@ export function EditorView({
   const root = useRef<HTMLDivElement>(null);
   const hintId = useId();
   const blocks = useEditorState(controller, (state) => state.doc.blocks);
-  const shells = useBlockElements(blocks, renderers);
+  const shells = useBlockElements(blocks, renderers, fallback);
 
   useIsomorphicLayoutEffect(() => (root.current === null ? undefined : controller.attach(root.current)), [controller]);
 

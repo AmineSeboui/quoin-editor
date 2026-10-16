@@ -47,11 +47,11 @@ describe('BlockCanvas', () => {
     expect(onTransaction).toHaveBeenCalledTimes(1);
   });
 
-  it('draws a block type it has no renderer for instead of dropping it', () => {
+  it('draws a block type it has no renderer for instead of dropping it, under a readable name', () => {
     const { container } = render(
       <BlockCanvas blocks={[md('a', 'before'), { id: 'z', type: 'CHART', data: {} }]} onChange={() => {}} />,
     );
-    expect(container.querySelector('[data-block-id="z"]')).toHaveTextContent('CHART');
+    expect(container.querySelector('[data-block-id="z"]')).toHaveTextContent('Unsupported block');
   });
 
   it('shows the placeholder on the host of an empty document', () => {

@@ -70,6 +70,9 @@ export type QuoinLabels = {
   redo: string;
   close: string;
   selectedContent: string;
+  editBlock: (label: string) => string;
+  divider: string;
+  unsupportedBlock: string;
 };
 
 export const englishLabels: QuoinLabels = {
@@ -158,6 +161,9 @@ export const englishLabels: QuoinLabels = {
   redo: 'Redo',
   close: 'Close',
   selectedContent: 'Selected content',
+  editBlock: (label) => `Edit ${label}`,
+  divider: 'Divider',
+  unsupportedBlock: 'Unsupported block',
 };
 
 /** The English labels with the host's overrides on top. A key the host leaves out, or passes as undefined, stays

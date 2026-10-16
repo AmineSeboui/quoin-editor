@@ -165,6 +165,17 @@ describe('block renderer lookup', () => {
     expect(container.querySelectorAll('.quoin-void')).toHaveLength(2);
   });
 
+  it('draws a type nothing renders with the caller\'s fallback, and follows a new one', () => {
+    const blocks = [md('a', 'one'), { id: 'd', type: 'DIVIDER', data: {} }];
+    const fallback = (tag: string) => (props: BlockRenderProps) => <p>{`${tag} ${props.block.id}`}</p>;
+    const options = { blocks, onChange: () => {} };
+    const { rerender } = render(<Editor options={options} view={{ fallback: fallback('first') }} />);
+    expect(screen.getByText('first d')).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Paragraph' })).toHaveTextContent('one');
+    rerender(<Editor options={options} view={{ fallback: fallback('second') }} />);
+    expect(screen.getByText('second d')).toBeInTheDocument();
+  });
+
   it('prefers the caller\'s renderer and hands it the block and the controller', () => {
     const seen: BlockRenderProps[] = [];
     const Custom = (props: BlockRenderProps) => {

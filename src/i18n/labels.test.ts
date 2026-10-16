@@ -47,6 +47,12 @@ describe('englishLabels', () => {
     expect(englishLabels.close).toBe('Close');
   });
 
+  it('names void blocks, their Edit button, dividers and blocks no definition draws', () => {
+    expect(englishLabels.editBlock('Bookmark')).toBe('Edit Bookmark');
+    expect(englishLabels.divider).toBe('Divider');
+    expect(englishLabels.unsupportedBlock).toBe('Unsupported block');
+  });
+
   it('counts one selected block in the singular and more in the plural', () => {
     expect(englishLabels.blocksSelected(1)).toBe('1 block selected');
     expect(englishLabels.blocksSelected(3)).toBe('3 blocks selected');

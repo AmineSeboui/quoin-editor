@@ -2,6 +2,9 @@
 
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { coreBlocks } from '../blocks/core';
+import { UnregisteredBlock } from '../blocks/void/UnregisteredBlock';
+import { VoidEditingContext } from '../blocks/void/use-void-editing';
+import { createVoidEditing } from '../blocks/void/void-editing';
 import { QuoinProvider } from '../context';
 import { coreExtensions } from '../engine';
 import { resolveLabels } from '../i18n/labels';
@@ -30,8 +33,10 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
   },
   ref,
 ) {
-  const [allExtensions] = useState(() => [...coreExtensions(), ...(extensions ?? [])]);
+  const [voidEditing] = useState(createVoidEditing);
+  const [allExtensions] = useState(() => [...coreExtensions(), voidEditing.extension, ...(extensions ?? [])]);
   const labels = useMemo(() => resolveLabels(labelOverrides), [labelOverrides]);
+  const renderers = useMemo(() => canvasRenderers(blockTypes), [blockTypes]);
   const [focusOnMount] = useState(autoFocus);
   const controller = useQuoinEditor({ blocks, onChange, readOnly, extensions: allExtensions });
   useDeleteReporter(controller, onDelete);
@@ -53,17 +58,20 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
 
   return (
     <QuoinProvider value={{ blockTypes, upload, resolveAssetUrl, onError, controller, labels }}>
-      <EditorView
-        controller={controller}
-        renderers={canvasRenderers}
-        className={className}
-        id={id}
-        aria-label={ariaLabel ?? labels.document}
-        hint={labels.editorHint}
-        paragraphLabel={labels.paragraph}
-        selectedContentLabel={labels.selectedContent}
-        placeholder={placeholder}
-      />
+      <VoidEditingContext.Provider value={voidEditing}>
+        <EditorView
+          controller={controller}
+          renderers={renderers}
+          fallback={UnregisteredBlock}
+          className={className}
+          id={id}
+          aria-label={ariaLabel ?? labels.document}
+          hint={labels.editorHint}
+          paragraphLabel={labels.paragraph}
+          selectedContentLabel={labels.selectedContent}
+          placeholder={placeholder}
+        />
+      </VoidEditingContext.Provider>
     </QuoinProvider>
   );
 });

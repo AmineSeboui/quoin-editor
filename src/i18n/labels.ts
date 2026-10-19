@@ -118,6 +118,7 @@ export type QuoinLabels = {
   invalidLink: string;
   colors: Record<PaletteName, string>;
   blockMoved: (position: number, total: number) => string;
+  blockInserted: (position: number, total: number) => string;
   blockDeleted: (n: number) => string;
   blocksSelected: (n: number) => string;
   /** How to bring deleted blocks back, given the platform's undo shortcut. */

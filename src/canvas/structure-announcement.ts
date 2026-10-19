@@ -1,14 +1,21 @@
 import type { EngineDoc, Transaction } from '../engine';
 import { LINE_JOIN } from '../engine/commands/line-join';
+import { LINE_SPLIT } from '../engine/commands/line-split';
 import type { QuoinLabels } from '../i18n/labels';
 import { drawnBlockCount } from '../view/navigation/visible-blocks';
 
 const DELETION_STEPS: ReadonlySet<string> = new Set(['removeBlocks', 'setIndent']);
 
+type Position = readonly [position: number, total: number];
+
+function drawnPosition(doc: EngineDoc, blockId: string): Position {
+  const index = doc.index.get(blockId) ?? 0;
+  return [drawnBlockCount(doc, 0, index) + 1, drawnBlockCount(doc)];
+}
+
 /** Where a block now is among the blocks the canvas draws, and of how many. */
 export function blockMovedMessage(doc: EngineDoc, blockId: string, labels: QuoinLabels): string {
-  const index = doc.index.get(blockId) ?? 0;
-  return labels.blockMoved(drawnBlockCount(doc, 0, index) + 1, drawnBlockCount(doc));
+  return labels.blockMoved(...drawnPosition(doc, blockId));
 }
 
 function movedBlock(tr: Transaction): string | null {
@@ -28,15 +35,28 @@ function deletedCount(tr: Transaction): number {
   }, 0);
 }
 
+// The first block the transaction inserted, when it removed none: a delete of whole blocks through text inserts the
+// empty paragraph that takes their place.
+function insertedBlock(tr: Transaction): string | null {
+  if (tr.getMeta(LINE_SPLIT) === true || tr.steps.some((step) => step.stepType === 'removeBlocks')) return null;
+  const inserted = tr.steps.flatMap((step) => {
+    const { blocks } = step.toJSON();
+    return step.stepType === 'insertBlocks' && Array.isArray(blocks) ? (blocks as { id: string }[]) : [];
+  });
+  return inserted.find((block) => tr.doc.index.has(block.id))?.id ?? null;
+}
+
 /**
- * What the live region says about a command that moved or deleted blocks, or null for any other change. A line that
- * Backspace or Delete joins to its neighbour is typing, and changes that undo, paste or a collaborator made are not
- * the writer's own command.
+ * What the live region says about a command that moved, deleted or inserted blocks, or null for any other change. A
+ * line that Backspace or Delete joins to its neighbour, or that Enter splits off or opens, is typing, and changes that
+ * undo, paste or a collaborator made are not the writer's own command.
  */
 export function structureAnnouncement(tr: Transaction, labels: QuoinLabels, undoKeys: string): string | null {
   if (tr.origin !== 'command' || tr.getMeta(LINE_JOIN) === true) return null;
   const moved = movedBlock(tr);
   if (moved !== null) return blockMovedMessage(tr.doc, moved, labels);
   const deleted = deletedCount(tr);
-  return deleted > 0 ? `${labels.blockDeleted(deleted)}. ${labels.undoHint(undoKeys)}` : null;
+  if (deleted > 0) return `${labels.blockDeleted(deleted)}. ${labels.undoHint(undoKeys)}`;
+  const inserted = insertedBlock(tr);
+  return inserted === null ? null : labels.blockInserted(...drawnPosition(tr.doc, inserted));
 }

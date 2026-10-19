@@ -1,4 +1,4 @@
-import { act, fireEvent, screen, within } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mountCanvas, paragraph } from '../blocks/void/test-canvas';
@@ -11,8 +11,18 @@ const nested = (id: string, markdown: string): QuoinBlock => ({ ...paragraph(id,
 
 const status = () => screen.getByRole('status');
 
-function setup(blocks: QuoinBlock[]) {
-  const canvas = mountCanvas(blocks);
+const png = new File(['png'], 'cat.png', { type: 'image/png' });
+const stored = async (file: File) => ({ storageKey: `key/${file.name}`, filename: file.name, size: file.size });
+
+function type(text: string): void {
+  for (const data of text) {
+    const event = new InputEvent('beforeinput', { inputType: 'insertText', data, bubbles: true, cancelable: true });
+    fireEvent(document.activeElement!, event);
+  }
+}
+
+function setup(blocks: QuoinBlock[], props: Parameters<typeof mountCanvas>[1] = {}) {
+  const canvas = mountCanvas(blocks, props);
   const caret = (block: string, offset = 0) => act(() => canvas.handle().focus({ block, region: 'text', offset }));
   const key = (init: KeyboardEventInit) => act(() => void fireEvent.keyDown(document.activeElement!, init));
   return { ...canvas, caret, key };
@@ -83,6 +93,56 @@ describe('the canvas announces a block deletion with the way to undo it', () => 
     caret('b');
     key({ key: 'Backspace' });
     expect(handle().editor.getBlocks()).toHaveLength(1);
+    expect(status()).toBeEmptyDOMElement();
+  });
+});
+
+describe('the canvas announces a block insert with the final position', () => {
+  it('of a copy made with Mod+D', () => {
+    const { caret, key } = setup([paragraph('a', 'one'), paragraph('b', 'two'), paragraph('c', 'three')]);
+    caret('a');
+    key({ key: 'd', ctrlKey: true });
+    expect(status()).toHaveTextContent('Block inserted at position 2 of 4');
+  });
+
+  it('of a copy made from the block menu, counting only the blocks it draws', async () => {
+    const user = userEvent.setup();
+    const { caret, key, handle } = setup([closedToggle('g'), nested('h', 'hidden'), paragraph('a', 'one')]);
+    caret('a');
+    key({ key: '/', ctrlKey: true });
+    await user.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Duplicate' }));
+    expect(handle().editor.getBlocks()).toHaveLength(4);
+    expect(status()).toHaveTextContent('Block inserted at position 3 of 3');
+  });
+
+  it('of a block a slash command puts after the line', () => {
+    const { caret, key, handle } = setup([paragraph('a', 'one'), paragraph('b', 'two')]);
+    caret('a', 3);
+    type(' /divider');
+    key({ key: 'Enter' });
+    expect(handle().editor.getBlocks().map((block) => block.type)).toEqual(['MARKDOWN', 'DIVIDER', 'MARKDOWN']);
+    expect(status()).toHaveTextContent('Block inserted at position 2 of 3');
+  });
+
+  it('of the paragraph the gutter + adds', async () => {
+    const user = userEvent.setup();
+    const { caret } = setup([paragraph('a', 'one'), paragraph('b', 'two')]);
+    caret('a');
+    await user.click(screen.getByRole('button', { name: 'Add block below' }));
+    expect(status()).toHaveTextContent('Block inserted at position 2 of 3');
+  });
+
+  it('of uploaded files', async () => {
+    const { handle } = setup([paragraph('a', 'one')], { upload: stored });
+    act(() => handle().controller.onFiles?.([png], { block: 'a', region: 'text', offset: 1 }));
+    await waitFor(() => expect(status()).toHaveTextContent('Block inserted at position 2 of 2'));
+  });
+
+  it('but says nothing when Enter opens a line', () => {
+    const { caret, key, handle } = setup([paragraph('a', 'one')]);
+    caret('a');
+    key({ key: 'Enter' });
+    expect(handle().editor.getBlocks()).toHaveLength(2);
     expect(status()).toBeEmptyDOMElement();
   });
 });

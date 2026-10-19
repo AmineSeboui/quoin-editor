@@ -47,6 +47,20 @@ test('a block moved with the keyboard and a block deleted are announced', async 
   await expect(page.getByRole('status')).toHaveText(/^Block deleted\. Press (\u2318Z|Ctrl\+Z) to undo$/);
 });
 
+test('a block duplicated from the block menu or with Mod+D is announced with the position of the copy', async ({
+  page,
+}) => {
+  await openEditor(page, 'drag');
+  await host(page, 'b').click();
+  await page.keyboard.press('ControlOrMeta+/');
+  await page.getByRole('menuitem', { name: 'Duplicate' }).click();
+  await expect.poll(async () => (await blocks(page)).length).toBe(6);
+  await expect(page.getByRole('status')).toHaveText('Block inserted at position 3 of 6');
+  await page.keyboard.press('ControlOrMeta+d');
+  await expect.poll(async () => (await blocks(page)).length).toBe(7);
+  await expect(page.getByRole('status')).toHaveText('Block inserted at position 4 of 7');
+});
+
 test('an empty heading shows its level and the empty paragraph holding the caret shows the canvas placeholder', async ({
   page,
 }) => {

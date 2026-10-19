@@ -2,8 +2,9 @@ import { act } from '@testing-library/react';
 import { coreBlocks } from '../blocks/core';
 import { mountCanvas } from '../blocks/void/test-canvas';
 import { englishLabels } from '../i18n/english-labels';
+import type { AnyBlockDefinition } from '../registry';
 import type { QuoinLabels } from '../i18n/labels';
-import type { QuoinBlock, UploadFn } from '../types';
+import type { BlockPreviewProps, QuoinBlock, UploadFn } from '../types';
 
 const MARK = '\u00a7';
 
@@ -74,13 +75,18 @@ describe('a canvas whose every label the host replaced', () => {
     expect(onError).toHaveBeenCalledWith(new Error(`${MARK}uploadsUnavailable`));
   });
 
-  it('shows no English in the previews of the core text blocks a read-only canvas draws from copies of them', () => {
+  it('shows no English in the core text previews a read-only canvas draws through a host definition', () => {
     const empty: QuoinBlock[] = [
       { id: 'm', type: 'MARKDOWN', data: { markdown: '' } },
       { id: 'n', type: 'CALLOUT', data: { tone: 'info', body: '' } },
     ];
-    const copies = coreBlocks.map((definition) => ({ ...definition }));
-    mountCanvas(empty, { labels: sentinelLabels(), blockTypes: copies, readOnly: true });
+    const wrapped = coreBlocks.map((definition): AnyBlockDefinition => {
+      const { preview: Preview } = definition;
+      return Preview ? { ...definition, preview: (props: BlockPreviewProps) => <Preview {...props} /> } : definition;
+    });
+    mountCanvas(empty, { labels: sentinelLabels(), blockTypes: wrapped, readOnly: true });
+    expect(document.body.textContent).toContain(`${MARK}emptyMarkdown`);
+    expect(document.body.textContent).toContain(`${MARK}emptyCallout`);
     expect(englishOnPage()).toEqual([]);
   });
 });

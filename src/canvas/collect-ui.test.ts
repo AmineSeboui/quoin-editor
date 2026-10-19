@@ -46,6 +46,12 @@ describe('collectUi', () => {
     expect(collectUi([], [...coreBlocks], true).renderers.MARKDOWN).toBe(textRenderers.MARKDOWN);
   });
 
+  it('draws its own text blocks for relabelled copies of the core definitions, which keep their preview', () => {
+    const relabelled = coreBlocks.map((definition) => ({ ...definition, label: `Copy of ${definition.label}` }));
+    const { renderers } = collectUi([], relabelled, true);
+    expect([renderers.MARKDOWN, renderers.CALLOUT]).toEqual([textRenderers.MARKDOWN, textRenderers.CALLOUT]);
+  });
+
   it('merges the render options, a later extension winning an atom both draw', () => {
     const first = () => document.createElement('span');
     const second = () => document.createElement('b');

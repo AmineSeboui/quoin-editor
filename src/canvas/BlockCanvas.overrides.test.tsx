@@ -64,6 +64,14 @@ describe('a host definition of a block type the canvas draws itself', () => {
     warn.mockRestore();
   });
 
+  it('says nothing in development for copies of the core definitions that only take new labels', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const relabelled = coreBlocks.map((definition) => ({ ...definition, label: `Copy of ${definition.label}` }));
+    mountCanvas(blocks, { blockTypes: relabelled });
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
   it('draws a host divider as a void block in an editable canvas, whose editor opens from the keyboard', () => {
     const { nodeSelect, press } = mountCanvas(textBlocks, { blockTypes: [...coreBlocks, hostBlock('DIVIDER', true)] });
     expect(screen.getByTestId('host-d')).toBeInTheDocument();

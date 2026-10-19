@@ -1,7 +1,7 @@
 import { act, cleanup, fireEvent, renderHook } from '@testing-library/react';
 import { textSelection } from '../../engine';
 import { at, cleanUpAfterTest, mountController } from '../../view/controller/test-controller';
-import { BUBBLE_PART } from './use-selection-settled';
+import { BUBBLE_PART, bubblePart } from './bubble-part';
 import { useBubbleVisibility } from './use-bubble-visibility';
 
 type Mounted = ReturnType<typeof setup>;
@@ -87,16 +87,19 @@ describe('useBubbleVisibility', () => {
     expect(visible()).toBe(true);
   });
 
-  it('follows focus: hidden once it leaves the editor, kept while it is on a part of the toolbar', () => {
-    const { select, visible } = setup();
+  it('follows focus: hidden once it leaves the editor, kept while it is on a part of its own toolbar', () => {
+    const { controller, select, visible } = setup();
     select(0, 5);
     const outside = document.body.appendChild(document.createElement('button'));
     act(() => outside.focus());
     expect(visible()).toBe(false);
+    const otherPart = document.body.appendChild(document.createElement('div'));
+    otherPart.setAttribute(BUBBLE_PART, 'another editor');
+    act(() => otherPart.appendChild(document.createElement('button')).focus());
+    expect(visible()).toBe(false);
     const part = document.body.appendChild(document.createElement('div'));
-    part.setAttribute(BUBBLE_PART, '');
-    const inside = part.appendChild(document.createElement('button'));
-    act(() => inside.focus());
+    part.setAttribute(BUBBLE_PART, bubblePart(controller)[BUBBLE_PART]);
+    act(() => part.appendChild(document.createElement('button')).focus());
     expect(visible()).toBe(true);
   });
 

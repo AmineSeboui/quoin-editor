@@ -9,7 +9,7 @@ import { useLabels } from '../i18n/use-labels';
 import { ToolbarButton } from '../menus/bubble/bubble-items';
 import { TurnIntoDropdown } from '../menus/bubble/TurnIntoDropdown';
 import { useRovingFocus } from '../menus/bubble/use-roving-focus';
-import { BUBBLE_PART } from '../menus/bubble/use-selection-settled';
+import { bubblePart } from '../menus/bubble/bubble-part';
 import { keepFocus } from '../menus/floating/keep-focus';
 import type { ViewController } from '../view';
 import { useEditorState } from '../view/react/use-editor-state';
@@ -63,7 +63,7 @@ function EditingTools({ controller }: MobileToolbarProps) {
       onMouseDown={keepFocus}
       onFocus={roving.onFocus}
       onKeyDown={onKeyDown}
-      {...{ [BUBBLE_PART]: '' }}
+      {...bubblePart(controller)}
     >
       {button(items.addBlock)}
       <TurnIntoDropdown controller={controller} state={state} />

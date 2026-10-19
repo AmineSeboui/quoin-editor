@@ -205,6 +205,19 @@ describe('the mobile toolbar', () => {
     expect(toolbar()).toBe(drawn);
   });
 
+  it("leaves another canvas's toolbar hidden while focus is in this one's toolbar or its menu", async () => {
+    const user = userEvent.setup();
+    const other = mountCanvas([paragraph('b', 'other words')]);
+    act(() => other.handle().focus(pos('b', 0)));
+    editAt(pos('a', 3));
+    expect(screen.getAllByRole('toolbar', { name: 'Editing tools' })).toHaveLength(1);
+    act(() => control('Bold').focus());
+    expect(screen.getAllByRole('toolbar', { name: 'Editing tools' })).toHaveLength(1);
+    await user.click(control('Turn into'));
+    expect(screen.getByRole('menu')).toContainElement(document.activeElement as HTMLElement);
+    expect(screen.getAllByRole('toolbar', { hidden: true })).toHaveLength(1);
+  });
+
   it('has no accessibility violations', async () => {
     editAt(pos('a', 0));
     const result = await act(() => axe(toolbar()));

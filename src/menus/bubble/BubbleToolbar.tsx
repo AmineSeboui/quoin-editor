@@ -13,10 +13,10 @@ import { keepFocus } from '../floating/keep-focus';
 import { useSelectionAnchor } from '../floating/use-selection-anchor';
 import { AlignDropdown } from './AlignDropdown';
 import { bubbleItems, ToolbarButton } from './bubble-items';
+import { bubblePart } from './bubble-part';
 import { ColorPopover } from './ColorPopover';
 import { TurnIntoDropdown } from './TurnIntoDropdown';
 import { useRovingFocus } from './use-roving-focus';
-import { BUBBLE_PART } from './use-selection-settled';
 
 const TOOLBAR = 'flex w-auto items-center gap-0.5 p-1 shadow-md';
 const DIVIDER = 'mx-0.5 h-5 w-px shrink-0 bg-border';
@@ -81,7 +81,7 @@ export function BubbleToolbar({ controller, labels, store, extraItems }: BubbleT
         onMouseDown={keepFocus}
         onFocus={roving.onFocus}
         onKeyDown={onKeyDown}
-        {...{ [BUBBLE_PART]: '' }}
+        {...bubblePart(controller)}
       >
         <TurnIntoDropdown controller={controller} state={state} />
         <span aria-hidden="true" className={DIVIDER} />

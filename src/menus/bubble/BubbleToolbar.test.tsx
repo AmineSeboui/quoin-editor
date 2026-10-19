@@ -186,6 +186,19 @@ describe('the bubble toolbar', () => {
     expect(toolbar()).toBe(drawn);
   });
 
+  it("leaves another canvas's toolbar hidden while focus is in this one's toolbar or its menu", async () => {
+    const user = userEvent.setup();
+    const other = mountCanvas([paragraph('b', 'other words')]);
+    selectRange(other, pos('b', 0), pos('b', 5));
+    const canvas = openToolbar();
+    const host = canvas.shell('a').querySelector<HTMLElement>('[data-quoin-host]')!;
+    fireEvent.keyDown(host, { key: 'F10', altKey: true });
+    expect(screen.getAllByRole('toolbar', { name: 'Text formatting' })).toHaveLength(1);
+    await user.click(control('Turn into'));
+    expect(screen.getByRole('menu')).toContainElement(document.activeElement as HTMLElement);
+    expect(screen.getAllByRole('toolbar', { hidden: true })).toHaveLength(1);
+  });
+
   it('has no accessibility violations', async () => {
     openToolbar();
     const result = await act(() => axe(toolbar()));

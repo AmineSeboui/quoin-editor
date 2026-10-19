@@ -4,7 +4,7 @@ import { useRef, type ReactElement, type ReactNode } from 'react';
 import { returnFocusToText } from '../../blocks/text/return-focus-to-text';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '../../ui/dropdown-menu';
 import type { ViewController } from '../../view';
-import { BUBBLE_PART, isBubblePart } from './use-selection-settled';
+import { bubblePart, isBubblePart } from './bubble-part';
 
 type ToolbarMenuProps = { controller: ViewController; trigger: ReactElement; children: ReactNode };
 
@@ -17,7 +17,7 @@ export function ToolbarMenu({ controller, trigger, children }: ToolbarMenuProps)
   return (
     <DropdownMenu
       onOpenChange={(open) => {
-        if (open) fromToolbar.current = isBubblePart(document.activeElement);
+        if (open) fromToolbar.current = isBubblePart(document.activeElement, controller);
       }}
     >
       <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
@@ -26,7 +26,7 @@ export function ToolbarMenu({ controller, trigger, children }: ToolbarMenuProps)
         onCloseAutoFocus={(event) => {
           if (!fromToolbar.current) returnFocusToText(controller)(event);
         }}
-        {...{ [BUBBLE_PART]: '' }}
+        {...bubblePart(controller)}
       >
         {children}
       </DropdownMenuContent>

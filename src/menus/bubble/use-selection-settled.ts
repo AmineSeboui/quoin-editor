@@ -1,15 +1,6 @@
 import { useMemo, useSyncExternalStore } from 'react';
 import type { ViewController } from '../../view';
-
-/** Marks the toolbars and the menus they open, where focus counts as still in the editor. */
-export const BUBBLE_PART = 'data-quoin-bubble';
-
-export const isBubblePart = (element: Element | null): boolean => element?.closest(`[${BUBBLE_PART}]`) != null;
-
-export function focusInEditor(controller: ViewController): boolean {
-  const active = document.activeElement;
-  return active !== null && (controller.isEditorElement(active) || isBubblePart(active));
-}
+import { focusInEditor } from './bubble-part';
 
 type Settled = { read(): boolean; subscribe(notify: () => void): () => void };
 

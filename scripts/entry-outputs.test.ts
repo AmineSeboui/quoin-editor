@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import tsupConfig from '../tsup.config';
 import { directiveFiles, packageExports, specifier, tsupEntries } from './entry-outputs.mjs';
-import { catalogueBudget, featureEntries, packageEntries } from './package-entries.mjs';
+import { featureEntries, packageEntries } from './package-entries.mjs';
 
 const entries = [
   { name: 'index', source: 'src/index.ts', client: true, total: 1_000 },
@@ -61,9 +61,10 @@ describe('the package entry list', () => {
     ]);
   });
 
-  it('publishes the catalogue as a client entry whose budget grows with every feature it gathers', () => {
-    const catalogue = packageEntries.find((entry) => entry.name === 'catalogue');
-    expect(catalogue).toMatchObject({ source: 'src/catalogue.ts', client: true, added: catalogueBudget(featureEntries) });
-    expect(catalogueBudget([{ added: 200 }, { added: 300 }])).toBe(catalogueBudget([]) + 500);
+  it('publishes every feature, then the catalogue, as client entries held to what they add to the main entry', () => {
+    const optIn = packageEntries.slice(3);
+    expect(optIn.map(({ name }) => name)).toEqual([...featureEntries.map(({ name }) => name), 'catalogue']);
+    expect(optIn.at(-1)).toMatchObject({ source: 'src/catalogue.ts', client: true });
+    expect(optIn.every(({ added }) => Number.isInteger(added) && added > 0)).toBe(true);
   });
 });

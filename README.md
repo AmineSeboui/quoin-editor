@@ -138,9 +138,9 @@ The structural comparison is shallow over each block's `data`. A host whose bloc
 
 `onChange` reports a new array and nothing about what changed, so a host that wants a "Block deleted / Undo" toast would have to diff two arrays to find out. `onDelete` tells it instead: it fires for each whole block the writer removes, through its actions menu, by typing over a selected block or by pasting over selected blocks, with the block and the index it held. Lines that Backspace or Delete join are not reported.
 
-It runs just after the `onChange` that reports the document without that block, so by the time your handler runs the new array has already been reported. Restoring is an ordinary document load: splice the block back at its index and supply the result as `blocks`.
+It runs just after the `onChange` that reports the document without that block. Restoring is an ordinary document load: once your `blocks` no longer hold the block, splice it back at its index and supply the result as `blocks`.
 
-Do that on a later tick or a later interaction, such as the click of an Undo toast, which is what the sample below does. A restore applied synchronously inside `onDelete` is batched together with the echo of the deletion, so what reaches the canvas is structurally equal to the document it last had from you, which it reads as an unrelated re-render and ignores. Nothing throws; the deletion simply stands.
+Do that on a later interaction, such as the click of an Undo toast, which is what the sample below does. A host that applies `onChange` at once can also restore inside `onDelete`. One that applies it in a `startTransition` or after a debounce has not taken the removal when `onDelete` runs: splicing the block into that state duplicates it, and supplying again an array equal to the one it last supplied changes nothing, because the canvas ignores it.
 
 ```tsx
 import { useState } from 'react';

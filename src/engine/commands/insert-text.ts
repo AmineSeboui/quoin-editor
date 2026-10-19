@@ -29,6 +29,10 @@ function replaceBlocksWithText(
   tr.setSelection(endOf(tr.doc, schema, paragraph.id));
 }
 
+/**
+ * Inserts `value` at the selection, in place of any selected text or blocks, as a command an extension can return. Undo
+ * treats it as typing unless `options.origin` gives another origin.
+ */
 export function insertText(value: string, options: InsertTextOptions = {}): Command {
   const makeId = options.newId ?? newId;
   return (state, dispatch) => {

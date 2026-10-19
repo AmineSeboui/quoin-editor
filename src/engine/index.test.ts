@@ -35,6 +35,7 @@ describe('engine entry', () => {
         "getPluginState",
         "insertBlockAfter",
         "insertBlocksStep",
+        "insertText",
         "insertTextWithRules",
         "joinBlocksStep",
         "keyName",

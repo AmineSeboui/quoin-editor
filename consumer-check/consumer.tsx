@@ -5,10 +5,7 @@ import {
   coreBlocks,
   defineBlock,
   defineExtension,
-  replaceInlineStep,
-  text,
-  textSelection,
-  Transaction,
+  insertText,
   useAutosave,
   type AnyBlockDefinition,
   type BlockEditorProps,
@@ -42,18 +39,11 @@ const upload: UploadFn = async (file) => ({ storageKey: file.name, filename: fil
 
 const french: Partial<QuoinLabels> = { bold: 'Gras', heading: (level) => `Titre ${level}` };
 
-const insertToday: Command = (state, dispatch) => {
-  if (state.selection?.kind !== 'text') return false;
-  const { block, region, offset } = state.selection.head;
-  const today = new Date().toDateString();
-  const tr = new Transaction(state).step(replaceInlineStep(block, region, offset, offset, [text(today)]));
-  dispatch?.(tr.setSelection(textSelection({ block, region, offset: offset + today.length })));
-  return true;
-};
+const insertToday = (): Command => insertText(new Date().toDateString());
 
 const datesUi: ExtensionUI = {
   slashItems: [
-    { id: 'today', title: 'Today', group: 'basic', icon: Star, keywords: ['date'], command: () => insertToday },
+    { id: 'today', title: 'Today', group: 'basic', icon: Star, keywords: ['date'], command: insertToday },
     { id: 'calendar', title: 'Calendar', group: 'basic', run: ({ controller }) => controller.focus('end') },
   ],
 };

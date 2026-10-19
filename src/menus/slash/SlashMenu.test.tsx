@@ -5,8 +5,7 @@ import { coreBlocks } from '../../blocks/core';
 import { bookmark, mountCanvas, paragraph } from '../../blocks/void/test-canvas';
 import { BlockCanvas } from '../../canvas/BlockCanvas';
 import type { QuoinEditorHandle } from '../../canvas/canvas-props';
-import { defineExtension } from '../../engine';
-import { insertText } from '../../engine/commands/insert-text';
+import { defineExtension, insertText } from '../../engine';
 import type { ExtensionUI, SlashItem } from '../../extensions/ui-types';
 
 function type(text: string): void {

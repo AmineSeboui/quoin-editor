@@ -33,7 +33,7 @@ describe('void block data', () => {
     const { handle, last } = mountCanvas([bookmarkBlock('b', 'quoin.dev'), paragraph('c', 'below')]);
     const seeded = () => ({ tone: 'tip', body: 'Seeded **tip**' });
     const callout = { ...blockByType(coreBlocks, 'CALLOUT')!, initialData: seeded };
-    act(() => insertAfterBlock(handle().controller, 'b', 'CALLOUT', callout));
+    act(() => insertAfterBlock(handle().controller, 'b', 'CALLOUT', [callout]));
     expect(last()[1]).toEqual({ id: last()[1].id, type: 'CALLOUT', data: { tone: 'tip', body: 'Seeded **tip**' } });
   });
 });

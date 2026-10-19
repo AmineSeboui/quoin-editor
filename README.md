@@ -210,7 +210,7 @@ export function FastEditor({ blocks, onChange }: { blocks: QuoinBlock[]; onChang
 
 ## Custom blocks
 
-A block type is a definition built with `defineBlock`. `blockTypes` defaults to `coreBlocks`, so extend it by spreading them and adding your own. When two definitions share a `type`, the last one wins, which is also how you override a core block.
+A block type is a definition built with `defineBlock`. `blockTypes` defaults to `coreBlocks`, so extend it by spreading them and adding your own. When two definitions share a `type`, the last one wins, which is also how you override a core block. Your own definition of `DIVIDER` draws as a block of yours everywhere. Your own definition of `MARKDOWN`, `CALLOUT` or `TOGGLE` draws only on a read-only canvas: an editable canvas keeps those blocks its own, since they are typed into in place, and warns about it in development.
 
 ```tsx
 import { Bookmark } from 'lucide-react';
@@ -385,7 +385,7 @@ export function AttachmentEditor({ data, onChange }: BlockEditorProps<Attachment
 
 `upload` is absent when the host wired none, which is why the control above disables itself rather than failing on the pick. `resolveAssetUrl` defaults to returning the key unchanged, and `onError` to `console.error`.
 
-The preview is also how you bring your own markdown renderer. Register a `MARKDOWN` definition last, reuse the core editor, and swap the preview:
+The preview is also how you bring your own markdown renderer to readers. Register a `MARKDOWN` definition last with your preview, and a read-only canvas draws every `MARKDOWN` block with it:
 
 ```tsx
 import { blockByType, coreBlocks, defineBlock, type AnyBlockDefinition, type BlockPreviewProps } from 'quoin-editor';

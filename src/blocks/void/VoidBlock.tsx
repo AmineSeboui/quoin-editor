@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, type KeyboardEvent, type MouseEvent } f
 import { Pencil } from 'lucide-react';
 import { useQuoin } from '../../context';
 import { devWarn } from '../../dev-warn';
-import { blockByType, type AnyBlockDefinition } from '../../registry';
+import type { AnyBlockDefinition } from '../../registry';
 import type { BlockPreviewProps } from '../../types';
 import { Button } from '../../ui/button';
 import type { BlockRenderProps } from '../../view';
@@ -60,7 +60,7 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
   );
   const onInsertBlock = useCallback(
     (type: string) => {
-      insertAfterBlock(controller, blockId, type, blockByType(blockTypes, type));
+      insertAfterBlock(controller, blockId, type, blockTypes);
       stop();
       // A block left node-selected is opening its editor, which takes focus itself.
       if (controller.editor.state.selection?.kind !== 'node') controller.focus();

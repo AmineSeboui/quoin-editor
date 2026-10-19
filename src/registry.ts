@@ -33,6 +33,10 @@ type BlockDefinitionCommon<D extends object> = {
  * for it and a click goes through to whatever the preview itself renders.
  *
  * Omitting both is a type error, because such a block would only ever draw its own label.
+ *
+ * A definition of a type the canvas draws itself, other than Quoin's own, draws that type as a void block: `DIVIDER`
+ * everywhere, and `MARKDOWN`, `CALLOUT` and `TOGGLE` only on a read-only canvas, since an editable one types into them
+ * in place.
  */
 export type BlockDefinition<D extends object = Record<string, unknown>> =
   | (BlockDefinitionCommon<D> & {
@@ -72,7 +76,7 @@ export function defineBlock<D extends object = Record<string, unknown>>(
 
 /** The definition for a type, or undefined; the last registration of a type wins, so a host can override a core block. */
 export function blockByType(
-  definitions: AnyBlockDefinition[],
+  definitions: readonly AnyBlockDefinition[],
   type: string,
 ): AnyBlockDefinition | undefined {
   for (let i = definitions.length - 1; i >= 0; i -= 1) {

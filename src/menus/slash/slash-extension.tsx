@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useMemo } from 'react';
+import { useQuoin } from '../../context';
 import { defineExtension, type Extension } from '../../engine';
 import type { SlashItem } from '../../extensions/ui-types';
 import { useLabels } from '../../i18n/use-labels';
@@ -20,8 +21,12 @@ export const SlashItemsProvider = SlashItemsContext.Provider;
 // One component for every menu, reading its labels and commands from context: a new list never remounts an open menu.
 function SlashOverlay({ controller }: { controller: ViewController }) {
   const labels = useLabels();
+  const { blockTypes } = useQuoin();
   const extraItems = useContext(SlashItemsContext);
-  const items = useMemo(() => [...builtInSlashItems(labels), ...extraItems], [labels, extraItems]);
+  const items = useMemo(
+    () => [...builtInSlashItems(labels, blockTypes), ...extraItems],
+    [labels, blockTypes, extraItems],
+  );
   return <SlashMenu controller={controller} labels={labels} items={items} />;
 }
 

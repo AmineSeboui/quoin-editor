@@ -31,6 +31,21 @@ describe('collectUi', () => {
     expect(ui.renderers.CALLOUT).toBe(textRenderers.CALLOUT);
   });
 
+  it('draws a host definition of a type it draws itself as a void block, one typed in place only read-only', () => {
+    const markdown = defineBlock({ type: 'MARKDOWN', label: 'Markdown', icon: Star, preview: () => null });
+    const divider = defineBlock({ type: 'DIVIDER', label: 'Divider', icon: Star, preview: () => null });
+    const definitions = [...coreBlocks, markdown, divider];
+    const editable = collectUi([], definitions).renderers;
+    const readOnly = collectUi([], definitions, true).renderers;
+    expect(editable.MARKDOWN).toBe(textRenderers.MARKDOWN);
+    expect(readOnly.MARKDOWN).not.toBe(textRenderers.MARKDOWN);
+    expect(readOnly.MARKDOWN).toBe(collectUi([], [markdown], true).renderers.MARKDOWN);
+    expect(editable.DIVIDER).not.toBe(textRenderers.DIVIDER);
+    expect(editable.DIVIDER).toBe(readOnly.DIVIDER);
+    expect([readOnly.CALLOUT, readOnly.TOGGLE]).toEqual([textRenderers.CALLOUT, textRenderers.TOGGLE]);
+    expect(collectUi([], [...coreBlocks], true).renderers.MARKDOWN).toBe(textRenderers.MARKDOWN);
+  });
+
   it('merges the render options, a later extension winning an atom both draw', () => {
     const first = () => document.createElement('span');
     const second = () => document.createElement('b');

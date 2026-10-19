@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
 import { Image, Minus, Paperclip } from 'lucide-react';
+import { opensEditor } from '../../blocks/block-drawing';
 import { insertBlockToWrite, type NewBlock } from '../../blocks/insert-blocks';
 import { createBlockCodec, type BlockAttrs, type EditorState } from '../../engine';
 import { specFor } from '../../engine/blocks/unknown-spec';
@@ -31,12 +32,14 @@ const DETAILS: Readonly<Record<SlashBlockCommand, Details>> = {
 /** The block types the built-in commands insert, which the registry's own commands leave out. */
 const BUILT_IN_TYPES: ReadonlySet<string> = new Set(['MARKDOWN', 'CALLOUT', 'TOGGLE', 'DIVIDER', 'CODE', 'IMAGE', 'FILE']);
 
-/** The built-in types drawn as void blocks with an editor, the 0.4 code, image and file editors. */
-const EDITED_TYPES: ReadonlySet<string> = new Set(['CODE', 'IMAGE', 'FILE']);
-
 type Insertion = { label: string; icon: ComponentType<{ className?: string }>; type: string; attrs: BlockAttrs };
 
-function insertionItem(id: SlashBlockCommand, insertion: Insertion, labels: QuoinLabels): SlashItem {
+function insertionItem(
+  id: SlashBlockCommand,
+  insertion: Insertion,
+  labels: QuoinLabels,
+  definitions: readonly AnyBlockDefinition[],
+): SlashItem {
   const { label, icon, type, attrs } = insertion;
   return {
     id,
@@ -44,11 +47,11 @@ function insertionItem(id: SlashBlockCommand, insertion: Insertion, labels: Quoi
     description: labels.slashDescriptions[id],
     icon,
     ...DETAILS[id],
-    command: () => insertBlockToWrite({ type, attrs }, EDITED_TYPES.has(type)),
+    command: () => insertBlockToWrite({ type, attrs }, opensEditor(definitions, type)),
   };
 }
 
-export function builtInSlashItems(labels: QuoinLabels): SlashItem[] {
+export function builtInSlashItems(labels: QuoinLabels, definitions: readonly AnyBlockDefinition[]): SlashItem[] {
   const { blockNames } = labels;
   const insertions: Partial<Record<SlashBlockCommand, Insertion>> = {
     divider: { label: blockNames.divider, icon: Minus, type: 'DIVIDER', attrs: {} },
@@ -58,7 +61,7 @@ export function builtInSlashItems(labels: QuoinLabels): SlashItem[] {
   for (const target of turnIntoTargets(labels)) insertions[target.id as SlashBlockCommand] = target;
   return (Object.keys(DETAILS) as SlashBlockCommand[]).flatMap((id) => {
     const insertion = insertions[id];
-    return insertion === undefined ? [] : [insertionItem(id, insertion, labels)];
+    return insertion === undefined ? [] : [insertionItem(id, insertion, labels, definitions)];
   });
 }
 
@@ -77,6 +80,7 @@ export function blockTypeSlashItems(definitions: AnyBlockDefinition[]): SlashIte
       title: definition.label,
       group: 'custom',
       icon: definition.icon,
-      command: ({ state }) => insertBlockToWrite(initialBlock(state, definition), definition.editor !== undefined),
+      command: ({ state }) =>
+        insertBlockToWrite(initialBlock(state, definition), opensEditor(definitions, definition.type)),
     }));
 }

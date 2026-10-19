@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
-import { drawnAsText } from '../blocks/block-drawing';
+import { drawnAsText, drawnInPlace } from '../blocks/block-drawing';
+import { inPlaceRenderers } from '../blocks/in-place-renderers';
 import { textRenderers } from '../blocks/text/text-renderers';
 import { voidRenderers } from '../blocks/void/void-renderers';
 import type { Extension } from '../engine';
@@ -18,13 +19,17 @@ export type CollectedUi = {
   overlays: readonly ComponentType<{ controller: ViewController }>[];
 };
 
-/** Every definition draws as a void block, except the types the canvas draws itself: its text blocks and the divider. */
+/**
+ * Every definition draws as a void block, except the types the canvas draws itself: its text blocks, the divider and the
+ * blocks it edits in place.
+ */
 export function canvasRenderers(
   definitions: readonly AnyBlockDefinition[],
   readOnly = false,
 ): Readonly<Record<string, BlockRenderer>> {
   const ownText = Object.entries(textRenderers).filter(([type]) => drawnAsText(definitions, type, readOnly));
-  return { ...voidRenderers(definitions), ...Object.fromEntries(ownText) };
+  const inPlace = Object.entries(inPlaceRenderers).filter(([type]) => drawnInPlace(definitions, type));
+  return { ...voidRenderers(definitions), ...Object.fromEntries([...ownText, ...inPlace]) };
 }
 
 /** The UI an extension adds, read with care: the engine leaves the field untyped. */

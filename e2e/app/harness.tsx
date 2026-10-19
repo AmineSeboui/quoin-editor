@@ -55,6 +55,11 @@ const docs: Record<string, QuoinBlock[]> = {
     { id: 'bm', type: 'BOOKMARK_DEMO', data: { url: 'https://quoin.dev' } },
     { id: 'below', type: 'MARKDOWN', data: { markdown: 'Paragraph below' } },
   ],
+  code: [
+    { id: 'p', type: 'MARKDOWN', data: { markdown: 'Above the code' } },
+    { id: 'k', type: 'CODE', data: { language: 'ts', code: 'let a = 1;\nlet b = 2;' } },
+    { id: 'q', type: 'MARKDOWN', data: { markdown: 'Below the code' } },
+  ],
   media: [
     { id: 'p', type: 'MARKDOWN', data: { markdown: 'Above media' } },
     { id: 'img', type: 'IMAGE', data: { storageKey: '', alt: '' } },

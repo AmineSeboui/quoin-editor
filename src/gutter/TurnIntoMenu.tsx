@@ -1,6 +1,8 @@
 'use client';
 
 import { Repeat2 } from 'lucide-react';
+import { drawsType } from '../blocks/block-drawing';
+import { useQuoin } from '../context';
 import { setBlockType } from '../engine';
 import { useLabels } from '../i18n/use-labels';
 import type { ViewController } from '../view';
@@ -12,8 +14,9 @@ import { turnIntoTargets } from './turn-into-targets';
 type TurnIntoMenuProps = { kit: MenuKit; controller: ViewController; blockIds: readonly string[] };
 
 export function TurnIntoItems({ kit, controller, blockIds }: TurnIntoMenuProps) {
-  const labels = useLabels();
-  return turnIntoTargets(labels).map((target) => (
+  const { blockTypes, labels } = useQuoin();
+  const targets = turnIntoTargets(labels).filter((target) => drawsType(blockTypes, target.type));
+  return targets.map((target) => (
     <kit.Item key={target.id} onSelect={() => runOnBlocks(controller, blockIds, setBlockType(target.type, target.attrs))}>
       <MenuIcon icon={target.icon} />
       {target.label}

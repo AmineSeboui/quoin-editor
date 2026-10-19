@@ -1,4 +1,3 @@
-import codeSrc from './CodeBlockEditor.tsx?raw';
 import imageSrc from './ImageBlockEditor.tsx?raw';
 import fileSrc from './FileBlockEditor.tsx?raw';
 import { blockByType } from '../registry';
@@ -41,7 +40,6 @@ type _S = keyof IntrinsicSize extends keyof ImageBlockData ? true : never;
 const _spread: _S = true;
 
 const EDITOR_SOURCE = {
-  CODE: codeSrc,
   IMAGE: imageSrc,
   FILE: fileSrc,
 } satisfies Partial<Record<keyof typeof KEYS, string>>;

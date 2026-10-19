@@ -1,5 +1,6 @@
 import { Star } from 'lucide-react';
 import { coreBlocks } from '../blocks/core';
+import { inPlaceRenderers } from '../blocks/in-place-renderers';
 import { textRenderers } from '../blocks/text/text-renderers';
 import { defineExtension } from '../engine';
 import type { ExtensionUI, SlashItem } from '../extensions/ui-types';
@@ -50,6 +51,21 @@ describe('collectUi', () => {
     const relabelled = coreBlocks.map((definition) => ({ ...definition, label: `Copy of ${definition.label}` }));
     const { renderers } = collectUi([], relabelled, true);
     expect([renderers.MARKDOWN, renderers.CALLOUT]).toEqual([textRenderers.MARKDOWN, textRenderers.CALLOUT]);
+  });
+
+  it("draws Quoin's code block in place while a definition of it is registered, on any canvas", () => {
+    const relabelled = coreBlocks.map((definition) => ({ ...definition, label: `Copy of ${definition.label}` }));
+    expect(collectUi([], coreBlocks).renderers.CODE).toBe(inPlaceRenderers.CODE);
+    expect(collectUi([], coreBlocks, true).renderers.CODE).toBe(inPlaceRenderers.CODE);
+    expect(collectUi([], relabelled).renderers.CODE).toBe(inPlaceRenderers.CODE);
+  });
+
+  it('draws a host definition of CODE as a void block, and no code block where none is registered', () => {
+    const snippet = defineBlock({ type: 'CODE', label: 'Snippet', icon: Star, preview: () => null });
+    const { renderers } = collectUi([], [...coreBlocks, snippet]);
+    expect(renderers.CODE).toBe(collectUi([], [snippet]).renderers.CODE);
+    expect(renderers.CODE).not.toBe(inPlaceRenderers.CODE);
+    expect(collectUi([], [chart]).renderers.CODE).toBeUndefined();
   });
 
   it('merges the render options, a later extension winning an atom both draw', () => {

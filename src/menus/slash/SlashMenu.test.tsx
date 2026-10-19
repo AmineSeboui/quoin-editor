@@ -1,5 +1,5 @@
 import { createRef, useState } from 'react';
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { axe } from 'vitest-axe';
 import { coreBlocks } from '../../blocks/core';
 import { bookmark, mountCanvas, paragraph } from '../../blocks/void/test-canvas';
@@ -118,6 +118,16 @@ describe('the slash menu', () => {
     expect(groups[0]).toHaveAccessibleName('Basic');
     expect(groups.at(-1)).toHaveAccessibleName('Custom');
     expect(within(groups.at(-1)!).getByRole('option', { name: /Bookmark/ })).toBeInTheDocument();
+  });
+
+  it('offers the code command only on a canvas that draws code blocks', () => {
+    openCanvas();
+    type('/code');
+    expect(screen.getByRole('option', { name: /^Code/ })).toBeInTheDocument();
+    cleanup();
+    openCanvas({ blockTypes: [bookmark] });
+    type('/code');
+    expect(screen.queryByRole('option', { name: /^Code/ })).toBeNull();
   });
 
   it('inserts a custom block type with its initial data in place of the empty paragraph', () => {

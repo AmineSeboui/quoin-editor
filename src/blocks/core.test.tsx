@@ -24,9 +24,14 @@ describe('coreBlocks', () => {
     expect(blockByType(coreBlocks, 'CALLOUT')?.initialData?.()).toEqual({ tone: 'info', body: '' });
   });
 
-  it('leaves markdown and callouts to the canvas, which edits them in place', () => {
+  it('starts a code block with no language and no code', () => {
+    expect(blockByType(coreBlocks, 'CODE')?.initialData?.()).toEqual({ language: '', code: '' });
+  });
+
+  it('leaves markdown, callouts and code to the canvas, which edits them in place', () => {
     expect(blockByType(coreBlocks, 'MARKDOWN')?.editor).toBeUndefined();
     expect(blockByType(coreBlocks, 'CALLOUT')?.editor).toBeUndefined();
+    expect(blockByType(coreBlocks, 'CODE')?.editor).toBeUndefined();
   });
 
   it.each(coreBlocks.map((b) => [b.type, b] as const))(

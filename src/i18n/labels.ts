@@ -160,13 +160,14 @@ export type QuoinLabels = {
   imageCaption: string;
   imageAttached: string;
   uploadFile: string;
-  /** The code editor's fields: the language and the code itself. */
-  codeLanguage: string;
+  /** A code block: its code, its language, the name of a code in no language, and its copy button. */
   codeText: string;
+  codeLanguage: string;
+  plainText: string;
+  copyCode: string;
   /** What the preview of a block without content says. */
   emptyImage: string;
   emptyFile: string;
-  emptyCode: string;
   emptyMarkdown: string;
   emptyCallout: string;
 };

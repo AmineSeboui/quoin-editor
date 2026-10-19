@@ -1,4 +1,4 @@
-import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Star } from 'lucide-react';
 import { axe } from 'vitest-axe';
@@ -49,6 +49,20 @@ describe('the block menu', () => {
     await user.click(item('Turn into'));
     choose(screen.getByRole('menuitem', { name: 'Heading 3' }));
     expect(last()[0].data.markdown).toBe('### Title');
+  });
+
+  it('offers to turn a block into code only on a canvas that draws code blocks', async () => {
+    const user = userEvent.setup();
+    setup().openMenuFromText('a');
+    await user.click(item('Turn into'));
+    expect(screen.getByRole('menuitem', { name: 'Code' })).toBeInTheDocument();
+    cleanup();
+    const canvas = mountCanvas([paragraph('a', 'Title')], { blockTypes: [] });
+    act(() => canvas.handle().focus({ block: 'a', region: 'text', offset: 0 }));
+    fireEvent.keyDown(document.activeElement!, { key: '/', ctrlKey: true });
+    await user.click(item('Turn into'));
+    expect(screen.getByRole('menuitem', { name: 'Quote' })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Code' })).toBeNull();
   });
 
   it('duplicates the block', async () => {

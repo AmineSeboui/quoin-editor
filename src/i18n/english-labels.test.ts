@@ -164,21 +164,23 @@ describe('englishLabels', () => {
     expect(englishLabels.uploadsUnavailable).toBe('Uploads are not configured for this editor.');
   });
 
-  it('names the fields of the image, file and code editors and says what an empty preview lacks', () => {
+  it('names the fields of the image and file editors and says what an empty preview lacks', () => {
     expect(englishLabels.uploadImage).toBe('Upload image');
     expect([englishLabels.altText, englishLabels.imageAltText]).toEqual(['Alt text', 'Image alt text']);
     expect(englishLabels.captionOptional).toBe('Caption (optional)');
     expect(englishLabels.imageCaption).toBe('Image caption');
     expect(englishLabels.imageAttached).toBe('Image attached');
     expect(englishLabels.uploadFile).toBe('Upload file');
-    expect([englishLabels.codeLanguage, englishLabels.codeText]).toEqual(['Language', 'Code']);
-    expect([englishLabels.emptyImage, englishLabels.emptyFile, englishLabels.emptyCode]).toEqual([
-      'No image chosen',
-      'No file chosen',
-      'Empty code block',
-    ]);
+    expect([englishLabels.emptyImage, englishLabels.emptyFile]).toEqual(['No image chosen', 'No file chosen']);
     expect(englishLabels.emptyMarkdown).toBe('Empty markdown block');
     expect(englishLabels.emptyCallout).toBe('Empty callout');
+  });
+
+  it('names the code of a code block, its language, a code in no language and its copy button', () => {
+    expect([englishLabels.codeText, englishLabels.codeLanguage]).toEqual(['Code', 'Language']);
+    expect(englishLabels.plainText).toBe('Plain text');
+    expect(englishLabels.copyCode).toBe('Copy code');
+    expect(englishLabels.copied).toBe('Copied');
   });
 
   it('writes no empty label and no em or en dash', () => {

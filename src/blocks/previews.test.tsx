@@ -51,10 +51,9 @@ describe('previews', () => {
     expect(screen.getByText('notes.pdf')).toBeInTheDocument();
   });
 
-  it('shows hints for a fresh code block and a fresh callout', () => {
+  it('draws a fresh code block as an empty block of code, and a hint for a fresh callout', () => {
     const { container } = wrap(<CodePreview data={{ language: '', code: '' }} />);
-    expect(container.querySelector('pre')).toBeNull();
-    expect(screen.getByText('Empty code block')).toBeInTheDocument();
+    expect(container.querySelector('pre')).toHaveTextContent('');
     wrap(<CalloutPreview data={{ tone: 'info', body: '' }} />);
     expect(screen.getByText('Empty callout')).toBeInTheDocument();
   });

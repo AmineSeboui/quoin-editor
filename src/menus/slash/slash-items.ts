@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react';
 import { Image, Minus, Paperclip } from 'lucide-react';
-import { opensEditor } from '../../blocks/block-drawing';
+import { drawsType, opensEditor } from '../../blocks/block-drawing';
 import { insertBlockToWrite, type NewBlock } from '../../blocks/insert-blocks';
 import { createBlockCodec, type BlockAttrs, type EditorState } from '../../engine';
 import { specFor } from '../../engine/blocks/unknown-spec';
@@ -61,7 +61,8 @@ export function builtInSlashItems(labels: QuoinLabels, definitions: readonly Any
   for (const target of turnIntoTargets(labels)) insertions[target.id as SlashBlockCommand] = target;
   return (Object.keys(DETAILS) as SlashBlockCommand[]).flatMap((id) => {
     const insertion = insertions[id];
-    return insertion === undefined ? [] : [insertionItem(id, insertion, labels, definitions)];
+    if (insertion === undefined || !drawsType(definitions, insertion.type)) return [];
+    return [insertionItem(id, insertion, labels, definitions)];
   });
 }
 

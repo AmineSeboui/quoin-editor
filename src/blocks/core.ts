@@ -1,7 +1,7 @@
-import { FileText, MessageSquare } from 'lucide-react';
+import { Code, FileText, MessageSquare } from 'lucide-react';
 import { defineBlock, type AnyBlockDefinition } from '../registry';
 import { legacyDefinitions } from './legacy/legacy-definitions';
-import { CalloutPreview, MarkdownPreview } from './previews';
+import { CalloutPreview, CodePreview, MarkdownPreview } from './previews';
 
 /** The block types Quoin ships with. Spread them alongside your own definitions. */
 export const coreBlocks: AnyBlockDefinition[] = [
@@ -18,6 +18,13 @@ export const coreBlocks: AnyBlockDefinition[] = [
     icon: MessageSquare,
     preview: CalloutPreview,
     initialData: () => ({ tone: 'info', body: '' }),
+  }),
+  defineBlock({
+    type: 'CODE',
+    label: 'Code',
+    icon: Code,
+    preview: CodePreview,
+    initialData: () => ({ language: '', code: '' }),
   }),
   ...legacyDefinitions,
 ];

@@ -42,6 +42,7 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
     upload,
     resolveAssetUrl,
     onError,
+    highlight,
     readOnly = false,
     autoFocus = false,
     placeholder,
@@ -110,7 +111,7 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
   );
 
   return (
-    <QuoinProvider value={{ blockTypes, upload, resolveAssetUrl, onError, controller, labels }}>
+    <QuoinProvider value={{ blockTypes, upload, resolveAssetUrl, onError, highlight, controller, labels }}>
       <VoidEditingContext.Provider value={voidEditing}>
         <SlashItemsProvider value={slashItems}>
           <BubbleItemsProvider value={ui.bubbleItems}>

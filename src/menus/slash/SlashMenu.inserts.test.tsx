@@ -66,12 +66,12 @@ describe('a block chosen from the slash menu that takes no typing', () => {
 });
 
 describe('a block chosen from the slash menu that has an editor', () => {
-  it('a code block opens its editor, with focus in its first field', () => {
+  it('a code block lands the caret in its code', () => {
     const canvas = openAt([paragraph('a', '')], 'a');
     canvas.choose('/code');
     expect(canvas.last()).toEqual([{ id: 'a', type: 'CODE', data: { language: '', code: '' } }]);
     expect(canvas.selection()).toEqual(nodeSelection('a'));
-    expect(document.activeElement).toBe(screen.getByRole('textbox', { name: 'Language' }));
+    expect(document.activeElement).toBe(screen.getByRole('textbox', { name: 'Code' }));
   });
 
   it('an image is selected as a block with its editor open, never with a caret in its caption', () => {

@@ -15,6 +15,7 @@
 @import "tw-animate-css";
 @import "./ui/tokens.css" layer(quoin.base);
 @import "./view/view.css" layer(quoin.components);
+@import "./blocks/code/code-block.css" layer(quoin.components);
 @import "./ui/palette.css" layer(quoin.components);
 
 /* Tailwind's default dark: variant keys on prefers-color-scheme, while the --quoin- variables

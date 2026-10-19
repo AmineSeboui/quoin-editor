@@ -176,7 +176,7 @@ A restored block comes back at rest, even one that was inserted moments before i
 
 ## Hoist `blockTypes` and your handlers
 
-`BlockCanvas` builds its configuration from `blockTypes`, `upload`, `resolveAssetUrl` and `onError`, and memoises it on their identity. Pass a new array or a new function on every render and the memo is busted, which re-renders every block editor on the page.
+`BlockCanvas` builds its configuration from `blockTypes`, `upload`, `resolveAssetUrl`, `onError` and `highlight`, and memoises it on their identity. Pass a new array or a new function on every render and the memo is busted, which re-renders every block editor on the page.
 
 ```tsx
 import { BlockCanvas, coreBlocks, type QuoinBlock } from 'quoin-editor';
@@ -210,7 +210,7 @@ export function FastEditor({ blocks, onChange }: { blocks: QuoinBlock[]; onChang
 
 ## Custom blocks
 
-A block type is a definition built with `defineBlock`. `blockTypes` defaults to `coreBlocks`, so extend it by spreading them and adding your own. When two definitions share a `type`, the last one wins, which is also how you override a core block. Your own definition of `DIVIDER` draws as a block of yours everywhere. Your own definition of `MARKDOWN`, `CALLOUT` or `TOGGLE` draws only on a read-only canvas: an editable canvas keeps those blocks its own, since they are typed into in place, and warns about it in development.
+A block type is a definition built with `defineBlock`. `blockTypes` defaults to `coreBlocks`, so extend it by spreading them and adding your own. When two definitions share a `type`, the last one wins, which is also how you override a core block. Your own definition of `DIVIDER` or `CODE` draws as a block of yours everywhere. Your own definition of `MARKDOWN`, `CALLOUT` or `TOGGLE` draws only on a read-only canvas: an editable canvas keeps those blocks its own, since they are typed into in place, and warns about it in development.
 
 ```tsx
 import { Bookmark } from 'lucide-react';
@@ -451,6 +451,27 @@ export function Editor({ blocks, onChange }: { blocks: QuoinBlock[]; onChange: (
 - The upload control is disabled while an upload is in flight.
 - With no `upload` function, upload fields render disabled, with a note that uploads are not configured.
 - `onError` receives errors Quoin cannot show inline, such as an empty markdown file picked for import. It defaults to `console.error`.
+
+## Code blocks
+
+A code block is typed in place: Tab and Shift+Tab indent and outdent the selected lines, Enter keeps the indentation of the line, the arrows leave the block from its first and last lines, and Backspace in an empty block turns it into a paragraph. Its header holds a language picker (Alt+F10 from the code reaches it) and a copy button. The canvas draws code blocks, and offers to insert them, while `blockTypes` registers `CODE`, as `coreBlocks` does.
+
+Pass `highlight` to colour the code. It gets the code and the block's language as stored, which can be an alias such as `ts`, and returns one array of tokens per line, `{ text, color?, className? }`, whose texts spell the line exactly. Wrap Shiki, Prism or highlight.js in one, and keep the function stable. A highlighter that throws, or whose tokens do not spell the code, leaves the code as plain text.
+
+```tsx
+import { BlockCanvas, type CodeHighlighter, type QuoinBlock } from 'quoin-editor';
+
+const keyword = /^(?:const|let|function|return)$/;
+
+const highlight: CodeHighlighter = (code) =>
+  code.split('\n').map((line) =>
+    line.split(/\b/).map((text) => (keyword.test(text) ? { text, color: '#d73a49' } : { text })),
+  );
+
+export function Editor({ blocks, onChange }: { blocks: QuoinBlock[]; onChange: (next: QuoinBlock[]) => void }) {
+  return <BlockCanvas blocks={blocks} onChange={onChange} highlight={highlight} />;
+}
+```
 
 ## Read-only
 

@@ -1,5 +1,6 @@
 import { blockByType, type AnyBlockDefinition } from '../registry';
 import { coreBlocks } from './core';
+import { inPlaceRenderers } from './in-place-renderers';
 import { textRenderers } from './text/text-renderers';
 
 const QUOIN_DEFINITIONS: ReadonlyMap<string, AnyBlockDefinition> = new Map(coreBlocks.map((core) => [core.type, core]));
@@ -29,6 +30,16 @@ export function drawnAsText(definitions: readonly AnyBlockDefinition[], type: st
 export const definedTypedInPlace = (definitions: readonly AnyBlockDefinition[]): string[] =>
   TYPED_IN_PLACE.filter((type) => hostDefines(definitions, type));
 
-/** Whether a block of the type that an editable canvas inserts is drawn as a void block with an editor to open. */
+/** Whether the canvas draws the type with its own block edited in place: while Quoin's definition of it is registered. */
+export function drawnInPlace(definitions: readonly AnyBlockDefinition[], type: string): boolean {
+  return Object.hasOwn(inPlaceRenderers, type) && blockByType(definitions, type) !== undefined && !hostDefines(definitions, type);
+}
+
+/** Whether the canvas draws blocks of the type at all, so that a menu may offer to make one. */
+export const drawsType = (definitions: readonly AnyBlockDefinition[], type: string): boolean =>
+  !Object.hasOwn(inPlaceRenderers, type) || blockByType(definitions, type) !== undefined;
+
+/** Whether a block of the type that an editable canvas inserts takes typing in an editor: its own, or the in-place one. */
 export const opensEditor = (definitions: readonly AnyBlockDefinition[], type: string): boolean =>
-  !drawnAsText(definitions, type, false) && blockByType(definitions, type)?.editor !== undefined;
+  drawnInPlace(definitions, type) ||
+  (!drawnAsText(definitions, type, false) && blockByType(definitions, type)?.editor !== undefined);

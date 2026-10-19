@@ -1,7 +1,39 @@
 import { act, fireEvent, screen } from '@testing-library/react';
+import { Box } from 'lucide-react';
 import { nodeSelection, textSelection } from '../../engine';
+import { defineBlock } from '../../registry';
 import { NATIVE_INTERACTION } from '../../view/selection/native-interaction';
-import { bookmarkBlock, mountCanvas, paragraph } from './test-canvas';
+import { bookmarkBlock, mountCanvas, paragraph, testBlockTypes } from './test-canvas';
+
+const CONTROLS = ['summary', 'video', 'audio', 'editable', 'focusable', 'link', 'checkbox'];
+
+const widgets = defineBlock({
+  type: 'WIDGETS',
+  label: 'Widgets',
+  icon: Box,
+  editor: () => <input aria-label="Widgets field" />,
+  preview: () => (
+    <div>
+      <p>Plain words</p>
+      <details>
+        <summary>summary</summary>
+      </details>
+      <video data-testid="video" />
+      <audio data-testid="audio" controls />
+      <div contentEditable suppressContentEditableWarning>
+        editable
+      </div>
+      <div tabIndex={0}>focusable</div>
+      <span role="link">link</span>
+      <span role="checkbox" aria-checked="false">
+        checkbox
+      </span>
+    </div>
+  ),
+});
+
+const control = (name: string) =>
+  ['video', 'audio'].includes(name) ? screen.getByTestId(name) : screen.getByText(name);
 
 const doc = [paragraph('a', 'above'), bookmarkBlock('b', 'quoin.dev'), { id: 'l', type: 'LINK_PREVIEW', data: { url: 'x.dev' } }];
 const urlField = () => screen.queryByRole('textbox', { name: 'Bookmark URL' });
@@ -57,5 +89,17 @@ describe('VoidBlock under the pointer', () => {
     press('Escape', urlField()!);
     expect(bookmark).not.toHaveAttribute(NATIVE_INTERACTION);
     expect(screen.getByRole('group', { name: 'Pinned note' })).toHaveAttribute(NATIVE_INTERACTION, '');
+  });
+
+  it.each(CONTROLS)('leaves a click and a double click in a preview to the %s control under them', (name) => {
+    const blocks = [paragraph('a', 'above'), { id: 'w', type: 'WIDGETS', data: {} }];
+    const { handle, selection } = mountCanvas(blocks, { blockTypes: [...testBlockTypes, widgets] });
+    act(() => handle().focus({ block: 'a', region: 'text', offset: 0 }));
+    fireEvent.click(control(name));
+    fireEvent.doubleClick(control(name));
+    expect(selection()).toEqual(caretInA);
+    expect(screen.queryByRole('textbox', { name: 'Widgets field' })).toBeNull();
+    fireEvent.click(screen.getByText('Plain words'));
+    expect(selection()).toEqual(nodeSelection('w'));
   });
 });

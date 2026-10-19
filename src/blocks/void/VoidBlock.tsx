@@ -12,13 +12,11 @@ import type { BlockRenderProps } from '../../view';
 import { useReadOnly } from '../../view/react/use-read-only';
 import { NATIVE_INTERACTION } from '../../view/selection/native-interaction';
 import { insertAfterBlock, readBlockData, writeBlockData } from './block-data';
+import { isInteractive } from './interactive-target';
 import { selectNode } from './select-node';
 import { useEditingFocus } from './use-editing-focus';
 import { useVoidEditing } from './use-void-editing';
 
-const INTERACTIVE = 'a, button, input, textarea, select, label, iframe, [role="button"]';
-
-const isInteractive = (event: MouseEvent) => (event.target as Element).closest(INTERACTIVE) !== null;
 
 function useMissingPreviewWarning(readOnly: boolean, { type, preview }: AnyBlockDefinition): void {
   useEffect(() => {
@@ -82,10 +80,10 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
     leave();
   };
   const onClick = (event: MouseEvent) => {
-    if (!editorShown && !isInteractive(event)) select();
+    if (!editorShown && !isInteractive(root.current, event)) select();
   };
   const onDoubleClick = (event: MouseEvent) => {
-    if (editable && !editorShown && !isInteractive(event)) start();
+    if (editable && !editorShown && !isInteractive(root.current, event)) start();
   };
 
   return (

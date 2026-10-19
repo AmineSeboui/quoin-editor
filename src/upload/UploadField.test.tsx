@@ -4,7 +4,6 @@ import { QuoinProvider } from '../context';
 import type { QuoinLabels } from '../i18n/labels';
 import { resolveLabels } from '../i18n/resolve-labels';
 import { UploadField } from './UploadField';
-import { dropFocusLikeABrowser } from './test-focus';
 import type { UploadFn } from '../types';
 
 function setup(upload?: UploadFn, onUploaded = vi.fn(), labels?: QuoinLabels) {
@@ -91,10 +90,10 @@ describe('UploadField', () => {
     const { onUploaded } = setup(upload, vi.fn().mockReturnValue(new Promise<void>((resolve) => { settle = resolve; })));
     await user.upload(screen.getByLabelText('Upload image'), file());
     await waitFor(() => expect(onUploaded).toHaveBeenCalledTimes(1));
-    expect(screen.getByLabelText('Upload image')).toBeDisabled();
+    expect(screen.getByLabelText('Upload image')).toHaveAttribute('aria-disabled', 'true');
     expect(screen.getByRole('status')).toHaveTextContent('Uploading...');
     settle();
-    await waitFor(() => expect(screen.getByLabelText('Upload image')).toBeEnabled());
+    await waitFor(() => expect(screen.getByLabelText('Upload image')).not.toHaveAttribute('aria-disabled'));
     expect(screen.getByRole('status')).not.toHaveTextContent('Uploading...');
   });
 
@@ -110,16 +109,18 @@ describe('UploadField', () => {
     expect(screen.queryByRole('alert')).toBeNull();
   });
 
-  it('disables the control and announces progress while an upload is in flight', async () => {
+  it('marks the control unavailable, keeps focus on it and announces progress while an upload is in flight', async () => {
     const user = userEvent.setup();
     let finish: (r: { storageKey: string; filename: string; size: number }) => void = () => {};
     const upload = vi.fn().mockReturnValue(new Promise((resolve) => { finish = resolve; }));
     setup(upload);
     await user.upload(screen.getByLabelText('Upload image'), file());
-    expect(screen.getByLabelText('Upload image')).toBeDisabled();
+    expect(screen.getByLabelText('Upload image')).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByLabelText('Upload image')).toHaveFocus();
     expect(screen.getByRole('status')).toHaveTextContent('Uploading...');
     finish({ storageKey: 'k/1', filename: 'photo.png', size: 1 });
-    await waitFor(() => expect(screen.getByLabelText('Upload image')).toBeEnabled());
+    await waitFor(() => expect(screen.getByLabelText('Upload image')).not.toHaveAttribute('aria-disabled'));
+    expect(screen.getByLabelText('Upload image')).toHaveFocus();
     expect(screen.getByRole('status')).not.toHaveTextContent('Uploading...');
   });
 
@@ -224,16 +225,18 @@ describe('UploadField', () => {
     });
   });
 
-  it('keeps focus on its button after the upload, though the browser dropped it while the input was disabled', async () => {
+  it('never lets focus leave its control while the upload runs, so a browser has nothing to drop', async () => {
     const user = userEvent.setup();
     let finish: (r: { storageKey: string; filename: string; size: number }) => void = () => {};
     setup(vi.fn().mockReturnValue(new Promise((resolve) => { finish = resolve; })));
     const input = screen.getByLabelText('Upload image');
     await user.upload(input, file());
-    expect(input).toBeDisabled();
-    dropFocusLikeABrowser(input as HTMLInputElement);
+    const left = vi.fn();
+    input.addEventListener('focusout', left);
+    expect(input).not.toBeDisabled();
     finish({ storageKey: 'k/1', filename: 'photo.png', size: 1 });
-    await waitFor(() => expect(input).toBeEnabled());
-    await waitFor(() => expect(input).toHaveFocus());
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Uploaded photo.png'));
+    expect(input).toHaveFocus();
+    expect(left).not.toHaveBeenCalled();
   });
 });

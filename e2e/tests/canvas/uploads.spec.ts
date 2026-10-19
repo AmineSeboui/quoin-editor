@@ -56,3 +56,27 @@ test('a file dropped on an image goes in after that image', async ({ page }) => 
     'MARKDOWN:Below media',
   ]);
 });
+
+test('after an upload in the image editor, focus stays in the editor, so Tab and typing reach its fields', async ({
+  page,
+}) => {
+  await openEditor(page, 'media', 'upload=300');
+  await page.locator('[data-block-id="img"]').click();
+  await page.keyboard.press('Enter');
+  const picker = page.getByLabel('Upload image');
+  await expect(picker).toBeFocused();
+  await picker.setInputFiles({ name: 'cat.png', mimeType: 'image/png', buffer: Buffer.from('x') });
+  await expect(picker).toHaveAttribute('aria-disabled', 'true');
+  await expect(picker).toBeFocused();
+  await expect(page.getByText('Uploaded cat.png')).toBeVisible();
+  await expect(picker).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('textbox', { name: 'Image alt text' })).toBeFocused();
+  await page.keyboard.type('alt words');
+  await expect.poll(async () => (await blocks(page))[1]).toMatchObject({
+    id: 'img',
+    type: 'IMAGE',
+    data: { storageKey: 'key-cat.png', alt: 'alt words' },
+  });
+  expect((await blocks(page)).map((block) => block.indent ?? 0)).toEqual([0, 0, 0]);
+});

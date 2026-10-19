@@ -17,6 +17,28 @@ describe('FilePickerButton', () => {
     expect(input.value).toBe('');
   });
 
+  describe('while busy', () => {
+    it('keeps focus on the input and says it is unavailable', async () => {
+      const user = userEvent.setup();
+      const view = render(<FilePickerButton label="Pick" onPick={vi.fn()} />);
+      await user.upload(screen.getByLabelText('Pick'), png());
+      view.rerender(<FilePickerButton label="Pick" onPick={vi.fn()} busy />);
+      const input = screen.getByLabelText('Pick');
+      expect(input).toHaveFocus();
+      expect(input).toBeEnabled();
+      expect(input).toHaveAttribute('aria-disabled', 'true');
+    });
+
+    it('opens no file dialog and takes no file', () => {
+      const onPick = vi.fn();
+      render(<FilePickerButton label="Pick" onPick={onPick} busy />);
+      const input = screen.getByLabelText('Pick');
+      expect(fireEvent.click(input)).toBe(false);
+      fireEvent.change(input, { target: { files: [png()] } });
+      expect(onPick).not.toHaveBeenCalled();
+    });
+  });
+
   describe('focus', () => {
     it('stays on the input after a file is picked', async () => {
       const user = userEvent.setup();

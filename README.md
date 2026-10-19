@@ -345,7 +345,7 @@ export function SlidesEditor({ data, onChange }: BlockEditorProps<SlidesData>) {
 
 Register that editor with `defineBlock` as above, and the canvas's `upload` function receives `'slides'` as its category. `UploadField` takes `category`, `label`, an optional `accept` and `onUploaded`.
 
-`FilePickerButton` is the picker underneath it: a labelled button laid over a transparent file input, which hands you the chosen `File` and uploads nothing itself. Take that one when you want your own busy and error presentation.
+`FilePickerButton` is the picker underneath it: a labelled button laid over a transparent file input, which hands you the chosen `File` and uploads nothing itself. Take that one when you want your own busy and error presentation, and pass it `busy` while your upload runs: it refuses picks but keeps focus on the control, where `disabled` would let the browser drop it.
 
 For anything neither control covers, `useQuoin()` returns `blockTypes`, `upload`, `resolveAssetUrl` and `onError`. It throws outside a `QuoinProvider`, so call it from a block the canvas is rendering.
 

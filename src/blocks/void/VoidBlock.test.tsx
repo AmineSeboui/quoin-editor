@@ -100,6 +100,18 @@ describe('VoidBlock', () => {
     warn.mockRestore();
   });
 
+  it('leaves focus where it is when its editor writes, even once focus has fallen to the body', async () => {
+    const image: QuoinBlock = { id: 'i', type: 'IMAGE', data: { storageKey: '', alt: '' } };
+    const { nodeSelect, press, last } = mountCanvas([paragraph('a', 'above'), image]);
+    nodeSelect('i');
+    press('Enter');
+    act(() => (document.activeElement as HTMLElement).blur());
+    expect(document.activeElement).toBe(document.body);
+    await act(async () => void (await picker.onUploaded!({ storageKey: 'cat.png', filename: 'cat.png', size: 1 })));
+    expect(last()[1].data).toMatchObject({ storageKey: 'cat.png' });
+    expect(document.activeElement).toBe(document.body);
+  });
+
   it('keeps the newest key when an image upload resolves out of order', async () => {
     const pending = new Map<string, (size: IntrinsicSize | null) => void>();
     vi.mocked(intrinsicSize).mockImplementation(

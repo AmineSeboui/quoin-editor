@@ -63,7 +63,8 @@ export function UploadField({ category, label, accept, onUploaded }: UploadField
       <FilePickerButton
         label={label}
         accept={accept}
-        disabled={state.phase === 'busy' || !upload}
+        disabled={!upload}
+        busy={state.phase === 'busy'}
         onPick={(file) => void run(file)}
       />
       {!upload && (

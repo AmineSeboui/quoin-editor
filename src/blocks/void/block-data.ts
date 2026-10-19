@@ -15,7 +15,8 @@ export function readBlockData(controller: ViewController, block: EngineBlock): D
   return internal(controller).codec.toQuoin(block).data;
 }
 
-// Read from the state at call time: an editor may write after an await, when the block has changed or gone.
+// Read from the state at call time: an editor may write after an await, when the block has changed or gone. The write
+// skips the view's edit(), which would hand focus that fell to the body to the block shell, away from the open editor.
 export function writeBlockData(controller: ViewController, blockId: string, data: Data): void {
   const editor = internal(controller);
   const { doc, schema } = editor.state;
@@ -25,7 +26,7 @@ export function writeBlockData(controller: ViewController, blockId: string, data
   const { attrs, regions } = specFor(schema, block.type).fromData(data, editor.codec.context);
   if (sameValue(attrs, block.attrs) && sameValue(regions, block.regions)) return;
   const tr = editor.createTransaction().step(replaceBlockStep({ ...block, attrs, regions }));
-  controller.dispatch(tr.setMeta(HISTORY_GROUP, `block-data:${blockId}`));
+  editor.dispatch(tr.setMeta(HISTORY_GROUP, `block-data:${blockId}`));
 }
 
 export function insertAfterBlock(

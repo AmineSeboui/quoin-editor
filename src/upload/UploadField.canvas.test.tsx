@@ -61,7 +61,8 @@ describe('UploadField inside a custom block', () => {
     renderCanvas(upload);
     await user.upload(screen.getByLabelText('Upload slides'), new File(['x'], 'deck.pdf'));
     expect(screen.getByText('Uploading...')).toHaveAttribute('role', 'status');
-    expect(screen.getByLabelText('Upload slides')).toBeDisabled();
+    expect(screen.getByLabelText('Upload slides')).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByLabelText('Upload slides')).toHaveFocus();
     finish({ storageKey: 'deck/1', filename: 'deck.pdf', size: 2 });
     await waitFor(() => expect(screen.queryByText('Uploading...')).toBeNull());
   });

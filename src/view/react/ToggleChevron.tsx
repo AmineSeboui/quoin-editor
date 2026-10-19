@@ -3,12 +3,14 @@ import { flipCommand } from '../input/flip-block';
 import { onBlock } from './block-command';
 import type { BlockRenderProps } from './block-renderer-types';
 import { keepFocus } from './prevent-mouse-focus';
+import { useReadOnly } from './use-read-only';
 import { useToggleOpen } from './use-reader-choices';
 
 type ToggleChevronProps = Pick<BlockRenderProps, 'block' | 'controller'> & { label?: string; controls?: string };
 
 export function ToggleChevron({ block, controller, label = 'Toggle', controls }: ToggleChevronProps) {
   const open = useToggleOpen(controller, block);
+  const readOnly = useReadOnly(controller);
   const flip = flipCommand(block);
   return (
     <button
@@ -18,7 +20,7 @@ export function ToggleChevron({ block, controller, label = 'Toggle', controls }:
       aria-label={label}
       className="quoin-toggle-button"
       contentEditable={false}
-      tabIndex={-1}
+      tabIndex={readOnly ? 0 : -1}
       onMouseDown={keepFocus}
       onClick={() => {
         if (controller.readOnly) readerToggles(controller).flip(block);

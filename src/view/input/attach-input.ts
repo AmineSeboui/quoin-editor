@@ -4,7 +4,7 @@ import { createSinkComposition } from '../selection/sink-composition';
 import { handleBeforeInput, isComposingInput } from './before-input';
 import { createCompositionHandlers } from './composition';
 import { createDomInputFallback } from './dom-input';
-import { handleKeydown, isComposingKey } from './keydown';
+import { handleKeydown, handleReaderKeydown, isComposingKey } from './keydown';
 
 export type AttachedInput = {
   observe(host: HTMLElement): void;
@@ -37,10 +37,10 @@ export function attachInput(controller: ViewController, root: HTMLElement): Atta
   // Browsers fire no beforeinput for some keymap keys (Mod+Z with an empty native undo stack, Backspace at the start of
   // a host, Shift+Enter and Mod+B in WebKit), so the keymap runs on keydown.
   const onKeyDown = (event: KeyboardEvent) => {
-    if (isComposingKey(controller, event) || controller.readOnly) return;
-    if (!controller.isEditorElement(event.target as Element)) return;
+    if (isComposingKey(controller, event) || !controller.isEditorElement(event.target as Element)) return;
     catchUp();
-    handleKeydown(controller, event);
+    if (controller.readOnly) handleReaderKeydown(controller, event);
+    else handleKeydown(controller, event);
   };
   const onInput = (event: Event) => fallback.onInput(event as InputEvent);
   const onCompositionStart = (event: CompositionEvent) => {

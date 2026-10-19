@@ -85,6 +85,27 @@ test('a reader opens and closes a closed toggle from its chevron, and the docume
   expect(await blocks(page)).toEqual(before);
 });
 
+test('a keyboard reader tabs to a closed toggle and opens it with Enter, or with Mod+Enter in its text', async ({ page }) => {
+  await openEditor(page, 'closed', 'readonly=1');
+  const before = await blocks(page);
+  const chevron = page.locator('[data-block-id="t"] button');
+  await page.locator('body').click({ position: { x: 2, y: 2 } });
+  await page.keyboard.press('Tab');
+  await expect(chevron).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(chevron).toHaveAttribute('aria-expanded', 'true');
+  await expect(host(page, 'tc')).toHaveText('Hidden detail');
+  await page.keyboard.press('Space');
+  await expect(chevron).toHaveAttribute('aria-expanded', 'false');
+  await page.keyboard.press('Tab');
+  await expect(host(page, 't')).toBeFocused();
+  await page.keyboard.press('ControlOrMeta+Enter');
+  await expect(chevron).toHaveAttribute('aria-expanded', 'true');
+  await expect(host(page, 'tc')).toHaveText('Hidden detail');
+  expect(await changes(page)).toBe(0);
+  expect(await blocks(page)).toEqual(before);
+});
+
 const COPIED = '# Release notes\n\nKeeps **bold**, _italic_, `code` and [links](https://quoin.dev/docs).';
 const COPIED_PARAGRAPH = '<p>Keeps <strong>bold</strong>, <em>italic</em>, <code>code</code> and <a href="https://quoin.dev/docs"';
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { BlockCanvas } from '../../canvas/BlockCanvas';
 import type { QuoinBlock } from '../../types';
 import { md } from '../../view/react/test-harness';
@@ -36,6 +36,27 @@ describe('a toggle in a read-only canvas', () => {
     });
     act(() => chevron().click());
     expect(shell('c')).toBeNull();
+    expect(changes).toEqual([]);
+  });
+
+  it('is a tab stop of its own for a reader', () => {
+    mountCanvas(closed, { readOnly: true });
+    expect(chevron()).toHaveAttribute('tabindex', '0');
+  });
+
+  it('is out of the tab order while the canvas is edited', () => {
+    mountCanvas(closed);
+    expect(chevron()).toHaveAttribute('tabindex', '-1');
+  });
+
+  it('opens for the reader from Mod+Enter in its text, says so and leaves the document alone', () => {
+    const { shell, handle, changes } = mountCanvas(closed, { readOnly: true });
+    act(() => handle().focus({ block: 't', region: 'text', offset: 2 }));
+    const { isMac } = handle().controller;
+    act(() => void fireEvent.keyDown(document.activeElement!, { key: 'Enter', ctrlKey: !isMac, metaKey: isMac }));
+    expect(chevron()).toHaveAttribute('aria-expanded', 'true');
+    expect(shell('c')).toHaveTextContent('child');
+    expect(screen.getByRole('status')).toHaveTextContent('expanded');
     expect(changes).toEqual([]);
   });
 

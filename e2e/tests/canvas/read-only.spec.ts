@@ -89,7 +89,6 @@ test('a keyboard reader tabs to a closed toggle and opens it with Enter, or with
   await openEditor(page, 'closed', 'readonly=1');
   const before = await blocks(page);
   const chevron = page.locator('[data-block-id="t"] button');
-  await page.locator('body').click({ position: { x: 2, y: 2 } });
   await page.keyboard.press('Tab');
   await expect(chevron).toBeFocused();
   await page.keyboard.press('Enter');

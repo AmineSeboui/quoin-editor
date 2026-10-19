@@ -40,14 +40,34 @@ function oklchToLinearSrgb([L, C, h]: Oklch): [number, number, number] {
   ];
 }
 
+type Rgb = readonly [number, number, number];
+
+const clip = (x: number) => Math.min(1, Math.max(0, x));
+
 /** Gamut clipped, as a browser paints an out of range OKLCH value. */
-function luminance(color: Oklch): number {
-  const [r, g, b] = oklchToLinearSrgb(color).map((x) => Math.min(1, Math.max(0, x)));
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+function linearRgb(color: Oklch): Rgb {
+  const [r, g, b] = oklchToLinearSrgb(color);
+  return [clip(r), clip(g), clip(b)];
+}
+
+const luminance = ([r, g, b]: Rgb): number => 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+const encode = (x: number) => (x <= 0.0031308 ? 12.92 * x : 1.055 * x ** (1 / 2.4) - 0.055);
+const decode = (x: number) => (x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4);
+
+function ratio(a: number, b: number): number {
+  const [hi, lo] = [a, b].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
 }
 
 /** The WCAG 2 contrast ratio between two colours, from 1 to 21. */
 export function contrastRatio(a: Oklch, b: Oklch): number {
-  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
-  return (hi + 0.05) / (lo + 0.05);
+  return ratio(luminance(linearRgb(a)), luminance(linearRgb(b)));
+}
+
+/** The contrast of text on a wash of `alpha` opacity over the page, blended in encoded sRGB as a browser paints it. */
+export function contrastOnWash(text: Oklch, wash: Oklch, alpha: number, page: Oklch): number {
+  const [top, bottom] = [wash, page].map((color) => linearRgb(color).map(encode));
+  const blend = (index: number) => decode(top[index] * alpha + bottom[index] * (1 - alpha));
+  return ratio(luminance(linearRgb(text)), luminance([blend(0), blend(1), blend(2)]));
 }

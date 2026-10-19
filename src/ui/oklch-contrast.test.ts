@@ -1,4 +1,4 @@
-import { contrastRatio, tokenReader } from './oklch-contrast';
+import { contrastOnWash, contrastRatio, tokenReader } from './oklch-contrast';
 
 describe('contrastRatio', () => {
   it('measures black on white as 21:1', () => {
@@ -12,6 +12,17 @@ describe('contrastRatio', () => {
   it('clips a colour outside sRGB the way a browser paints it', () => {
     expect(contrastRatio([1, 0.4, 145], [1, 0, 0])).toBeLessThan(21);
     expect(contrastRatio([1, 0.4, 145], [1, 0, 0])).toBeGreaterThanOrEqual(1);
+  });
+});
+
+describe('contrastOnWash', () => {
+  it('measures text on a wash as on the page when the wash is clear, and as on the wash when it is opaque', () => {
+    expect(contrastOnWash([0, 0, 0], [0, 0, 0], 0, [1, 0, 0])).toBeCloseTo(21, 5);
+    expect(contrastOnWash([0, 0, 0], [1, 0, 0], 1, [0, 0, 0])).toBeCloseTo(21, 5);
+  });
+
+  it('blends half a black wash over white to mid sRGB grey, as a browser paints it', () => {
+    expect(contrastOnWash([0, 0, 0], [0, 0, 0], 0.5, [1, 0, 0])).toBeCloseTo(5.28, 2);
   });
 });
 

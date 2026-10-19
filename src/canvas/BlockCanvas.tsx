@@ -12,6 +12,7 @@ import { blockMenuKeymap } from '../gutter/block-menu-keymap';
 import { Gutter } from '../gutter/Gutter';
 import { resolveLabels } from '../i18n/labels';
 import { bubbleExtension, BubbleItemsProvider } from '../menus/bubble/bubble-extension';
+import { linkExtension } from '../menus/link/link-extension';
 import { slashExtension, SlashItemsProvider } from '../menus/slash/slash-extension';
 import { cn } from '../ui/cn';
 import { EditorView, useQuoinEditor } from '../view';
@@ -55,6 +56,7 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
     blockMenuKeymap(uiStore),
     slashExtension(),
     bubbleExtension(),
+    linkExtension(uiStore),
     ...(extensions ?? []),
   ]);
   const labels = useMemo(() => resolveLabels(labelOverrides), [labelOverrides]);

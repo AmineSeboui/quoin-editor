@@ -32,6 +32,10 @@ const docs: Record<string, QuoinBlock[]> = {
     { id: 'l', type: 'MARKDOWN', data: { markdown: '- List item' } },
     { id: 'd', type: 'MARKDOWN', data: { markdown: 'Delta' } },
   ],
+  link: [
+    { id: 'p', type: 'MARKDOWN', data: { markdown: 'Read [the docs](https://quoin.dev/docs) today' } },
+    { id: 'q', type: 'MARKDOWN', data: { markdown: 'Plain words to link' } },
+  ],
   custom: [
     { id: 'above', type: 'MARKDOWN', data: { markdown: 'Paragraph above' } },
     { id: 'bm', type: 'BOOKMARK_DEMO', data: { url: 'https://quoin.dev' } },

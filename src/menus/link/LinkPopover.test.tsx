@@ -1,7 +1,10 @@
-import { act, fireEvent, screen, within } from '@testing-library/react';
+import { createRef } from 'react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'vitest-axe';
 import { mountCanvas, paragraph } from '../../blocks/void/test-canvas';
+import { BlockCanvas } from '../../canvas/BlockCanvas';
+import type { QuoinEditorHandle } from '../../canvas/canvas-props';
 import { textSelection, type Pos } from '../../engine';
 import type { QuoinBlock } from '../../types';
 
@@ -73,6 +76,16 @@ describe('the link popover', () => {
     expect(canvas.selection()).toEqual(textSelection(pos(17)));
   });
 
+  it.each([
+    ['example.com', '[hello](https://example.com) world'],
+    ['/docs', '[hello](/docs) world'],
+    ['#top', '[hello](#top) world'],
+  ])('completes a bare domain with https and keeps a relative address: %j', async (address, linked) => {
+    const canvas = openPopover([paragraph('a', 'hello world')], pos(0), pos(5));
+    await enter(address);
+    expect(markdown(canvas)).toEqual([linked]);
+  });
+
   it('removes the link with Remove link and gives focus back to the text', () => {
     const canvas = openPopover([paragraph('a', 'see [docs](https://old.example) here')], pos(6));
     fireEvent.click(control('Remove link'));
@@ -115,6 +128,26 @@ describe('the link popover', () => {
     expect(host(canvas)).toHaveFocus();
     expect(canvas.selection()).toEqual(textSelection(pos(0), pos(5)));
     expect(canvas.changes).toHaveLength(0);
+  });
+
+  it('stays closed after the canvas turns read-only and back, and leaves focus where it is', () => {
+    const ref = createRef<QuoinEditorHandle>();
+    const blocks = [paragraph('a', 'hello world')];
+    const draw = (readOnly: boolean) => <BlockCanvas ref={ref} blocks={blocks} onChange={() => {}} readOnly={readOnly} />;
+    const { container, rerender } = render(draw(false));
+    act(() => {
+      const { controller } = ref.current!;
+      controller.focus(pos(0));
+      controller.dispatch(controller.editor.createTransaction().setSelection(textSelection(pos(0), pos(5))));
+    });
+    fireEvent.keyDown(container.querySelector('[data-quoin-host]')!, { key: 'k', code: 'KeyK', ctrlKey: true });
+    expect(field()).toHaveFocus();
+    rerender(draw(true));
+    expect(popover()).toBeNull();
+    const focused = document.activeElement;
+    rerender(draw(false));
+    expect(popover()).toBeNull();
+    expect(document.activeElement).toBe(focused);
   });
 
   it('opens from the Link button of the formatting toolbar', () => {

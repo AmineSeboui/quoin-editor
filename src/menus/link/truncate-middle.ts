@@ -1,4 +1,4 @@
-const ELLIPSIS = '…';
+const ELLIPSIS = '\u2026';
 
 /** The text, or when it is longer than `max` characters, its start and end around an ellipsis, `max` in all. */
 export function truncateMiddle(text: string, max: number): string {

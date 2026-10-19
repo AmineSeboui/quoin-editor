@@ -11,11 +11,11 @@ describe('truncateMiddle', () => {
     const url = `https://example.com/${'a'.repeat(40)}/end.html`;
     const cut = truncateMiddle(url, 48);
     expect([...cut]).toHaveLength(48);
-    expect(cut).toBe(`${url.slice(0, 24)}…${url.slice(-23)}`);
+    expect(cut).toBe(`${url.slice(0, 24)}\u2026${url.slice(-23)}`);
   });
 
   it('never splits a character outside the basic plane', () => {
     const cut = truncateMiddle('\u{1F600}'.repeat(10), 5);
-    expect(cut).toBe('\u{1F600}\u{1F600}…\u{1F600}\u{1F600}');
+    expect(cut).toBe('\u{1F600}\u{1F600}\u2026\u{1F600}\u{1F600}');
   });
 });

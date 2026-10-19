@@ -4,7 +4,6 @@ import { Check, ExternalLink, Unlink } from 'lucide-react';
 import { useId, useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
 import { sanitizeHref } from '../../engine';
 import { unsetLink } from '../../engine/commands/marks';
-import { autolinkHref } from '../../engine/markdown/autolink-href';
 import { isCollapsed } from '../../engine/state/selection';
 import type { QuoinLabels } from '../../i18n/labels';
 import { Button } from '../../ui/button';
@@ -15,6 +14,7 @@ import { rangeRect } from '../floating/range-rect';
 import { selectionRect } from '../floating/selection-rect';
 import { virtualAnchor, type VirtualAnchor } from '../floating/virtual-anchor';
 import { applyLink } from './apply-link';
+import { linkAddress } from './link-address';
 import { linkAtSelection, type LinkAtSelection } from './link-at-selection';
 
 const CONTENT = 'w-80 p-2 shadow-md';
@@ -61,13 +61,12 @@ export function LinkPopover({ controller, labels, onClose }: LinkPopoverProps) {
   };
   const apply = (event: FormEvent) => {
     event.preventDefault();
-    const typed = address.trim();
-    const href = autolinkHref(typed);
-    if (!href) {
+    const href = linkAddress(address);
+    if (href === null) {
       setInvalid(true);
       return;
     }
-    controller.run(applyLink(href, typed));
+    controller.run(applyLink(href, address.trim()));
     backToText();
   };
   const remove = () => {

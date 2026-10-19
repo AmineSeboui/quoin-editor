@@ -71,7 +71,7 @@ describe('the link hover card at the caret', () => {
     const canvas = mount(`see [docs](${LONG}) here`);
     placeCaret(canvas, 6);
     wait(300);
-    expect(card()).toHaveTextContent(`${LONG.slice(0, 24)}…${LONG.slice(-23)}`);
+    expect(card()).toHaveTextContent(`${LONG.slice(0, 24)}\u2026${LONG.slice(-23)}`);
   });
 
   it('removes the link with Remove link, keeping the caret and focus in the text', () => {

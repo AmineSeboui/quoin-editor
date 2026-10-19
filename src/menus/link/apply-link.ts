@@ -1,4 +1,4 @@
-import { replaceInlineStep, text, textSelection, Transaction, type Command, type Pos } from '../../engine';
+import { replaceInlineStep, sanitizeHref, text, textSelection, Transaction, type Command, type Pos } from '../../engine';
 import { caretMarks } from '../../engine/commands/caret-marks';
 import { setLink } from '../../engine/commands/marks';
 import { addMark } from '../../engine/model/marks';
@@ -6,8 +6,11 @@ import { isCollapsed } from '../../engine/state/selection';
 import { linkAtSelection } from './link-at-selection';
 
 function insertLinkedText(value: string, href: string, caret: Pos): Command {
+  const safe = sanitizeHref(href);
   return (state, dispatch) => {
-    const marks = addMark(caretMarks(state.doc, state.schema, state.storedMarks, caret), { type: 'link', attrs: { href } });
+    if (safe === null || safe === '') return false;
+    const link = { type: 'link', attrs: { href: safe } };
+    const marks = addMark(caretMarks(state.doc, state.schema, state.storedMarks, caret), link);
     const tr = new Transaction(state)
       .step(replaceInlineStep(caret.block, caret.region, caret.offset, caret.offset, [text(value, marks)]))
       .setSelection(textSelection({ ...caret, offset: caret.offset + value.length }));

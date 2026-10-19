@@ -1,5 +1,5 @@
 const SAFE_SCHEMES = new Set(['http:', 'https:', 'mailto:', 'tel:', 'mention:']);
-const SCHEME = /^([a-z][a-z0-9+.-]*):/i;
+export const SCHEME = /^([a-z][a-z0-9+.-]*):/i;
 const CONTROL = /\p{Cc}/u;
 
 export function sanitizeHref(href: string): string | null {

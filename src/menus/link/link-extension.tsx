@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useCanvasUi, useCanvasUiStore, type CanvasUiState, type CanvasUiStore } from '../../canvas/ui-store';
 import { defineExtension, type Command, type Extension } from '../../engine';
 import { useLabels } from '../../i18n/use-labels';
@@ -18,6 +19,10 @@ function LinkOverlay({ controller }: { controller: ViewController }) {
   const popoverOpen = useCanvasUi(store, isPopoverOpen);
   const readOnly = useReadOnly(controller);
   useLinkClicks(controller);
+  // A popover left open would otherwise come back, and take focus, once the canvas is editable again.
+  useEffect(() => {
+    if (readOnly && store.get().linkPopover.open) store.set({ linkPopover: { open: false } });
+  }, [readOnly, store]);
   if (readOnly) return null;
   if (!popoverOpen) return <LinkHoverCard controller={controller} labels={labels} store={store} />;
   return <LinkPopover controller={controller} labels={labels} onClose={() => store.set({ linkPopover: { open: false } })} />;

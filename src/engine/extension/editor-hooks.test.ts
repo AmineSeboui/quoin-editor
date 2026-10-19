@@ -64,8 +64,8 @@ describe('createEditor extensions', () => {
       name: 'replaced',
       priority: 10,
       blocks: [{ ...startEditor([]).editor.schema.blocks.get('DIVIDER')!, flow: 'text' as const }],
-      marks: [{ type: 'bold', rank: 2, inclusive: false }],
-      atoms: [{ type: 'mention', toMarkdown: () => null, plainText: () => 'M' }],
+      marks: [{ type: 'bold', inclusive: false }],
+      atoms: [{ type: 'mention', plainText: () => 'M' }],
     });
     const { editor } = startEditor([md('a', 'x')], { extensions: [...coreExtensions(), replaced] });
     expect(editor.schema.blocks.get('DIVIDER')?.flow).toBe('text');

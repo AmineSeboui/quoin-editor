@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   createEditor,
+  createSchema,
   type Align,
   type Assoc,
   type AtomNode,
@@ -107,5 +108,21 @@ describe('the public types', () => {
     // @ts-expect-error the codec is for the package's own layers
     void editor.codec;
     expect(editor.schema.blocks.has('MARKDOWN')).toBe(true);
+  });
+
+  it('declare no atom markdown form and no mark rank or stacking, which the codec and the model would ignore', () => {
+    const emoji: AtomSpec = {
+      type: 'emoji',
+      plainText: ({ name }) => `:${name}:`,
+      // @ts-expect-error the inline codec writes only the built-in atoms
+      toMarkdown: () => null,
+    };
+    // @ts-expect-error marks nest in the model's own order
+    const ranked: MarkSpec = { type: 'kbd', inclusive: true, rank: 7.5 };
+    // @ts-expect-error only the built-in comment mark stacks
+    const stacked: MarkSpec = { type: 'kbd', inclusive: true, stackable: true };
+    const schema = createSchema({ marks: [ranked, stacked], atoms: [emoji] });
+    expect(schema.atoms.get('emoji')?.plainText({ name: 'tada' })).toBe(':tada:');
+    expect(schema.marks.get('kbd')?.inclusive).toBe(true);
   });
 });

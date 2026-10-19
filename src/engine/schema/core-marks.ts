@@ -1,4 +1,3 @@
-import { markRank } from '../model/marks';
 import type { MarkSpec } from './types';
 
 const CORE_MARKS = [
@@ -18,9 +17,4 @@ const CORE_MARKS = [
 
 const ANCHORED = new Set(['link', 'comment']);
 
-export const coreMarkSpecs: MarkSpec[] = CORE_MARKS.map((type) => ({
-  type,
-  rank: markRank(type),
-  inclusive: !ANCHORED.has(type),
-  ...(type === 'comment' ? { stackable: true } : {}),
-}));
+export const coreMarkSpecs: MarkSpec[] = CORE_MARKS.map((type) => ({ type, inclusive: !ANCHORED.has(type) }));

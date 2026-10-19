@@ -7,8 +7,8 @@ describe('createSchema', () => {
     expect([...schema.blocks.keys()]).toEqual([
       'MARKDOWN', 'CALLOUT', 'CODE', 'IMAGE', 'FILE', 'DIVIDER', 'TOGGLE', 'TABLE', 'EMBED', 'BOOKMARK', 'MATH', 'TOC',
     ]);
-    expect(schema.marks.get('link')).toMatchObject({ rank: 0, inclusive: false });
-    expect(schema.marks.get('bold')).toMatchObject({ rank: 2, inclusive: true });
+    expect(schema.marks.get('link')).toEqual({ type: 'link', inclusive: false });
+    expect(schema.marks.get('bold')).toEqual({ type: 'bold', inclusive: true });
     expect(schema.atoms.has('mention')).toBe(true);
     expect(schema.defaultTextBlock).toBe('MARKDOWN');
   });
@@ -27,54 +27,32 @@ describe('createSchema', () => {
 
   it('adds input marks and atoms next to the core ones and lets the default text block change', () => {
     const schema = createSchema({
-      marks: [{ type: 'kbd', rank: 7.5, inclusive: true }],
-      atoms: [{ type: 'emoji', toMarkdown: () => null, plainText: (attrs) => attrs.name }],
+      marks: [{ type: 'kbd', inclusive: true }],
+      atoms: [{ type: 'emoji', plainText: (attrs) => attrs.name }],
       defaultTextBlock: 'NOTE',
     });
-    expect(schema.marks.get('kbd')).toMatchObject({ rank: 7.5 });
+    expect(schema.marks.get('kbd')).toEqual({ type: 'kbd', inclusive: true });
     expect(schema.marks.has('bold')).toBe(true);
     expect(schema.atoms.get('emoji')?.plainText({ name: 'x' })).toBe('x');
     expect(schema.atoms.has('math')).toBe(true);
     expect(schema.defaultTextBlock).toBe('NOTE');
   });
 
-  it('gives every core mark the rank the model uses and comment its stacking', () => {
+  it('extends every core mark but a link and a comment over text typed at its end', () => {
     const { marks } = createSchema();
-    expect([...marks.values()].map((m) => [m.type, m.rank])).toEqual([
-      ['link', 0], ['comment', 1], ['bold', 2], ['italic', 3], ['underline', 4], ['strike', 5],
-      ['sub', 6], ['sup', 7], ['highlight', 8], ['color', 9], ['background', 10], ['code', 11],
-    ]);
-    expect(marks.get('comment')).toMatchObject({ inclusive: false, stackable: true });
-    expect(marks.get('code')).toMatchObject({ inclusive: true });
-    expect(marks.get('bold')?.stackable).toBeUndefined();
+    expect([...marks.values()].filter((mark) => !mark.inclusive).map((mark) => mark.type)).toEqual(['link', 'comment']);
+    expect(marks.size).toBe(12);
   });
 });
 
 describe('core atoms', () => {
   const atoms = createSchema().atoms;
-  const mention = atoms.get('mention')!;
-  const math = atoms.get('math')!;
 
-  it('writes a mention as a mention link', () => {
-    expect(mention.toMarkdown({ id: '7', label: 'Ada' })).toBe('[@Ada](mention:7)');
-    expect(mention.toMarkdown({ id: '7', label: 'Ada', kind: 'page' })).toBe('[@Ada](mention:page:7)');
-    expect(mention.plainText({ id: '7', label: 'Ada' })).toBe('@Ada');
+  it('read a mention as its label after an at sign', () => {
+    expect(atoms.get('mention')?.plainText({ id: '7', label: 'Ada' })).toBe('@Ada');
   });
 
-  it.each(['a[b', 'a]b', 'a\\b', 'a\nb'])('has no markdown form for the mention label %j', (label) => {
-    expect(mention.toMarkdown({ id: '7', label })).toBeNull();
-  });
-
-  it('has no markdown form for a mention without an id', () => {
-    expect(mention.toMarkdown({ label: 'Ada' })).toBeNull();
-  });
-
-  it('writes inline math between dollars', () => {
-    expect(math.toMarkdown({ latex: 'x^2' })).toBe('$x^2$');
-    expect(math.plainText({ latex: 'x^2' })).toBe('x^2');
-  });
-
-  it.each(['', 'a$b', ' a', 'a ', '\ta', 'a\\', 'a\nb'])('has no markdown form for the latex %j', (latex) => {
-    expect(math.toMarkdown({ latex })).toBeNull();
+  it('read inline math as its latex', () => {
+    expect(atoms.get('math')?.plainText({ latex: 'x^2' })).toBe('x^2');
   });
 });

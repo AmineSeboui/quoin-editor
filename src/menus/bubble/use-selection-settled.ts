@@ -17,8 +17,11 @@ function createSettled(controller: ViewController): Settled {
     focusin: () => {},
     focusout: () => {},
   };
+  // These capture listeners hear compositionstart before the view does, which the flag covers. The view applies the
+  // composed text after compositionend and clears composingKey just before the transaction that brings it.
+  const viewComposing = () => controller.composingKey !== null;
   return {
-    read: () => focusInEditor(controller) && !pressed && !composing,
+    read: () => focusInEditor(controller) && !pressed && !composing && !viewComposing(),
     subscribe(notify) {
       const listeners = Object.entries(handlers).map(([type, handle]) => {
         const listener = (event: Event) => {
@@ -28,7 +31,11 @@ function createSettled(controller: ViewController): Settled {
         document.addEventListener(type, listener, true);
         return () => document.removeEventListener(type, listener, true);
       });
-      return () => listeners.forEach((remove) => remove());
+      const stopState = controller.editor.subscribe(() => notify());
+      return () => {
+        listeners.forEach((remove) => remove());
+        stopState();
+      };
     },
   };
 }
@@ -37,7 +44,7 @@ const NOT_SETTLED = () => false;
 
 /**
  * Whether the writer has finished making the selection: focus is in the editor or on the toolbar, no pointer pressed in
- * the text is still down and no composition is running.
+ * the text is still down and no composition is running or waiting for the view to apply it.
  */
 export function useSelectionSettled(controller: ViewController): boolean {
   const settled = useMemo(() => createSettled(controller), [controller]);

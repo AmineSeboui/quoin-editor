@@ -51,6 +51,18 @@ describe('useBubbleVisibility', () => {
         act(() => void fireEvent.compositionStart(host));
       },
     ],
+    [
+      'a range whose composition has ended but is not in the text yet',
+      false,
+      ({ select, host }) => {
+        select(0, 5);
+        act(() => {
+          fireEvent.compositionStart(host);
+          (host.firstChild as Text).data = '\u00e9 world';
+          fireEvent.compositionEnd(host, { data: '\u00e9' });
+        });
+      },
+    ],
   ])('for %s is %s', (_, expected, arrange) => {
     const mounted = setup();
     arrange(mounted);

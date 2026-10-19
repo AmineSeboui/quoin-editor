@@ -25,7 +25,7 @@ Quoin needs React 18.2 or later (React 19 is supported) and TypeScript 5.4 or la
 
 **Tailwind is not required, and either major version works.** See [Tailwind, or no Tailwind](#tailwind-or-no-tailwind) for the one thing a v4 host has to do.
 
-The package is around 200 kB packed. It depends on `@dnd-kit` for dragging, five Radix primitives, `cmdk` for the slash palette, `lucide-react` for the icons, and `clsx`, `tailwind-merge` and `class-variance-authority` for class composition. That is the price of the canvas: the cards, the drag gutter, the inserters, the palette and the dialogs. If you want the text editing and none of the UI, [`quoin-editor/headless`](#headless) has no component or UI library dependency at all.
+The package is around 200 kB packed. It depends on `@dnd-kit` for dragging, five Radix primitives, `cmdk` for the slash palette, `lucide-react` for the icons, and `clsx` and `class-variance-authority` for class composition. That is the price of the canvas: the cards, the drag gutter, the inserters, the palette and the dialogs. If you want the text editing and none of the UI, [`quoin-editor/headless`](#headless) has no component or UI library dependency at all.
 
 ## Quickstart
 

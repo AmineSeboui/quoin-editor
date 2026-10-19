@@ -56,16 +56,27 @@ describe('VoidBlock editing ends', () => {
     expect(document.activeElement).toBe(shell('b'));
   });
 
-  it('when the editor inserts a block after its own, which takes the selection and focus', () => {
+  it('when the editor inserts a block after its own, whose editor opens with focus', () => {
     const { last, selection, shell } = openBookmark();
     fireEvent.click(screen.getByRole('button', { name: 'Add bookmark' }));
-    expect(urlField()).toBeNull();
     const blocks = last();
     expect(blocks.map((block) => block.id).slice(0, 2)).toEqual(['a', 'b']);
     expect(blocks[2]).toMatchObject({ type: 'BOOKMARK', data: { url: 'new.example' } });
     expect(blocks[3]).toEqual(doc[2]);
     expect(selection()).toEqual(nodeSelection(blocks[2].id));
-    expect(document.activeElement).toBe(shell(blocks[2].id));
+    expect(screen.getAllByRole('textbox', { name: 'Bookmark URL' })).toHaveLength(1);
+    expect(document.activeElement).toBe(urlField());
+    expect(shell(blocks[2].id).contains(urlField())).toBe(true);
+  });
+
+  it('when the editor inserts a text block after its own, which takes the caret and focus', () => {
+    const { last, selection, shell } = openBookmark();
+    fireEvent.click(screen.getByRole('button', { name: 'Add paragraph' }));
+    expect(urlField()).toBeNull();
+    const added = last()[2];
+    expect(added).toEqual({ id: added.id, type: 'MARKDOWN', data: { markdown: '' } });
+    expect(selection()).toMatchObject({ kind: 'text', head: { block: added.id, offset: 0 } });
+    expect(document.activeElement).toBe(shell(added.id).querySelector('[data-quoin-host]'));
   });
 
   it('when the canvas turns read-only, and stays ended once it is editable again', () => {

@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react';
 import { Image, Minus, Paperclip } from 'lucide-react';
-import { createBlockCodec, insertBlockAfter, type BlockAttrs, type EditorState } from '../../engine';
+import { insertBlockToWrite, type NewBlock } from '../../blocks/insert-blocks';
+import { createBlockCodec, type BlockAttrs, type EditorState } from '../../engine';
 import { specFor } from '../../engine/blocks/unknown-spec';
 import type { SlashGroup, SlashItem } from '../../extensions/ui-types';
 import { turnIntoTargets } from '../../gutter/turn-into-targets';
@@ -30,6 +31,9 @@ const DETAILS: Readonly<Record<SlashBlockCommand, Details>> = {
 /** The block types the built-in commands insert, which the registry's own commands leave out. */
 const BUILT_IN_TYPES: ReadonlySet<string> = new Set(['MARKDOWN', 'CALLOUT', 'TOGGLE', 'DIVIDER', 'CODE', 'IMAGE', 'FILE']);
 
+/** The built-in types drawn as void blocks with an editor, the 0.4 code, image and file editors. */
+const EDITED_TYPES: ReadonlySet<string> = new Set(['CODE', 'IMAGE', 'FILE']);
+
 type Insertion = { label: string; icon: ComponentType<{ className?: string }>; type: string; attrs: BlockAttrs };
 
 function insertionItem(id: SlashBlockCommand, insertion: Insertion, labels: QuoinLabels): SlashItem {
@@ -40,7 +44,7 @@ function insertionItem(id: SlashBlockCommand, insertion: Insertion, labels: Quoi
     description: labels.slashDescriptions[id],
     icon,
     ...DETAILS[id],
-    command: () => insertBlockAfter(type, attrs),
+    command: () => insertBlockToWrite({ type, attrs }, EDITED_TYPES.has(type)),
   };
 }
 
@@ -58,9 +62,10 @@ export function builtInSlashItems(labels: QuoinLabels): SlashItem[] {
   });
 }
 
-function initialAttrs({ schema }: EditorState, { type, initialData }: AnyBlockDefinition): BlockAttrs | undefined {
+function initialBlock({ schema }: EditorState, { type, initialData }: AnyBlockDefinition): NewBlock {
   const data = initialData?.();
-  return data && specFor(schema, type).fromData(data, createBlockCodec(schema).context).attrs;
+  if (data === undefined) return { type };
+  return { type, ...specFor(schema, type).fromData(data, createBlockCodec(schema).context) };
 }
 
 /** A command under Custom for each registered block type the palette offers and no built-in command inserts. */
@@ -72,6 +77,6 @@ export function blockTypeSlashItems(definitions: AnyBlockDefinition[]): SlashIte
       title: definition.label,
       group: 'custom',
       icon: definition.icon,
-      command: ({ state }) => insertBlockAfter(definition.type, initialAttrs(state, definition)),
+      command: ({ state }) => insertBlockToWrite(initialBlock(state, definition), definition.editor !== undefined),
     }));
 }

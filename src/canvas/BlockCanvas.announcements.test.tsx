@@ -115,10 +115,20 @@ describe('the canvas announces a block insert with the final position', () => {
     expect(status()).toHaveTextContent('Block inserted at position 3 of 3');
   });
 
-  it('of a block a slash command puts after the line', () => {
+  it('of a divider a slash command puts after the line, not of the empty line it adds for the caret', () => {
     const { caret, key, handle } = setup([paragraph('a', 'one'), paragraph('b', 'two')]);
     caret('a', 3);
     type(' /divider');
+    key({ key: 'Enter' });
+    const types = handle().editor.getBlocks().map((block) => block.type);
+    expect(types).toEqual(['MARKDOWN', 'DIVIDER', 'MARKDOWN', 'MARKDOWN']);
+    expect(status()).toHaveTextContent('Block inserted at position 2 of 4');
+  });
+
+  it('of a divider a slash command puts above the empty line it was chosen on', () => {
+    const { caret, key, handle } = setup([paragraph('a', 'one'), paragraph('e', '')]);
+    caret('e');
+    type('/divider');
     key({ key: 'Enter' });
     expect(handle().editor.getBlocks().map((block) => block.type)).toEqual(['MARKDOWN', 'DIVIDER', 'MARKDOWN']);
     expect(status()).toHaveTextContent('Block inserted at position 2 of 3');

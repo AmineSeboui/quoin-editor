@@ -17,6 +17,9 @@ function BookmarkEditor({ data, onChange, onInsertBlock, onDone }: BlockEditorPr
       <button type="button" onClick={() => onInsertBlock?.('BOOKMARK')}>
         Add bookmark
       </button>
+      <button type="button" onClick={() => onInsertBlock?.('MARKDOWN')}>
+        Add paragraph
+      </button>
       <button type="button" onClick={onDone}>
         Done
       </button>

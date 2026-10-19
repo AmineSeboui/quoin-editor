@@ -60,9 +60,10 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
   );
   const onInsertBlock = useCallback(
     (type: string) => {
-      insertAfterBlock(controller, blockId, type, blockByType(blockTypes, type)?.initialData?.());
+      insertAfterBlock(controller, blockId, type, blockByType(blockTypes, type));
       stop();
-      controller.focus();
+      // A block left node-selected is opening its editor, which takes focus itself.
+      if (controller.editor.state.selection?.kind !== 'node') controller.focus();
     },
     [controller, blockId, blockTypes, stop],
   );

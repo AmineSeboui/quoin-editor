@@ -1,5 +1,7 @@
 import { act } from '@testing-library/react';
-import { readBlockData, writeBlockData } from './block-data';
+import { blockByType } from '../../registry';
+import { coreBlocks } from '../core';
+import { insertAfterBlock, readBlockData, writeBlockData } from './block-data';
 import { bookmarkBlock, mountCanvas, paragraph } from './test-canvas';
 
 const image = { id: 'i', type: 'IMAGE', data: { storageKey: 'cat.png', alt: 'A cat', caption: 'A *cat*' } };
@@ -25,5 +27,13 @@ describe('void block data', () => {
     const { handle, changes } = mountCanvas([paragraph('a', 'one')]);
     act(() => writeBlockData(handle().controller, 'missing', { url: 'x' }));
     expect(changes).toEqual([]);
+  });
+
+  it('inserts a block after another with all of its initial data, its text included', () => {
+    const { handle, last } = mountCanvas([bookmarkBlock('b', 'quoin.dev'), paragraph('c', 'below')]);
+    const seeded = () => ({ tone: 'tip', body: 'Seeded **tip**' });
+    const callout = { ...blockByType(coreBlocks, 'CALLOUT')!, initialData: seeded };
+    act(() => insertAfterBlock(handle().controller, 'b', 'CALLOUT', callout));
+    expect(last()[1]).toEqual({ id: last()[1].id, type: 'CALLOUT', data: { tone: 'tip', body: 'Seeded **tip**' } });
   });
 });

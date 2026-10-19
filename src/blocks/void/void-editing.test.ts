@@ -1,5 +1,5 @@
 import { coreExtensions, createEditor, defineExtension, nodeSelection, type Command, type QuoinBlock } from '../../engine';
-import { createVoidEditing } from './void-editing';
+import { createVoidEditing, OPEN_EDITOR } from './void-editing';
 
 const blocks: QuoinBlock[] = [
   { id: 'a', type: 'MARKDOWN', data: { markdown: 'above' } },
@@ -67,5 +67,25 @@ describe('the void editing Enter binding', () => {
     editor.handleKey(enter);
     expect(newer).toHaveBeenCalledTimes(1);
     expect(older).not.toHaveBeenCalled();
+  });
+
+  it('opens the editor of a block a transaction marks, once the block registers, and only that once', () => {
+    const { editor, voidEditing } = editorWith();
+    const start = vi.fn();
+    editor.dispatch(editor.createTransaction().setMeta(OPEN_EDITOR, 'b'));
+    expect(start).not.toHaveBeenCalled();
+    const withdraw = voidEditing.register('b', start);
+    expect(start).toHaveBeenCalledTimes(1);
+    withdraw();
+    voidEditing.register('b', start);
+    expect(start).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens at once the editor of a marked block that is already registered', () => {
+    const { editor, voidEditing } = editorWith();
+    const start = vi.fn();
+    voidEditing.register('b', start);
+    editor.dispatch(editor.createTransaction().setMeta(OPEN_EDITOR, 'b'));
+    expect(start).toHaveBeenCalledTimes(1);
   });
 });

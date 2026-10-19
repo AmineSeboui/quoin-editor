@@ -3,7 +3,7 @@ import { moveBlocksTo } from '../engine/commands/move-blocks-to';
 import { menuTargets } from '../gutter/block-menu-items';
 import type { ViewController } from '../view';
 import { createAutoScroll } from '../view/selection/auto-scroll';
-import { measureDrag, rootOrigin, type DragLayout } from './drag-layout';
+import { measureDrag, rootOrigin, spanBetween, type DragLayout } from './drag-layout';
 import type { DragOverlayHandle } from './DragOverlay';
 import { computeDropTarget, type DropTarget } from './drop-target';
 
@@ -61,10 +61,10 @@ function followPress(press: HandlePress, root: HTMLElement, view: Window): () =>
     const { layout, ids } = active;
     const dx = pointer.x - press.x;
     const pointerY = pointer.y - rootOrigin(root).y;
-    const { indentStep, blocks } = layout;
-    const target = computeDropTarget({ pointerX: layout.draggedLeft + dx, pointerY, blocks, indentStep });
+    const { indentStep, blocks, direction } = layout;
+    const target = computeDropTarget({ pointerX: layout.draggedStart + dx, pointerY, blocks, indentStep, direction });
     overlay.follow(dx, pointer.y - press.y);
-    overlay.mark({ top: target.lineTop, left: target.lineLeft, width: layout.right - target.lineLeft });
+    overlay.mark({ top: target.lineTop, ...spanBetween(target.lineStart, layout.end) });
     if (!sameTarget(active.target, target)) {
       store.set({ drag: { blockIds: ids, targetIndex: target.index, targetIndent: target.indent } });
     }

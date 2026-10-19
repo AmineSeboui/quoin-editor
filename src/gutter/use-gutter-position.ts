@@ -1,4 +1,5 @@
 import type { RefObject } from 'react';
+import { inlineDirection } from '../ui/direction';
 import type { ViewController } from '../view';
 import { useIsomorphicLayoutEffect } from '../view/react/use-isomorphic-layout-effect';
 
@@ -25,8 +26,10 @@ function place(controller: ViewController, root: HTMLElement, gutter: HTMLElemen
   const rootBox = root.getBoundingClientRect();
   const line = firstLine(shell);
   const top = line.top + (line.height - gutter.offsetHeight) / 2 - rootBox.top - root.clientTop + root.scrollTop;
-  const left = shell.getBoundingClientRect().left - rootBox.left - root.clientLeft + root.scrollLeft;
-  gutter.style.transform = `translate(${left - gutter.offsetWidth - GAP}px, ${top}px)`;
+  const shellBox = shell.getBoundingClientRect();
+  const beside = inlineDirection(root) === 'rtl' ? shellBox.right + GAP : shellBox.left - gutter.offsetWidth - GAP;
+  const left = beside - rootBox.left - root.clientLeft + root.scrollLeft;
+  gutter.style.transform = `translate(${left}px, ${top}px)`;
   gutter.style.visibility = '';
 }
 

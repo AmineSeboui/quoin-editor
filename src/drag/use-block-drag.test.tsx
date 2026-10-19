@@ -84,6 +84,17 @@ describe('dragging a block by its handle', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Block moved to position 3 of 3');
   });
 
+  it('nests the block under the one above when the pointer moves left by two indent steps on right-to-left lines', () => {
+    const { handle, hover, last } = mountRows([paragraph('a', 'one'), paragraph('l', '- item'), paragraph('d', 'Delta')]);
+    handle().controller.root!.style.direction = 'rtl';
+    hover('d');
+    press(580, 70);
+    moveTo(532, 70);
+    expect([dropLine().style.left, dropLine().style.width]).toEqual(['48px', '528px']);
+    release(532, 70);
+    expect(last()).toEqual([paragraph('a', 'one'), paragraph('l', '- item'), { ...paragraph('d', 'Delta'), indent: 1 }]);
+  });
+
   it('takes the nested blocks along', () => {
     const { hover, ids } = mountRows([md('a', '- parent'), md('c', '- child', 1), md('z', 'after')]);
     hover('a');

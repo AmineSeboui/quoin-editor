@@ -1,5 +1,8 @@
 import css from './tokens.css?raw';
 import viewCss from '../view/view.css?raw';
+import stylesCss from '../styles.css?raw';
+import inputSource from './input.tsx?raw';
+import textareaSource from './textarea.tsx?raw';
 import { TONE } from '../blocks/previews';
 import { PALETTE } from '../engine/markdown/palette';
 import { contrastOnWash, contrastRatio, tokenReader, type Theme } from './oklch-contrast';
@@ -25,6 +28,21 @@ const WASHES = Object.values(TONE).map((classes) => {
 });
 
 const SURFACES = ['background', 'accent', ...PALETTE.map((name) => `bg-${name}`)];
+
+/** The token behind the border colour a field's classes give it with no state or variant in front. */
+function fieldBorder(source: string): string {
+  const [, colour] = /["\s]border-([a-z][\w-]*)[\s"]/.exec(source) ?? [];
+  const [, token] = new RegExp(`--color-${colour}:\\s*var\\(--quoin-([\\w-]+)\\)`).exec(stylesCss) ?? [];
+  if (!token) throw new Error(`no token behind border-${colour}`);
+  return token;
+}
+
+const FIELD_BORDERS = [
+  { field: 'input', token: fieldBorder(inputSource) },
+  { field: 'textarea', token: fieldBorder(textareaSource) },
+];
+
+const FIELD_SURFACES = ['background', 'popover', 'accent'];
 
 /** The surface behind a highlighted row in a menu, a select and the palette. */
 const HIGHLIGHT = 'accent';
@@ -63,6 +81,10 @@ describe.each<Theme>(['light', 'dark'])('%s theme', (theme) => {
 
   it('draws an unchecked task box at 3:1 or more on the page, a selected block and every background colour', () => {
     for (const surface of SURFACES) expect(contrast(theme, TASK_BOX, surface)).toBeGreaterThanOrEqual(3);
+  });
+
+  it.each(FIELD_BORDERS)('draws a $field border at 3:1 or more on the page, a popover or a selected block', (field) => {
+    for (const surface of FIELD_SURFACES) expect(contrast(theme, field.token, surface)).toBeGreaterThanOrEqual(3);
   });
 
   it('writes a placeholder at 4.5:1 or more on the page, a selected block and every background colour', () => {

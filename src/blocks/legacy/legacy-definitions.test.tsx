@@ -34,11 +34,12 @@ describe('the 0.4 media blocks', () => {
     expect(screen.getByRole('group', { name: 'Code' })).toHaveTextContent('let b = 2;');
   });
 
-  it('keep an image caption written in the 0.4 editor, as the caption region holds it', () => {
+  it('keep an image caption typed in the 0.4 editor as the text it reads, in the inline markdown the region stores', () => {
     const { nodeSelect, press, last } = mountCanvas([image]);
     nodeSelect('i');
     press('Enter');
     fireEvent.change(screen.getByLabelText('Image caption'), { target: { value: 'A **sleepy** cat' } });
-    expect(last()[0].data).toMatchObject({ storageKey: 'cat.png', alt: 'A cat', caption: 'A **sleepy** cat' });
+    expect(last()[0].data).toMatchObject({ storageKey: 'cat.png', alt: 'A cat', caption: 'A \\*\\*sleepy\\*\\* cat' });
+    expect(screen.getByLabelText('Image caption')).toHaveValue('A **sleepy** cat');
   });
 });

@@ -5,6 +5,7 @@ import { useQuoin } from '../context';
 import { Input } from '../ui/input';
 import { UploadField } from '../upload/UploadField';
 import type { BlockEditorProps, UploadResult } from '../types';
+import { captionMarkdown, captionText } from './caption-markdown';
 import { str } from './str';
 import { intrinsicSize } from './intrinsic-size';
 
@@ -45,8 +46,8 @@ export function ImageBlockEditor({ data, onChange }: BlockEditorProps) {
         <span className="text-sm font-medium leading-none">Caption (optional)</span>
         <Input
           aria-label="Image caption"
-          value={str(data.caption)}
-          onChange={(e) => set({ caption: e.target.value })}
+          value={captionText(str(data.caption))}
+          onChange={(e) => set({ caption: captionMarkdown(e.target.value) })}
           className="text-sm"
         />
       </label>

@@ -120,4 +120,17 @@ describe('useSuggestionResults', () => {
     expect(onError).toHaveBeenCalledWith(new Error('broken'));
     expect(result.current).toEqual({ items: ['ada'], pending: false });
   });
+
+  it('is pending again when the source changes, until the new source answers', async () => {
+    const first = asyncSource();
+    const second = asyncSource();
+    const { result, rerender } = renderHook(({ source }) => useSuggestionResults(source, 'a', vi.fn()), {
+      initialProps: { source: first.source },
+    });
+    await first.answer('a', ['ada']);
+    rerender({ source: second.source });
+    expect(result.current).toEqual({ items: ['ada'], pending: true });
+    await second.answer('a', ['alan']);
+    expect(result.current).toEqual({ items: ['alan'], pending: false });
+  });
 });

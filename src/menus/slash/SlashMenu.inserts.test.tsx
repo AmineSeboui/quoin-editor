@@ -1,6 +1,7 @@
 import { act, fireEvent, screen } from '@testing-library/react';
 import { mountCanvas, paragraph } from '../../blocks/void/test-canvas';
 import { nodeSelection, textSelection } from '../../engine';
+import { inlineText } from '../../engine/model/inline';
 import type { QuoinBlock } from '../../types';
 
 function type(text: string): void {
@@ -110,6 +111,15 @@ describe('the space before a slash typed after a word', () => {
     const canvas = openAt([paragraph('a', 'one two')], 'a', 4);
     canvas.choose('/quote');
     expect(canvas.last()[0]).toEqual(paragraph('a', 'one two'));
+  });
+
+  it('never takes a line break the slash was typed after', () => {
+    const canvas = openAt([paragraph('a', 'one two')], 'a', 3);
+    const lineBreak = new InputEvent('beforeinput', { inputType: 'insertLineBreak', bubbles: true, cancelable: true });
+    fireEvent(document.activeElement!, lineBreak);
+    canvas.choose('/quote');
+    const [line] = canvas.handle().editor.state.doc.blocks;
+    expect(inlineText(line.regions.text)).toBe('one\n two');
   });
 
   it('comes back with the slash and the query in one undo', () => {

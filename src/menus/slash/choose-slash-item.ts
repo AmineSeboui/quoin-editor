@@ -11,12 +11,13 @@ const changesBlocks = (tr: Transaction | null): boolean =>
   tr !== null && tr.steps.some((step) => !TEXT_STEPS.has(step.stepType));
 
 // The space a slash was typed after would end the line, or double the next one, once the slash and the query are gone.
+// A line break before the slash is the writer's own and stays.
 function withSpaceBefore({ doc }: EditorState, range: SuggestionRange): SuggestionRange | null {
   const inline = doc.blocks[doc.index.get(range.block) ?? -1]?.regions[range.region];
   if (inline === undefined || range.from === 0) return null;
   const text = inlineText(inline);
   const after = text.charAt(range.to);
-  const spaced = WHITESPACE.test(text.charAt(range.from - 1)) && (after === '' || WHITESPACE.test(after));
+  const spaced = text.charAt(range.from - 1) === ' ' && (after === '' || WHITESPACE.test(after));
   return spaced ? { ...range, from: range.from - 1 } : null;
 }
 

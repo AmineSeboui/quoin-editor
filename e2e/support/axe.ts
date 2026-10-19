@@ -14,11 +14,12 @@ function settleAnimations(page: Page) {
 }
 
 // The ids of the rules the editor breaks, so a failing spec says which. Only the editor is scanned by default: the page
-// around it is the harness's. '.quoin' also takes in the menus, toolbars and dialogs the canvas portals out of it.
+// around it is the harness's. '.quoin' also takes in the menus, toolbars and dialogs the canvas portals out of it, and
+// a role scans one of them alone.
 export async function axeViolations(
   page: Page,
   impacts: 'all' | 'serious' = 'all',
-  scope: '.quoin-editor' | '.quoin' = '.quoin-editor',
+  scope: '.quoin-editor' | '.quoin' | '[role="menu"]' = '.quoin-editor',
 ): Promise<string[]> {
   await settleAnimations(page);
   const { violations } = await new AxeBuilder({ page }).include(scope).analyze();

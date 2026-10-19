@@ -1,5 +1,5 @@
-import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
+import { axeViolations } from '../../support/axe';
 import { blocks, openEditor } from '../../support/editor';
 
 const handle = (page: Page) => page.getByRole('button', { name: 'Drag to move, click for options' });
@@ -172,8 +172,7 @@ test('the open block menu has no accessibility violations', async ({ page }) => 
   await handle(page).click();
   await page.getByRole('menuitem', { name: 'Color' }).click();
   await expect(page.getByRole('group', { name: 'Text color' })).toBeVisible();
-  const { violations } = await new AxeBuilder({ page }).include('[role="menu"]').analyze();
-  expect(violations.map((violation) => violation.id)).toEqual([]);
+  expect(await axeViolations(page, 'all', '[role="menu"]')).toEqual([]);
 });
 
 test.describe('on a touch screen', () => {

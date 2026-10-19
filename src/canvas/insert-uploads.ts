@@ -5,7 +5,12 @@ import { sameSelection } from '../engine/state/selection';
 import type { UploadFn, UploadResult } from '../types';
 import type { ViewController } from '../view';
 
-export type InsertUploadsOptions = { upload?: UploadFn; onError: (error: Error) => void };
+export type InsertUploadsOptions = {
+  upload?: UploadFn;
+  onError: (error: Error) => void;
+  /** What onError hears when the canvas was given no upload function. */
+  unavailable: string;
+};
 
 type Writer = { selection: Selection | null; focus: Element | null };
 
@@ -43,9 +48,9 @@ export async function insertUploads(
   controller: ViewController,
   files: readonly File[],
   at: Pos | null,
-  { upload, onError }: InsertUploadsOptions,
+  { upload, onError, unavailable }: InsertUploadsOptions,
 ): Promise<void> {
-  if (!upload) return onError(new Error('Uploads are not configured.'));
+  if (!upload) return onError(new Error(unavailable));
   const writer = writerOf(controller);
   const outcomes = await Promise.allSettled(files.map(async (file) => upload(file, isImage(file) ? 'image' : 'file')));
   const blocks: NewBlock[] = [];

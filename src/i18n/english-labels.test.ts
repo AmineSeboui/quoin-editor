@@ -161,6 +161,23 @@ describe('englishLabels', () => {
     expect(englishLabels.uploadsUnavailable).toBe('Uploads are not configured for this editor.');
   });
 
+  it('names the fields of the image, file and code editors and says what an empty preview lacks', () => {
+    expect(englishLabels.uploadImage).toBe('Upload image');
+    expect([englishLabels.altText, englishLabels.imageAltText]).toEqual(['Alt text', 'Image alt text']);
+    expect(englishLabels.captionOptional).toBe('Caption (optional)');
+    expect(englishLabels.imageCaption).toBe('Image caption');
+    expect(englishLabels.imageAttached).toBe('Image attached');
+    expect(englishLabels.uploadFile).toBe('Upload file');
+    expect([englishLabels.codeLanguage, englishLabels.codeText]).toEqual(['Language', 'Code']);
+    expect([englishLabels.emptyImage, englishLabels.emptyFile, englishLabels.emptyCode]).toEqual([
+      'No image chosen',
+      'No file chosen',
+      'Empty code block',
+    ]);
+    expect(englishLabels.emptyMarkdown).toBe('Empty markdown block');
+    expect(englishLabels.emptyCallout).toBe('Empty callout');
+  });
+
   it('writes no empty label and no em or en dash', () => {
     for (const text of KEYS.flatMap(sampleText)) {
       expect(text.trim()).not.toBe('');

@@ -120,7 +120,7 @@ describe('files dropped or pasted on the canvas', () => {
     const onError = vi.fn();
     const { changes, handle } = mountCanvas([paragraph('a', 'one')], { onError });
     act(() => handle().controller.onFiles?.([png], caretIn('a')));
-    expect(onError).toHaveBeenCalledWith(new Error('Uploads are not configured.'));
+    expect(onError).toHaveBeenCalledWith(new Error('Uploads are not configured for this editor.'));
     expect(changes).toHaveLength(0);
   });
 

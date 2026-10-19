@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, type KeyboardEvent, type MouseEvent } f
 import { Pencil } from 'lucide-react';
 import { useQuoin } from '../../context';
 import { devWarn } from '../../dev-warn';
+import { blockTypeLabel } from '../../gutter/block-type-label';
 import type { AnyBlockDefinition } from '../../registry';
 import type { BlockPreviewProps } from '../../types';
 import { Button } from '../../ui/button';
@@ -29,16 +30,18 @@ function useMissingPreviewWarning(readOnly: boolean, { type, preview }: AnyBlock
   }, [readOnly, type, preview]);
 }
 
-function VoidPreview({ definition, ...props }: BlockPreviewProps & { definition: AnyBlockDefinition }) {
-  const { preview: Preview, label } = definition;
-  if (Preview === undefined) return <p className="py-1 text-sm text-muted-foreground">{label}</p>;
+type VoidPreviewProps = BlockPreviewProps & { definition: AnyBlockDefinition; name: string };
+
+function VoidPreview({ definition: { preview: Preview }, name, ...props }: VoidPreviewProps) {
+  if (Preview === undefined) return <p className="py-1 text-sm text-muted-foreground">{name}</p>;
   return <Preview {...props} />;
 }
 
 export function VoidBlock({ block, controller, definition }: BlockRenderProps & { definition: AnyBlockDefinition }) {
   const { blockTypes, labels } = useQuoin();
   const readOnly = useReadOnly(controller);
-  const { editor: Editor, alwaysEditing = false, label } = definition;
+  const { editor: Editor, alwaysEditing = false } = definition;
+  const name = blockTypeLabel(labels, block, blockTypes);
   const blockId = block.id;
   const editable = Editor !== undefined && !readOnly;
   const { editing, start, stop } = useVoidEditing(controller, blockId, editable);
@@ -91,7 +94,7 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
       className="group/void relative"
       contentEditable={false}
       role="group"
-      aria-label={label}
+      aria-label={name}
       tabIndex={editorShown ? -1 : undefined}
       {...{ [NATIVE_INTERACTION]: editorShown ? '' : undefined }}
       onKeyDown={onKeyDown}
@@ -102,7 +105,7 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
       {editorShown && Editor ? (
         <Editor data={data} onChange={onChange} onInsertBlock={onInsertBlock} onDone={leave} />
       ) : (
-        <VoidPreview definition={definition} data={data} blockId={blockId} />
+        <VoidPreview definition={definition} name={name} data={data} blockId={blockId} />
       )}
       {editable && !editorShown && (
         <Button
@@ -110,7 +113,7 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
           variant="ghost"
           size="icon-sm"
           tabIndex={-1}
-          aria-label={labels.editBlock(label)}
+          aria-label={labels.editBlock(name)}
           onClick={() => start()}
           className="absolute right-0 top-0 bg-background/90 opacity-0 group-hover/void:opacity-100 in-data-[selected=true]:opacity-100 pointer-coarse:opacity-100 focus-visible:opacity-100"
         >

@@ -75,7 +75,12 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
     readOnly,
     extensions: allExtensions,
     render: ui.render,
-    onFiles: (files, at) => void insertUploads(controller, files, at, { upload, onError: onError ?? console.error }),
+    onFiles: (files, at) =>
+      void insertUploads(controller, files, at, {
+        upload,
+        onError: onError ?? console.error,
+        unavailable: labels.uploadsUnavailable,
+      }),
   });
   useDeleteReporter(controller, onDelete);
   useBlockLinkTarget(controller, focusOnMount);

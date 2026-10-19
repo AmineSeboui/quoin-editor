@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuoin } from '../context';
+import { useLabels } from '../i18n/use-labels';
 import type { BlockPreviewProps } from '../types';
 import { str } from './str';
 
@@ -24,14 +25,16 @@ export const TONE: Record<string, string> = {
 };
 
 export function MarkdownPreview({ data }: BlockPreviewProps) {
+  const labels = useLabels();
   const markdown = str(data.markdown);
-  if (markdown.trim() === '') return <p className={HINT}>Empty markdown block</p>;
+  if (markdown.trim() === '') return <p className={HINT}>{labels.emptyMarkdown}</p>;
   return <div className="whitespace-pre-wrap text-base leading-7">{markdown}</div>;
 }
 
 export function CodePreview({ data }: BlockPreviewProps) {
+  const labels = useLabels();
   const code = str(data.code);
-  if (code.trim() === '') return <p className={HINT}>Empty code block</p>;
+  if (code.trim() === '') return <p className={HINT}>{labels.emptyCode}</p>;
   return (
     <pre className="overflow-x-auto rounded-md bg-muted p-3 text-sm">
       <code>{code}</code>
@@ -40,22 +43,24 @@ export function CodePreview({ data }: BlockPreviewProps) {
 }
 
 export function ImagePreview({ data }: BlockPreviewProps) {
-  const { resolveAssetUrl } = useQuoin();
+  const { resolveAssetUrl, labels } = useQuoin();
   const key = str(data.storageKey);
   // Guard on the key, not the resolved URL: a prefixing resolver turns an empty key into a truthy, dead address.
-  if (key === '') return <p className={HINT}>No image chosen</p>;
+  if (key === '') return <p className={HINT}>{labels.emptyImage}</p>;
   return <img src={resolveAssetUrl(key)} alt={str(data.alt)} className="max-w-full rounded-md" />;
 }
 
 export function FilePreview({ data }: BlockPreviewProps) {
+  const labels = useLabels();
   const name = str(data.filename);
-  if (name === '') return <p className={HINT}>No file chosen</p>;
+  if (name === '') return <p className={HINT}>{labels.emptyFile}</p>;
   return <p className="text-sm">{name}</p>;
 }
 
 export function CalloutPreview({ data }: BlockPreviewProps) {
+  const labels = useLabels();
   const body = str(data.body);
-  if (body.trim() === '') return <p className={HINT}>Empty callout</p>;
+  if (body.trim() === '') return <p className={HINT}>{labels.emptyCallout}</p>;
   const tone = str(data.tone) || 'info';
   const paint = TONE[tone] ?? 'border-border bg-muted/50';
   return (

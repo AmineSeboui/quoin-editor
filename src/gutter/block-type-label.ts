@@ -15,6 +15,8 @@ const TYPE_NAMES: Readonly<Record<string, BlockName>> = {
   TOGGLE: 'toggle',
   DIVIDER: 'divider',
   CODE: 'code',
+  IMAGE: 'image',
+  FILE: 'file',
 };
 
 const nameIn = (names: Readonly<Record<string, BlockName>>, key: unknown): BlockName | undefined =>

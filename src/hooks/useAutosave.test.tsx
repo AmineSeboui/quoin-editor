@@ -143,6 +143,21 @@ describe('useAutosave', () => {
       expect(save).toHaveBeenCalledTimes(1);
     });
 
+    it('flushes once and leaves no timer behind when it unmounts during a backoff', async () => {
+      const save = vi.fn(() => Promise.reject(new Error('offline')));
+      const { unmount } = render(<Harness save={save} />);
+      await edit();
+      await settle(2000);
+      expect(status()).toBe('retrying');
+      expect(save).toHaveBeenCalledTimes(1);
+      await act(async () => unmount());
+      expect(save).toHaveBeenCalledTimes(2);
+      expect(save).toHaveBeenLastCalledWith({ n: 1 });
+      expect(vi.getTimerCount()).toBe(0);
+      await settle(120_000);
+      expect(save).toHaveBeenCalledTimes(2);
+    });
+
     it('saves a newer payload once the save already running settles', async () => {
       const { save, release } = slowFirstSave();
       const { unmount } = render(<Harness save={save} />);
@@ -216,7 +231,38 @@ describe('useAutosave', () => {
     expect(save).toHaveBeenCalledTimes(2);
   });
 
+  it('starts no second save from retry, flush or pagehide while one is running', async () => {
+    const { save, release } = slowFirstSave();
+    render(<Harness save={save} />);
+    await edit();
+    await settle(2000);
+    await edit();
+    await press('retry');
+    await press('flush');
+    await act(async () => window.dispatchEvent(new Event('pagehide')));
+    expect(save).toHaveBeenCalledTimes(1);
+    await release();
+    expect(save).toHaveBeenCalledTimes(2);
+    expect(save).toHaveBeenLastCalledWith({ n: 2 });
+    await settle(60_000);
+    expect(save).toHaveBeenCalledTimes(2);
+  });
+
   describe('retries', () => {
+    it('keeps the last error once the retries run out', async () => {
+      let attempts = 0;
+      const save = vi.fn(() => Promise.reject(new Error(`offline ${(attempts += 1)}`)));
+      render(<Harness save={save} options={{ maxRetries: 2 }} />);
+      await edit();
+      await settle(2000);
+      await settle(4000);
+      expect(errorText()).toBe('offline 2');
+      await settle(8000);
+      expect(save).toHaveBeenCalledTimes(3);
+      expect(status()).toBe('failed');
+      expect(errorText()).toBe('offline 3');
+    });
+
     it('stops at failed with the error when the failure is not retryable', async () => {
       const save = vi.fn(() => Promise.reject(new Error('forbidden')));
       render(<Harness save={save} options={{ isRetryable: () => false }} />);

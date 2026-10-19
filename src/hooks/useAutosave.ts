@@ -1,14 +1,8 @@
 import * as React from 'react';
-import {
-  alwaysRetry,
-  attemptSave,
-  clearTimer,
-  nextRetryDelay,
-  type TimerRef,
-} from './autosave-backoff';
+import { alwaysRetry } from './autosave-backoff';
+import { createSaveRunner, type AutosaveStatus } from './autosave-runner';
 
-/** Where a debounced save stands, for a "Saving..." or "Saved" indicator. */
-export type AutosaveStatus = 'idle' | 'saving' | 'saved' | 'retrying' | 'failed';
+export type { AutosaveStatus };
 
 /** What `useAutosave` tracks, how to build the payload, and how to persist it. */
 export type UseAutosaveInput<T> = {
@@ -62,58 +56,16 @@ export function useAutosave<T>({
   isRetryable = alwaysRetry,
   flushOnHide = true,
 }: UseAutosaveInput<T>): UseAutosaveResult {
-  // The effect order below is load-bearing: the dirty flag must be set before the
-  // scheduling effect reads it within the same commit, and the "latest closure" refs
-  // must be assigned after commit rather than during render.
   const [status, setStatus] = React.useState<AutosaveStatus>('idle');
   const [error, setError] = React.useState<unknown>(null);
-  const dirtyRef = React.useRef(false);
-  const inFlightRef = React.useRef(false);
-  const disposedRef = React.useRef(false);
-  const retriesRef = React.useRef(0);
-  const debounceRef: TimerRef = React.useRef(null);
-  const backoffRef: TimerRef = React.useRef(null);
-  const buildRef = React.useRef(build);
-  const saveRef = React.useRef(save);
-  const runRef = React.useRef<() => void>(() => {});
+  const latest = { build, save, policy: { debounceMs, maxBackoffMs, maxRetries, isRetryable } };
+  const [runner] = React.useState(() => createSaveRunner<T>({ setStatus, setError }, latest));
 
+  // The effect order below is load-bearing: the dirty flag must be set before the
+  // scheduling effect reads it within the same commit, and the runner must learn the
+  // latest closures after commit rather than during render.
   React.useEffect(() => {
-    buildRef.current = build;
-    saveRef.current = save;
-    const policy = { debounceMs, maxBackoffMs, maxRetries, isRetryable };
-    runRef.current = () => {
-      clearTimer(debounceRef);
-      clearTimer(backoffRef);
-      if (inFlightRef.current) return;
-      inFlightRef.current = true;
-      dirtyRef.current = false;
-      if (!disposedRef.current) setStatus('saving');
-      void (async () => {
-        const failure = await attemptSave(() => saveRef.current(buildRef.current()));
-        inFlightRef.current = false;
-        if (disposedRef.current) {
-          if (dirtyRef.current) runRef.current();
-          return;
-        }
-        if (!failure) {
-          retriesRef.current = 0;
-          setError(null);
-          if (dirtyRef.current) runRef.current();
-          else setStatus('saved');
-          return;
-        }
-        dirtyRef.current = true;
-        setError(failure.error);
-        const delay = nextRetryDelay(failure.error, retriesRef.current, policy);
-        if (delay === null) {
-          setStatus('failed');
-          return;
-        }
-        retriesRef.current += 1;
-        setStatus('retrying');
-        backoffRef.current = setTimeout(() => runRef.current(), delay);
-      })();
-    };
+    runner.configure(latest);
   });
 
   // Compares values rather than counting mounts: React's development remount
@@ -125,49 +77,32 @@ export function useAutosave<T>({
     seenRef.current = deps;
     if (seen === null) return;
     const unchanged = seen.length === deps.length && seen.every((v, i) => v === deps[i]);
-    if (!unchanged) dirtyRef.current = true;
+    if (!unchanged) runner.markDirty();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the caller owns the tracked fields
   }, deps);
 
   React.useEffect(() => {
-    if (!dirtyRef.current) return;
-    clearTimer(debounceRef);
-    debounceRef.current = setTimeout(() => runRef.current(), debounceMs);
-    return () => clearTimer(debounceRef);
+    return runner.schedule(debounceMs);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the caller owns the tracked fields
   }, deps);
 
   React.useEffect(() => {
-    disposedRef.current = false;
-    return () => {
-      disposedRef.current = true;
-      clearTimer(debounceRef);
-      clearTimer(backoffRef);
-      if (dirtyRef.current) runRef.current();
-    };
-  }, []);
-
-  const retry = React.useCallback(() => {
-    retriesRef.current = 0;
-    runRef.current();
-  }, []);
-
-  const flush = React.useCallback(() => {
-    if (dirtyRef.current) retry();
-  }, [retry]);
+    runner.mount();
+    return runner.dispose;
+  }, [runner]);
 
   React.useEffect(() => {
     if (!flushOnHide) return;
     const onVisibility = () => {
-      if (document.visibilityState === 'hidden') flush();
+      if (document.visibilityState === 'hidden') runner.flush();
     };
-    window.addEventListener('pagehide', flush);
+    window.addEventListener('pagehide', runner.flush);
     document.addEventListener('visibilitychange', onVisibility);
     return () => {
-      window.removeEventListener('pagehide', flush);
+      window.removeEventListener('pagehide', runner.flush);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [flushOnHide, flush]);
+  }, [flushOnHide, runner]);
 
-  return { status, error, retry, flush };
+  return { status, error, retry: runner.retry, flush: runner.flush };
 }

@@ -8,6 +8,7 @@ const NAMED_ARGUMENTS: Partial<Record<keyof QuoinLabels, unknown[]>> = {
   calloutToneMenu: ['Warning'],
   undoHint: ['Ctrl+Z'],
   keySequence: ['Escape', 'Tab'],
+  uploaded: ['photo.png'],
 };
 
 function sampleText(key: keyof QuoinLabels): string[] {
@@ -146,6 +147,13 @@ describe('englishLabels', () => {
     expect(englishLabels.addBelow).toBe('Add block below');
     expect(englishLabels.dragHandle).toBe('Drag to move, click for options');
     expect(englishLabels.blockMenu('Heading 2')).toBe('Heading 2 block menu');
+  });
+
+  it('words an upload as it runs, once it lands under its file name, when it fails and when none is set up', () => {
+    expect(englishLabels.uploading).toBe('Uploading...');
+    expect(englishLabels.uploaded('photo.png')).toBe('Uploaded photo.png');
+    expect(englishLabels.uploadFailed).toBe('Upload failed.');
+    expect(englishLabels.uploadsUnavailable).toBe('Uploads are not configured for this editor.');
   });
 
   it('writes no empty label and no em or en dash', () => {

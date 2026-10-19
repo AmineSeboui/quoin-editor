@@ -142,4 +142,10 @@ export type QuoinLabels = {
   selectedContent: string;
   editBlock: (label: string) => string;
   unsupportedBlock: string;
+  uploading: string;
+  uploaded: (name: string) => string;
+  /** What an upload field shows when the host's upload fails without a message of its own. */
+  uploadFailed: string;
+  /** What an upload field shows in place of working when the canvas was given no upload function. */
+  uploadsUnavailable: string;
 };

@@ -2,6 +2,8 @@
 
 import * as React from 'react';
 import { useQuoin } from '../context';
+import { useLabels } from '../i18n/use-labels';
+import type { QuoinLabels } from '../i18n/labels';
 import type { UploadResult } from '../types';
 import { FilePickerButton } from './FilePickerButton';
 
@@ -17,50 +19,65 @@ export type UploadFieldProps = {
   onUploaded: (result: UploadResult) => void | Promise<void>;
 };
 
-/** A file picker wired to the canvas `upload` function, with its own busy state and inline error. */
+type UploadState =
+  | { phase: 'idle' }
+  | { phase: 'busy' }
+  | { phase: 'uploaded'; name: string }
+  | { phase: 'failed'; message: string };
+
+function progressText(state: UploadState, labels: QuoinLabels): string {
+  if (state.phase === 'busy') return labels.uploading;
+  if (state.phase === 'uploaded') return labels.uploaded(state.name);
+  return '';
+}
+
+/** A file picker wired to the canvas `upload` function, with its own busy state, success message and inline error. */
 export function UploadField({ category, label, accept, onUploaded }: UploadFieldProps) {
   const { upload, onError } = useQuoin();
-  const [busy, setBusy] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
+  const labels = useLabels();
+  const [state, setState] = React.useState<UploadState>({ phase: 'idle' });
 
   async function run(file: File) {
     if (!upload) return;
-    setBusy(true);
-    setError(null);
+    setState({ phase: 'busy' });
     let result: UploadResult;
     try {
       result = await upload(file, category);
     } catch (cause) {
-      setError((cause instanceof Error && cause.message) || 'Upload failed.');
-      setBusy(false);
+      setState({ phase: 'failed', message: (cause instanceof Error && cause.message) || labels.uploadFailed });
       return;
     }
     try {
       await onUploaded(result);
+      setState({ phase: 'uploaded', name: result.filename || file.name });
     } catch (cause) {
       onError(cause instanceof Error ? cause : new Error(String(cause)));
-    } finally {
-      setBusy(false);
+      setState({ phase: 'idle' });
     }
   }
+
+  const progress = progressText(state, labels);
 
   return (
     <div className="flex flex-col items-start gap-1.5">
       <FilePickerButton
         label={label}
         accept={accept}
-        disabled={busy || !upload}
+        disabled={state.phase === 'busy' || !upload}
         onPick={(file) => void run(file)}
       />
       {!upload && (
         <span role="note" className="text-xs text-muted-foreground">
-          Uploads are not configured for this editor.
+          {labels.uploadsUnavailable}
         </span>
       )}
-      {busy && <span role="status" className="text-xs text-muted-foreground">Uploading...</span>}
-      {error && (
+      {/* Always rendered, so a screen reader is already watching it when its first message arrives. */}
+      <span role="status" className={progress === '' ? 'sr-only' : 'text-xs text-muted-foreground'}>
+        {progress}
+      </span>
+      {state.phase === 'failed' && (
         <span role="alert" className="text-xs text-destructive">
-          {error}
+          {state.message}
         </span>
       )}
     </div>

@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import { Upload } from 'lucide-react';
 import { Button } from '../ui/button';
 
@@ -9,7 +10,7 @@ export type FilePickerButtonProps = {
   label: string;
   /** An `accept` attribute for the file input, such as `'image/*'` or `'.pdf'`. */
   accept?: string;
-  /** Greys the button out and disables the input behind it. */
+  /** Greys the button out and disables the input behind it. After a pick, focus the browser dropped while it was disabled comes back once it is enabled again. */
   disabled?: boolean;
   /** Called with the chosen file, and again if the same file is picked after a failure. */
   onPick: (file: File) => void;
@@ -20,6 +21,17 @@ export type FilePickerButtonProps = {
 // button, so the keyboard and the pointer both land on the real control. The
 // wrapper paints the focus ring the invisible input cannot show.
 export function FilePickerButton({ label, accept, disabled, onPick }: FilePickerButtonProps) {
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const restoreFocus = React.useRef(false);
+
+  // A browser moves focus to the body when the focused input is disabled, and does not move it back when the input is enabled again.
+  React.useEffect(() => {
+    if (disabled || !restoreFocus.current) return;
+    restoreFocus.current = false;
+    const { activeElement } = document;
+    if (activeElement === null || activeElement === document.body) inputRef.current?.focus();
+  }, [disabled]);
+
   return (
     <span className="relative inline-flex rounded-md has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--quoin-ring)]">
       <Button asChild variant="outline" size="sm">
@@ -29,6 +41,7 @@ export function FilePickerButton({ label, accept, disabled, onPick }: FilePicker
         </span>
       </Button>
       <input
+        ref={inputRef}
         type="file"
         accept={accept}
         aria-label={label}
@@ -38,7 +51,9 @@ export function FilePickerButton({ label, accept, disabled, onPick }: FilePicker
           const file = e.target.files?.[0];
           // Clear so picking the same file again still fires `change`, which is what makes retry after a failed upload work.
           e.target.value = '';
-          if (file) onPick(file);
+          if (!file) return;
+          restoreFocus.current = true;
+          onPick(file);
         }}
       />
     </span>

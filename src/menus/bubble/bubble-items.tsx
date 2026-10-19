@@ -12,7 +12,7 @@ export type BubbleItems = { inline: readonly ToolbarItem[]; scripts: readonly To
 
 const PRESSED = 'aria-pressed:bg-accent aria-pressed:text-accent-foreground';
 
-function markItem(mark: string, title: string, icon: ToolbarItem['icon']): ToolbarItem {
+export function markItem(mark: string, title: string, icon: ToolbarItem['icon']): ToolbarItem {
   return {
     id: mark,
     title,
@@ -21,6 +21,13 @@ function markItem(mark: string, title: string, icon: ToolbarItem['icon']): Toolb
     run: (controller) => void controller.run(toggleMark(mark)),
   };
 }
+
+export const linkItem = (labels: QuoinLabels, openLink: () => void): ToolbarItem => ({
+  id: 'link',
+  title: labels.link,
+  icon: Link,
+  run: openLink,
+});
 
 /** The toolbar's own buttons: the marks and Link, which go before the menus, and the scripts, which go after them. */
 export function bubbleItems(labels: QuoinLabels, openLink: () => void): BubbleItems {
@@ -31,7 +38,7 @@ export function bubbleItems(labels: QuoinLabels, openLink: () => void): BubbleIt
       markItem('underline', labels.underline, Underline),
       markItem('strike', labels.strike, Strikethrough),
       markItem('code', labels.code, Code),
-      { id: 'link', title: labels.link, icon: Link, run: openLink },
+      linkItem(labels, openLink),
     ],
     scripts: [markItem('sub', labels.subscript, Subscript), markItem('sup', labels.superscript, Superscript)],
   };

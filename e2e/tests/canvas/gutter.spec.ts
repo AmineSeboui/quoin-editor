@@ -151,19 +151,19 @@ test.describe('on a touch screen', () => {
   test.skip(({ browserName }) => browserName === 'firefox', 'Firefox cannot emulate a mobile device');
   test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
 
-  test('the gutter shows beside the block being edited only, with 44 px targets', async ({ page }) => {
+  test('the gutter shows beside the block being edited only, as one handle with a 44 px target', async ({ page }) => {
     await openEditor(page, 'sample');
     await expect(handle(page)).toBeHidden();
     await host(page, 'b').tap();
     await expect(handle(page)).toBeVisible();
+    const gutter = page.locator('[data-quoin-gutter-block]');
+    await expect(gutter.getByRole('button', { name: 'Add block below' })).toBeHidden();
     const line = await firstLine(page, 'b');
-    for (const control of [addBelow(page), handle(page)]) {
-      const box = (await control.boundingBox())!;
-      expect(box.width).toBeGreaterThanOrEqual(44);
-      expect(box.height).toBeGreaterThanOrEqual(44);
-      expect(box.x).toBeGreaterThanOrEqual(0);
-      expect(box.x + box.width).toBeLessThanOrEqual(line.left);
-    }
+    const box = (await handle(page).boundingBox())!;
+    expect(box.width).toBeGreaterThanOrEqual(44);
+    expect(box.height).toBeGreaterThanOrEqual(44);
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(line.left);
     await handle(page).tap();
     await expect(menu(page)).toHaveAccessibleName('Text block menu');
   });

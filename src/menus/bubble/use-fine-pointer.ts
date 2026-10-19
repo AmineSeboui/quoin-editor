@@ -1,18 +1,3 @@
-import { useSyncExternalStore } from 'react';
+import { useMediaQuery } from '../../ui/use-media-query';
 
-const FINE = '(pointer: fine)';
-
-const query = () => (typeof window.matchMedia === 'function' ? window.matchMedia(FINE) : null);
-
-function subscribe(notify: () => void): () => void {
-  const list = query();
-  list?.addEventListener('change', notify);
-  return () => list?.removeEventListener('change', notify);
-}
-
-const read = () => query()?.matches ?? true;
-const readOnServer = () => false;
-
-export function useFinePointer(): boolean {
-  return useSyncExternalStore(subscribe, read, readOnServer);
-}
+export const useFinePointer = (): boolean => useMediaQuery('(pointer: fine)', true);

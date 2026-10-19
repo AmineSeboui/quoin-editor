@@ -14,6 +14,7 @@ import { resolveLabels } from '../i18n/resolve-labels';
 import { bubbleExtension, BubbleItemsProvider } from '../menus/bubble/bubble-extension';
 import { linkExtension } from '../menus/link/link-extension';
 import { slashExtension, SlashItemsProvider } from '../menus/slash/slash-extension';
+import { MobileToolbar } from '../mobile/MobileToolbar';
 import { shortcutsExtension, shortcutsSlashItem } from '../shortcuts/shortcuts-extension';
 import { cn } from '../ui/cn';
 import { EditorView, useQuoinEditor, type BlockPlaceholder } from '../view';
@@ -27,8 +28,8 @@ import { useBlockLinkTarget } from './use-block-link-target';
 import { useDeleteReporter } from './use-delete-reporter';
 import { useStructureAnnouncements } from './use-structure-announcements';
 
-// Room at the start of every line for the gutter, whose controls grow to 44 px squares on a touch screen.
-const GUTTER_ROOM = 'ps-12 pointer-coarse:ps-24';
+// Room at the start of every line for the gutter: two small controls, or on a touch screen one 44 px handle.
+const GUTTER_ROOM = 'ps-12';
 
 export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(function BlockCanvas(
   {
@@ -127,6 +128,7 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
                   <Overlay key={index} controller={controller} />
                 ))}
               </EditorView>
+              {!readOnly && <MobileToolbar controller={controller} />}
             </CanvasUiProvider>
           </BubbleItemsProvider>
         </SlashItemsProvider>

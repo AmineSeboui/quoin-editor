@@ -18,8 +18,10 @@ import { GUTTER_BLOCK } from './use-context-menu-opener';
 import { useGutterPosition } from './use-gutter-position';
 import { useGutterTarget } from './use-gutter-target';
 
-// A touch screen shows the gutter only beside the block being edited, or the block whose menu is open.
+// A touch screen shows the gutter only beside the block being edited, or the block whose menu is open, and only its
+// handle, since the mobile toolbar adds blocks there.
 const GUTTER = 'absolute top-0 left-0 z-10 flex items-center gap-0.5 pointer-coarse:not-data-current:hidden';
+const ADD_BELOW = 'text-muted-foreground pointer-coarse:hidden';
 
 // A mouse press would move focus from the text to the control; the menu takes focus when it opens and gives it back on
 // close. A touch moves no focus, and WebKit drops the click of a tap whose pointerdown was cancelled.
@@ -62,7 +64,7 @@ export function Gutter({ controller, store, actions }: GutterProps) {
           size="icon-xs"
           tabIndex={-1}
           aria-label={labels.addBelow}
-          className="text-muted-foreground"
+          className={ADD_BELOW}
           onPointerDown={keepFocus}
           onClick={addBelow}
         >

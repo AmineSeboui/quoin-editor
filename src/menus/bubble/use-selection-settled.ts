@@ -1,10 +1,15 @@
 import { useMemo, useSyncExternalStore } from 'react';
 import type { ViewController } from '../../view';
 
-/** Marks the toolbar and the menus it opens, where focus counts as still in the editor. */
+/** Marks the toolbars and the menus they open, where focus counts as still in the editor. */
 export const BUBBLE_PART = 'data-quoin-bubble';
 
 export const isBubblePart = (element: Element | null): boolean => element?.closest(`[${BUBBLE_PART}]`) != null;
+
+export function focusInEditor(controller: ViewController): boolean {
+  const active = document.activeElement;
+  return active !== null && (controller.isEditorElement(active) || isBubblePart(active));
+}
 
 type Settled = { read(): boolean; subscribe(notify: () => void): () => void };
 
@@ -21,12 +26,8 @@ function createSettled(controller: ViewController): Settled {
     focusin: () => {},
     focusout: () => {},
   };
-  const focused = () => {
-    const active = document.activeElement;
-    return active !== null && (controller.isEditorElement(active) || isBubblePart(active));
-  };
   return {
-    read: () => focused() && !pressed && !composing,
+    read: () => focusInEditor(controller) && !pressed && !composing,
     subscribe(notify) {
       const listeners = Object.entries(handlers).map(([type, handle]) => {
         const listener = (event: Event) => {

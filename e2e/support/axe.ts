@@ -13,16 +13,20 @@ function settleAnimations(page: Page) {
   );
 }
 
+type Scope = '.quoin-editor' | '.quoin' | `[role="${'menu' | 'listbox' | 'dialog' | 'toolbar'}"]`;
+
 // The ids of the rules the editor breaks, so a failing spec says which. Only the editor is scanned by default: the page
 // around it is the harness's. '.quoin' also takes in the menus, toolbars and dialogs the canvas portals out of it, and
 // a role scans one of them alone.
 export async function axeViolations(
   page: Page,
   impacts: 'all' | 'serious' = 'all',
-  scope: '.quoin-editor' | '.quoin' | '[role="menu"]' = '.quoin-editor',
+  scope: Scope | readonly Scope[] = '.quoin-editor',
 ): Promise<string[]> {
   await settleAnimations(page);
-  const { violations } = await new AxeBuilder({ page }).include(scope).analyze();
+  const builder = new AxeBuilder({ page });
+  for (const selector of ([] as Scope[]).concat(scope)) builder.include(selector);
+  const { violations } = await builder.analyze();
   return violations
     .filter((violation) => impacts === 'all' || violation.impact === 'serious' || violation.impact === 'critical')
     .map((violation) => violation.id);

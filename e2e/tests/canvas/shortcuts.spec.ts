@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
+import { axeViolations } from '../../support/axe';
 import { blocks, openEditor } from '../../support/editor';
 
 const dialog = (page: Page) => page.getByRole('dialog', { name: 'Keyboard shortcuts' });
@@ -14,8 +14,7 @@ test('Mod+Shift+/ opens the shortcuts dialog, which lists the way out, and Escap
   await expect(dialog(page)).toBeVisible();
   const leave = dialog(page).getByRole('term').filter({ hasText: 'Leave the editor' });
   await expect(leave.locator('xpath=following-sibling::dd')).toHaveText('Escape, then Tab');
-  const { violations } = await new AxeBuilder({ page }).include('[role="dialog"]').analyze();
-  expect(violations.map((violation) => violation.id)).toEqual([]);
+  expect(await axeViolations(page, 'all', '[role="dialog"]')).toEqual([]);
   await page.keyboard.press('Escape');
   await expect(dialog(page)).toHaveCount(0);
   await expect(host(page, 'b')).toBeFocused();

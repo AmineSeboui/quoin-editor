@@ -1,5 +1,5 @@
-import AxeBuilder from '@axe-core/playwright';
 import { expect, type Locator, type Page } from '@playwright/test';
+import { axeViolations } from '../../support/axe';
 import { blocks, openEditor } from '../../support/editor';
 import { phoneTest as test } from '../../support/phone';
 
@@ -46,8 +46,7 @@ test('a tap shows the editing tools on the bottom edge, and selected text no bub
   await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   await expect(page.getByRole('toolbar', { name: 'Text formatting' })).toHaveCount(0);
   await expect(tools(page)).toBeVisible();
-  const { violations } = await new AxeBuilder({ page }).include('[role="toolbar"]').analyze();
-  expect(violations.map((violation) => violation.id)).toEqual([]);
+  expect(await axeViolations(page, 'all', '[role="toolbar"]')).toEqual([]);
 });
 
 test('tapping Bold then typing writes bold text, with focus kept in the text', async ({ page }) => {

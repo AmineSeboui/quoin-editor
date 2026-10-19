@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
+import { axeViolations } from '../../support/axe';
 import { blocks, openEditor } from '../../support/editor';
 
 const listbox = (page: Page) => page.getByRole('listbox', { name: 'Commands' });
@@ -114,8 +114,5 @@ test('clicking an option runs it and keeps the caret in the text', async ({ page
 test('the open menu and the text that controls it have no accessibility violations', async ({ page }) => {
   await typeInEmptyParagraph(page, '/');
   await expect(listbox(page)).toBeVisible();
-  // Contrast is measured once the menu has faded in: half way, its text is half as dark as it will be.
-  await popup(page).evaluate((element) => Promise.all(element.getAnimations().map((animation) => animation.finished)));
-  const { violations } = await new AxeBuilder({ page }).include('.quoin-editor').include('[role="listbox"]').analyze();
-  expect(violations.map((violation) => violation.id)).toEqual([]);
+  expect(await axeViolations(page, 'all', ['.quoin-editor', '[role="listbox"]'])).toEqual([]);
 });

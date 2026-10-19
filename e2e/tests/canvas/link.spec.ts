@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
+import { axeViolations } from '../../support/axe';
 import { blocks, openEditor } from '../../support/editor';
 
 const LINKED = 'Read [the docs](https://quoin.dev/docs) today';
@@ -29,8 +29,7 @@ test('Mod+K on selected text opens the link popover, and Enter links the text', 
   await expect.poll(() => selectedText(page)).toBe('Plain');
   await page.keyboard.press('ControlOrMeta+k');
   await expect(field(page)).toBeFocused();
-  const { violations } = await new AxeBuilder({ page }).include('[role="dialog"]').analyze();
-  expect(violations.map((violation) => violation.id)).toEqual([]);
+  expect(await axeViolations(page, 'all', '[role="dialog"]')).toEqual([]);
   await page.keyboard.type('https://example.com');
   await page.keyboard.press('Enter');
   await expect.poll(() => markdown(page)).toEqual([LINKED, '[Plain](https://example.com) words to link']);

@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
+import { axeViolations } from '../../support/axe';
 import { blocks, openEditor } from '../../support/editor';
 
 const toolbar = (page: Page) => page.getByRole('toolbar', { name: 'Text formatting' });
@@ -37,8 +37,7 @@ test('double-clicking a word shows the toolbar above it, with no accessibility v
   expect(bar.x).toBeLessThan(word.right);
   expect(bar.x + bar.width).toBeGreaterThan(word.left);
   await expect(host(page, 'd')).toBeFocused();
-  const { violations } = await new AxeBuilder({ page }).include('[role="toolbar"]').analyze();
-  expect(violations.map((violation) => violation.id)).toEqual([]);
+  expect(await axeViolations(page, 'all', '[role="toolbar"]')).toEqual([]);
 });
 
 test('the toolbar sits below a selection with no room above it', async ({ page }) => {

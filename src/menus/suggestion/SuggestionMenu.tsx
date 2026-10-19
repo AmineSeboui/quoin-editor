@@ -28,7 +28,13 @@ export type SuggestionMenuProps<T> = {
   emptyLabel: string;
 };
 
-const CONTENT = cn(MENU_CONTENT, 'w-72 max-h-[min(22rem,var(--radix-popper-available-height))]');
+// The listbox scrolls rather than the popover around it, so the scrolling region is the combobox's own popup, whose
+// options the arrows reach while focus stays in the text.
+const CONTENT = cn(
+  MENU_CONTENT,
+  'flex w-72 max-h-[min(22rem,var(--radix-popper-available-height))] flex-col overflow-y-hidden',
+);
+const LISTBOX = 'min-h-0 overflow-y-auto';
 const GROUP_LABEL = 'px-2 pt-2 pb-1 text-xs font-medium text-muted-foreground';
 const OPTION = cn(
   'relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm',
@@ -130,7 +136,7 @@ export function SuggestionMenu<T>(props: SuggestionMenuProps<T>) {
         onPointerDownOutside={insideEditor}
         onFocusOutside={insideEditor}
       >
-        <div ref={listbox} role="listbox" id={listboxId} aria-label={label}>
+        <div ref={listbox} role="listbox" id={listboxId} aria-label={label} className={LISTBOX}>
           {sections.map((section, index) => (
             <SuggestionGroup
               key={section.label ?? ''}

@@ -28,6 +28,16 @@ test('typing after /divider at the end of a line goes on in a new line under the
   await expect.poll(async () => (await shape(page)).slice(2)).toEqual(['DIVIDER:', 'MARKDOWN:xy']);
 });
 
+test('a command chosen after a space at the end of a line takes that space with the slash', async ({ page }) => {
+  await openEditor(page, 'sample');
+  await page.getByRole('textbox', { name: 'Paragraph' }).click();
+  await page.keyboard.press('End');
+  await page.keyboard.type(' /quote');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('after');
+  await expect.poll(() => shape(page)).toEqual(['MARKDOWN:# Title', 'MARKDOWN:First paragraph.', 'MARKDOWN:> after']);
+});
+
 test('/code opens the code editor, so what is typed next goes into it', async ({ page }) => {
   await chooseInEmptyDocument(page, '/code');
   await expect(page.getByRole('textbox', { name: 'Language' })).toBeFocused();

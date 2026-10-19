@@ -91,3 +91,32 @@ describe('a block chosen from the slash menu that has an editor', () => {
     expect(document.activeElement).toBe(screen.getByRole('textbox', { name: 'Bookmark URL' }));
   });
 });
+
+describe('the space before a slash typed after a word', () => {
+  it('goes with the slash when the command adds a block, so the line keeps no trailing space', () => {
+    const canvas = openAt([paragraph('a', 'one')], 'a', 3);
+    canvas.choose(' /quote');
+    expect(canvas.last()[0]).toEqual(paragraph('a', 'one'));
+    expect(canvas.last()[1]).toMatchObject({ type: 'MARKDOWN', data: { markdown: '> ' } });
+  });
+
+  it('goes with the slash before a divider is put in, leaving a line of only a space empty', () => {
+    const canvas = openAt([paragraph('a', '')], 'a');
+    canvas.choose(' /divider');
+    expect(canvas.last()).toEqual([{ id: expect.any(String), type: 'DIVIDER', data: {} }, paragraph('a', '')]);
+  });
+
+  it('stays when words follow the query, so they keep their space', () => {
+    const canvas = openAt([paragraph('a', 'one two')], 'a', 4);
+    canvas.choose('/quote');
+    expect(canvas.last()[0]).toEqual(paragraph('a', 'one two'));
+  });
+
+  it('comes back with the slash and the query in one undo', () => {
+    const canvas = openAt([paragraph('a', 'one')], 'a', 3);
+    canvas.choose(' /divider');
+    const mod = canvas.handle().controller.isMac ? { metaKey: true } : { ctrlKey: true };
+    fireEvent.keyDown(document.activeElement!, { key: 'z', ...mod });
+    expect(canvas.last()).toEqual([paragraph('a', 'one /divider')]);
+  });
+});

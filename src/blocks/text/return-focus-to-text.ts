@@ -1,17 +1,17 @@
 import type { ViewController } from '../../view';
 
-// By the time a menu's close handler runs the menu is gone, and focus that was in it has fallen to the body. Focus a
-// press outside the menu put in the text, or on a control outside the editor, stays where the press put it.
-function pressKeptFocus(controller: ViewController, focused: Element | null | undefined): boolean {
-  if (!focused || focused === focused.ownerDocument.body) return false;
-  return controller.isEditorElement(focused) || !controller.root?.contains(focused);
+// By the time a menu's close handler runs the menu is gone, and focus that was in it has fallen to the body. A press
+// on a menu button in the editor, the menu's own trigger among them, leaves focus on a button that is out of the tab
+// order and takes no typing. Anywhere else, focus stays where the press put it.
+function focusBelongsInText(controller: ViewController, focused: Element | null | undefined): boolean {
+  if (!focused || focused === focused.ownerDocument.body) return true;
+  return focused.getAttribute('aria-haspopup') === 'menu' && controller.root?.contains(focused) === true;
 }
 
-// Radix hands focus back to a menu's trigger on close. A trigger inside a block is out of the tab order and takes no
-// typing, so focus goes back to the caret instead, from the body or from any control of the editor that is not text.
+// Radix hands focus back to a menu's trigger on close, so focus goes back to the caret instead.
 export function returnFocusToText(controller: ViewController): (event: Event) => void {
   return (event) => {
     event.preventDefault();
-    if (!pressKeptFocus(controller, controller.root?.ownerDocument.activeElement)) controller.focus();
+    if (focusBelongsInText(controller, controller.root?.ownerDocument.activeElement)) controller.focus();
   };
 }

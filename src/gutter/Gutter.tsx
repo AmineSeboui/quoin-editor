@@ -82,12 +82,14 @@ export function Gutter({ controller, store, actions }: GutterProps) {
             onPointerDown={(event) => {
               // The press closes an open menu as a press outside it, before its click arrives, so that click must not
               // open the menu again.
-              menuOpenAtPress.current = store.get().blockMenu?.anchor === 'handle';
+              menuOpenAtPress.current = event.button === 0 && store.get().blockMenu?.anchor === 'handle';
               keepFocus(event);
               drag.onPointerDown(event);
             }}
             onClick={(event) => {
-              const closing = menuOpenAtPress.current;
+              // A click with no press of its own, from assistive technology or a script, has a detail of 0, and a press
+              // that ended without a click leaves the flag behind.
+              const closing = menuOpenAtPress.current && event.detail > 0;
               menuOpenAtPress.current = false;
               if (!drag.takeClick(event) && !closing) openMenu();
             }}

@@ -30,6 +30,20 @@ describe('the gutter', () => {
     expect(screen.queryByRole('menu')).toBeNull();
   });
 
+  it('opens the menu on a click with no press of its own after a press on the handle that ended without one', async () => {
+    const user = userEvent.setup();
+    const { handle, shell } = mountCanvas([paragraph('a', 'intro')]);
+    act(() => handle().focus({ block: 'a', region: 'text', offset: 2 }));
+    await user.click(handleButton());
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+    fireEvent.pointerDown(handleButton(), { button: 0 });
+    fireEvent.pointerCancel(handleButton());
+    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull());
+    await waitFor(() => expect(hostOf(shell('a'))).toHaveFocus());
+    fireEvent.click(handleButton());
+    expect(screen.getByRole('menu')).toHaveAccessibleName('Text block menu');
+  });
+
   it('keeps its controls out of the tab order', () => {
     const { shell } = mountCanvas([paragraph('a', 'intro')]);
     fireEvent.pointerMove(hostOf(shell('a')));

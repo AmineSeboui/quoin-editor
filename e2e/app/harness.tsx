@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { BlockCanvas, coreBlocks, type QuoinBlock } from 'quoin-editor';
 import { bookmarkDemo } from './bookmark-demo';
+import { noteDemo } from './note-demo';
 
-const blockTypes = [...coreBlocks, bookmarkDemo];
+const blockTypes = [...coreBlocks, bookmarkDemo, noteDemo];
 
 const READ_ONLY = new URLSearchParams(location.search).get('readonly') === '1';
 
@@ -42,6 +43,10 @@ const docs: Record<string, QuoinBlock[]> = {
     { id: 'above', type: 'MARKDOWN', data: { markdown: 'Paragraph above' } },
     { id: 'bm', type: 'BOOKMARK_DEMO', data: { url: 'https://quoin.dev' } },
     { id: 'below', type: 'MARKDOWN', data: { markdown: 'Paragraph below' } },
+  ],
+  pinned: [
+    { id: 'pn', type: 'NOTE_DEMO', data: { note: 'Pinned' } },
+    { id: 'p', type: 'MARKDOWN', data: { markdown: 'Paragraph below' } },
   ],
   rich: [
     { id: 'h', type: 'MARKDOWN', data: { markdown: '# Release notes' } },

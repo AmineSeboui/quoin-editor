@@ -65,6 +65,28 @@ test('a drag across text inside an open editor leaves the editor open', async ({
   await expect(page.locator('[data-quoin-dragging]')).toHaveCount(0);
 });
 
+test('a click in the field of an always-editing block closes the block menu and leaves the field focused', async ({
+  page,
+}) => {
+  await openEditor(page, 'pinned');
+  await paragraphs(page).click();
+  await page.keyboard.press('End');
+  await paragraphs(page).hover();
+  await page.getByRole('button', { name: 'Drag to move, click for options' }).click();
+  await expect(page.getByRole('menu')).toBeVisible();
+  const field = page.getByRole('textbox', { name: 'Note text' });
+  await field.click();
+  await expect(page.getByRole('menu')).toHaveCount(0);
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  await expect(field).toBeFocused();
+  await page.keyboard.press('End');
+  await page.keyboard.type('!');
+  await expect.poll(async () => (await blocks(page)).map((block) => block.data)).toEqual([
+    { note: 'Pinned!' },
+    { markdown: 'Paragraph below' },
+  ]);
+});
+
 test('a custom block has no accessibility violations at rest or while it is edited', async ({ page }) => {
   await selectBookmarkFromAbove(page);
   expect(await axeViolations(page)).toEqual([]);

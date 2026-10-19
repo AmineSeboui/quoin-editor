@@ -34,6 +34,20 @@ test('a block dragged by its handle lands at the drop line, and the move is anno
   await expect(dropLine(page)).toBeHidden();
 });
 
+test('a drag held near the bottom of a scrolling pane scrolls it, and drops past the blocks first in view', async ({ page }) => {
+  await openEditor(page, 'text');
+  const pane = page.locator('#root');
+  await pane.evaluate((element) => Object.assign(element.style, { height: '300px', overflowY: 'auto' }));
+  const paneBox = (await pane.boundingBox())!;
+  const start = await grab(page, 'h');
+  await page.mouse.move(start.x, paneBox.y + paneBox.height - 8, { steps: 8 });
+  const scrollLeft = () => pane.evaluate((element) => element.scrollHeight - element.clientHeight - element.scrollTop);
+  await expect.poll(scrollLeft).toBeLessThan(1);
+  await page.mouse.up();
+  await expect.poll(async () => (await order(page)).at(-1)).toBe('h');
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+});
+
 test('a drag that ends 48 px right of where it started nests the block under a list item', async ({ page }) => {
   await openEditor(page, 'drag');
   const start = await grab(page, 'a');

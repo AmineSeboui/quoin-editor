@@ -35,7 +35,7 @@ function draggedBlocks(controller: ViewController, blockId: string): string[] {
 function followPress(press: HandlePress, root: HTMLElement, view: Window): () => void {
   const { controller, store, overlay, handle, pointerId } = press;
   const doc = view.document;
-  const scroll = createAutoScroll(view, follow, SCROLL_EDGE);
+  const scroll = createAutoScroll(root, follow, SCROLL_EDGE);
   let pointer = { x: press.x, y: press.y };
   let active: ActiveDrag | null = null;
   let unsubscribe = () => {};

@@ -173,6 +173,21 @@ test.describe('cross-block selection, beyond the basics', () => {
     expect(Number(sel.head.block.slice(1))).toBeGreaterThan(10);
   });
 
+  test('a drag held near the bottom of a scrolling pane scrolls the pane and keeps selecting', async ({ page }) => {
+    await openHeadless(page, 'forty');
+    const pane = page.locator('#root');
+    await pane.evaluate((element) => Object.assign(element.style, { height: '300px', overflowY: 'auto' }));
+    const paneBox = (await pane.boundingBox())!;
+    const a = (await host(page, 0).boundingBox())!;
+    await page.mouse.move(a.x + 8, a.y + a.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(a.x + 8, paneBox.y + paneBox.height - 5, { steps: 6 });
+    await expect.poll(() => pane.evaluate((element) => element.scrollTop)).toBeGreaterThan(200);
+    await page.mouse.up();
+    const sel = (await modelSelection(page)) as { head: { block: string } };
+    expect(Number(sel.head.block.slice(1))).toBeGreaterThan(10);
+  });
+
   test('a selection across blocks has no serious accessibility violations', async ({ page }) => {
     await openHeadless(page, 'three');
     await dragAcross(page, 0, 2);

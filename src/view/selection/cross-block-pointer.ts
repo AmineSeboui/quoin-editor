@@ -37,7 +37,7 @@ export function createCrossBlockPointer(controller: ViewController): CrossBlockP
       let press: Press | null = null;
       let last = { x: 0, y: 0 };
       let preventMouseDown = false;
-      const scroll = createAutoScroll(view, () => follow(last.x, last.y));
+      const scroll = createAutoScroll(root, () => follow(last.x, last.y));
 
       function select(selection: Selection): void {
         if (sameSelection(selection, controller.editor.state.selection)) return;

@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { englishLabels } from '../i18n/english-labels';
 import { formatShortcut } from './format-shortcut';
+
+const german = {
+  keyNames: { ctrl: 'Strg', alt: 'Alt', shift: 'Umschalt' },
+  namedKeys: { ...englishLabels.namedKeys, escape: 'Esc', enter: 'Eingabe', delete: 'Entf' },
+};
 
 function platform(value: string) {
   vi.spyOn(window.navigator, 'platform', 'get').mockReturnValue(value);
@@ -35,8 +41,20 @@ describe('formatShortcut', () => {
   });
 
   it('names the modifiers away from a Mac in the words it is given', () => {
-    const keyNames = { ctrl: 'Strg', alt: 'Alt', shift: 'Umschalt' };
-    expect(formatShortcut('Mod-Shift-z', { isMac: false, keyNames })).toBe('Strg+Umschalt+Z');
-    expect(formatShortcut('Mod-Shift-z', { isMac: true, keyNames })).toBe('\u2318\u21E7Z');
+    expect(formatShortcut('Mod-Shift-z', { isMac: false, labels: german })).toBe('Strg+Umschalt+Z');
+    expect(formatShortcut('Mod-Shift-z', { isMac: true, labels: german })).toBe('\u2318\u21E7Z');
+  });
+
+  it('names the keys it writes out in the words it is given, on every platform', () => {
+    expect(formatShortcut('Shift-Enter', { isMac: false, labels: german })).toBe('Umschalt+Eingabe');
+    expect(formatShortcut('Shift-Enter', { isMac: true, labels: german })).toBe('\u21E7Eingabe');
+    expect(formatShortcut('Escape', { isMac: true, labels: german })).toBe('Esc');
+    expect(formatShortcut('Delete', { isMac: false, labels: german })).toBe('Entf');
+  });
+
+  it('names those keys in English without labels', () => {
+    const named = ['Escape', 'Tab', 'Enter', 'Space', 'Backspace', 'Delete', 'F10'];
+    expect(named.map((key) => formatShortcut(key, { isMac: false }))).toEqual(named);
+    expect(formatShortcut('mod+enter', { isMac: false })).toBe('Ctrl+Enter');
   });
 });

@@ -23,6 +23,9 @@ export type SlashBlockCommand = BlockName | 'heading1' | 'heading2' | 'heading3'
 
 export type ModifierKey = 'ctrl' | 'alt' | 'shift';
 
+/** The keys a shortcut writes out by name rather than by the character they type. */
+export type NamedKey = 'escape' | 'tab' | 'enter' | 'space' | 'backspace' | 'delete' | 'f10';
+
 export type ShortcutGroupName = 'text' | 'blocks' | 'selection' | 'navigation' | 'menus';
 
 /** The rows of the keyboard shortcuts dialog that no other label names. */
@@ -37,7 +40,12 @@ export type ShortcutName =
   | 'lineDown'
   | 'leaveEditor'
   | 'blockMenu'
-  | 'closeMenu';
+  | 'closeMenu'
+  | 'splitBlock'
+  | 'joinAbove'
+  | 'joinBelow'
+  | 'previousBlockEnd'
+  | 'nextBlockStart';
 
 /** Every string the editor shows or speaks. A label that depends on a value is a function of it. */
 export type QuoinLabels = {
@@ -119,8 +127,11 @@ export type QuoinLabels = {
   shortcutNames: Record<ShortcutName, string>;
   /** Two keys pressed one after the other. */
   keySequence: (first: string, then: string) => string;
+  /** Two shortcuts that do the same thing. */
+  keyAlternative: (first: string, other: string) => string;
   /** The modifier keys a shortcut hint names away from a Mac, where it draws their symbols instead. */
   keyNames: Record<ModifierKey, string>;
+  namedKeys: Record<NamedKey, string>;
   formattingToolbar: string;
   mobileToolbar: string;
   indent: string;
@@ -132,157 +143,3 @@ export type QuoinLabels = {
   editBlock: (label: string) => string;
   unsupportedBlock: string;
 };
-
-export const englishLabels: QuoinLabels = {
-  document: 'Editor',
-  editorHint: 'Press Escape, then Tab, to leave the editor.',
-  paragraph: 'Paragraph',
-  heading: (level) => `Heading ${level}`,
-  bulletItem: 'Bullet list item',
-  numberedItem: (n) => `Numbered list item ${n}`,
-  task: 'Task',
-  quote: 'Quote',
-  callout: (tone) => `Callout, ${tone.toLowerCase()}`,
-  calloutTones: { info: 'Info', tip: 'Tip', success: 'Success', warning: 'Warning', danger: 'Danger' },
-  calloutIcon: 'Callout icon',
-  calloutToneMenu: (tone) => `Callout tone: ${tone}`,
-  toggle: 'Toggle',
-  toggleButton: (hidden) => {
-    if (hidden === 0) return 'Toggle';
-    return `Toggle, ${hidden} ${hidden === 1 ? 'block' : 'blocks'} hidden`;
-  },
-  placeholderEmpty: "Type '/' for commands",
-  placeholderHeading: (level) => `Heading ${level}`,
-  placeholderList: 'List',
-  placeholderQuote: 'Quote',
-  blockMenu: (type) => `${type} block menu`,
-  blockNames: {
-    text: 'Text',
-    bulletedList: 'Bulleted list',
-    numberedList: 'Numbered list',
-    todoList: 'To-do list',
-    quote: 'Quote',
-    callout: 'Callout',
-    toggle: 'Toggle',
-    code: 'Code',
-    divider: 'Divider',
-    image: 'Image',
-    file: 'File',
-  },
-  turnInto: 'Turn into',
-  color: 'Color',
-  textColor: 'Text color',
-  backgroundColor: 'Background color',
-  tone: 'Tone',
-  icon: 'Icon',
-  duplicate: 'Duplicate',
-  copy: 'Copy',
-  copyLink: 'Copy link to block',
-  copied: 'Copied',
-  moveUp: 'Move up',
-  moveDown: 'Move down',
-  delete: 'Delete',
-  askAi: 'Ask AI',
-  addBelow: 'Add block below',
-  dragHandle: 'Drag to move, click for options',
-  slashMenu: 'Commands',
-  noResults: 'No results',
-  resultCount: (n) => `${n} ${n === 1 ? 'result' : 'results'}`,
-  slashDescriptions: {
-    text: 'Plain paragraph text',
-    heading1: 'Large section heading',
-    heading2: 'Medium section heading',
-    heading3: 'Small section heading',
-    bulletedList: 'A list with bullets',
-    numberedList: 'A list with numbers',
-    todoList: 'Tasks to check off',
-    quote: 'A quotation, set apart',
-    divider: 'A line between sections',
-    callout: 'A note that stands out',
-    toggle: 'Content to show or hide',
-    code: 'A block of code',
-    image: 'Upload or link an image',
-    file: 'Attach a file',
-  },
-  groups: {
-    basic: 'Basic',
-    lists: 'Lists',
-    media: 'Media',
-    advanced: 'Advanced',
-    embeds: 'Embeds',
-    ai: 'AI',
-    custom: 'Custom',
-  },
-  bold: 'Bold',
-  italic: 'Italic',
-  underline: 'Underline',
-  strike: 'Strikethrough',
-  code: 'Code',
-  link: 'Link',
-  highlight: 'Highlight',
-  align: 'Align',
-  alignLeft: 'Align left',
-  alignCenter: 'Align center',
-  alignRight: 'Align right',
-  alignJustify: 'Justify',
-  subscript: 'Subscript',
-  superscript: 'Superscript',
-  comment: 'Comment',
-  linkUrl: 'Link address',
-  linkApply: 'Apply link',
-  linkRemove: 'Remove link',
-  linkOpen: 'Open link',
-  linkEdit: 'Edit link',
-  invalidLink: 'Enter a valid link, such as https://example.com',
-  colors: {
-    default: 'Default',
-    gray: 'Gray',
-    brown: 'Brown',
-    orange: 'Orange',
-    yellow: 'Yellow',
-    green: 'Green',
-    blue: 'Blue',
-    purple: 'Purple',
-    pink: 'Pink',
-    red: 'Red',
-  },
-  blockMoved: (position, total) => `Block moved to position ${position} of ${total}`,
-  blockDeleted: (n) => (n === 1 ? 'Block deleted' : `${n} blocks deleted`),
-  blocksSelected: (n) => `${n} ${n === 1 ? 'block' : 'blocks'} selected`,
-  undoHint: (shortcut) => `Press ${shortcut} to undo`,
-  shortcuts: 'Keyboard shortcuts',
-  shortcutGroupNames: { text: 'Text', blocks: 'Blocks', selection: 'Selection', navigation: 'Navigation', menus: 'Menus' },
-  shortcutNames: {
-    lineBreak: 'Line break',
-    flipBlock: 'Check a task or open a toggle',
-    selectBlock: 'Select the block',
-    selectAll: 'Select all',
-    extendUp: 'Extend the selection up',
-    extendDown: 'Extend the selection down',
-    lineUp: 'Previous line',
-    lineDown: 'Next line',
-    leaveEditor: 'Leave the editor',
-    blockMenu: 'Block menu',
-    closeMenu: 'Close a menu',
-  },
-  keySequence: (first, then) => `${first}, then ${then}`,
-  keyNames: { ctrl: 'Ctrl', alt: 'Alt', shift: 'Shift' },
-  formattingToolbar: 'Text formatting',
-  mobileToolbar: 'Editing tools',
-  indent: 'Indent',
-  outdent: 'Outdent',
-  undo: 'Undo',
-  redo: 'Redo',
-  close: 'Close',
-  selectedContent: 'Selected content',
-  editBlock: (label) => `Edit ${label}`,
-  unsupportedBlock: 'Unsupported block',
-};
-
-/** The English labels with the host's overrides on top. A key the host leaves out, or passes as undefined, stays
- *  English. */
-export function resolveLabels(overrides?: Partial<QuoinLabels>): QuoinLabels {
-  if (overrides === undefined) return englishLabels;
-  const given = Object.entries(overrides).filter(([, value]) => value !== undefined);
-  return given.length === 0 ? englishLabels : { ...englishLabels, ...Object.fromEntries(given) };
-}

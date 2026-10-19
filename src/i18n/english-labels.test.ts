@@ -1,4 +1,5 @@
-import { englishLabels, resolveLabels, type QuoinLabels } from './labels';
+import { englishLabels } from './english-labels';
+import type { QuoinLabels } from './labels';
 
 const KEYS = Object.keys(englishLabels) as (keyof QuoinLabels)[];
 
@@ -15,34 +16,6 @@ function sampleText(key: keyof QuoinLabels): string[] {
   if (typeof label === 'function') return [(label as (...args: unknown[]) => string)(...(NAMED_ARGUMENTS[key] ?? [2, 5]))];
   return Object.values(label);
 }
-
-describe('resolveLabels', () => {
-  it('is the English labels when the host overrides nothing', () => {
-    expect(resolveLabels()).toEqual(englishLabels);
-    expect(resolveLabels({})).toEqual(englishLabels);
-  });
-
-  it('takes the label a host overrides and keeps English for every other key', () => {
-    const labels = resolveLabels({ bold: 'Gras' });
-    expect(labels.bold).toBe('Gras');
-    for (const key of KEYS.filter((name) => name !== 'bold')) expect(labels[key]).toBe(englishLabels[key]);
-  });
-
-  it('keeps English for a key the host passes as undefined', () => {
-    expect(resolveLabels({ bold: undefined }).bold).toBe('Bold');
-  });
-
-  it('takes a worded label as a function of its value', () => {
-    const labels = resolveLabels({ heading: (level) => `Titre ${level}` });
-    expect(labels.heading(2)).toBe('Titre 2');
-    expect(labels.numberedItem(3)).toBe('Numbered list item 3');
-  });
-
-  it('leaves the English labels untouched', () => {
-    resolveLabels({ bold: 'Gras' });
-    expect(englishLabels.bold).toBe('Bold');
-  });
-});
 
 describe('englishLabels', () => {
   it('words the labels the editor already speaks', () => {
@@ -143,8 +116,26 @@ describe('englishLabels', () => {
       leaveEditor: 'Leave the editor',
       blockMenu: 'Block menu',
       closeMenu: 'Close a menu',
+      splitBlock: 'Split the block',
+      joinAbove: 'At the start: turn into text, outdent or join the block above',
+      joinBelow: 'At the end: join the next block',
+      previousBlockEnd: 'At the start: end of the previous block',
+      nextBlockStart: 'At the end: start of the next block',
     });
     expect(englishLabels.keySequence('Escape', 'Tab')).toBe('Escape, then Tab');
+    expect(englishLabels.keyAlternative('Ctrl+Shift+Z', 'Ctrl+Y')).toBe('Ctrl+Shift+Z or Ctrl+Y');
+  });
+
+  it('names the keys a shortcut writes out, on every platform', () => {
+    expect(englishLabels.namedKeys).toEqual({
+      escape: 'Escape',
+      tab: 'Tab',
+      enter: 'Enter',
+      space: 'Space',
+      backspace: 'Backspace',
+      delete: 'Delete',
+      f10: 'F10',
+    });
   });
 
   it('names the modifier keys of a shortcut hint', () => {

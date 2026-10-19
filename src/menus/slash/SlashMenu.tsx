@@ -13,10 +13,10 @@ import { slashKey } from './slash-key';
 
 const itemKey = (item: SlashItem) => item.id;
 
-type SlashRowProps = { item: SlashItem; isMac: boolean; keyNames: QuoinLabels['keyNames'] };
+type SlashRowProps = { item: SlashItem; isMac: boolean; labels: QuoinLabels };
 
-function SlashRow({ item, isMac, keyNames }: SlashRowProps) {
-  const hint = item.shortcut === undefined ? null : shortcutHint(item.shortcut, isMac, keyNames);
+function SlashRow({ item, isMac, labels }: SlashRowProps) {
+  const hint = item.shortcut === undefined ? null : shortcutHint(item.shortcut, isMac, labels);
   return (
     <>
       {item.icon !== undefined && <MenuIcon icon={item.icon} />}
@@ -51,7 +51,7 @@ export function SlashMenu({ controller, labels, items }: SlashMenuProps) {
   );
   const groupOf = useCallback((item: SlashItem) => labels.groups[item.group], [labels]);
   const renderItem = useCallback(
-    (item: SlashItem) => <SlashRow item={item} isMac={controller.isMac} keyNames={labels.keyNames} />,
+    (item: SlashItem) => <SlashRow item={item} isMac={controller.isMac} labels={labels} />,
     [controller, labels],
   );
   const choose = useCallback(

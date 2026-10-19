@@ -9,7 +9,7 @@ const HEADING_LEVELS = [1, 2, 3, 4, 5, 6];
 
 /** The keyboard model as the shortcuts dialog lists it, group by group, each key written the way the platform does. */
 export function shortcutGroups(labels: QuoinLabels, isMac: boolean): ShortcutGroup[] {
-  const keys = (shortcut: string) => formatShortcut(shortcut, { isMac, keyNames: labels.keyNames });
+  const keys = (shortcut: string) => formatShortcut(shortcut, { isMac, labels });
   const row = (label: string, shortcut: string): ShortcutRow => ({ label, keys: keys(shortcut) });
   const { shortcutGroupNames: titles, shortcutNames: names, blockNames } = labels;
   return [
@@ -25,12 +25,15 @@ export function shortcutGroups(labels: QuoinLabels, isMac: boolean): ShortcutGro
         row(labels.link, 'Mod-k'),
         row(names.lineBreak, 'Shift-Enter'),
         row(labels.undo, 'Mod-z'),
-        row(labels.redo, 'Mod-Shift-z'),
+        { label: labels.redo, keys: labels.keyAlternative(keys('Mod-Shift-z'), keys('Mod-y')) },
       ],
     },
     {
       title: titles.blocks,
       items: [
+        row(names.splitBlock, 'Enter'),
+        row(names.joinAbove, 'Backspace'),
+        row(names.joinBelow, 'Delete'),
         row(blockNames.text, 'Mod-Alt-0'),
         ...HEADING_LEVELS.map((level) => row(labels.heading(level), `Mod-Alt-${level}`)),
         row(blockNames.numberedList, 'Mod-Shift-7'),
@@ -58,6 +61,8 @@ export function shortcutGroups(labels: QuoinLabels, isMac: boolean): ShortcutGro
       items: [
         row(names.lineUp, 'ArrowUp'),
         row(names.lineDown, 'ArrowDown'),
+        row(names.previousBlockEnd, 'ArrowLeft'),
+        row(names.nextBlockStart, 'ArrowRight'),
         { label: names.leaveEditor, keys: labels.keySequence(keys('Escape'), keys('Tab')) },
       ],
     },

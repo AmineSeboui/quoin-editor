@@ -1,7 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { englishLabels, type QuoinLabels } from './i18n/labels';
+import { englishLabels } from './i18n/english-labels';
+import type { QuoinLabels } from './i18n/labels';
 import type { AnyBlockDefinition } from './registry';
 import type { UploadFn } from './types';
 import type { ViewController } from './view';

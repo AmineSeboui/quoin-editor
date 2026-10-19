@@ -30,6 +30,7 @@ export function EmptyDocumentHost({ placeholder, label = 'Paragraph' }: EmptyDoc
       data-quoin-host=""
       data-quoin-empty=""
       data-placeholder={readOnly ? undefined : placeholder}
+      aria-placeholder={readOnly ? undefined : placeholder}
       spellCheck
       onClick={() => ref.current?.focus()}
     />

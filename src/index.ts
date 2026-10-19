@@ -15,7 +15,9 @@ export type {
 export { UploadField, type UploadFieldProps } from './upload/UploadField';
 export { FilePickerButton, type FilePickerButtonProps } from './upload/FilePickerButton';
 export { QuoinProvider, useQuoin, type QuoinConfig, type QuoinConfigInput } from './context';
-export { englishLabels, resolveLabels, type QuoinLabels } from './i18n/labels';
+export { englishLabels } from './i18n/english-labels';
+export type { QuoinLabels } from './i18n/labels';
+export { resolveLabels } from './i18n/resolve-labels';
 export type { ExtensionUI, SlashGroup, SlashItem, SuggestionRange, ToolbarItem } from './extensions/ui-types';
 export type { BlockMenuAction } from './gutter/block-menu-items';
 export { useLabels } from './i18n/use-labels';

@@ -76,10 +76,12 @@ describe('EditableRegion', () => {
     const { container, controller } = mount([md('h', '## ')]);
     const host = hostOf(container, 'h');
     expect(host).toHaveAttribute('data-placeholder', 'Heading 2');
+    expect(host).toHaveAttribute('aria-placeholder', 'Heading 2');
     expect(host.querySelector('br[data-quoin-filler]')).not.toBeNull();
     act(() => controller.dispatch(controller.editor.createTransaction().setSelection(caretIn('h', 0))));
     act(() => controller.run(insertText('T')));
     expect(host).not.toHaveAttribute('data-placeholder');
+    expect(host).not.toHaveAttribute('aria-placeholder');
   });
 });
 
@@ -105,7 +107,9 @@ describe('EditableRegion placeholders from the view', () => {
     const { controller, host } = mountPlaceholders(caretHolder);
     act(() => controller.dispatch(controller.editor.createTransaction().setSelection(caretIn('a', 0))));
     expect(host('a')).toHaveAttribute('data-placeholder', 'Write in a');
+    expect(host('a')).toHaveAttribute('aria-placeholder', 'Write in a');
     expect(host('b')).not.toHaveAttribute('data-placeholder');
+    expect(host('b')).not.toHaveAttribute('aria-placeholder');
     act(() => controller.dispatch(controller.editor.createTransaction().setSelection(caretIn('b', 0))));
     expect(host('a')).not.toHaveAttribute('data-placeholder');
     expect(host('b')).toHaveAttribute('data-placeholder', 'Write in b');
@@ -118,7 +122,10 @@ describe('EditableRegion placeholders from the view', () => {
 
   it('shows no placeholder while read-only', () => {
     const { host } = mountPlaceholders(() => 'Anything', true);
-    for (const id of ['a', 'b', 'c']) expect(host(id)).not.toHaveAttribute('data-placeholder');
+    for (const id of ['a', 'b', 'c']) {
+      expect(host(id)).not.toHaveAttribute('data-placeholder');
+      expect(host(id)).not.toHaveAttribute('aria-placeholder');
+    }
   });
 });
 

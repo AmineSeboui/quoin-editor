@@ -1,22 +1,22 @@
-import { englishLabels } from '../i18n/labels';
+import { englishLabels } from '../i18n/english-labels';
 import { shortcutHint } from './shortcut-hint';
 
-const { keyNames } = englishLabels;
 
 describe('shortcutHint', () => {
   it('draws the symbols of a Mac and names Command for assistive technology', () => {
-    expect(shortcutHint('Mod-d', true, keyNames)).toEqual({ text: '\u2318D', aria: 'Meta+D' });
-    expect(shortcutHint('Mod-Shift-ArrowUp', true, keyNames)).toEqual({
+    expect(shortcutHint('Mod-d', true, englishLabels)).toEqual({ text: '\u2318D', aria: 'Meta+D' });
+    expect(shortcutHint('Mod-Shift-ArrowUp', true, englishLabels)).toEqual({
       text: '\u2318\u21E7\u2191',
       aria: 'Meta+Shift+ArrowUp',
     });
   });
 
   it('names the modifiers elsewhere, in the words the labels give', () => {
-    expect(shortcutHint('Mod-Shift-ArrowDown', false, keyNames)).toEqual({
+    expect(shortcutHint('Mod-Shift-ArrowDown', false, englishLabels)).toEqual({
       text: 'Ctrl+Shift+\u2193',
       aria: 'Control+Shift+ArrowDown',
     });
-    expect(shortcutHint('Mod-Alt-1', false, { ctrl: 'Strg', alt: 'Alt', shift: 'Umschalt' }).text).toBe('Strg+Alt+1');
+    const german = { ...englishLabels, keyNames: { ctrl: 'Strg', alt: 'Alt', shift: 'Umschalt' } };
+    expect(shortcutHint('Mod-Alt-1', false, german).text).toBe('Strg+Alt+1');
   });
 });

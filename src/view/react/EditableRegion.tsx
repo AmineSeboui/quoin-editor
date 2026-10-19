@@ -67,6 +67,7 @@ export function EditableRegion({ block, region, label, placeholder, className }:
       aria-label={label}
       data-quoin-host=""
       data-placeholder={readOnly ? undefined : shown}
+      aria-placeholder={readOnly ? undefined : shown}
       spellCheck
     />
   );

@@ -1,11 +1,15 @@
 import { detectMac } from '../engine/extension/detect-mac';
-import { englishLabels, type ModifierKey } from '../i18n/labels';
+import { englishLabels } from '../i18n/english-labels';
+import type { ModifierKey, NamedKey, QuoinLabels } from '../i18n/labels';
+
+/** The words a shortcut is written in: the modifiers away from a Mac, and the keys written out by name. */
+export type KeyLabels = Pick<QuoinLabels, 'keyNames' | 'namedKeys'>;
 
 export type ShortcutPlatform = {
   /** Whether to write the keys the way a Mac does. Defaults to the platform the page runs on. */
   isMac?: boolean;
-  /** The names of the modifier keys away from a Mac, English by default. */
-  keyNames?: Readonly<Record<ModifierKey, string>>;
+  /** English by default. */
+  labels?: KeyLabels;
 };
 
 const MODIFIERS: Readonly<Record<string, ModifierKey>> = { mod: 'ctrl', ctrl: 'ctrl', alt: 'alt', shift: 'shift' };
@@ -19,9 +23,13 @@ const ARROWS: Readonly<Record<string, string>> = {
 
 const capitalized = (name: string) => name.charAt(0).toUpperCase() + name.slice(1);
 
-const keyText = (key: string) => ARROWS[key.toLowerCase()] ?? (key.length === 1 ? key.toUpperCase() : capitalized(key));
+function keyText(key: string, { namedKeys }: KeyLabels): string {
+  const name = key.toLowerCase();
+  if (Object.hasOwn(namedKeys, name)) return namedKeys[name as NamedKey];
+  return ARROWS[name] ?? (key.length === 1 ? key.toUpperCase() : capitalized(key));
+}
 
-function modifierText(modifier: string, isMac: boolean, keyNames: Readonly<Record<ModifierKey, string>>): string {
+function modifierText(modifier: string, isMac: boolean, { keyNames }: KeyLabels): string {
   const name = modifier.toLowerCase();
   if (isMac) return MAC_SYMBOLS[name] ?? capitalized(modifier);
   return Object.hasOwn(MODIFIERS, name) ? keyNames[MODIFIERS[name]] : capitalized(modifier);
@@ -32,9 +40,9 @@ function modifierText(modifier: string, isMac: boolean, keyNames: Readonly<Recor
  * Command and Shift symbols then B on a Mac, and `Ctrl+Shift+B` elsewhere.
  */
 export function formatShortcut(shortcut: string, platform: ShortcutPlatform = {}): string {
-  const { isMac = detectMac(), keyNames = englishLabels.keyNames } = platform;
+  const { isMac = detectMac(), labels = englishLabels } = platform;
   const parts = shortcut.split(shortcut.includes('+') ? '+' : '-');
   const key = parts.pop() ?? shortcut;
-  const written = [...parts.map((modifier) => modifierText(modifier, isMac, keyNames)), keyText(key)];
+  const written = [...parts.map((modifier) => modifierText(modifier, isMac, labels)), keyText(key, labels)];
   return written.join(isMac ? '' : '+');
 }

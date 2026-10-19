@@ -7,7 +7,7 @@ import { structureAnnouncement } from './structure-announcement';
 /** Says in the live region where a block moved, and how many blocks were deleted and how to undo it. */
 export function useStructureAnnouncements(controller: ViewController, labels: QuoinLabels): void {
   useEffect(() => {
-    const undoKeys = formatShortcut('Mod-z', { isMac: controller.isMac, keyNames: labels.keyNames });
+    const undoKeys = formatShortcut('Mod-z', { isMac: controller.isMac, labels });
     return controller.editor.subscribe((_state, tr) => {
       const message = tr === null ? null : structureAnnouncement(tr, labels, undoKeys);
       if (message !== null) controller.announce(message);

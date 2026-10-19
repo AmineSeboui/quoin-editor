@@ -107,6 +107,7 @@ describe('EditorView empty document', () => {
     const { container } = mount([], { placeholder: 'Start writing' });
     const host = screen.getByRole('textbox', { name: 'Paragraph' });
     expect(host).toHaveAttribute('data-placeholder', 'Start writing');
+    expect(host).toHaveAttribute('aria-placeholder', 'Start writing');
     expect(host.querySelector('br[data-quoin-filler]')).not.toBeNull();
     expect(container.querySelector('[data-quoin-block]')).toBeNull();
   });
@@ -169,6 +170,7 @@ describe('EditorView empty document', () => {
     const host = screen.getByRole('textbox', { name: 'Paragraph' });
     expect(host).toHaveAttribute('contenteditable', 'false');
     expect(host).not.toHaveAttribute('data-placeholder');
+    expect(host).not.toHaveAttribute('aria-placeholder');
     expect(controller.readOnly).toBe(true);
   });
 

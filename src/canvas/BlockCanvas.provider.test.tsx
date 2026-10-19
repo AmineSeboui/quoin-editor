@@ -4,7 +4,7 @@ import { coreBlocks } from '../blocks/core';
 import { useQuoin, type QuoinConfig } from '../context';
 import { defineExtension } from '../engine';
 import type { ExtensionUI } from '../extensions/ui-types';
-import { englishLabels } from '../i18n/labels';
+import { englishLabels } from '../i18n/english-labels';
 import type { QuoinBlock } from '../types';
 import { BlockCanvas } from './BlockCanvas';
 import type { QuoinEditorHandle } from './canvas-props';

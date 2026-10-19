@@ -10,7 +10,7 @@ import { BlockContextMenu } from '../gutter/BlockContextMenu';
 import { coreBlockMenuActions, menuActions } from '../gutter/block-menu-items';
 import { blockMenuKeymap } from '../gutter/block-menu-keymap';
 import { Gutter } from '../gutter/Gutter';
-import { resolveLabels } from '../i18n/labels';
+import { resolveLabels } from '../i18n/resolve-labels';
 import { bubbleExtension, BubbleItemsProvider } from '../menus/bubble/bubble-extension';
 import { linkExtension } from '../menus/link/link-extension';
 import { slashExtension, SlashItemsProvider } from '../menus/slash/slash-extension';

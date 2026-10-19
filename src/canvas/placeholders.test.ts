@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { QuoinBlock } from '../engine';
 import { buildState, type SelectionSpec } from '../engine/test-support/build-state';
-import { englishLabels } from '../i18n/labels';
+import { englishLabels } from '../i18n/english-labels';
 import { placeholderFor } from './placeholders';
 
 type Entry = Parameters<typeof buildState>[0][number];

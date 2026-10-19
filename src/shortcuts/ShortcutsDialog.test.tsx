@@ -50,8 +50,18 @@ describe('the keyboard shortcuts dialog', () => {
     press({ key: '/', ctrlKey: true, shiftKey: true });
     const headings = within(dialog()).getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent);
     expect(headings).toEqual(['Text', 'Blocks', 'Selection', 'Navigation', 'Menus']);
-    expect(rows('Text')).toMatchObject({ Bold: 'Ctrl+B', 'Line break': 'Shift+Enter', Redo: 'Ctrl+Shift+Z' });
-    expect(rows('Blocks')).toMatchObject({ 'Heading 6': 'Ctrl+Alt+6', 'Move down': 'Ctrl+Shift+\u2193' });
+    expect(rows('Text')).toMatchObject({ Bold: 'Ctrl+B', 'Line break': 'Shift+Enter', Redo: 'Ctrl+Shift+Z or Ctrl+Y' });
+    expect(rows('Blocks')).toMatchObject({
+      'Heading 6': 'Ctrl+Alt+6',
+      'Move down': 'Ctrl+Shift+\u2193',
+      'Split the block': 'Enter',
+      'At the start: turn into text, outdent or join the block above': 'Backspace',
+      'At the end: join the next block': 'Delete',
+    });
+    expect(rows('Navigation')).toMatchObject({
+      'At the start: end of the previous block': '\u2190',
+      'At the end: start of the next block': '\u2192',
+    });
     expect(rows('Menus')).toMatchObject({ Commands: '/', 'Keyboard shortcuts': 'Ctrl+Shift+/' });
   });
 
@@ -59,7 +69,7 @@ describe('the keyboard shortcuts dialog', () => {
     vi.spyOn(navigator, 'platform', 'get').mockReturnValue('MacIntel');
     const { press } = openCanvas();
     press({ key: '/', metaKey: true, shiftKey: true });
-    expect(rows('Text')).toMatchObject({ Bold: '\u2318B', Redo: '\u2318\u21E7Z' });
+    expect(rows('Text')).toMatchObject({ Bold: '\u2318B', Redo: '\u2318\u21E7Z or \u2318Y' });
   });
 
   it('has no accessibility violations', async () => {
@@ -95,6 +105,16 @@ describe('the keyboard shortcuts dialog', () => {
       close: 'Fermer',
       bold: 'Gras',
       keySequence: (first: string, then: string) => `${first} puis ${then}`,
+      keyNames: { ctrl: 'Ctrl', alt: 'Alt', shift: 'Maj' },
+      namedKeys: {
+        escape: '\u00C9chap',
+        tab: 'Tab',
+        enter: 'Entr\u00E9e',
+        space: 'Espace',
+        backspace: 'Retour arri\u00E8re',
+        delete: 'Suppr',
+        f10: 'F10',
+      },
       shortcutGroupNames: { text: 'Texte', blocks: 'Blocs', selection: 'S\u00E9lection', navigation: 'Navigation', menus: 'Menus' },
     };
     const { press } = openCanvas({ labels });
@@ -103,6 +123,7 @@ describe('the keyboard shortcuts dialog', () => {
     expect(within(french).getByRole('button', { name: 'Fermer' })).toBeInTheDocument();
     const section = within(french).getByRole('heading', { name: 'Texte' }).closest('section')!;
     expect(within(section).getByText('Gras')).toBeInTheDocument();
-    expect(within(french).getByText('Escape puis Tab')).toBeInTheDocument();
+    expect(within(french).getByText('\u00C9chap puis Tab')).toBeInTheDocument();
+    expect(within(french).getByText('Line break').nextElementSibling).toHaveTextContent('Maj+Entr\u00E9e');
   });
 });

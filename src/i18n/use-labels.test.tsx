@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react';
 import { renderHook } from '@testing-library/react';
 import { QuoinProvider } from '../context';
-import { englishLabels, resolveLabels, type QuoinLabels } from './labels';
+import { englishLabels } from './english-labels';
+import type { QuoinLabels } from './labels';
+import { resolveLabels } from './resolve-labels';
 import { useLabels } from './use-labels';
 
 const under = (labels?: QuoinLabels) =>

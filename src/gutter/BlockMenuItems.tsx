@@ -30,8 +30,8 @@ type BlockMenuItemsProps = {
 type ActionItemProps = { kit: MenuKit; controller: ViewController; action: BlockMenuAction; blockIds: string[] };
 
 function ActionItem({ kit, controller, action, blockIds }: ActionItemProps) {
-  const { keyNames } = useLabels();
-  const hint = action.shortcut === undefined ? null : shortcutHint(action.shortcut, controller.isMac, keyNames);
+  const labels = useLabels();
+  const hint = action.shortcut === undefined ? null : shortcutHint(action.shortcut, controller.isMac, labels);
   return (
     <kit.Item
       className={action.destructive ? DESTRUCTIVE : undefined}

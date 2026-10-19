@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildState } from '../engine/test-support/build-state';
-import { englishLabels } from '../i18n/labels';
+import { englishLabels } from '../i18n/english-labels';
 import { coreBlockMenuActions, menuActions, menuTargets, styleTargets, type BlockMenuAction } from './block-menu-items';
 
 const nested = ['- a', { id: 'x', type: 'MARKDOWN', data: { markdown: '- child' }, indent: 1 }, 'b', 'c'] as const;

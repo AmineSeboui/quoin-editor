@@ -1,5 +1,6 @@
 import { act, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+import { axe } from 'vitest-axe';
 import { mountCanvas, paragraph } from '../blocks/void/test-canvas';
 import type { QuoinBlock } from '../types';
 import { BlockCanvas } from './BlockCanvas';
@@ -44,6 +45,17 @@ describe('the placeholders of the canvas', () => {
     });
     act(() => handle().focus({ block: 'r', region: 'text', offset: 0 }));
     expect(placeholders(container)).toMatchObject({ p: null, r: "Type '/' for commands" });
+  });
+
+  it('are given to assistive technology too, without an accessibility violation', async () => {
+    const { container, handle } = mountCanvas(empties);
+    act(() => handle().focus({ block: 'p', region: 'text', offset: 0 }));
+    expect(screen.getByRole('textbox', { name: 'Heading 2' })).toHaveAttribute('aria-placeholder', 'Heading 2');
+    expect(container.querySelector('[data-block-id="p"] [data-quoin-host]')).toHaveAttribute(
+      'aria-placeholder',
+      "Type '/' for commands",
+    );
+    expect(await axe(container)).toHaveNoViolations();
   });
 
   it("take the canvas's placeholder in place of the slash hint", () => {

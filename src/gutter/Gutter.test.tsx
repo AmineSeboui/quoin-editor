@@ -18,6 +18,18 @@ describe('the gutter', () => {
     expect(screen.getByRole('menu')).toHaveAccessibleName('Heading 2 block menu');
   });
 
+  it('closes its open block menu from the handle without opening it again', async () => {
+    const user = userEvent.setup();
+    const { handle, shell } = mountCanvas([paragraph('a', 'intro')]);
+    act(() => handle().focus({ block: 'a', region: 'text', offset: 2 }));
+    await user.click(handleButton());
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+    await user.pointer({ keys: '[MouseLeft>]', target: handleButton() });
+    await waitFor(() => expect(hostOf(shell('a'))).toHaveFocus());
+    await user.pointer({ keys: '[/MouseLeft]', target: handleButton() });
+    expect(screen.queryByRole('menu')).toBeNull();
+  });
+
   it('keeps its controls out of the tab order', () => {
     const { shell } = mountCanvas([paragraph('a', 'intro')]);
     fireEvent.pointerMove(hostOf(shell('a')));

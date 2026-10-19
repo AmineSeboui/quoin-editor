@@ -6,13 +6,16 @@ function closeMenu() {
   const root = document.createElement('div');
   const host = document.createElement('div');
   host.tabIndex = -1;
-  root.append(host);
+  const trigger = document.createElement('button');
+  trigger.tabIndex = -1;
+  root.append(host, trigger);
   const outside = document.createElement('button');
   document.body.append(root, outside);
   const focus = vi.fn();
-  const close = returnFocusToText({ root, focus } as unknown as ViewController);
+  const isEditorElement = (element: Element) => element === host;
+  const close = returnFocusToText({ root, focus, isEditorElement } as unknown as ViewController);
   const event = new Event('focusScope.autoFocusOnUnmount', { cancelable: true });
-  return { host, outside, focus, run: () => close(event), event };
+  return { host, trigger, outside, focus, run: () => close(event), event };
 }
 
 afterEach(() => document.body.replaceChildren());
@@ -32,6 +35,13 @@ describe('returnFocusToText', () => {
     expect(event.defaultPrevented).toBe(true);
     expect(focus).not.toHaveBeenCalled();
     expect(document.activeElement).toBe(host);
+  });
+
+  it('puts the caret back when a press left focus on a control inside the editor, such as the menu trigger', () => {
+    const { trigger, focus, run } = closeMenu();
+    trigger.focus();
+    run();
+    expect(focus).toHaveBeenCalledOnce();
   });
 
   it('leaves focus on a control outside the editor a press moved it to', () => {

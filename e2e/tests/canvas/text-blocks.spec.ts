@@ -78,6 +78,23 @@ test('a callout takes a tone from its tone menu and gives the caret back to its 
   await expect.poll(() => dataOf(page, 'c')).toEqual({ tone: 'danger', body: 'Careful!' });
 });
 
+for (const control of ['Callout tone: Warning', 'Callout icon']) {
+  test(`a second click on ${control} closes its menu and gives the caret back to the callout text`, async ({ page }) => {
+    await openEditor(page, 'text');
+    const text = page.getByRole('textbox', { name: 'Callout, warning' });
+    await text.click();
+    await page.keyboard.press('End');
+    const button = page.getByRole('button', { name: control });
+    await button.click();
+    await expect(page.getByRole('menu')).toBeVisible();
+    await button.click();
+    await expect(page.getByRole('menu')).toHaveCount(0);
+    await expect(text).toBeFocused();
+    await page.keyboard.type('!');
+    await expect.poll(() => dataOf(page, 'c')).toEqual({ tone: 'warning', body: 'Careful!' });
+  });
+}
+
 test('a divider is node-selected by a click', async ({ page }) => {
   await openEditor(page, 'text');
   await page.getByRole('separator').click();

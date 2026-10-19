@@ -35,6 +35,7 @@ export function Gutter({ controller, store, actions }: GutterProps) {
   const labels = useLabels();
   const element = useRef<HTMLDivElement>(null);
   const overlay = useRef<DragOverlayHandle>(null);
+  const menuOpenAtPress = useRef(false);
   const { target, focused } = useGutterTarget(controller, store, element);
   const menuOpen = useCanvasUi(store, (state) => state.blockMenu !== null);
   const drag = useBlockDrag(controller, store, target, overlay);
@@ -79,11 +80,16 @@ export function Gutter({ controller, store, actions }: GutterProps) {
             aria-label={labels.dragHandle}
             className={cn('text-muted-foreground h-6 w-4 cursor-grab rounded-md', SQUARE_TAP_TARGET_FLOOR)}
             onPointerDown={(event) => {
+              // The press closes an open menu as a press outside it, before its click arrives, so that click must not
+              // open the menu again.
+              menuOpenAtPress.current = store.get().blockMenu?.anchor === 'handle';
               keepFocus(event);
               drag.onPointerDown(event);
             }}
             onClick={(event) => {
-              if (!drag.takeClick(event)) openMenu();
+              const closing = menuOpenAtPress.current;
+              menuOpenAtPress.current = false;
+              if (!drag.takeClick(event) && !closing) openMenu();
             }}
           >
             <GripVertical />

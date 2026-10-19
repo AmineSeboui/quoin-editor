@@ -84,6 +84,22 @@ test('a click in another block closes the block menu and leaves the caret where 
   await expect.poll(async () => (await blocks(page)).map((block) => block.data.markdown)).toEqual(['# Title', 'First paragraph.!']);
 });
 
+test('a second click on the handle closes the block menu, quick or held, and gives the caret back', async ({ page }) => {
+  await openEditor(page, 'sample');
+  await host(page, 'b').click();
+  await page.keyboard.press('End');
+  for (const delay of [0, 80]) {
+    await host(page, 'b').hover();
+    await handle(page).click();
+    await expect(menu(page)).toBeVisible();
+    await handle(page).click({ delay });
+    await expect(menu(page)).toHaveCount(0);
+  }
+  await expect(host(page, 'b')).toBeFocused();
+  await page.keyboard.type('!');
+  await expect.poll(async () => (await blocks(page)).map((block) => block.data.markdown)).toEqual(['# Title', 'First paragraph.!']);
+});
+
 test('the tone of a callout is set from the keyboard through its block menu', async ({ page }) => {
   await openEditor(page, 'text');
   await page.getByRole('textbox', { name: 'Callout, warning' }).click();

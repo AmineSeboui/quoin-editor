@@ -16,8 +16,10 @@ import {
   MENU_SUB_TRIGGER,
 } from "./menu-styles";
 
-function ContextMenu(props: React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Root>) {
-  return <ContextMenuPrimitive.Root data-slot="context-menu" {...props} />;
+// A modal menu hides everything around it from assistive technology, the editor's tab stop and links with it, which
+// leaves focusable content hidden. Radix keeps Tab inside an open menu either way.
+function ContextMenu({ modal = false, ...props }: React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Root>) {
+  return <ContextMenuPrimitive.Root data-slot="context-menu" modal={modal} {...props} />;
 }
 
 function ContextMenuSub(props: React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Sub>) {

@@ -71,6 +71,19 @@ test('Mod+/ opens the block menu beside the block holding the caret, and Escape 
   await expect.poll(async () => (await blocks(page))[1].data.markdown).toBe('First paragraph.!');
 });
 
+test('a click in another block closes the block menu and leaves the caret where it was clicked', async ({ page }) => {
+  await openEditor(page, 'sample');
+  await host(page, 'a').hover();
+  await handle(page).click();
+  await expect(menu(page)).toBeVisible();
+  await host(page, 'b').click();
+  await expect(menu(page)).toHaveCount(0);
+  await expect(host(page, 'b')).toBeFocused();
+  await page.keyboard.press('End');
+  await page.keyboard.type('!');
+  await expect.poll(async () => (await blocks(page)).map((block) => block.data.markdown)).toEqual(['# Title', 'First paragraph.!']);
+});
+
 test('the tone of a callout is set from the keyboard through its block menu', async ({ page }) => {
   await openEditor(page, 'text');
   await page.getByRole('textbox', { name: 'Callout, warning' }).click();

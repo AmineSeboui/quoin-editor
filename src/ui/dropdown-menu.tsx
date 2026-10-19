@@ -16,8 +16,10 @@ import {
   MENU_SUB_TRIGGER,
 } from "./menu-styles";
 
-function DropdownMenu(props: React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Root>) {
-  return <DropdownMenuPrimitive.Root data-slot="dropdown-menu" {...props} />;
+// A modal menu hides everything around it from assistive technology, the editor's tab stop and links with it, which
+// leaves focusable content hidden. Radix keeps Tab inside an open menu either way.
+function DropdownMenu({ modal = false, ...props }: React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Root>) {
+  return <DropdownMenuPrimitive.Root data-slot="dropdown-menu" modal={modal} {...props} />;
 }
 
 function DropdownMenuSub(props: React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Sub>) {

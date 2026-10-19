@@ -20,4 +20,11 @@ describe('linkAddress', () => {
   it.each(['javascript:alert(1)', 'data:text/html,x', '', '   '])('refuses %j', (typed) => {
     expect(linkAddress(typed)).toBeNull();
   });
+
+  it.each(['not a url with spaces', 'https://quoin.dev/a b', 'example .com', 'docs\tpage'])(
+    'refuses %j, which has whitespace inside it',
+    (typed) => {
+      expect(linkAddress(typed)).toBeNull();
+    },
+  );
 });

@@ -102,14 +102,17 @@ describe('the link popover', () => {
     expect(open).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
-  it.each(['javascript:alert(1)', '', '   '])('stays open and explains why it refuses %j', async (address) => {
-    const canvas = openPopover([paragraph('a', 'hello world')], pos(0), pos(5));
-    await enter(address);
-    expect(popover()).not.toBeNull();
-    expect(field()).toHaveAttribute('aria-invalid', 'true');
-    expect(field()).toHaveAccessibleDescription('Enter a valid link, such as https://example.com');
-    expect(canvas.changes).toHaveLength(0);
-  });
+  it.each(['javascript:alert(1)', '', '   ', 'not a url with spaces'])(
+    'stays open and explains why it refuses %j',
+    async (address) => {
+      const canvas = openPopover([paragraph('a', 'hello world')], pos(0), pos(5));
+      await enter(address);
+      expect(popover()).not.toBeNull();
+      expect(field()).toHaveAttribute('aria-invalid', 'true');
+      expect(field()).toHaveAccessibleDescription('Enter a valid link, such as https://example.com');
+      expect(canvas.changes).toHaveLength(0);
+    },
+  );
 
   it('clears the explanation once the address changes', async () => {
     openPopover([paragraph('a', 'hello world')], pos(0), pos(5));

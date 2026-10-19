@@ -25,15 +25,18 @@ describe('FilePickerButton', () => {
       expect(screen.getByLabelText('Pick')).toHaveFocus();
     });
 
-    it('stays on the input when the dialog is cancelled', () => {
+    it('is not a pick when the dialog is cancelled, so enabling the input later takes no focus back', () => {
       const onPick = vi.fn();
-      render(<FilePickerButton label="Pick" onPick={onPick} />);
-      const input = screen.getByLabelText('Pick');
+      const view = render(<FilePickerButton label="Pick" onPick={onPick} />);
+      const input = screen.getByLabelText('Pick') as HTMLInputElement;
       input.focus();
       fireEvent(input, new Event('cancel'));
       fireEvent.change(input, { target: { files: [] } });
+      view.rerender(<FilePickerButton label="Pick" onPick={onPick} disabled />);
+      dropFocusLikeABrowser(input);
+      view.rerender(<FilePickerButton label="Pick" onPick={onPick} />);
       expect(onPick).not.toHaveBeenCalled();
-      expect(input).toHaveFocus();
+      expect(input).not.toHaveFocus();
     });
 
     describe('when a pick disables the input and a browser drops focus to the body', () => {

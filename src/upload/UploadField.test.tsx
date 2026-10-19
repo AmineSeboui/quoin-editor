@@ -234,6 +234,6 @@ describe('UploadField', () => {
     dropFocusLikeABrowser(input as HTMLInputElement);
     finish({ storageKey: 'k/1', filename: 'photo.png', size: 1 });
     await waitFor(() => expect(input).toBeEnabled());
-    expect(input).toHaveFocus();
+    await waitFor(() => expect(input).toHaveFocus());
   });
 });

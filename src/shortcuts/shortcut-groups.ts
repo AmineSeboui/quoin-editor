@@ -1,9 +1,9 @@
-import type { QuoinLabels } from '../i18n/labels';
+import type { QuoinLabels, ShortcutGroupName } from '../i18n/labels';
 import { formatShortcut } from './format-shortcut';
 
 export type ShortcutRow = { label: string; keys: string };
 
-export type ShortcutGroup = { title: string; items: ShortcutRow[] };
+export type ShortcutGroup = { name: ShortcutGroupName; title: string; items: ShortcutRow[] };
 
 const HEADING_LEVELS = [1, 2, 3, 4, 5, 6];
 
@@ -14,6 +14,7 @@ export function shortcutGroups(labels: QuoinLabels, isMac: boolean): ShortcutGro
   const { shortcutGroupNames: titles, shortcutNames: names, blockNames } = labels;
   return [
     {
+      name: 'text',
       title: titles.text,
       items: [
         row(labels.bold, 'Mod-b'),
@@ -29,6 +30,7 @@ export function shortcutGroups(labels: QuoinLabels, isMac: boolean): ShortcutGro
       ],
     },
     {
+      name: 'blocks',
       title: titles.blocks,
       items: [
         row(names.splitBlock, 'Enter'),
@@ -48,6 +50,7 @@ export function shortcutGroups(labels: QuoinLabels, isMac: boolean): ShortcutGro
       ],
     },
     {
+      name: 'selection',
       title: titles.selection,
       items: [
         row(names.selectBlock, 'Escape'),
@@ -59,6 +62,7 @@ export function shortcutGroups(labels: QuoinLabels, isMac: boolean): ShortcutGro
       ],
     },
     {
+      name: 'navigation',
       title: titles.navigation,
       items: [
         row(names.lineUp, 'ArrowUp'),
@@ -69,6 +73,7 @@ export function shortcutGroups(labels: QuoinLabels, isMac: boolean): ShortcutGro
       ],
     },
     {
+      name: 'menus',
       title: titles.menus,
       items: [
         row(labels.slashMenu, '/'),

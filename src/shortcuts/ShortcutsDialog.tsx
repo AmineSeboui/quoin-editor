@@ -16,7 +16,7 @@ function ShortcutSection({ group }: { group: ShortcutGroup }) {
       </h3>
       <dl className="grid gap-1.5 text-sm">
         {group.items.map(({ label, keys }) => (
-          <div key={keys} className="flex items-center justify-between gap-4">
+          <div key={`${label} ${keys}`} className="flex items-center justify-between gap-4">
             <dt>{label}</dt>
             <dd>
               <kbd className={KEYS}>{keys}</kbd>
@@ -51,7 +51,7 @@ export function ShortcutsDialog({ open, onOpenChange, labels, isMac, onCloseAuto
         </DialogHeader>
         <div className="grid gap-6 sm:grid-cols-2">
           {groups.map((group) => (
-            <ShortcutSection key={group.title} group={group} />
+            <ShortcutSection key={group.name} group={group} />
           ))}
         </div>
       </DialogContent>

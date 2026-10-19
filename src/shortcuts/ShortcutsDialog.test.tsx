@@ -75,6 +75,23 @@ describe('the keyboard shortcuts dialog', () => {
     });
   });
 
+  it('draws two rows that share their keys without a React key error', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { press } = openCanvas();
+    press({ key: '/', ctrlKey: true, shiftKey: true });
+    expect(dialog()).toBeInTheDocument();
+    expect(error).not.toHaveBeenCalled();
+  });
+
+  it('draws two groups a host gives one name without a React key error', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const shortcutGroupNames = { text: 'Same', blocks: 'Same', selection: 'Pick', navigation: 'Move', menus: 'Menus' };
+    const { press } = openCanvas({ labels: { shortcutGroupNames } });
+    press({ key: '/', ctrlKey: true, shiftKey: true });
+    expect(within(dialog()).getAllByRole('heading', { name: 'Same' })).toHaveLength(2);
+    expect(error).not.toHaveBeenCalled();
+  });
+
   it("writes the keys the way a Mac does on a Mac", () => {
     vi.spyOn(navigator, 'platform', 'get').mockReturnValue('MacIntel');
     const { press } = openCanvas();

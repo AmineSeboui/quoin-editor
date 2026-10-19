@@ -1,16 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
-import { devices, expect, test as base, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 import { blocks, openEditor } from '../../support/editor';
-
-const phone = (browserName: string) => (browserName === 'webkit' ? devices['iPhone 14'] : devices['Pixel 7']);
-
-const test = base.extend({
-  page: async ({ browser, browserName, baseURL }, provide) => {
-    const context = await browser.newContext({ ...phone(browserName), baseURL });
-    await provide(await context.newPage());
-    await context.close();
-  },
-});
+import { phoneTest as test } from '../../support/phone';
 
 test.skip(({ browserName }) => browserName === 'firefox', 'Firefox cannot emulate a mobile device');
 

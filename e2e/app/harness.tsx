@@ -4,6 +4,8 @@ import { bookmarkDemo } from './bookmark-demo';
 
 const blockTypes = [...coreBlocks, bookmarkDemo];
 
+const READ_ONLY = new URLSearchParams(location.search).get('readonly') === '1';
+
 const docs: Record<string, QuoinBlock[]> = {
   empty: [],
   sample: [
@@ -41,21 +43,38 @@ const docs: Record<string, QuoinBlock[]> = {
     { id: 'bm', type: 'BOOKMARK_DEMO', data: { url: 'https://quoin.dev' } },
     { id: 'below', type: 'MARKDOWN', data: { markdown: 'Paragraph below' } },
   ],
+  rich: [
+    { id: 'h', type: 'MARKDOWN', data: { markdown: '# Release notes' } },
+    { id: 'p', type: 'MARKDOWN', data: { markdown: 'Keeps **bold**, _italic_, `code` and [links](https://quoin.dev/docs).' } },
+    { id: 'l', type: 'MARKDOWN', data: { markdown: '- Write the notes' } },
+    { id: 'k', type: 'MARKDOWN', data: { markdown: '- [x] Ship it' } },
+    { id: 'q', type: 'MARKDOWN', data: { markdown: '> Small steps' } },
+    { id: 'c', type: 'CALLOUT', data: { tone: 'info', body: 'Read the guide first' } },
+    { id: 't', type: 'TOGGLE', data: { markdown: 'Details', open: true } },
+    { id: 'tc', type: 'MARKDOWN', data: { markdown: 'Hidden detail' }, indent: 1 },
+    { id: 'd', type: 'DIVIDER', data: {} },
+    { id: 'bm', type: 'BOOKMARK_DEMO', data: { url: 'https://quoin.dev' } },
+    { id: 'code', type: 'CODE', data: { language: 'ts', code: 'const answer = 42;' } },
+  ],
 };
 
 export function Harness({ doc }: { doc: string }) {
   const [blocks, setBlocks] = useState<QuoinBlock[]>(docs[doc] ?? []);
   window.__quoin = { blocks: () => blocks, changes: window.__quoin?.changes ?? 0 };
   return (
-    <BlockCanvas
-      aria-label="Document"
-      placeholder="Write something"
-      blocks={blocks}
-      blockTypes={blockTypes}
-      onChange={(next) => {
-        window.__quoin.changes += 1;
-        setBlocks(next);
-      }}
-    />
+    <>
+      <BlockCanvas
+        aria-label="Document"
+        placeholder="Write something"
+        blocks={blocks}
+        blockTypes={blockTypes}
+        readOnly={READ_ONLY}
+        onChange={(next) => {
+          window.__quoin.changes += 1;
+          setBlocks(next);
+        }}
+      />
+      <input aria-label="After the editor" />
+    </>
   );
 }

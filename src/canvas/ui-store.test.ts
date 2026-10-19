@@ -1,4 +1,5 @@
-import { createCanvasUiStore } from './ui-store';
+import { renderHook } from '@testing-library/react';
+import { createCanvasUiStore, useCanvasUiStore } from './ui-store';
 
 describe('createCanvasUiStore', () => {
   it('starts with nothing hovered, open or dragged', () => {
@@ -21,5 +22,11 @@ describe('createCanvasUiStore', () => {
     unsubscribe();
     store.set({ hoveredBlock: 'b' });
     expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  it('is out of reach outside a canvas', () => {
+    const silenced = vi.spyOn(console, 'error').mockImplementation(() => {});
+    expect(() => renderHook(() => useCanvasUiStore())).toThrow('useCanvasUiStore must be used inside a BlockCanvas.');
+    silenced.mockRestore();
   });
 });

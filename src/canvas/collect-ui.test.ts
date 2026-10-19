@@ -46,11 +46,13 @@ describe('collectUi', () => {
     expect(collectUi([withUi('a', {})], []).render).toBeUndefined();
   });
 
-  it('gathers block menu items and overlays, and ignores a ui field that is not an object', () => {
+  it('gathers block menu items, bubble items and overlays, and ignores a ui field that is not an object', () => {
     const action = { id: 'star', label: 'Star', icon: Star, run: () => {} };
-    const ui: ExtensionUI = { blockMenuItems: [action], overlays: [Drawn] };
+    const button = { id: 'star', title: 'Star', icon: Star, run: () => {} };
+    const ui: ExtensionUI = { blockMenuItems: [action], bubbleItems: [button], overlays: [Drawn] };
     const collected = collectUi([withUi('a', ui), withUi('b', 'nonsense'), withUi('c', null)], []);
     expect(collected.blockMenuItems).toEqual([action]);
+    expect(collected.bubbleItems).toEqual([button]);
     expect(collected.overlays).toEqual([Drawn]);
     expect(collected.slashItems).toEqual([]);
   });

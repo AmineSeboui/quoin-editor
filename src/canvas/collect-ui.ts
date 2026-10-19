@@ -2,7 +2,7 @@ import type { ComponentType } from 'react';
 import { textRenderers } from '../blocks/text/text-renderers';
 import { voidRenderers } from '../blocks/void/void-renderers';
 import type { Extension } from '../engine';
-import type { ExtensionUI, SlashItem } from '../extensions/ui-types';
+import type { ExtensionUI, SlashItem, ToolbarItem } from '../extensions/ui-types';
 import type { BlockMenuAction } from '../gutter/block-menu-items';
 import { blockTypeSlashItems } from '../menus/slash/slash-items';
 import type { AnyBlockDefinition } from '../registry';
@@ -10,6 +10,7 @@ import type { BlockRenderer, RenderOptions, ViewController } from '../view';
 
 export type CollectedUi = {
   slashItems: readonly SlashItem[];
+  bubbleItems: readonly ToolbarItem[];
   blockMenuItems: readonly BlockMenuAction[];
   renderers: Readonly<Record<string, BlockRenderer>>;
   render: RenderOptions | undefined;
@@ -45,6 +46,7 @@ export function collectUi(extensions: readonly Extension[], definitions: AnyBloc
   const uis = extensions.map(extensionUi);
   return {
     slashItems: [...uis.flatMap((ui) => ui.slashItems ?? []), ...blockTypeSlashItems(definitions)],
+    bubbleItems: uis.flatMap((ui) => ui.bubbleItems ?? []),
     blockMenuItems: uis.flatMap((ui) => ui.blockMenuItems ?? []),
     renderers: Object.assign({}, canvasRenderers(definitions), ...uis.map((ui) => ui.renderers)),
     render: mergeRender(uis),

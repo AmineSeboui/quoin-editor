@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, type MouseEvent, type PointerEvent, type ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import type { PluginKey } from '../../engine';
 import type { SuggestionRange } from '../../extensions/ui-types';
 import { HIGHLIGHT_BAR } from '../../ui/focus';
@@ -10,6 +10,7 @@ import { TAP_TARGET_FLOOR } from '../../ui/touch-target';
 import { cn } from '../../ui/cn';
 import type { ViewController } from '../../view';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
+import { keepFocus } from '../floating/keep-focus';
 import { useRangeAnchor } from '../floating/use-range-anchor';
 import type { SuggestionSection } from './group-items';
 import type { SuggestionState } from './suggestion-plugin';
@@ -36,11 +37,6 @@ const OPTION = cn(
   TAP_TARGET_FLOOR,
 );
 
-// A press on an option would move focus out of the text. A touch moves focus only through the mouse events that follow
-// it, and WebKit drops the click of a tap whose pointerdown was cancelled, so a touch is held at mousedown instead.
-const keepFocus = (event: PointerEvent | MouseEvent) => {
-  if (!('pointerType' in event) || event.pointerType !== 'touch') event.preventDefault();
-};
 const preventDefault = (event: Event) => event.preventDefault();
 
 type OptionProps = { id: string; active: boolean; onHighlight(): void; onChoose(): void; children: ReactNode };

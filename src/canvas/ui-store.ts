@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react';
+import { createContext, useContext, useSyncExternalStore } from 'react';
 
 export type BlockMenuState = {
   blockIds: string[];
@@ -51,4 +51,15 @@ export function createCanvasUiStore(): CanvasUiStore {
 export function useCanvasUi<T>(store: CanvasUiStore, selector: (state: CanvasUiState) => T): T {
   const read = () => selector(store.get());
   return useSyncExternalStore(store.subscribe, read, read);
+}
+
+const CanvasUiContext = createContext<CanvasUiStore | null>(null);
+
+/** Hands the canvas's UI store to the overlays its extensions draw. */
+export const CanvasUiProvider = CanvasUiContext.Provider;
+
+export function useCanvasUiStore(): CanvasUiStore {
+  const store = useContext(CanvasUiContext);
+  if (store === null) throw new Error('useCanvasUiStore must be used inside a BlockCanvas.');
+  return store;
 }

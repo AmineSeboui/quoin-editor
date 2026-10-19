@@ -1,6 +1,7 @@
 import { useId, useRef, type ReactNode } from 'react';
 import type { ViewController } from '../controller/view-controller';
 import { BlockDomIdScope } from './block-dom-id';
+import { BlockPlaceholderContext, headingPlaceholder, type BlockPlaceholder } from './block-placeholder';
 import type { BlockRenderer } from './block-renderer-types';
 import { QuoinEditorContext } from './editor-context';
 import { EmptyDocumentHost } from './EmptyDocumentHost';
@@ -26,13 +27,19 @@ export type EditorViewProps = {
   selectedContentLabel?: string;
   /** The text and accessible name of a block whose type no renderer draws, in place of the English one. */
   unsupportedBlockLabel?: string;
+  /** The text of the host an empty document draws. */
   placeholder?: string;
+  /** The placeholder of each empty block, by default the name of a heading and nothing for other blocks. */
+  blockPlaceholder?: BlockPlaceholder;
+  /** What the live region says when blocks are selected, given how many it draws, in place of the English words. */
+  blocksSelectedLabel?: (count: number) => string;
   /** Controls drawn over the blocks, such as a gutter, positioned against the editor's root. */
   children?: ReactNode;
 };
 
 const NO_RENDERERS: Readonly<Record<string, BlockRenderer>> = {};
 const HINT = 'Press Escape, then Tab, to leave the editor.';
+const BLOCKS_SELECTED = (count: number) => `${count} ${count === 1 ? 'block' : 'blocks'} selected`;
 
 export function EditorView({
   controller,
@@ -45,6 +52,8 @@ export function EditorView({
   selectedContentLabel,
   unsupportedBlockLabel = UNSUPPORTED_BLOCK,
   placeholder,
+  blockPlaceholder = headingPlaceholder,
+  blocksSelectedLabel = BLOCKS_SELECTED,
   children,
 }: EditorViewProps) {
   const root = useRef<HTMLDivElement>(null);
@@ -67,7 +76,9 @@ export function EditorView({
       >
         <BlockDomIdScope.Provider value={blockIdScope}>
           <UnsupportedBlockLabel.Provider value={unsupportedBlockLabel}>
-            {blocks.length === 0 ? <EmptyDocumentHost placeholder={placeholder} label={paragraphLabel} /> : shells}
+            <BlockPlaceholderContext.Provider value={blockPlaceholder}>
+              {blocks.length === 0 ? <EmptyDocumentHost placeholder={placeholder} label={paragraphLabel} /> : shells}
+            </BlockPlaceholderContext.Provider>
           </UnsupportedBlockLabel.Provider>
         </BlockDomIdScope.Provider>
         {children}
@@ -75,7 +86,7 @@ export function EditorView({
         <div id={hintId} className="quoin-visually-hidden">
           {hint}
         </div>
-        <LiveRegion />
+        <LiveRegion blocksSelected={blocksSelectedLabel} />
         <SelectionWriter />
       </div>
     </QuoinEditorContext.Provider>

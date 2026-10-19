@@ -49,8 +49,10 @@ beforeEach(layOutRows);
 afterEach(() => vi.restoreAllMocks());
 
 describe('dragging a block by its handle', () => {
-  it('moves it to the gap nearest the pointer, says where it went and opens no menu', () => {
-    const { hover, ids } = mountRows([paragraph('a', 'one'), paragraph('b', 'two'), paragraph('c', 'three')]);
+  it('moves it to the gap nearest the pointer, says where it went once and opens no menu', () => {
+    const { handle, hover, ids } = mountRows([paragraph('a', 'one'), paragraph('b', 'two'), paragraph('c', 'three')]);
+    const said = vi.fn();
+    handle().controller.announcer.subscribe(said);
     hover('a');
     press(20, 10);
     moveTo(20, 16);
@@ -58,6 +60,7 @@ describe('dragging a block by its handle', () => {
     release(20, 90);
     expect(ids()).toEqual(['b', 'c', 'a']);
     expect(screen.getByRole('status')).toHaveTextContent('Block moved to position 3 of 3');
+    expect(said).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole('menu')).toBeNull();
   });
 
@@ -78,6 +81,7 @@ describe('dragging a block by its handle', () => {
     moveTo(68, 70);
     release(68, 70);
     expect(last()).toEqual([paragraph('a', 'one'), paragraph('l', '- item'), { ...paragraph('d', 'Delta'), indent: 1 }]);
+    expect(screen.getByRole('status')).toHaveTextContent('Block moved to position 3 of 3');
   });
 
   it('takes the nested blocks along', () => {
@@ -108,6 +112,7 @@ describe('dragging a block by its handle', () => {
     moveTo(20, 27);
     release(20, 27);
     expect(ids()).toEqual(['t', 'h', 'y', 'x']);
+    expect(screen.getByRole('status')).toHaveTextContent('Block moved to position 2 of 3');
   });
 
   it('keeps the gutter beside the dragged block while the pointer crosses others', () => {

@@ -29,6 +29,7 @@ export type BlockCanvasProps = {
   onError?: (error: Error) => void;
   readOnly?: boolean;
   autoFocus?: boolean;
+  /** The text of an empty paragraph holding the caret, or alone in the document, in place of `labels.placeholderEmpty`. */
   placeholder?: string;
   /**
    * Every string the canvas shows or speaks, English by default. A key left out stays English. Keep the object stable,

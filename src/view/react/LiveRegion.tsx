@@ -1,26 +1,17 @@
-import { useCallback, useSyncExternalStore } from 'react';
-import type { EditorState } from '../../engine';
+import { useCallback, useMemo, useSyncExternalStore } from 'react';
 import type { ViewController } from '../controller/view-controller';
-import { isCrossSelection } from '../selection/selection-decorations';
+import { selectionAnnouncement, SILENCE, type Heard } from '../selection/selection-announcement';
 import { useViewController } from './editor-context';
 
-function announcement({ doc, selection }: EditorState): string {
-  if (selection === null || (selection.kind === 'text' && !isCrossSelection(selection))) return '';
-  if (selection.kind === 'node') return '1 block selected';
-  const { anchor, head } = selection;
-  const first = doc.index.get(typeof anchor === 'string' ? anchor : anchor.block);
-  const last = doc.index.get(typeof head === 'string' ? head : head.block);
-  if (first === undefined || last === undefined) return '';
-  const count = Math.abs(first - last) + 1;
-  return `${count} ${count === 1 ? 'block' : 'blocks'} selected`;
-}
+type LiveRegionProps = { blocksSelected: (count: number) => string };
 
-function messageOf({ editor, announcer }: ViewController): string {
+function heardNow({ editor, announcer }: ViewController, blocksSelected: (count: number) => string): Heard {
   const spoken = announcer.current();
-  return spoken !== null && spoken.state === editor.state ? spoken.message : announcement(editor.state);
+  if (spoken !== null && spoken.state === editor.state) return { key: `said:${spoken.serial}`, message: spoken.message };
+  return selectionAnnouncement(editor.state, blocksSelected);
 }
 
-export function LiveRegion() {
+export function LiveRegion({ blocksSelected }: LiveRegionProps) {
   const controller = useViewController();
   const subscribe = useCallback(
     (notify: () => void) => {
@@ -33,11 +24,19 @@ export function LiveRegion() {
     },
     [controller],
   );
-  const read = useCallback(() => messageOf(controller), [controller]);
-  const message = useSyncExternalStore(subscribe, read, read);
+  const read = useMemo(() => {
+    let last = SILENCE;
+    return () => {
+      const next = heardNow(controller, blocksSelected);
+      if (next.key !== last.key || next.message !== last.message) last = next;
+      return last;
+    };
+  }, [controller, blocksSelected]);
+  const { key, message } = useSyncExternalStore(subscribe, read, read);
+  // Each announcement is a new node, which a screen reader reads out even when its words are the ones it just said.
   return (
     <div className="quoin-visually-hidden" role="status" aria-live="polite" aria-atomic="true">
-      {message}
+      {message !== '' && <span key={key}>{message}</span>}
     </div>
   );
 }

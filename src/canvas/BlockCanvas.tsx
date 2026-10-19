@@ -14,15 +14,18 @@ import { resolveLabels } from '../i18n/labels';
 import { bubbleExtension, BubbleItemsProvider } from '../menus/bubble/bubble-extension';
 import { linkExtension } from '../menus/link/link-extension';
 import { slashExtension, SlashItemsProvider } from '../menus/slash/slash-extension';
+import { shortcutsExtension, shortcutsSlashItem } from '../shortcuts/shortcuts-extension';
 import { cn } from '../ui/cn';
-import { EditorView, useQuoinEditor } from '../view';
+import { EditorView, useQuoinEditor, type BlockPlaceholder } from '../view';
 import { defaultBlockLink } from './block-link';
 import type { BlockCanvasProps, QuoinEditorHandle } from './canvas-props';
 import { collectUi } from './collect-ui';
 import { insertUploads } from './insert-uploads';
+import { placeholderFor } from './placeholders';
 import { CanvasUiProvider, createCanvasUiStore } from './ui-store';
 import { useBlockLinkTarget } from './use-block-link-target';
 import { useDeleteReporter } from './use-delete-reporter';
+import { useStructureAnnouncements } from './use-structure-announcements';
 
 // Room at the start of every line for the gutter, whose controls grow to 44 px squares on a touch screen.
 const GUTTER_ROOM = 'ps-12 pointer-coarse:ps-24';
@@ -57,6 +60,7 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
     slashExtension(),
     bubbleExtension(),
     linkExtension(uiStore),
+    shortcutsExtension(uiStore),
     ...(extensions ?? []),
   ]);
   const labels = useMemo(() => resolveLabels(labelOverrides), [labelOverrides]);
@@ -72,10 +76,19 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
   });
   useDeleteReporter(controller, onDelete);
   useBlockLinkTarget(controller, focusOnMount);
+  useStructureAnnouncements(controller, labels);
   const actions = useMemo(() => {
-    const onCopied = () => controller.announcer.announce(labels.copied);
+    const onCopied = () => controller.announce(labels.copied);
     return menuActions(coreBlockMenuActions(labels, { blockLink, onCopied, resolveAssetUrl }), ui.blockMenuItems);
   }, [controller, labels, blockLink, resolveAssetUrl, ui.blockMenuItems]);
+  const slashItems = useMemo(
+    () => [shortcutsSlashItem(labels, uiStore), ...ui.slashItems],
+    [labels, uiStore, ui.slashItems],
+  );
+  const blockPlaceholder = useMemo<BlockPlaceholder>(() => {
+    const placeholderLabels = placeholder === undefined ? labels : { ...labels, placeholderEmpty: placeholder };
+    return (state, block) => placeholderFor(state, block, placeholderLabels);
+  }, [labels, placeholder]);
 
   useImperativeHandle(
     ref,
@@ -91,7 +104,7 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
   return (
     <QuoinProvider value={{ blockTypes, upload, resolveAssetUrl, onError, controller, labels }}>
       <VoidEditingContext.Provider value={voidEditing}>
-        <SlashItemsProvider value={ui.slashItems}>
+        <SlashItemsProvider value={slashItems}>
           <BubbleItemsProvider value={ui.bubbleItems}>
             <CanvasUiProvider value={uiStore}>
               <EditorView
@@ -104,7 +117,9 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
                 paragraphLabel={labels.paragraph}
                 selectedContentLabel={labels.selectedContent}
                 unsupportedBlockLabel={labels.unsupportedBlock}
-                placeholder={placeholder}
+                placeholder={placeholder ?? labels.placeholderEmpty}
+                blockPlaceholder={blockPlaceholder}
+                blocksSelectedLabel={labels.blocksSelected}
               >
                 {!readOnly && <Gutter controller={controller} store={uiStore} actions={actions} />}
                 {!readOnly && <BlockContextMenu controller={controller} store={uiStore} actions={actions} />}

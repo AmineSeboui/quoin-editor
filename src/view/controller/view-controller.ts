@@ -183,6 +183,10 @@ export class ViewController {
     return command(this.editor.state, (tr) => this.dispatch(tr));
   }
 
+  announce(message: string): void {
+    this.announcer.announce(message);
+  }
+
   renderHost(block: string, region: string): void {
     const element = this.registry.get(block, region);
     const host = element && { block, region, element };

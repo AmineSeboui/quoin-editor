@@ -20,7 +20,7 @@ export type HandlePress = {
   x: number;
   y: number;
   onDragStart(): void;
-  onMoved(position: number, total: number): void;
+  onMoved(blockId: string): void;
 };
 
 type ActiveDrag = { ids: string[]; layout: DragLayout; target: DropTarget | null };
@@ -95,8 +95,7 @@ function followPress(press: HandlePress, root: HTMLElement, view: Window): () =>
     const { ids, layout, target } = dropped;
     if (!controller.run(moveBlocksTo(ids, layout.toIndex(target.index), target.indent))) return;
     controller.focus();
-    const moved = controller.editor.state.doc;
-    press.onMoved((moved.index.get(ids[0]) ?? 0) + 1, moved.blocks.length);
+    press.onMoved(ids[0]);
   }
 
   function onPointerMove(event: PointerEvent): void {

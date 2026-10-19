@@ -31,12 +31,7 @@ function Heading({ block }: Pick<BlockRenderProps, 'block'>) {
   const level = headingLevel(block.attrs.level);
   return (
     <div role="heading" aria-level={level} className={headingStyles({ level })}>
-      <EditableRegion
-        block={block.id}
-        region={REGION}
-        label={labels.heading(level)}
-        placeholder={labels.placeholderHeading(level)}
-      />
+      <EditableRegion block={block.id} region={REGION} label={labels.heading(level)} />
     </div>
   );
 }

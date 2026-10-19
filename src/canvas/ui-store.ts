@@ -14,6 +14,7 @@ export type CanvasUiState = {
   blockMenu: BlockMenuState | null;
   drag: { blockIds: string[]; targetIndex: number; targetIndent: number } | null;
   linkPopover: { open: boolean };
+  shortcutsOpen: boolean;
 };
 
 export type CanvasUiStore = {
@@ -27,6 +28,7 @@ const INITIAL: CanvasUiState = {
   blockMenu: null,
   drag: null,
   linkPopover: { open: false },
+  shortcutsOpen: false,
 };
 
 export function createCanvasUiStore(): CanvasUiStore {

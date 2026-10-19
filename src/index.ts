@@ -19,6 +19,7 @@ export { englishLabels, resolveLabels, type QuoinLabels } from './i18n/labels';
 export type { ExtensionUI, SlashGroup, SlashItem, SuggestionRange, ToolbarItem } from './extensions/ui-types';
 export type { BlockMenuAction } from './gutter/block-menu-items';
 export { useLabels } from './i18n/use-labels';
+export { formatShortcut, type ShortcutPlatform } from './shortcuts/format-shortcut';
 export {
   useAutosave,
   type AutosaveStatus,

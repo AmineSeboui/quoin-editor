@@ -8,6 +8,7 @@ describe('createCanvasUiStore', () => {
       blockMenu: null,
       drag: null,
       linkPopover: { open: false },
+      shortcutsOpen: false,
     });
   });
 

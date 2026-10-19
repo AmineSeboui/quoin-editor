@@ -23,6 +23,22 @@ export type SlashBlockCommand = BlockName | 'heading1' | 'heading2' | 'heading3'
 
 export type ModifierKey = 'ctrl' | 'alt' | 'shift';
 
+export type ShortcutGroupName = 'text' | 'blocks' | 'selection' | 'navigation' | 'menus';
+
+/** The rows of the keyboard shortcuts dialog that no other label names. */
+export type ShortcutName =
+  | 'lineBreak'
+  | 'flipBlock'
+  | 'selectBlock'
+  | 'selectAll'
+  | 'extendUp'
+  | 'extendDown'
+  | 'lineUp'
+  | 'lineDown'
+  | 'leaveEditor'
+  | 'blockMenu'
+  | 'closeMenu';
+
 /** Every string the editor shows or speaks. A label that depends on a value is a function of it. */
 export type QuoinLabels = {
   document: string;
@@ -94,10 +110,15 @@ export type QuoinLabels = {
   invalidLink: string;
   colors: Record<PaletteName, string>;
   blockMoved: (position: number, total: number) => string;
-  blockDeleted: string;
+  blockDeleted: (n: number) => string;
   blocksSelected: (n: number) => string;
-  undoHint: string;
+  /** How to bring deleted blocks back, given the platform's undo shortcut. */
+  undoHint: (shortcut: string) => string;
   shortcuts: string;
+  shortcutGroupNames: Record<ShortcutGroupName, string>;
+  shortcutNames: Record<ShortcutName, string>;
+  /** Two keys pressed one after the other. */
+  keySequence: (first: string, then: string) => string;
   /** The modifier keys a shortcut hint names away from a Mac, where it draws their symbols instead. */
   keyNames: Record<ModifierKey, string>;
   formattingToolbar: string;
@@ -226,10 +247,25 @@ export const englishLabels: QuoinLabels = {
     red: 'Red',
   },
   blockMoved: (position, total) => `Block moved to position ${position} of ${total}`,
-  blockDeleted: 'Block deleted',
+  blockDeleted: (n) => (n === 1 ? 'Block deleted' : `${n} blocks deleted`),
   blocksSelected: (n) => `${n} ${n === 1 ? 'block' : 'blocks'} selected`,
-  undoHint: 'Undo to bring it back',
+  undoHint: (shortcut) => `Press ${shortcut} to undo`,
   shortcuts: 'Keyboard shortcuts',
+  shortcutGroupNames: { text: 'Text', blocks: 'Blocks', selection: 'Selection', navigation: 'Navigation', menus: 'Menus' },
+  shortcutNames: {
+    lineBreak: 'Line break',
+    flipBlock: 'Check a task or open a toggle',
+    selectBlock: 'Select the block',
+    selectAll: 'Select all',
+    extendUp: 'Extend the selection up',
+    extendDown: 'Extend the selection down',
+    lineUp: 'Previous line',
+    lineDown: 'Next line',
+    leaveEditor: 'Leave the editor',
+    blockMenu: 'Block menu',
+    closeMenu: 'Close a menu',
+  },
+  keySequence: (first, then) => `${first}, then ${then}`,
   keyNames: { ctrl: 'Ctrl', alt: 'Alt', shift: 'Shift' },
   formattingToolbar: 'Text formatting',
   mobileToolbar: 'Editing tools',

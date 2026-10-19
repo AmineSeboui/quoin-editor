@@ -93,7 +93,7 @@ export function useSuggestion<T>({
   const resultMessage = count === 0 ? emptyLabel : labels.resultCount(count);
   useEffect(() => {
     if (query === null || results.pending) return;
-    const timer = setTimeout(() => controller.announcer.announce(resultMessage), SETTLE_MS);
+    const timer = setTimeout(() => controller.announce(resultMessage), SETTLE_MS);
     return () => clearTimeout(timer);
   }, [controller, query, resultMessage, results.pending]);
 

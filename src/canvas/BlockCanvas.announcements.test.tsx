@@ -1,0 +1,88 @@
+import { act, fireEvent, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { mountCanvas, paragraph } from '../blocks/void/test-canvas';
+import { blockRangeSelection } from '../engine';
+import type { QuoinBlock } from '../types';
+
+const divider = (id: string): QuoinBlock => ({ id, type: 'DIVIDER', data: {} });
+const closedToggle = (id: string): QuoinBlock => ({ id, type: 'TOGGLE', data: { markdown: 'Summary', open: false } });
+const nested = (id: string, markdown: string): QuoinBlock => ({ ...paragraph(id, markdown), indent: 1 });
+
+const status = () => screen.getByRole('status');
+
+function setup(blocks: QuoinBlock[]) {
+  const canvas = mountCanvas(blocks);
+  const caret = (block: string, offset = 0) => act(() => canvas.handle().focus({ block, region: 'text', offset }));
+  const key = (init: KeyboardEventInit) => act(() => void fireEvent.keyDown(document.activeElement!, init));
+  return { ...canvas, caret, key };
+}
+
+afterEach(() => vi.restoreAllMocks());
+
+describe('the canvas announces a block move', () => {
+  it('made with Mod+Shift+ArrowDown, with the final position', () => {
+    const { caret, key } = setup([paragraph('a', 'one'), paragraph('b', 'two'), paragraph('c', 'three')]);
+    caret('a');
+    key({ key: 'ArrowDown', ctrlKey: true, shiftKey: true });
+    expect(status()).toHaveTextContent('Block moved to position 2 of 3');
+  });
+
+  it('counting only the blocks it draws', () => {
+    const blocks = [paragraph('a', 'one'), closedToggle('g'), nested('h', 'hidden'), paragraph('c', 'three')];
+    const { caret, key, handle } = setup(blocks);
+    caret('a');
+    key({ key: 'ArrowDown', ctrlKey: true, shiftKey: true });
+    expect(handle().editor.getBlocks().map((block) => block.id)).toEqual(['g', 'h', 'a', 'c']);
+    expect(status()).toHaveTextContent('Block moved to position 2 of 3');
+  });
+
+  it('made from the block menu', async () => {
+    const user = userEvent.setup();
+    const { caret, key } = setup([paragraph('a', 'one'), paragraph('b', 'two')]);
+    caret('b');
+    key({ key: '/', ctrlKey: true });
+    await user.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Move up' }));
+    expect(status()).toHaveTextContent('Block moved to position 1 of 2');
+  });
+});
+
+describe('the canvas announces a block deletion with the way to undo it', () => {
+  it('from the block menu', async () => {
+    const user = userEvent.setup();
+    const { caret, key } = setup([paragraph('a', 'one'), paragraph('b', 'two')]);
+    caret('b');
+    key({ key: '/', ctrlKey: true });
+    await user.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Delete' }));
+    expect(status()).toHaveTextContent('Block deleted. Press Ctrl+Z to undo');
+  });
+
+  it('of a node-selected block, naming the shortcut of a Mac there', () => {
+    vi.spyOn(navigator, 'platform', 'get').mockReturnValue('MacIntel');
+    const { nodeSelect, key } = setup([paragraph('a', 'one'), divider('d'), paragraph('b', 'two')]);
+    nodeSelect('d');
+    key({ key: 'Backspace' });
+    expect(status()).toHaveTextContent('Block deleted. Press \u2318Z to undo');
+  });
+
+  it('counting the drawn blocks a block range takes with it', () => {
+    const blocks = [paragraph('a', 'one'), closedToggle('g'), nested('h', 'hidden'), paragraph('b', 'two'), paragraph('c', 'three')];
+    const { handle, key } = setup(blocks);
+    act(() => {
+      const { controller } = handle();
+      controller.dispatch(controller.editor.createTransaction().setSelection(blockRangeSelection('g', 'b')));
+      handle().focus();
+    });
+    key({ key: 'Backspace' });
+    expect(handle().editor.getBlocks().map((block) => block.id)).toEqual(['a', 'c']);
+    expect(status()).toHaveTextContent('2 blocks deleted. Press Ctrl+Z to undo');
+  });
+
+  it('but says nothing when Backspace joins a line to the one above', () => {
+    const { caret, key, handle } = setup([paragraph('a', 'one'), paragraph('b', 'two')]);
+    caret('b');
+    key({ key: 'Backspace' });
+    expect(handle().editor.getBlocks()).toHaveLength(1);
+    expect(status()).toBeEmptyDOMElement();
+  });
+});

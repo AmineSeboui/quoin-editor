@@ -6,10 +6,10 @@ import { useOrderedNumber } from './use-ordered-number';
 
 const REGION = 'text';
 
-type TextRegionProps = { block: BlockRenderProps['block']; label: string; placeholder?: string };
+type TextRegionProps = { block: BlockRenderProps['block']; label: string };
 
-function TextRegion({ block, label, placeholder }: TextRegionProps) {
-  return <EditableRegion block={block.id} region={REGION} label={label} placeholder={placeholder} />;
+function TextRegion({ block, label }: TextRegionProps) {
+  return <EditableRegion block={block.id} region={REGION} label={label} />;
 }
 
 function NumberedItem({ block, controller }: BlockRenderProps) {
@@ -29,7 +29,7 @@ export const MarkdownBlock: BlockRenderer = (props) => {
       const level = headingLevel(block.attrs.level);
       return (
         <div role="heading" aria-level={level} className="quoin-heading">
-          <TextRegion block={block} label={`Heading ${level}`} placeholder={`Heading ${level}`} />
+          <TextRegion block={block} label={`Heading ${level}`} />
         </div>
       );
     }

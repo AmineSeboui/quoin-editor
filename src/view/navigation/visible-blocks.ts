@@ -20,3 +20,11 @@ export const hidingToggleAt = (doc: EngineDoc, index: number): number | null => 
 
 export const visibleBlockIndexes = (doc: EngineDoc): number[] =>
   hidersOf(doc).flatMap((hider, index) => (hider === null ? [index] : []));
+
+/** How many of the blocks from `start` up to, not including, `end` are drawn. */
+export function drawnBlockCount(doc: EngineDoc, start = 0, end = doc.blocks.length): number {
+  const hiders = hidersOf(doc);
+  let drawn = 0;
+  for (let index = Math.max(0, start); index < Math.min(end, hiders.length); index++) if (hiders[index] === null) drawn++;
+  return drawn;
+}

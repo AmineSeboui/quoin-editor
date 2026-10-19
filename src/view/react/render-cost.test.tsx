@@ -3,13 +3,14 @@ import { act, render } from '@testing-library/react';
 import type { KeyLike } from '../../engine/extension/keymap';
 import { moveBlocksDown, moveBlocksUp } from '../../engine/commands/block-structure';
 import type { ViewController } from '../controller/view-controller';
+import type { BlockPlaceholder } from './block-placeholder';
 import type { BlockRenderer } from './block-renderer-types';
 import { MarkdownBlock } from './markdown-block';
 import { Editor, md } from './test-harness';
 
 const key = (name: string): KeyLike => ({ key: name, altKey: false, ctrlKey: false, metaKey: false, shiftKey: false });
 
-function mount(blocks: ReturnType<typeof md>[]) {
+function mount(blocks: ReturnType<typeof md>[], blockPlaceholder?: BlockPlaceholder) {
   const rendered: string[] = [];
   const Counting: BlockRenderer = (props) => {
     rendered.push(props.block.id);
@@ -19,7 +20,7 @@ function mount(blocks: ReturnType<typeof md>[]) {
   const result = render(
     <Editor
       options={{ blocks, onChange: () => {} }}
-      view={{ renderers: { MARKDOWN: Counting } }}
+      view={{ renderers: { MARKDOWN: Counting }, blockPlaceholder }}
       onController={(c) => (controller = c)}
     />,
   );
@@ -71,6 +72,21 @@ describe('a structural edit near the top of a 1,000 block document', () => {
     rendered.length = 0;
     press('Backspace');
     expect(rendered).toEqual([]);
+  });
+});
+
+describe('a placeholder that follows the caret', () => {
+  it('moves from one empty paragraph to another without rendering any block again', () => {
+    const empty = Array.from({ length: 200 }, (_, i) => md(`p${i}`, ''));
+    const { controller, rendered, caret } = mount(empty, (state, block) =>
+      state.selection?.kind === 'text' && state.selection.head.block === block.id ? 'Type here' : undefined,
+    );
+    caret('p0', 0);
+    rendered.length = 0;
+    caret('p150', 0);
+    expect(rendered).toEqual([]);
+    const placed = controller.root!.querySelectorAll('[data-placeholder]');
+    expect(Array.from(placed, (host) => host.closest('[data-block-id]')!.getAttribute('data-block-id'))).toEqual(['p150']);
   });
 });
 

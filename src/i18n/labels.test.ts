@@ -5,6 +5,8 @@ const KEYS = Object.keys(englishLabels) as (keyof QuoinLabels)[];
 const NAMED_ARGUMENTS: Partial<Record<keyof QuoinLabels, unknown[]>> = {
   callout: ['Warning'],
   calloutToneMenu: ['Warning'],
+  undoHint: ['Ctrl+Z'],
+  keySequence: ['Escape', 'Tab'],
 };
 
 function sampleText(key: keyof QuoinLabels): string[] {
@@ -113,6 +115,36 @@ describe('englishLabels', () => {
     expect(Object.keys(englishLabels.slashDescriptions).sort()).toEqual(
       [...Object.keys(englishLabels.blockNames), 'heading1', 'heading2', 'heading3'].sort(),
     );
+  });
+
+  it('says how many blocks were deleted and how to bring them back', () => {
+    expect(englishLabels.blockDeleted(1)).toBe('Block deleted');
+    expect(englishLabels.blockDeleted(3)).toBe('3 blocks deleted');
+    expect(englishLabels.undoHint('Ctrl+Z')).toBe('Press Ctrl+Z to undo');
+  });
+
+  it('names the groups and the rows of the keyboard shortcuts dialog, and a key pressed after another', () => {
+    expect(englishLabels.shortcutGroupNames).toEqual({
+      text: 'Text',
+      blocks: 'Blocks',
+      selection: 'Selection',
+      navigation: 'Navigation',
+      menus: 'Menus',
+    });
+    expect(englishLabels.shortcutNames).toEqual({
+      lineBreak: 'Line break',
+      flipBlock: 'Check a task or open a toggle',
+      selectBlock: 'Select the block',
+      selectAll: 'Select all',
+      extendUp: 'Extend the selection up',
+      extendDown: 'Extend the selection down',
+      lineUp: 'Previous line',
+      lineDown: 'Next line',
+      leaveEditor: 'Leave the editor',
+      blockMenu: 'Block menu',
+      closeMenu: 'Close a menu',
+    });
+    expect(englishLabels.keySequence('Escape', 'Tab')).toBe('Escape, then Tab');
   });
 
   it('names the modifier keys of a shortcut hint', () => {

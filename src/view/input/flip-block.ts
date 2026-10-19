@@ -30,6 +30,6 @@ export function flipSelectedBlock(controller: ViewController): boolean {
   const command = block && flipCommand(block);
   if (!block || !command || !controller.run(command)) return false;
   const after = blockById(editor.state.doc, block.id);
-  if (after) controller.announcer.announce(stateName(after));
+  if (after) controller.announce(stateName(after));
   return true;
 }

@@ -21,6 +21,10 @@ describe('the main entry', () => {
     expect(main.useLabels).toBeTypeOf('function');
   });
 
+  it('keeps formatShortcut, the utility that writes a shortcut the way the platform does', () => {
+    expect(main.formatShortcut('mod+b', { isMac: false })).toBe('Ctrl+B');
+  });
+
   it('still exports the editor surface alongside them', () => {
     expect(main.BlockCanvas).toBeDefined();
     expect(main.coreBlocks.length).toBeGreaterThan(0);
@@ -40,7 +44,6 @@ describe('the main entry', () => {
       'linkPaste',
       'insertCommand',
       'shouldOpenPalette',
-      'formatShortcut',
       'caretRect',
       'useMarkdownKeymap',
     ];

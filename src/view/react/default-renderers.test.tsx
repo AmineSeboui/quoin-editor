@@ -83,9 +83,11 @@ describe('default renderers', () => {
     expect(controller.editor.getBlocks()[1].data.markdown).toBe('- [ ] job');
   });
 
-  it('does not toggle a task while read-only', () => {
+  it('does not toggle a task while read-only, and says the task is read-only', () => {
     const { controller } = mount([md('b', '- [ ] job')], { readOnly: true });
-    act(() => screen.getByRole('checkbox', { name: 'Task' }).click());
+    const box = screen.getByRole('checkbox', { name: 'Task' });
+    expect(box).toHaveAttribute('aria-readonly', 'true');
+    act(() => box.click());
     expect(controller.editor.getBlocks()[0].data.markdown).toBe('- [ ] job');
   });
 

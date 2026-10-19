@@ -2,17 +2,20 @@ import { flipCommand } from '../input/flip-block';
 import { onBlock } from './block-command';
 import type { BlockRenderProps } from './block-renderer-types';
 import { keepFocus } from './prevent-mouse-focus';
+import { useReadOnly } from './use-read-only';
 
 type TaskCheckboxProps = Pick<BlockRenderProps, 'block' | 'controller'> & { label?: string };
 
 export function TaskCheckbox({ block, controller, label = 'Task' }: TaskCheckboxProps) {
   const checked = block.attrs.checked === true;
   const flip = flipCommand(block);
+  const readOnly = useReadOnly(controller);
   return (
     <button
       type="button"
       role="checkbox"
       aria-checked={checked}
+      aria-readonly={readOnly ? 'true' : undefined}
       aria-label={label}
       className="quoin-task-box"
       contentEditable={false}

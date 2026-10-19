@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import tsupConfig from '../tsup.config';
 import { directiveFiles, packageExports, specifier, tsupEntries } from './entry-outputs.mjs';
-import { featureEntries, packageEntries } from './package-entries.mjs';
+import { featureEntries, incrementalBudget, packageEntries } from './package-entries.mjs';
 
 const entries = [
   { name: 'index', source: 'src/index.ts', client: true, total: 1_000 },
@@ -59,6 +59,13 @@ describe('the package entry list', () => {
       ['headless', 70_000],
       ['engine', 52_000],
     ]);
+  });
+
+  it('sets an incremental budget at the measure plus 4 percent, and never less than 256 B above it', () => {
+    expect(incrementalBudget(70)).toBe(326);
+    expect(incrementalBudget(6_400)).toBe(6_656);
+    expect(incrementalBudget(10_000)).toBe(10_400);
+    expect(incrementalBudget(9_999)).toBe(10_399);
   });
 
   it('publishes every feature, then the catalogue, as client entries held to what they add to the main entry', () => {

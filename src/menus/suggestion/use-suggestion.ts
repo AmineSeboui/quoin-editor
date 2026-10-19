@@ -17,6 +17,7 @@ const SETTLE_MS = 150;
 export type SuggestionOptions<T> = {
   controller: ViewController;
   pluginKey: PluginKey<SuggestionState>;
+  /** Asked again whenever it changes, so a caller keeps it stable across renders. */
   items: SuggestionSource<T>;
   itemKey(item: T): string;
   groupOf?(item: T): string | null;

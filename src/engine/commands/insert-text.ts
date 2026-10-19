@@ -30,15 +30,15 @@ function replaceBlocksWithText(
 }
 
 /**
- * Inserts `value` at the selection, in place of any selected text or blocks, as a command an extension can return. Undo
- * treats it as typing unless `options.origin` gives another origin.
+ * Inserts `value` at the selection, in place of any selected text or blocks, as a command an extension can return. It is
+ * an undo step of its own unless `options.origin` is `input`, which groups it with the typing around it.
  */
 export function insertText(value: string, options: InsertTextOptions = {}): Command {
   const makeId = options.newId ?? newId;
   return (state, dispatch) => {
     if (value === '') return false;
     const { doc, schema, selection } = state;
-    const tr = new Transaction(state).setOrigin(options.origin ?? 'input');
+    const tr = new Transaction(state).setOrigin(options.origin ?? 'command');
     if (selection?.kind === 'text') {
       const { from, to } = orderedRange(doc, selection.anchor, selection.head);
       const caret = deleteRange(tr, schema, from, to, makeId);

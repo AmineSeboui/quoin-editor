@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { inlineText } from '../model/inline';
 import { buildState, caretOf, markdownOf, newIds, run } from '../test-support/build-state';
+import { caret, md, startEditor } from '../test-support/editor-fixtures';
 import { DIVIDER_FIXTURE } from '../test-support/fixtures';
 import { insertText } from './insert-text';
 import { applyTransaction } from '../state/editor-state';
@@ -71,10 +72,25 @@ describe('insertText', () => {
     expect(markdownOf(run(state, insertText('X')).state)).toEqual(['a**bXd**e']);
   });
 
-  it('uses the origin it was given, input by default', () => {
+  it('uses the origin it was given, command by default', () => {
     const state = buildState(['a'], { block: 0, offset: 1 });
-    expect(run(state, insertText('b')).tr?.origin).toBe('input');
-    expect(run(state, insertText('b', { origin: 'paste' })).tr?.origin).toBe('paste');
+    expect(run(state, insertText('b')).tr?.origin).toBe('command');
+    expect(run(state, insertText('b', { origin: 'input' })).tr?.origin).toBe('input');
+  });
+
+  it('is an undo step of its own next to typed text, while typed text through it groups', () => {
+    const { editor } = startEditor([md('a', '')]);
+    editor.commands.setSelection(caret('a', 0));
+    editor.insertText('a');
+    editor.insertText('b');
+    insertText('X')(editor.state, (tr) => editor.dispatch(tr));
+    insertText('c', { origin: 'input' })(editor.state, (tr) => editor.dispatch(tr));
+    editor.commands.undo();
+    expect(editor.getBlocks()).toEqual([md('a', 'abX')]);
+    editor.commands.undo();
+    expect(editor.getBlocks()).toEqual([md('a', 'ab')]);
+    editor.commands.undo();
+    expect(editor.getBlocks()).toEqual([md('a', '')]);
   });
 
   it('counts the inserted text in UTF-16 units for the caret', () => {

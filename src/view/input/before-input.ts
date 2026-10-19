@@ -56,7 +56,7 @@ function insertReplacementText(controller: ViewController, event: InputEvent): v
   const text = event.dataTransfer?.getData('text/plain') || event.data;
   if (!text) return;
   const range = targetRangeToModel(controller, event);
-  if (range === null) controller.run(insertText(text));
+  if (range === null) controller.run(insertText(text, { origin: 'input' }));
   else controller.edit(() => replaceRange(controller.editor, range, text, false));
 }
 

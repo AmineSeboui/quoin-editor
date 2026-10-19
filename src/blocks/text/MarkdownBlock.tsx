@@ -3,6 +3,7 @@
 import { cva } from 'class-variance-authority';
 import { useLabels } from '../../i18n/use-labels';
 import { EditableRegion, type BlockRenderProps, type BlockRenderer } from '../../view';
+import { useRegionDomId } from '../../view/react/block-dom-id';
 import { headingLevel } from '../../view/react/heading-level';
 import { useOrderedNumber } from '../../view/react/use-ordered-number';
 import { ListMarker } from './ListMarker';
@@ -47,8 +48,19 @@ function NumberedItem({ block, controller }: BlockRenderProps) {
   );
 }
 
+function TaskItem({ block, controller }: BlockRenderProps) {
+  const labels = useLabels();
+  const hostId = useRegionDomId(block.id, REGION);
+  return (
+    <div className="quoin-task" data-checked={block.attrs.checked === true}>
+      <TaskCheckbox block={block} controller={controller} labelledBy={hostId} />
+      <EditableRegion id={hostId} block={block.id} region={REGION} label={labels.task} />
+    </div>
+  );
+}
+
 export const MarkdownBlock: BlockRenderer = (props) => {
-  const { block, controller } = props;
+  const { block } = props;
   const labels = useLabels();
   switch (block.attrs.kind) {
     case 'heading':
@@ -63,12 +75,7 @@ export const MarkdownBlock: BlockRenderer = (props) => {
     case 'ordered':
       return <NumberedItem {...props} />;
     case 'task':
-      return (
-        <div className="quoin-task" data-checked={block.attrs.checked === true}>
-          <TaskCheckbox block={block} controller={controller} />
-          <EditableRegion block={block.id} region={REGION} label={labels.task} />
-        </div>
-      );
+      return <TaskItem {...props} />;
     case 'quote':
       return (
         <div className="quoin-quote">

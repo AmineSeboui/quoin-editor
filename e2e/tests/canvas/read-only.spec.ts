@@ -42,7 +42,7 @@ test('renders the formatted document with no editable host, gutter or block cont
 
 test('a click on the task box leaves it as it is, and the box says it is read-only', async ({ page }) => {
   await openReadOnly(page);
-  const box = page.getByRole('checkbox', { name: 'Task' });
+  const box = page.getByRole('checkbox', { name: 'Ship it' });
   await expect(box).toHaveAttribute('aria-readonly', 'true');
   await box.click();
   await settle(page);

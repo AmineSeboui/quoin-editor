@@ -95,6 +95,16 @@ for (const control of ['Callout tone: Warning', 'Callout icon']) {
   });
 }
 
+test('a task checkbox is named by the text of its task, and by its kind while the task is empty', async ({ page }) => {
+  await openEditor(page, 'text');
+  const box = shell(page, 'k').getByRole('checkbox');
+  await expect(box).toHaveAccessibleName('Done');
+  await shell(page, 'k').locator('[data-quoin-host]').click();
+  await page.keyboard.press('End');
+  for (let n = 0; n < 'Done'.length; n++) await page.keyboard.press('Backspace');
+  await expect(box).toHaveAccessibleName('Task');
+});
+
 test('a divider is node-selected by a click', async ({ page }) => {
   await openEditor(page, 'text');
   await page.getByRole('separator').click();

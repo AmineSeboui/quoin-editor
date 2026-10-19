@@ -13,6 +13,8 @@ export type EditableRegionProps = {
   block: string;
   region: string;
   label: string;
+  /** An id for the host, for a control that the host's text names. */
+  id?: string;
   placeholder?: string;
   className?: string;
 };
@@ -26,7 +28,7 @@ type Painted = {
 const samePainted = (a: Painted, b: Painted): boolean =>
   a.inline === b.inline && a.placeholder === b.placeholder && sameDecorations(a.decorations, b.decorations);
 
-export function EditableRegion({ block, region, label, placeholder, className }: EditableRegionProps) {
+export function EditableRegion({ block, region, label, id, placeholder, className }: EditableRegionProps) {
   const controller = useViewController();
   const placeholderOf = useContext(BlockPlaceholderContext);
   const ref = useRef<HTMLDivElement>(null);
@@ -57,6 +59,7 @@ export function EditableRegion({ block, region, label, placeholder, className }:
   return (
     <div
       ref={ref}
+      id={id}
       className={className}
       contentEditable={!readOnly}
       suppressContentEditableWarning

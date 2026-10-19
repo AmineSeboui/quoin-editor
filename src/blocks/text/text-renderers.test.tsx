@@ -55,6 +55,14 @@ describe('a markdown block in the canvas', () => {
     expect(shell('t').querySelector('.quoin-task')).toHaveAttribute('data-checked', 'true');
   });
 
+  it('names a task checkbox after the host that holds the task', () => {
+    const { shell } = mountCanvas([md('t', '- [ ] Buy milk')]);
+    const host = shell('t').querySelector<HTMLElement>('[data-quoin-host]')!;
+    expect(host.id).not.toBe('');
+    expect(screen.getByRole('checkbox')).toHaveAttribute('aria-labelledby', host.id);
+    expect(screen.getByRole('checkbox')).toHaveAttribute('aria-label', 'Task');
+  });
+
   it('names every host and control in the words the canvas labels give', () => {
     const labels = {
       paragraph: 'Paragraphe',

@@ -8,3 +8,8 @@ export function useBlockDomId(): (block: string) => string {
   const scope = useContext(BlockDomIdScope);
   return useCallback((block: string) => `${scope}-${encodeURIComponent(block)}`, [scope]);
 }
+
+/** The id of the host of a block's region, which can never be the id of a block: an encoded block id has no slash. */
+export function useRegionDomId(block: string, region: string): string {
+  return `${useBlockDomId()(block)}/${encodeURIComponent(region)}`;
+}

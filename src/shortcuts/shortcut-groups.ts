@@ -51,6 +51,8 @@ export function shortcutGroups(labels: QuoinLabels, isMac: boolean): ShortcutGro
       title: titles.selection,
       items: [
         row(names.selectBlock, 'Escape'),
+        row(names.openBlockEditor, 'Enter'),
+        row(names.leaveBlockEditor, 'Escape'),
         row(names.selectAll, 'Mod-a'),
         row(names.extendUp, 'Shift-ArrowUp'),
         row(names.extendDown, 'Shift-ArrowDown'),

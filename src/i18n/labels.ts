@@ -33,6 +33,8 @@ export type ShortcutName =
   | 'lineBreak'
   | 'flipBlock'
   | 'selectBlock'
+  | 'openBlockEditor'
+  | 'leaveBlockEditor'
   | 'selectAll'
   | 'extendUp'
   | 'extendDown'

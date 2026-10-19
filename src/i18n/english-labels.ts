@@ -124,6 +124,8 @@ export const englishLabels: QuoinLabels = {
     lineBreak: 'Line break',
     flipBlock: 'Check a task or open a toggle',
     selectBlock: 'Select the block',
+    openBlockEditor: "Open the selected block's editor",
+    leaveBlockEditor: "Leave a block's editor",
     selectAll: 'Select all',
     extendUp: 'Extend the selection up',
     extendDown: 'Extend the selection down',

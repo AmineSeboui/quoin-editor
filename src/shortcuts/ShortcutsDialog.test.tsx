@@ -65,6 +65,16 @@ describe('the keyboard shortcuts dialog', () => {
     expect(rows('Menus')).toMatchObject({ Commands: '/', 'Keyboard shortcuts': 'Ctrl+Shift+/' });
   });
 
+  it('lists how to open the editor of a selected block and how to leave it', () => {
+    const { press } = openCanvas();
+    press({ key: '/', ctrlKey: true, shiftKey: true });
+    expect(rows('Selection')).toMatchObject({
+      'Select the block': 'Escape',
+      "Open the selected block's editor": 'Enter',
+      "Leave a block's editor": 'Escape',
+    });
+  });
+
   it("writes the keys the way a Mac does on a Mac", () => {
     vi.spyOn(navigator, 'platform', 'get').mockReturnValue('MacIntel');
     const { press } = openCanvas();

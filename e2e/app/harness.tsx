@@ -1,11 +1,22 @@
 import { useState } from 'react';
-import { BlockCanvas, coreBlocks, type QuoinBlock } from 'quoin-editor';
+import { BlockCanvas, coreBlocks, type QuoinBlock, type UploadFn } from 'quoin-editor';
 import { bookmarkDemo } from './bookmark-demo';
 import { noteDemo } from './note-demo';
 
 const blockTypes = [...coreBlocks, bookmarkDemo, noteDemo];
 
-const READ_ONLY = new URLSearchParams(location.search).get('readonly') === '1';
+const params = new URLSearchParams(location.search);
+const READ_ONLY = params.get('readonly') === '1';
+const UPLOAD_DELAY = params.get('upload');
+
+const upload: UploadFn | undefined =
+  UPLOAD_DELAY === null
+    ? undefined
+    : (file) =>
+        new Promise((resolve) => {
+          const stored = { storageKey: `key-${file.name}`, filename: file.name, size: file.size };
+          setTimeout(() => resolve(stored), Number(UPLOAD_DELAY));
+        });
 
 const docs: Record<string, QuoinBlock[]> = {
   empty: [],
@@ -44,6 +55,11 @@ const docs: Record<string, QuoinBlock[]> = {
     { id: 'bm', type: 'BOOKMARK_DEMO', data: { url: 'https://quoin.dev' } },
     { id: 'below', type: 'MARKDOWN', data: { markdown: 'Paragraph below' } },
   ],
+  media: [
+    { id: 'p', type: 'MARKDOWN', data: { markdown: 'Above media' } },
+    { id: 'img', type: 'IMAGE', data: { storageKey: '', alt: '' } },
+    { id: 'q', type: 'MARKDOWN', data: { markdown: 'Below media' } },
+  ],
   pinned: [
     { id: 'pn', type: 'NOTE_DEMO', data: { note: 'Pinned' } },
     { id: 'p', type: 'MARKDOWN', data: { markdown: 'Paragraph below' } },
@@ -74,6 +90,7 @@ export function Harness({ doc }: { doc: string }) {
         blocks={blocks}
         blockTypes={blockTypes}
         readOnly={READ_ONLY}
+        upload={upload}
         onChange={(next) => {
           window.__quoin.changes += 1;
           setBlocks(next);

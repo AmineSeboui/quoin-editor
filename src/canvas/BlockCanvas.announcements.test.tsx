@@ -142,10 +142,10 @@ describe('the canvas announces a block insert with the final position', () => {
     expect(status()).toHaveTextContent('Block inserted at position 2 of 3');
   });
 
-  it('of uploaded files', async () => {
+  it('of uploaded files, not of the empty line after them', async () => {
     const { handle } = setup([paragraph('a', 'one')], { upload: stored });
     act(() => handle().controller.onFiles?.([png], { block: 'a', region: 'text', offset: 1 }));
-    await waitFor(() => expect(status()).toHaveTextContent('Block inserted at position 2 of 2'));
+    await waitFor(() => expect(status()).toHaveTextContent('Block inserted at position 2 of 3'));
   });
 
   it('but says nothing when Enter opens a line', () => {

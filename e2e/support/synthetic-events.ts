@@ -55,6 +55,8 @@ export const cutEvent = (page: Page) => dispatch(page, { type: 'cut', clipboard:
 export const pasteEvent = (page: Page, data?: Record<string, string>) =>
   data ? dispatch(page, { type: 'paste', data }) : dispatch(page, { type: 'paste', clipboard: true });
 
+export const pasteFilesEvent = (page: Page, files: Spec['files']) => dispatch(page, { type: 'paste', files });
+
 export const dropEvent = (page: Page, at: { x: number; y: number }, transfer: Pick<Spec, 'data' | 'files'>) =>
   dispatch(page, { type: 'drop', at, ...transfer });
 

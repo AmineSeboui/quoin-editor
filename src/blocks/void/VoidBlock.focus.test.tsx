@@ -1,6 +1,34 @@
+import { createPortal } from 'react-dom';
 import { act, fireEvent, screen } from '@testing-library/react';
+import { StickyNote } from 'lucide-react';
 import { nodeSelection } from '../../engine';
-import { bookmarkBlock, mountCanvas, paragraph } from './test-canvas';
+import { defineBlock } from '../../registry';
+import { bookmarkBlock, mountCanvas, paragraph, testBlockTypes } from './test-canvas';
+
+const pickerNote = defineBlock({
+  type: 'PICKER_NOTE',
+  label: 'Picker note',
+  icon: StickyNote,
+  editor: () => (
+    <div>
+      <input aria-label="Note field" />
+      {createPortal(
+        <div data-testid="picker">
+          <button type="button">Pick</button>
+        </div>,
+        document.body,
+      )}
+    </div>
+  ),
+  preview: () => <p>Picker note</p>,
+});
+
+function pageOverlay(role: string) {
+  const overlay = document.body.appendChild(document.createElement('div'));
+  overlay.setAttribute('role', role);
+  const button = overlay.appendChild(document.createElement('button'));
+  return { overlay, button };
+}
 
 const doc = [paragraph('a', 'above'), bookmarkBlock('b', 'quoin.dev'), paragraph('c', 'below')];
 const urlField = () => screen.queryByRole('textbox', { name: 'Bookmark URL' });
@@ -32,17 +60,39 @@ describe('VoidBlock editing ends', () => {
     openBookmark();
     fireEvent.blur(urlField()!, { relatedTarget: null });
     expect(urlField()).not.toBeNull();
-    fireEvent.blur(urlField()!, { relatedTarget: document.body });
+    const { overlay, button } = pageOverlay('region');
+    act(() => button.focus());
     expect(urlField()).toBeNull();
+    overlay.remove();
   });
 
-  it('not when the pointer goes down inside the editor or in an overlay it opened', () => {
+  it('not when the pointer goes down or focus moves inside the editor or an overlay it opened', () => {
+    const { nodeSelect, press } = mountCanvas([paragraph('a', 'above'), { id: 'n', type: 'PICKER_NOTE', data: {} }], {
+      blockTypes: [...testBlockTypes, pickerNote],
+    });
+    nodeSelect('n');
+    press('Enter');
+    const field = screen.getByRole('textbox', { name: 'Note field' });
+    fireEvent.pointerDown(field);
+    fireEvent.pointerDown(screen.getByTestId('picker'));
+    act(() => screen.getByRole('button', { name: 'Pick' }).focus());
+    expect(screen.queryByRole('textbox', { name: 'Note field' })).not.toBeNull();
+  });
+
+  it.each(['dialog', 'menu'])('when the pointer goes down in a %s another part of the page opened', (role) => {
     openBookmark();
-    fireEvent.pointerDown(urlField()!);
-    const overlay = document.body.appendChild(document.createElement('div'));
+    const { overlay } = pageOverlay(role);
     overlay.setAttribute('data-radix-popper-content-wrapper', '');
     fireEvent.pointerDown(overlay);
-    expect(urlField()).not.toBeNull();
+    expect(urlField()).toBeNull();
+    overlay.remove();
+  });
+
+  it('when focus moves into a dialog something else opened', () => {
+    openBookmark();
+    const { overlay, button } = pageOverlay('dialog');
+    act(() => button.focus());
+    expect(urlField()).toBeNull();
     overlay.remove();
   });
 

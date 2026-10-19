@@ -44,7 +44,7 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
   const editable = Editor !== undefined && !readOnly;
   const { editing, start, stop } = useVoidEditing(controller, blockId, editable);
   const root = useRef<HTMLDivElement>(null);
-  const onBlur = useEditingFocus(root, editing, stop);
+  const focusHandlers = useEditingFocus(root, editing, stop);
   useMissingPreviewWarning(readOnly, definition);
 
   const select = useCallback(() => {
@@ -96,7 +96,7 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
       tabIndex={editorShown ? -1 : undefined}
       {...{ [NATIVE_INTERACTION]: editorShown ? '' : undefined }}
       onKeyDown={onKeyDown}
-      onBlur={onBlur}
+      {...focusHandlers}
       onClick={onClick}
       onDoubleClick={onDoubleClick}
     >

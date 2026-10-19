@@ -3,17 +3,15 @@
 import { useRef, type ReactNode } from 'react';
 import type { PluginKey } from '../../engine';
 import type { SuggestionRange } from '../../extensions/ui-types';
-import { HIGHLIGHT_BAR } from '../../ui/focus';
 import { MENU_CONTENT } from '../../ui/menu-styles';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
-import { TAP_TARGET_FLOOR } from '../../ui/touch-target';
 import { cn } from '../../ui/cn';
 import type { ViewController } from '../../view';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
-import { keepFocus } from '../floating/keep-focus';
 import { useRangeAnchor } from '../floating/use-range-anchor';
 import type { SuggestionSection } from './group-items';
 import type { SuggestionState } from './suggestion-plugin';
+import { SuggestionOption } from './SuggestionOption';
 import { useSuggestion } from './use-suggestion';
 
 export type SuggestionMenuProps<T> = {
@@ -36,34 +34,7 @@ const CONTENT = cn(
 );
 const LISTBOX = 'min-h-0 overflow-y-auto';
 const GROUP_LABEL = 'px-2 pt-2 pb-1 text-xs font-medium text-muted-foreground';
-const OPTION = cn(
-  'relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm',
-  'data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground',
-  HIGHLIGHT_BAR,
-  TAP_TARGET_FLOOR,
-);
-
 const preventDefault = (event: Event) => event.preventDefault();
-
-type OptionProps = { id: string; active: boolean; onHighlight(): void; onChoose(): void; children: ReactNode };
-
-function SuggestionOption({ id, active, onHighlight, onChoose, children }: OptionProps) {
-  return (
-    <div
-      role="option"
-      id={id}
-      aria-selected={active}
-      data-highlighted={active ? '' : undefined}
-      className={OPTION}
-      onPointerDown={keepFocus}
-      onMouseDown={keepFocus}
-      onPointerMove={onHighlight}
-      onClick={onChoose}
-    >
-      {children}
-    </div>
-  );
-}
 
 type SectionProps<T> = {
   section: SuggestionSection<T>;

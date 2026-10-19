@@ -108,9 +108,9 @@ test('the tone of a callout is set from the keyboard through its block menu', as
   await page.keyboard.press('ArrowDown');
   await expect(page.getByRole('menuitem', { name: 'Tone' })).toBeFocused();
   await page.keyboard.press('ArrowRight');
-  await expect(page.getByRole('menuitemradio', { name: 'Info' })).toBeFocused();
+  await expect(page.getByRole('menuitemradio', { name: 'info' })).toBeFocused();
   await page.keyboard.press('End');
-  await expect(page.getByRole('menuitemradio', { name: 'Danger' })).toBeFocused();
+  await expect(page.getByRole('menuitemradio', { name: 'danger' })).toBeFocused();
   await page.keyboard.press('Enter');
   await expect(menu(page)).toHaveCount(0);
   await expect(page.getByRole('textbox', { name: 'Callout, danger' })).toBeFocused();

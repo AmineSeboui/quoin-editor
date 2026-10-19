@@ -165,7 +165,7 @@ describe('the block menu of a callout', () => {
     await user.keyboard('{ArrowDown}');
     expect(item('Tone')).toHaveFocus();
     await user.keyboard('{ArrowRight}');
-    await waitFor(() => expect(screen.getByRole('menuitemradio', { name: 'Info' })).toHaveFocus());
+    await waitFor(() => expect(screen.getByRole('menuitemradio', { name: 'info' })).toHaveFocus());
     await user.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}{ArrowDown}{Enter}');
     expect(last()[0].data).toMatchObject({ tone: 'danger', body: 'Note' });
     expect(screen.queryByRole('menu')).toBeNull();

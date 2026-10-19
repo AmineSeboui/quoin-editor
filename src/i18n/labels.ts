@@ -59,8 +59,9 @@ export type QuoinLabels = {
   numberedItem: (n: number) => string;
   task: string;
   quote: string;
-  /** The name of a callout's text, given the name of its tone from `calloutTones`. */
+  /** The name of a callout's text, given the name of its tone from `calloutTones`, which it takes as written. */
   callout: (tone: string) => string;
+  /** The name of each tone, on its chip and in its menus as inside the name of a callout's text. */
   calloutTones: Record<CalloutTone, string>;
   calloutIcon: string;
   /** The name of the button that shows a callout's tone and opens the menu of tones, given the tone's name. */

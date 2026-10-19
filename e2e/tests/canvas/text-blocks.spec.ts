@@ -70,15 +70,15 @@ test('a callout takes a tone from its tone menu and gives the caret back to its 
   await openEditor(page, 'text');
   await page.getByRole('textbox', { name: 'Callout, warning' }).click();
   await page.keyboard.press('End');
-  await page.getByRole('button', { name: 'Callout tone: Warning' }).click();
-  await page.getByRole('menuitemradio', { name: 'Danger' }).click();
+  await page.getByRole('button', { name: 'Callout tone: warning' }).click();
+  await page.getByRole('menuitemradio', { name: 'danger' }).click();
   await expect(page.getByRole('menu')).toHaveCount(0);
   await expect(page.getByRole('textbox', { name: 'Callout, danger' })).toBeFocused();
   await page.keyboard.type('!');
   await expect.poll(() => dataOf(page, 'c')).toEqual({ tone: 'danger', body: 'Careful!' });
 });
 
-for (const control of ['Callout tone: Warning', 'Callout icon']) {
+for (const control of ['Callout tone: warning', 'Callout icon']) {
   test(`a second click on ${control} closes its menu and gives the caret back to the callout text`, async ({ page }) => {
     await openEditor(page, 'text');
     const text = page.getByRole('textbox', { name: 'Callout, warning' });

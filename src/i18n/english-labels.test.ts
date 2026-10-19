@@ -34,14 +34,15 @@ describe('englishLabels', () => {
     expect(englishLabels.unsupportedBlock).toBe('Unsupported block');
   });
 
-  it('names a callout after the name of its tone, in lower case after the comma', () => {
+  it('names a callout after the name of its tone as written, the English names in lower case', () => {
     expect(englishLabels.callout(englishLabels.calloutTones.warning)).toBe('Callout, warning');
+    expect(englishLabels.callout('Warnung')).toBe('Callout, Warnung');
     expect(englishLabels.calloutTones).toEqual({
-      info: 'Info',
-      tip: 'Tip',
-      success: 'Success',
-      warning: 'Warning',
-      danger: 'Danger',
+      info: 'info',
+      tip: 'tip',
+      success: 'success',
+      warning: 'warning',
+      danger: 'danger',
     });
   });
 

@@ -89,8 +89,8 @@ describe('a callout in the canvas', () => {
     const user = userEvent.setup();
     const { last, container } = mountCanvas([callout('c', { tone: 'warning', body: 'Careful' })]);
     expect(screen.getByRole('textbox', { name: 'Callout, warning' })).toHaveTextContent('Careful');
-    await user.click(screen.getByRole('button', { name: 'Callout tone: Warning' }));
-    await user.click(screen.getByRole('menuitemradio', { name: 'Danger' }));
+    await user.click(screen.getByRole('button', { name: 'Callout tone: warning' }));
+    await user.click(screen.getByRole('menuitemradio', { name: 'danger' }));
     expect(last()[0].data).toMatchObject({ tone: 'danger', body: 'Careful' });
     expect(screen.getByRole('textbox', { name: 'Callout, danger' })).toBeInTheDocument();
     expect(container.querySelector('.quoin-callout')).toHaveAttribute('data-tone', 'danger');
@@ -112,8 +112,8 @@ describe('a callout in the canvas', () => {
   it('gives the caret back to the text once a tone is picked', async () => {
     const user = userEvent.setup();
     mountCanvas([callout('c', { tone: 'info', body: 'Note' })]);
-    await user.click(screen.getByRole('button', { name: 'Callout tone: Info' }));
-    await user.click(screen.getByRole('menuitemradio', { name: 'Tip' }));
+    await user.click(screen.getByRole('button', { name: 'Callout tone: info' }));
+    await user.click(screen.getByRole('menuitemradio', { name: 'tip' }));
     expect(screen.getByRole('textbox', { name: 'Callout, tip' })).toHaveFocus();
   });
 
@@ -126,6 +126,12 @@ describe('a callout in the canvas', () => {
     const { shell } = mountCanvas([callout('c', { tone: 'success', body: 'Done' })], { readOnly: true });
     expect(screen.queryAllByRole('button')).toEqual([]);
     expect(shell('c')).toHaveTextContent('\u2705');
+  });
+
+  it('names its host with the tone name a host gives, written as given', () => {
+    const calloutTones = { info: 'Hinweis', tip: 'Tipp', success: 'Erfolg', warning: 'Warnung', danger: 'Gefahr' };
+    mountCanvas([callout('c', { tone: 'warning', body: 'x' })], { labels: { calloutTones } });
+    expect(screen.getByRole('textbox', { name: 'Callout, Warnung' })).toBeInTheDocument();
   });
 
   it('names its tones, its icon button and its host in the words the canvas labels give', () => {

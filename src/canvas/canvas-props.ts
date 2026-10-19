@@ -13,9 +13,10 @@ export type BlockCanvasProps = {
   blocks: QuoinBlock[];
   onChange: (blocks: QuoinBlock[]) => void;
   /**
-   * Called for each block a command removed, with the index it held, once `onChange` has reported the document without
-   * it. A line that Backspace or Delete merges into its neighbour, or drops when empty, is not reported. Restore a block
-   * by supplying `blocks` with it spliced back at that index.
+   * Called for each whole block the writer removed, with the index it held, once `onChange` has reported the document
+   * without it: through a command such as the block menu's Delete, by typing over a selected block, or by pasting over
+   * selected blocks. A line that Backspace or Delete merges into its neighbour or drops when empty is not reported, nor
+   * an empty line that pasted blocks replace. Restore a block by supplying `blocks` with it spliced back at that index.
    */
   onDelete?: (block: QuoinBlock, index: number) => void;
   blockTypes?: AnyBlockDefinition[];

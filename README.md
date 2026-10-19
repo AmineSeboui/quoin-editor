@@ -136,7 +136,7 @@ The structural comparison is shallow over each block's `data`. A host whose bloc
 
 ### Undoing a deletion
 
-`onChange` reports a new array and nothing about what changed, so a host that wants a "Block deleted / Undo" toast would have to diff two arrays to find out. `onDelete` tells it instead: it fires when a block is removed through its actions menu, with the block and the index it held.
+`onChange` reports a new array and nothing about what changed, so a host that wants a "Block deleted / Undo" toast would have to diff two arrays to find out. `onDelete` tells it instead: it fires for each whole block the writer removes, through its actions menu, by typing over a selected block or by pasting over selected blocks, with the block and the index it held. Lines that Backspace or Delete join are not reported.
 
 It runs just after the `onChange` that reports the document without that block, so by the time your handler runs the new array has already been reported. Restoring is an ordinary document load: splice the block back at its index and supply the result as `blocks`.
 

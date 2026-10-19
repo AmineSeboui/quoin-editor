@@ -2,6 +2,7 @@ import { createRef, useState, type Ref } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { blockRangeSelection, nodeSelection, textSelection, type Selection } from '../engine';
 import type { QuoinBlock } from '../types';
+import { clipboardEvent, fakeTransfer } from '../view/clipboard/test-transfer';
 import { BlockCanvas } from './BlockCanvas';
 import type { QuoinEditorHandle } from './canvas-props';
 
@@ -65,7 +66,11 @@ function mount(initial: QuoinBlock[]) {
     await act(async () => {});
   };
   const shown = () => Array.from(container.querySelectorAll<HTMLElement>('[data-quoin-block]'), (shell) => shell.dataset.blockId);
-  return { log, removals, caret, select, press, shown };
+  const paste = async (flavours: Record<string, string>) => {
+    fireEvent(document.activeElement!, clipboardEvent('paste', fakeTransfer(flavours).transfer));
+    await act(async () => {});
+  };
+  return { log, removals, caret, select, press, paste, shown };
 }
 
 describe('BlockCanvas onDelete', () => {
@@ -148,5 +153,36 @@ describe('BlockCanvas onDelete', () => {
     caret('s');
     await press('Backspace');
     expect(log).toEqual(['change t,c']);
+  });
+
+  it('reports a node-selected divider that a typed key replaces with a paragraph', async () => {
+    const { log, removals, caret, select, press } = mount([md('a', 'above'), divider, md('b', 'below')]);
+    caret('a');
+    select(nodeSelection('d'));
+    await press('x');
+    expect(log.at(-1)).toBe('delete d at 1');
+    expect(removals).toEqual([{ block: divider, index: 1 }]);
+  });
+
+  it('reports every block of a block range that a paste replaces', async () => {
+    const { removals, caret, select, paste } = mount([md('a', 'one'), md('b', 'two'), image, md('c', 'three')]);
+    caret('a');
+    select(blockRangeSelection('b', 'i'));
+    await paste({ 'text/plain': 'pasted' });
+    expect(removals).toEqual([
+      { block: md('b', 'two'), index: 1 },
+      { block: image, index: 2 },
+    ]);
+  });
+
+  it('does not report the empty line that pasted blocks take the place of', async () => {
+    const { log, caret, paste } = mount([md('a', 'one'), md('e', '')]);
+    caret('e');
+    await paste({ 'text/html': '<h2>Pasted</h2><p>blocks</p>', 'text/plain': 'Pasted\n\nblocks' });
+    const changes = log.filter((entry) => entry.startsWith('change '));
+    const ids = changes.at(-1)!.slice('change '.length).split(',');
+    expect(ids).toHaveLength(3);
+    expect(ids).not.toContain('e');
+    expect(log.filter((entry) => entry.startsWith('delete'))).toEqual([]);
   });
 });

@@ -38,7 +38,6 @@ const swatches: Readonly<Record<ColorKey, (name: PaletteName) => ReactNode>> = {
   background: (name) => <span aria-hidden="true" data-bg={name} className="size-4 rounded-sm border border-border" />,
 };
 
-/** The text colours and the background colours of the palette, each a group of choices headed by its name. */
 export function ColorGroups({ kit, value, onPick }: ColorGroupsProps) {
   const labels = useLabels();
   const textTitle = useId();

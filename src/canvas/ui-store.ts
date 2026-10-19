@@ -55,7 +55,6 @@ export function useCanvasUi<T>(store: CanvasUiStore, selector: (state: CanvasUiS
 
 const CanvasUiContext = createContext<CanvasUiStore | null>(null);
 
-/** Hands the canvas's UI store to the overlays its extensions draw. */
 export const CanvasUiProvider = CanvasUiContext.Provider;
 
 export function useCanvasUiStore(): CanvasUiStore {

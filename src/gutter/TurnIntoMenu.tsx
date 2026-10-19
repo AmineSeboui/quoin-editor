@@ -11,7 +11,6 @@ import { turnIntoTargets } from './turn-into-targets';
 
 type TurnIntoMenuProps = { kit: MenuKit; controller: ViewController; blockIds: readonly string[] };
 
-/** One item per type the blocks can turn into, drawn with the parts of whichever menu holds them. */
 export function TurnIntoItems({ kit, controller, blockIds }: TurnIntoMenuProps) {
   const labels = useLabels();
   return turnIntoTargets(labels).map((target) => (

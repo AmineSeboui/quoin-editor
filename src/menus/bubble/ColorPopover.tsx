@@ -31,7 +31,6 @@ function colorCommand(key: ColorKey, name: string): Command {
 
 type ColorPopoverProps = { controller: ViewController; state: EditorState };
 
-/** Colours the selected text, or highlights it, in a colour of the palette. Default takes the colour away. */
 export function ColorPopover({ controller, state }: ColorPopoverProps) {
   const labels = useLabels();
   const value = { color: selectionColor(state, MARKS.color), background: selectionColor(state, MARKS.background) };

@@ -53,6 +53,8 @@ const withBubbleItem = (item: ToolbarItem) => {
 };
 
 describe('the bubble toolbar', () => {
+  afterEach(() => vi.restoreAllMocks());
+
   it('stays away from a collapsed caret', () => {
     const canvas = mountCanvas([paragraph('a', 'hello world')]);
     act(() => canvas.handle().focus(pos('a', 3)));
@@ -139,6 +141,13 @@ describe('the bubble toolbar', () => {
     const [store] = stores;
     fireEvent.click(control('Link'));
     expect(store.get().linkPopover).toEqual({ open: true });
+  });
+
+  it('is one tab stop from the moment it shows, with room above the text so it renders only once', () => {
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 300, 200, 20));
+    openToolbar();
+    const buttons = within(toolbar()).getAllByRole('button');
+    expect(buttons.filter((button) => button.tabIndex === 0)).toEqual([buttons[0]]);
   });
 
   it('is one tab stop that Alt+F10 enters, the arrows walk and Escape leaves with the selection unchanged', () => {

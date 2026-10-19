@@ -13,7 +13,6 @@ function subscribe(notify: () => void): () => void {
 const read = () => query()?.matches ?? true;
 const readOnServer = () => false;
 
-/** Whether the primary pointer is a mouse or a pen rather than a finger. */
 export function useFinePointer(): boolean {
   return useSyncExternalStore(subscribe, read, readOnServer);
 }

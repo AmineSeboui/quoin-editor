@@ -1,8 +1,8 @@
-import { useCallback, useRef, type FocusEvent, type KeyboardEvent, type RefObject } from 'react';
+import { useCallback, useRef, type FocusEvent, type KeyboardEvent, type RefCallback } from 'react';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
 
 type RovingFocus = {
-  ref: RefObject<HTMLDivElement | null>;
+  ref: RefCallback<HTMLDivElement>;
   /** Whether the element is one of the toolbar's own controls, not a part of a menu it opened. */
   owns(target: EventTarget | null): boolean;
   focusCurrent(): void;
@@ -22,9 +22,9 @@ const MOVES: Readonly<Record<string, (index: number, count: number) => number>> 
  * The tab stop is kept on the elements themselves, since the buttons come from several components and extensions.
  */
 export function useRovingFocus(): RovingFocus {
-  const ref = useRef<HTMLDivElement>(null);
+  const row = useRef<HTMLDivElement | null>(null);
   const current = useRef<HTMLElement | null>(null);
-  const items = useCallback(() => [...(ref.current?.querySelectorAll<HTMLElement>(':scope > button') ?? [])], []);
+  const items = useCallback(() => [...(row.current?.querySelectorAll<HTMLElement>(':scope > button') ?? [])], []);
   const tabStop = useCallback(() => {
     const all = items();
     return all.find((item) => item === current.current) ?? all[0];
@@ -38,6 +38,14 @@ export function useRovingFocus(): RovingFocus {
     [items],
   );
   const focusCurrent = useCallback(() => tabStop()?.focus(), [tabStop]);
+  // A row drawn through a portal attaches after the layout effects of the render that drew it.
+  const ref = useCallback(
+    (element: HTMLDivElement | null) => {
+      row.current = element;
+      syncTabStop();
+    },
+    [syncTabStop],
+  );
 
   useIsomorphicLayoutEffect(syncTabStop);
 

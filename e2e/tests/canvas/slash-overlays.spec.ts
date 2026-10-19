@@ -40,3 +40,28 @@ test.describe('an overlay opened by key while the slash menu is open', () => {
     await expect(listbox(page)).toHaveCount(0);
   });
 });
+
+test('clicking the handle while the slash menu is open leaves only the block menu, and Escape leaves nothing open', async ({
+  page,
+}) => {
+  await openSlashMenu(page);
+  await paragraph(page).hover();
+  await page.getByRole('button', { name: 'Drag to move, click for options' }).click();
+  const menu = page.getByRole('menu');
+  await expect(menu).toBeVisible();
+  await expect(listbox(page)).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await expect(menu).toHaveCount(0);
+  await expect(paragraph(page)).toBeFocused();
+  await expect(listbox(page)).toHaveCount(0);
+  await expect(paragraph(page)).not.toHaveAttribute('aria-expanded');
+});
+
+test('the gutter + while the slash menu is open moves the menu to the new line', async ({ page }) => {
+  await openSlashMenu(page);
+  await paragraph(page).hover();
+  await page.getByRole('button', { name: 'Add block below' }).click();
+  await expect(listbox(page)).toHaveCount(1);
+  await expect(page.locator('[data-quoin-host][aria-expanded="true"]')).toHaveText('/');
+  await expect.poll(() => markdown(page)).toEqual(['# Title', 'First paragraph. /x', '/']);
+});

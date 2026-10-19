@@ -111,8 +111,13 @@ export function SuggestionMenu<T>(props: SuggestionMenuProps<T>) {
   }, [activeIndex, sections]);
 
   if (trigger === null) return null;
+  const inEditor = (node: unknown) => node instanceof Node && controller.root?.contains(node) === true;
+  // Radix settles a press outside at its click and ignores focus that moves meanwhile, so a press in the editor that
+  // left focus outside it, as the gutter handle does when it opens the block menu, closes the menu as well.
   const insideEditor = (event: { target: EventTarget | null; preventDefault(): void }) => {
-    if (event.target instanceof Node && controller.root?.contains(event.target)) event.preventDefault();
+    const focused = controller.root?.ownerDocument.activeElement ?? null;
+    const focusStays = focused === null || focused === focused.ownerDocument.body || inEditor(focused);
+    if (inEditor(event.target) && focusStays) event.preventDefault();
   };
   const empty = sections.length === 0 && !suggestion.pending;
   return (

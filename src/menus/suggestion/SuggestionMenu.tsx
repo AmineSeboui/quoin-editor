@@ -120,7 +120,8 @@ export function SuggestionMenu<T>(props: SuggestionMenuProps<T>) {
       open
       modal={false}
       onOpenChange={(open) => {
-        if (!open) suggestion.dismiss();
+        // Focus moves out while another overlay mounts, inside that edit's commit, so the dismiss waits for it to end.
+        if (!open) queueMicrotask(suggestion.dismiss);
       }}
     >
       <PopoverAnchor virtualRef={anchor} />

@@ -144,10 +144,12 @@ export class ViewController {
   }
 
   // Runs editor calls that dispatch on their own (insertText, handleKey, chains), then brings the hosts, the focus and
-  // the DOM selection up to date once.
+  // the DOM selection up to date once. Focus is followed only while it is still on the editor or nowhere: a change can
+  // open a popover that takes it.
   edit(change: () => boolean): boolean {
     const before = this.editor.state;
-    const focused = hasFocus(this, this.ownerDocument());
+    const doc = this.ownerDocument();
+    const focused = hasFocus(this, doc);
     let handled = false;
     this.flush(() =>
       this.outside.inside(() => {
@@ -158,7 +160,7 @@ export class ViewController {
     if (this.editor.state.doc !== before.doc) this.goalX = null;
     this.refreshHosts();
     this.cross.sync();
-    if (focused) this.keepFocus();
+    if (focused && doc !== null && ownsFocus(this, doc)) this.keepFocus();
     this.syncSelectionToDom();
     return handled;
   }

@@ -158,4 +158,17 @@ describe('ViewController', () => {
     controller.dispatch(editor.createTransaction().setSelection(textSelection(at(1))));
     expect(document.activeElement).toBe(input);
   });
+
+  it('leaves focus on a control that took it while the change ran, such as a popover the change opened', () => {
+    const { controller, editor, host } = mountController();
+    host.tabIndex = -1;
+    host.focus();
+    const input = document.body.appendChild(document.createElement('input'));
+    controller.edit(() => {
+      input.focus();
+      editor.dispatch(editor.createTransaction().setSelection(textSelection(at(1))));
+      return true;
+    });
+    expect(document.activeElement).toBe(input);
+  });
 });

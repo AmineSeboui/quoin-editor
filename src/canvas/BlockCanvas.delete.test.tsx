@@ -185,4 +185,17 @@ describe('BlockCanvas onDelete', () => {
     expect(ids).not.toContain('e');
     expect(log.filter((entry) => entry.startsWith('delete'))).toEqual([]);
   });
+
+  it.each([
+    ['all the text of a line', at('b', 0), at('b', 16)],
+    ['text from the start of a line to the end of the next', at('b', 0), at('c', 17)],
+  ])('does not report the line that blocks pasted over %s take the place of', async (_case, anchor, head) => {
+    const blocks = [md('a', '# Title'), md('b', 'First paragraph.'), md('c', 'Second paragraph.')];
+    const { log, caret, select, paste } = mount(blocks);
+    caret('a');
+    select(textSelection(anchor, head));
+    await paste({ 'text/html': '<p>One</p><p>Two</p>', 'text/plain': 'One\n\nTwo' });
+    expect(log.some((entry) => entry.startsWith('change'))).toBe(true);
+    expect(log.filter((entry) => entry.startsWith('delete'))).toEqual([]);
+  });
 });

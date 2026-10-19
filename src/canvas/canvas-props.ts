@@ -16,8 +16,8 @@ export type BlockCanvasProps = {
    * Called for each whole block the writer removed, with the index it held, once `onChange` has reported the document
    * without it: through a command such as the block menu's Delete, by typing over a selected block, or by pasting over
    * selected blocks. A line that Backspace or Delete merges into its neighbour or drops when empty is not reported, nor
-   * an empty line that pasted blocks replace. Restore a block by splicing it back at that index into `blocks` once they
-   * no longer hold it, as on a later interaction. A host that applies `onChange` in a transition or after a debounce
+   * a line that pasted blocks take the place of. Restore a block by splicing it back at that index into `blocks` once
+   * they no longer hold it, as on a later interaction. A host that applies `onChange` in a transition or after a debounce
    * has not applied the removal when this runs: splicing into its state here duplicates the block, and supplying again
    * an array equal to the one it last supplied is ignored.
    */

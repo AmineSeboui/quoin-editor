@@ -16,6 +16,7 @@ import {
   type QuoinLabels,
   type UploadFn,
 } from 'quoin-editor';
+import { catalogue } from 'quoin-editor/catalogue';
 import { EditorView, useQuoinEditor } from 'quoin-editor/headless';
 import 'quoin-editor/styles.css';
 
@@ -48,7 +49,7 @@ const datesUi: ExtensionUI = {
   ],
 };
 
-const extensions = [defineExtension({ name: 'dates', ui: datesUi })];
+const extensions = [...catalogue(), defineExtension({ name: 'dates', ui: datesUi })];
 
 export function Consumer() {
   const [blocks, setBlocks] = useState<QuoinBlock[]>([]);

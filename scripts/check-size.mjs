@@ -1,30 +1,11 @@
-import { build } from 'esbuild';
-import { gzipSync } from 'node:zlib';
 import { resolve } from 'node:path';
+import { measureEntries } from './measure-size.mjs';
+import { MAIN_ENTRY, packageEntries } from './package-entries.mjs';
 
 const root = resolve(import.meta.dirname, '..');
-const budgets = [
-  ['dist/index.js', 155_000],
-  ['dist/headless.js', 70_000],
-  ['dist/engine.js', 52_000],
-];
-const external = ['react', 'react-dom', 'react/jsx-runtime', 'yjs'];
-
-let failed = false;
-for (const [entry, budget] of budgets) {
-  const result = await build({
-    stdin: { contents: `export * from './${entry}';`, resolveDir: root, loader: 'js' },
-    bundle: true,
-    minify: true,
-    format: 'esm',
-    platform: 'browser',
-    write: false,
-    external,
-    logLevel: 'silent',
-  });
-  const gzip = gzipSync(result.outputFiles[0].contents).length;
-  const ok = gzip <= budget;
-  failed ||= !ok;
-  console.log(`${ok ? 'ok  ' : 'OVER'} ${entry} ${gzip} B gzip (budget ${budget})`);
+const results = await measureEntries(root, packageEntries);
+for (const { name, kind, budget, gzip, ok } of results) {
+  const measured = kind === 'total' ? 'gzip' : `gzip added to dist/${MAIN_ENTRY}.js`;
+  console.log(`${ok ? 'ok  ' : 'OVER'} dist/${name}.js ${gzip} B ${measured} (budget ${budget})`);
 }
-if (failed) process.exit(1);
+if (results.some(({ ok }) => !ok)) process.exit(1);

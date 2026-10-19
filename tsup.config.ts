@@ -1,7 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { defineConfig } from 'tsup';
-
-const clientEntries = ['index.js', 'index.cjs', 'headless.js', 'headless.cjs'];
+import { directiveFiles, tsupEntries } from './scripts/entry-outputs.mjs';
+import { packageEntries } from './scripts/package-entries.mjs';
 
 // esbuild keeps the directive in ESM output but buries it behind the CJS prelude. It is prepended
 // without a newline so the sourcemaps of those files keep their line numbers.
@@ -13,11 +13,7 @@ async function ensureDirective(file: string) {
 
 // treeshake stays off: Rollup strips module-level directives.
 export default defineConfig({
-  entry: {
-    index: 'src/index.ts',
-    headless: 'src/headless.ts',
-    engine: 'src/engine/index.ts',
-  },
+  entry: tsupEntries(packageEntries),
   format: ['esm', 'cjs'],
   dts: true,
   sourcemap: true,
@@ -26,6 +22,6 @@ export default defineConfig({
   treeshake: false,
   external: ['react', 'react-dom', 'yjs'],
   onSuccess: async () => {
-    await Promise.all(clientEntries.map(ensureDirective));
+    await Promise.all(directiveFiles(packageEntries, true).map(ensureDirective));
   },
 });

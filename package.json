@@ -77,6 +77,16 @@
         "default": "./dist/engine.cjs"
       }
     },
+    "./catalogue": {
+      "import": {
+        "types": "./dist/catalogue.d.ts",
+        "default": "./dist/catalogue.js"
+      },
+      "require": {
+        "types": "./dist/catalogue.d.cts",
+        "default": "./dist/catalogue.cjs"
+      }
+    },
     "./styles.css": "./dist/styles.css",
     "./package.json": "./package.json"
   },
@@ -88,6 +98,7 @@
     "check:size": "node scripts/check-size.mjs",
     "check:directives": "node scripts/check-directives.mjs",
     "check:consumer": "node scripts/check-consumer.mjs",
+    "sync:exports": "node scripts/sync-exports.mjs",
     "lint": "eslint . && node scripts/check-engine-deps.mjs",
     "typecheck": "tsc --noEmit && tsc --noEmit -p e2e/tsconfig.json",
     "test": "vitest run",

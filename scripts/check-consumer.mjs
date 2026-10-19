@@ -2,6 +2,8 @@ import { execFileSync } from 'node:child_process';
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { specifier } from './entry-outputs.mjs';
+import { packageEntries } from './package-entries.mjs';
 
 const react = process.env.QUOIN_REACT ?? '19';
 if (react !== '18' && react !== '19') throw new Error(`QUOIN_REACT must be 18 or 19, not ${react}.`);
@@ -27,6 +29,10 @@ run(
 const samples = join(work, 'samples');
 mkdirSync(samples);
 cpSync(join(root, 'consumer-check', 'consumer.tsx'), join(samples, 'consumer.tsx'));
+writeFileSync(
+  join(samples, 'entries.ts'),
+  packageEntries.map((entry, i) => `export * as entry${i} from '${specifier(entry)}';\n`).join(''),
+);
 
 // The README is the package's front door, so its samples are typechecked against the packed build too.
 const readme = readFileSync(join(root, 'README.md'), 'utf8');
@@ -46,13 +52,11 @@ writeFileSync(
 );
 run(join(work, 'node_modules', '.bin', 'tsc'), ['-p', '.'], work);
 
-// Tooling reads the manifest of a package it is given, so the exports map has to let it.
+// Every entry resolves, and so does the manifest, which tooling reads from a package it is given.
 const resolver = JSON.stringify(join(work, 'resolve-probe.cjs'));
-run(
-  process.execPath,
-  ['-e', `require('node:module').createRequire(${resolver}).resolve('quoin-editor/package.json')`],
-  work,
-);
+const probes = JSON.stringify(['quoin-editor/package.json', ...packageEntries.map(specifier)]);
+const probe = `const probe = require('node:module').createRequire(${resolver}); ${probes}.forEach((id) => probe.resolve(id));`;
+run(process.execPath, ['-e', probe], work);
 
 // Only React 18 reports a layout effect reaching a server render, through console.error.
 if (react === '18') {
@@ -60,4 +64,4 @@ if (react === '18') {
   run(process.execPath, ['server-render.mjs'], work);
 }
 
-console.log(`The packed package typechecks for a consumer on React ${react} and TypeScript 5.4, README samples included.`);
+console.log(`The packed package typechecks for a consumer on React ${react} and TypeScript 5.4, with every entry and README sample.`);

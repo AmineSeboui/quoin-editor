@@ -60,6 +60,11 @@ const docs: Record<string, QuoinBlock[]> = {
     { id: 'img', type: 'IMAGE', data: { storageKey: '', alt: '' } },
     { id: 'q', type: 'MARKDOWN', data: { markdown: 'Below media' } },
   ],
+  closed: [
+    { id: 't', type: 'TOGGLE', data: { markdown: 'Details', open: false } },
+    { id: 'tc', type: 'MARKDOWN', data: { markdown: 'Hidden detail' }, indent: 1 },
+    { id: 'e', type: 'MARKDOWN', data: { markdown: 'The end' } },
+  ],
   pinned: [
     { id: 'pn', type: 'NOTE_DEMO', data: { note: 'Pinned' } },
     { id: 'p', type: 'MARKDOWN', data: { markdown: 'Paragraph below' } },

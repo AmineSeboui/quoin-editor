@@ -70,6 +70,21 @@ test('no key, selection or click opens a menu, a toolbar or a dialog, or changes
   expect(await blocks(page)).toEqual(before);
 });
 
+test('a reader opens and closes a closed toggle from its chevron, and the document stays as it was', async ({ page }) => {
+  await openEditor(page, 'closed', 'readonly=1');
+  const before = await blocks(page);
+  const chevron = page.getByRole('button', { name: 'Toggle, 1 block hidden' });
+  await expect(page.getByText('Hidden detail')).toHaveCount(0);
+  await chevron.click();
+  await expect(page.getByRole('button', { name: 'Toggle', exact: true })).toHaveAttribute('aria-expanded', 'true');
+  await expect(host(page, 'tc')).toHaveText('Hidden detail');
+  await page.getByRole('button', { name: 'Toggle', exact: true }).click();
+  await expect(page.getByText('Hidden detail')).toHaveCount(0);
+  await expect(chevron).toHaveAttribute('aria-expanded', 'false');
+  expect(await changes(page)).toBe(0);
+  expect(await blocks(page)).toEqual(before);
+});
+
 const COPIED = '# Release notes\n\nKeeps **bold**, _italic_, `code` and [links](https://quoin.dev/docs).';
 const COPIED_PARAGRAPH = '<p>Keeps <strong>bold</strong>, <em>italic</em>, <code>code</code> and <a href="https://quoin.dev/docs"';
 

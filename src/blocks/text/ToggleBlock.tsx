@@ -4,13 +4,14 @@ import { useLabels } from '../../i18n/use-labels';
 import { EditableRegion, type BlockRenderer } from '../../view';
 import { useBlockDomId } from '../../view/react/block-dom-id';
 import { ToggleChevron } from '../../view/react/ToggleChevron';
+import { useToggleOpen } from '../../view/react/use-reader-choices';
 import { useNestedBlocks } from './use-nested-blocks';
 
 export const ToggleBlock: BlockRenderer = ({ block, controller }) => {
   const labels = useLabels();
   const domId = useBlockDomId();
   const nested = useNestedBlocks(controller, block.id);
-  const open = block.attrs.open === true;
+  const open = useToggleOpen(controller, block);
   return (
     <div className="quoin-toggle" data-open={open}>
       <ToggleChevron

@@ -137,12 +137,13 @@ describe('toggle blocks', () => {
     expect(controller.registry.get('g', 'text')).toBeUndefined();
   });
 
-  it('does not open or close while read-only, and reports no change', () => {
+  it('opens for a reader while read-only, leaving the document alone and reporting no change', () => {
     const onChange = vi.fn();
-    const { controller } = mount(toggle(false), { readOnly: true, onChange });
+    const { controller, container } = mount(toggle(false), { readOnly: true, onChange });
     act(() => screen.getByRole('button', { name: 'Toggle' }).click());
     expect(controller.editor.state.doc.blocks[0].attrs.open).not.toBe(true);
-    expect(screen.getByRole('button', { name: 'Toggle' })).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByRole('button', { name: 'Toggle' })).toHaveAttribute('aria-expanded', 'true');
+    expect(container.querySelector('[data-block-id="g"]')).toHaveTextContent('grandchild');
     expect(onChange).not.toHaveBeenCalled();
   });
 

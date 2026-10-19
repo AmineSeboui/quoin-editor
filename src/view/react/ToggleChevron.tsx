@@ -1,12 +1,14 @@
+import { readerToggles } from '../controller/reader-toggles';
 import { flipCommand } from '../input/flip-block';
 import { onBlock } from './block-command';
 import type { BlockRenderProps } from './block-renderer-types';
 import { keepFocus } from './prevent-mouse-focus';
+import { useToggleOpen } from './use-reader-choices';
 
 type ToggleChevronProps = Pick<BlockRenderProps, 'block' | 'controller'> & { label?: string; controls?: string };
 
 export function ToggleChevron({ block, controller, label = 'Toggle', controls }: ToggleChevronProps) {
-  const open = block.attrs.open === true;
+  const open = useToggleOpen(controller, block);
   const flip = flipCommand(block);
   return (
     <button
@@ -19,7 +21,8 @@ export function ToggleChevron({ block, controller, label = 'Toggle', controls }:
       tabIndex={-1}
       onMouseDown={keepFocus}
       onClick={() => {
-        if (flip && !controller.readOnly) controller.run(onBlock(block.id, flip));
+        if (controller.readOnly) readerToggles(controller).flip(block);
+        else if (flip) controller.run(onBlock(block.id, flip));
       }}
     >
       <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">

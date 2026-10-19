@@ -8,6 +8,7 @@ import { defaultRenderers, VoidBlockFallback } from './default-renderers';
 import { useViewController } from './editor-context';
 import { useEditorState } from './use-editor-state';
 import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect';
+import { useReaderChoices } from './use-reader-choices';
 
 type BlockShellProps = {
   block: EngineBlock;
@@ -23,7 +24,8 @@ export const BlockShell = memo(function BlockShell({ block, renderers }: BlockSh
   const controller = useViewController();
   const ref = useRef<HTMLDivElement>(null);
   const domId = useBlockDomId();
-  const status = useEditorState(controller, (state) => blockStatus(state, block.id));
+  const choices = useReaderChoices(controller);
+  const status = useEditorState(controller, (state) => blockStatus(state, block.id, choices));
   const hidden = status === 'hidden';
 
   useIsomorphicLayoutEffect(() => {

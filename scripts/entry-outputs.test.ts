@@ -75,3 +75,25 @@ describe('the package entry list', () => {
     expect(optIn.every(({ added }) => Number.isInteger(added) && Number(added) > 0)).toBe(true);
   });
 });
+
+const sourceOf = (path: string) => readFileSync(resolve(__dirname, '..', path), 'utf8');
+const importsOf = (code: string) => [...code.matchAll(/^import\s[\s\S]*?['"]([^'"]+)['"];/gm)].map(([, path]) => path);
+
+// A feature that reaches only some modules of the main entry makes the bundler split the main entry's chunks around
+// them, which reorders the main entry's code and grows its gzip by hundreds of bytes with no change to it.
+describe('the sources of the opt-in entries', () => {
+  it.each(featureEntries.map(({ name, source }) => [name, source]))(
+    '%s starts with the client directive, then imports the whole main entry',
+    (_, source) => {
+      const code = sourceOf(source);
+      expect(code.startsWith("'use client';\n")).toBe(true);
+      expect(importsOf(code)[0]).toBe('./index');
+    },
+  );
+
+  it('gather in the catalogue through each feature entry, and nothing else', () => {
+    const own = ['./engine', './extensions/create-catalogue'];
+    const features = importsOf(sourceOf('src/catalogue.ts')).filter((path) => !own.includes(path));
+    expect(features.sort()).toEqual(featureEntries.map(({ name }) => `./${name}`).sort());
+  });
+});

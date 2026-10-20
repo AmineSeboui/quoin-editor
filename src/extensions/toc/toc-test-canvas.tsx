@@ -9,6 +9,17 @@ export const tocBlock = (id = 'toc'): QuoinBlock => ({ id, type: 'TOC', data: {}
 export const heading = (id: string, level: number, text: string): QuoinBlock =>
   paragraph(id, `${'#'.repeat(level)} ${text}`);
 
+/** A table of contents over headings nested three deep, with a paragraph between two of them. */
+export const outline = (): QuoinBlock[] => [
+  tocBlock(),
+  heading('a', 1, 'Intro'),
+  heading('b', 2, 'Setup'),
+  heading('c', 3, 'Deep'),
+  heading('d', 2, 'Usage'),
+  paragraph('p', 'Some text'),
+  heading('e', 1, 'End'),
+];
+
 /** A canvas with the table of contents feature and the core block types only. */
 export function mountToc(
   blocks: QuoinBlock[],

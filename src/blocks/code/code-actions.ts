@@ -5,6 +5,7 @@ import { blockById } from '../../engine/model/doc';
 import { HISTORY_GROUP } from '../../engine/state/history';
 import type { ViewController } from '../../view';
 import { moveToNeighbour } from '../../view/navigation/neighbour-block';
+import { insertBlocks } from '../insert-blocks';
 
 /** Writes the code of a block as one change of the history group named, so that a session of typing undoes at once. */
 export function writeCode(controller: ViewController, blockId: string, code: string, group: string): void {
@@ -23,9 +24,13 @@ export function codeToParagraph(blockId: string): Command {
   };
 }
 
-/** Moves the caret, and focus, from the code to the block before or after it. False where there is no such block. */
-export function leaveCode(controller: ViewController, blockId: string, direction: -1 | 1): boolean {
-  if (!moveToNeighbour(controller, blockId, direction)) return false;
+/**
+ * Moves the caret, and focus, from the code to the block before or after it, or to a new empty line after a code block
+ * that ends the document when asked to add one. False where there is no block to go to.
+ */
+export function leaveCode(controller: ViewController, blockId: string, direction: -1 | 1, addsLine = false): boolean {
+  const moved = moveToNeighbour(controller, blockId, direction);
+  if (!moved && !(addsLine && controller.run(insertBlocks([{ type: 'MARKDOWN' }], 'text', blockId)))) return false;
   controller.focus();
   return true;
 }

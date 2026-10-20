@@ -103,6 +103,18 @@ test('ArrowLeft at the start and ArrowRight at the end leave the code, and a sec
   for (const id of ['p', 'k', 'q']) await expect(page.locator(`[data-block-id="${id}"]`)).toHaveAttribute('data-selected', 'true');
 });
 
+test('ArrowDown on the last line of a code block that ends the document goes on in a new line after it', async ({ page }) => {
+  await openEditor(page, 'empty');
+  await page.locator('[data-quoin-host]').first().click();
+  await page.keyboard.type('/code');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('x');
+  await page.keyboard.press('ArrowDown');
+  await expect(paragraphs(page)).toBeFocused();
+  await page.keyboard.type('y');
+  await expect.poll(() => texts(page)).toEqual(['x', 'y']);
+});
+
 test("undo in the code goes to the editor's history, not to the browser's", async ({ page }) => {
   await openEditor(page, 'code');
   await paragraphs(page).first().click();

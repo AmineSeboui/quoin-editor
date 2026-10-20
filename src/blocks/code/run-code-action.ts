@@ -39,7 +39,7 @@ export function runCodeAction(action: CodeKeyAction, context: CodeActionContext)
       applyCodeEdit(area, action.field, context.write);
       return true;
     case 'leave':
-      return leaveCode(controller, blockId, action.direction);
+      return leaveCode(controller, blockId, action.direction, action.addsLine);
     case 'paragraph':
       return selectAndFocus(context, codeToParagraph(blockId));
     case 'undo':

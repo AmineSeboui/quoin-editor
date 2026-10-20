@@ -30,7 +30,7 @@ describe('codeKeyAction', () => {
     const code = 'one\ntwo\nthree';
     expect(onPc(key('ArrowUp'), field(code, 2))).toEqual({ kind: 'leave', direction: -1 });
     expect(onPc(key('ArrowUp'), field(code, 5))).toBeNull();
-    expect(onPc(key('ArrowDown'), field(code, 9))).toEqual({ kind: 'leave', direction: 1 });
+    expect(onPc(key('ArrowDown'), field(code, 9))).toEqual({ kind: 'leave', direction: 1, addsLine: true });
     expect(onPc(key('ArrowDown'), field(code, 5))).toBeNull();
   });
 

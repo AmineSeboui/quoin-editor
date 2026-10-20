@@ -64,11 +64,24 @@ describe('leaving the code block with the arrows', () => {
     expect(document.activeElement).toBe(area());
   });
 
-  it('stays in the code where no block is there to go to', () => {
-    const { selection } = mountCanvas([code('k', 'x')]);
+  it('adds an empty line after a code block that ends the document on ArrowDown, and goes on there', () => {
+    const { last, selection } = mountCanvas([paragraph('a', 'above'), code('k', 'x')]);
     caret(1);
-    expect(fireEvent.keyDown(area(), { key: 'ArrowDown' })).toBe(true);
+    expect(fireEvent.keyDown(area(), { key: 'ArrowDown' })).toBe(false);
+    const line = last()[2];
+    expect(last()).toEqual([paragraph('a', 'above'), code('k', 'x'), paragraph(line.id, '')]);
+    expect(selection()).toEqual(at(line.id, 0));
+    expect(document.activeElement).toBe(paragraphs()[1]);
+  });
+
+  it('stays in the code on ArrowUp or ArrowRight where no block is there to go to', () => {
+    const { selection, changes } = mountCanvas([code('k', 'x')]);
+    caret(0);
+    expect(fireEvent.keyDown(area(), { key: 'ArrowUp' })).toBe(true);
+    caret(1);
+    expect(fireEvent.keyDown(area(), { key: 'ArrowRight' })).toBe(true);
     expect(selection()).toEqual(nodeSelection('k'));
+    expect(changes).toEqual([]);
     expect(document.activeElement).toBe(area());
   });
 });

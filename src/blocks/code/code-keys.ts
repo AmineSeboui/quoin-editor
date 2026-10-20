@@ -3,15 +3,16 @@ import { indentLines, insertIndent, newlineKeepingIndent, outdentLines, type Cod
 
 export type CodeKeyAction =
   | { kind: 'edit'; field: CodeField }
-  | { kind: 'leave'; direction: -1 | 1 }
+  | { kind: 'leave'; direction: -1 | 1; addsLine?: true }
   | { kind: 'paragraph' | 'undo' | 'redo' | 'selectAll' | 'escape' | 'controls' };
 
 type KeyHandler = (field: CodeField) => CodeKeyAction | null;
 
 const edit = (field: CodeField): CodeKeyAction => ({ kind: 'edit', field });
 
-function leaveWhen(direction: -1 | 1, atEdge: (field: CodeField) => boolean): KeyHandler {
-  return (field) => (field.start === field.end && atEdge(field) ? { kind: 'leave', direction } : null);
+function leaveWhen(direction: -1 | 1, atEdge: (field: CodeField) => boolean, addsLine?: true): KeyHandler {
+  return (field) =>
+    field.start === field.end && atEdge(field) ? { kind: 'leave', direction, ...(addsLine && { addsLine }) } : null;
 }
 
 const KEYS: Readonly<Record<string, KeyHandler>> = {
@@ -19,7 +20,7 @@ const KEYS: Readonly<Record<string, KeyHandler>> = {
   'Shift-Tab': (field) => edit(outdentLines(field) ?? field),
   Enter: (field) => edit(newlineKeepingIndent(field)),
   ArrowUp: leaveWhen(-1, ({ value, start }) => !value.slice(0, start).includes('\n')),
-  ArrowDown: leaveWhen(1, ({ value, end }) => !value.slice(end).includes('\n')),
+  ArrowDown: leaveWhen(1, ({ value, end }) => !value.slice(end).includes('\n'), true),
   ArrowLeft: leaveWhen(-1, ({ start }) => start === 0),
   ArrowRight: leaveWhen(1, ({ value, end }) => end === value.length),
   Backspace: ({ value }) => (value === '' ? { kind: 'paragraph' } : null),

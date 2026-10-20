@@ -167,7 +167,23 @@ describe('the alt text of an image', () => {
     expect(imageData()).toEqual({ storageKey: 'cat.png', alt: 'A dog' });
   });
 
-  it('is stored when focus leaves it, as Tab out of its last control does', async () => {
+  it('is stored by Tab out of its last control or Shift+Tab out of its first, which go back to the image', async () => {
+    const user = userEvent.setup();
+    const { nodeSelect, imageData, sink } = mount();
+    nodeSelect('i');
+    await user.click(button('Alt text'));
+    await user.type(screen.getByRole('textbox', { name: 'Alt text' }), ' asleep');
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Save' }), { key: 'Tab' });
+    expect(imageData()).toEqual({ storageKey: 'cat.png', alt: 'A cat asleep' });
+    expect(sink()).toHaveFocus();
+    await user.click(button('Alt text'));
+    await user.type(screen.getByRole('textbox', { name: 'Alt text' }), ' again');
+    fireEvent.keyDown(screen.getByRole('textbox', { name: 'Alt text' }), { key: 'Tab', shiftKey: true });
+    expect(imageData()).toEqual({ storageKey: 'cat.png', alt: 'A cat asleep again' });
+    expect(screen.queryByRole('textbox', { name: 'Alt text' })).toBeNull();
+  });
+
+  it('is stored when focus leaves it some other way', async () => {
     const user = userEvent.setup();
     const { nodeSelect, imageData } = mount();
     nodeSelect('i');

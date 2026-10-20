@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useRef, useState, type FormEvent, type RefObject } from 'react';
+import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent, type RefObject } from 'react';
 import { setAttrs } from '../../engine/commands/block-style';
 import { useLabels } from '../../i18n/use-labels';
 import { bubblePart } from '../../menus/bubble/bubble-part';
@@ -31,8 +31,8 @@ function storeAlt(controller: ViewController, blockId: string, alt: string): voi
 }
 
 /**
- * The alt text of an image, asked for as required. Enter, Save, Tab and a click away store it, Escape keeps the one the
- * image had, and closing it hands focus back to the image.
+ * The alt text of an image, asked for as required. Enter, Save, Tab out of it and a click away store it, Escape keeps
+ * the one the image had, and closing it hands focus back to the image.
  */
 export function AltTextPopover({ blockId, controller, anchor, alt, onClose }: AltTextPopoverProps) {
   const labels = useLabels();
@@ -61,6 +61,14 @@ export function AltTextPopover({ blockId, controller, anchor, alt, onClose }: Al
     event.preventDefault();
     close(true);
   };
+  // The popover is drawn at the end of the page, where Tab out of it would leave the page.
+  const onKeyDown = (event: KeyboardEvent) => {
+    const { target, key, shiftKey } = event;
+    const leaving = shiftKey ? target instanceof HTMLInputElement : target instanceof HTMLButtonElement;
+    if (key !== 'Tab' || !leaving || isComposingKey(controller, event.nativeEvent)) return;
+    event.preventDefault();
+    close(true);
+  };
 
   return (
     <Popover
@@ -82,7 +90,7 @@ export function AltTextPopover({ blockId, controller, anchor, alt, onClose }: Al
         }}
         {...bubblePart(controller)}
       >
-        <form noValidate className="quoin-image-alt" onSubmit={save}>
+        <form noValidate className="quoin-image-alt" onSubmit={save} onKeyDown={onKeyDown}>
           <label htmlFor={fieldId} className="text-sm font-medium">
             {labels.altText}
           </label>

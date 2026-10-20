@@ -494,7 +494,7 @@ The arrows select a card as a whole, and it is announced as "File" and the file'
 
 Features beyond the core blocks ship as their own entries, so a host that leaves one out never downloads it. Add a feature's extension to `extensions`, or `catalogue()` from `quoin-editor/catalogue` for all of them, each taking its options under its own name (`catalogue({ table: { labels } })`, or `false` to leave one out). Every string a feature shows or speaks comes from its own `labels` option, English by default.
 
-A block whose feature is not installed, such as a table on a canvas without `tableExtension()` or an embed without `embedExtension()`, is drawn as an unsupported block. Its data is kept as it was, through edits around it, `onChange` and markdown.
+A block whose feature is not installed, such as a table on a canvas without `tableExtension()`, an embed without `embedExtension()` or a math block without `mathExtension()`, is drawn as an unsupported block. Its data is kept as it was, through edits around it, `onChange` and markdown. A math formula in a line, without `mathExtension()`, shows its LaTeX as plain text.
 
 ```tsx
 import { BlockCanvas, type QuoinBlock } from 'quoin-editor';
@@ -536,6 +536,25 @@ const extensions = [
 A link pasted alone on an empty line stays a link, and a toolbar beside it offers Embed (when a provider frames it), Bookmark or Keep as link. It never takes focus: Alt+F10 moves into it, the arrows walk it, and Escape, a press elsewhere or any edit keeps the link. Choosing Embed or Bookmark puts the block in place of the link, and one undo brings the link back. `/embed` and `/bookmark` ask for the link: Enter places it, Escape asks no more, and a press outside places a valid link.
 
 On an editable canvas a press on an embed selects the block rather than the frame, which is out of the tab order; Enter on the selected embed moves focus into the frame. A read-only canvas draws the frames as they are, in the tab order. Without `unfurl`, a bookmark shows its address and domain. Every string a bookmark holds is drawn as text, and its picture only from an http or https address.
+
+### Math
+
+`quoin-editor/math` draws `MATH` blocks, and the math formulas in a line, through the host's `renderMath(latex, { displayMode })`: in display mode for a block, inline for a formula. The HTML `renderMath` returns is trusted, and the canvas inserts it as it is, so it has to come from a renderer such as KaTeX or MathJax. Without `renderMath`, or when it throws or returns anything but a string, the LaTeX shows as monospace text. `toHTML` takes the same function as its own `renderMath` option.
+
+```tsx
+import { mathExtension } from 'quoin-editor/math';
+
+// Stands for `import katex from 'katex'`.
+declare const katex: { renderToString(latex: string, options: { displayMode: boolean; throwOnError: boolean }): string };
+
+const extensions = [
+  mathExtension({
+    renderMath: (latex, { displayMode }) => katex.renderToString(latex, { displayMode, throwOnError: false }),
+  }),
+];
+```
+
+`$$` and a space at the start of a paragraph make a math block and open its editor, a popover with the LaTeX and a live preview. A click on a math block, or Enter on one selected as a whole, opens it too: Mod+Enter or Save stores the LaTeX, Enter starts a new line, and Escape keeps what was there, each handing focus back to the block. A formula typed between dollars, such as `$x^2$`, becomes a formula in the line as its closing dollar is typed, wherever the markdown reads one, so `$5 and $10` stays text; Backspace right after gives the dollars back. A click on a formula, or Enter with the caret right after it, opens the same editor, where Enter stores and Shift+Enter starts a new line. Backspace right after a formula selects it, and a second Backspace deletes it. A press outside the editor, or Tab out of it, stores the LaTeX too, and a press leaves focus where it lands. Storing an empty formula removes it, and an empty block shows "Empty equation". Each store is one undo step. A read-only canvas draws blocks and formulas and opens no editor.
 
 ## Read-only
 
@@ -762,6 +781,8 @@ From `quoin-editor/engine`: the engine alone, with no React and no `'use client'
 From `quoin-editor/table`: `tableExtension`, its `TableLabels` and `englishTableLabels`, and the table commands and cell selection.
 
 From `quoin-editor/embed`: `embedExtension`, its `EmbedOptions`, `EmbedLabels` and `englishEmbedLabels`, and the `Unfurl` and `UnfurledLink` types.
+
+From `quoin-editor/math`: `mathExtension`, its `MathOptions`, `MathLabels` and `englishMathLabels`, and the `RenderMath` type.
 
 From `quoin-editor/catalogue`: `catalogue`, every opt-in feature at once.
 

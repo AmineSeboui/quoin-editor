@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { BlockCanvas, coreBlocks, type QuoinBlock, type UploadFn } from 'quoin-editor';
 import { embedExtension, type Unfurl } from 'quoin-editor/embed';
+import { mathExtension, type RenderMath } from 'quoin-editor/math';
 import { tableExtension } from 'quoin-editor/table';
 import { bookmarkDemo } from './bookmark-demo';
 import { fixtureDataUrl } from './fixture-png';
@@ -17,9 +18,15 @@ const unfurl: Unfurl = (url) =>
   new Promise((resolve) =>
     setTimeout(() => resolve({ title: `Unfurled ${new URL(url).hostname}`, description: 'Found by the host' }), UNFURL_DELAY),
   );
+// Stands in for a host's renderer, such as KaTeX, so no test needs a math library.
+const escapeHtml = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const renderMath: RenderMath = (latex, { displayMode }) =>
+  `<span class="harness-math" data-display="${displayMode}">${escapeHtml(latex)}</span>`;
+const MATH = params.get('math');
 const extensions = [
   ...(params.get('table') === '1' ? [tableExtension()] : []),
   ...(params.get('embed') === '1' ? [embedExtension({ unfurl })] : []),
+  ...(MATH === null ? [] : [mathExtension({ renderMath: MATH === 'source' ? undefined : renderMath })]),
 ];
 
 // Each upload is kept as an object URL under its key, so the picture of an uploaded image loads.
@@ -66,6 +73,11 @@ const docs: Record<string, QuoinBlock[]> = {
     },
     { id: 's', type: 'EMBED', data: { url: 'https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC', provider: 'spotify' } },
     { id: 'q', type: 'MARKDOWN', data: { markdown: 'Below the embeds' } },
+  ],
+  math: [
+    { id: 'p', type: 'MARKDOWN', data: { markdown: 'Area $x^2$ here' } },
+    { id: 'm', type: 'MATH', data: { latex: '\\int_0^1 x\\,dx' } },
+    { id: 'q', type: 'MARKDOWN', data: { markdown: 'Below the equation' } },
   ],
   sample: [
     { id: 'a', type: 'MARKDOWN', data: { markdown: '# Title' } },

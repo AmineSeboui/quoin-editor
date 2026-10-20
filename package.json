@@ -97,6 +97,16 @@
         "default": "./dist/embed.cjs"
       }
     },
+    "./math": {
+      "import": {
+        "types": "./dist/math.d.ts",
+        "default": "./dist/math.js"
+      },
+      "require": {
+        "types": "./dist/math.d.cts",
+        "default": "./dist/math.cjs"
+      }
+    },
     "./catalogue": {
       "import": {
         "types": "./dist/catalogue.d.ts",

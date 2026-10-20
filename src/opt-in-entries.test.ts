@@ -26,6 +26,7 @@ const PINNED: Readonly<Record<string, { load: () => Promise<object>; exports: re
     ],
   },
   embed: { load: () => import('./embed'), exports: ['embedExtension', 'englishEmbedLabels'] },
+  math: { load: () => import('./math'), exports: ['mathExtension', 'englishMathLabels'] },
   catalogue: { load: () => import('./catalogue'), exports: ['catalogue'] },
 };
 

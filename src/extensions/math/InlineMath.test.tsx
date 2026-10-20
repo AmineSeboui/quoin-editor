@@ -1,0 +1,132 @@
+import { act, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { axe } from 'vitest-axe';
+import { paragraph } from '../../blocks/void/test-canvas';
+import { textSelection } from '../../engine';
+import { domMapOf } from '../../view';
+import { fakeRenderMath, mountMath } from './math-test-canvas';
+
+const atomIn = (host: HTMLElement) => host.querySelector<HTMLElement>('[data-quoin-atom="math"]')!;
+const caretAt = (offset: number) => textSelection({ block: 'p', region: 'text', offset });
+
+// Where the caret drawn in the line stands, as the next key will read it.
+function drawnCaret(host: HTMLElement): number | null | undefined {
+  const { focusNode, focusOffset } = document.getSelection()!;
+  return focusNode === null ? null : domMapOf(host)?.fromDom(focusNode, focusOffset);
+}
+
+function lineWithFormula(options: Parameters<typeof mountMath>[1] = {}, canvas: Parameters<typeof mountMath>[2] = {}) {
+  const mounted = mountMath([paragraph('p', 'Area $x^2$ here'), paragraph('q', 'Below')], options, canvas);
+  return { ...mounted, formula: () => atomIn(mounted.host('p')) };
+}
+
+describe('an inline math formula', () => {
+  it('draws the HTML of the host renderMath as it is, inline, as one character of the line', () => {
+    const renderMath = vi.fn(fakeRenderMath);
+    const { formula } = lineWithFormula({ renderMath });
+    expect(renderMath).toHaveBeenCalledWith('x^2', { displayMode: false });
+    expect(formula().querySelector('.fake-math')).toHaveAttribute('data-display', 'false');
+    expect(formula()).toHaveAttribute('contenteditable', 'false');
+    expect(formula().closest('[aria-label]')).not.toBe(formula());
+  });
+
+  it('without renderMath the source shows as text', () => {
+    const { formula } = lineWithFormula();
+    expect(formula()).toHaveTextContent('x^2');
+    expect(formula()).toHaveClass('quoin-math-source');
+    expect(formula().querySelector('*')).toBeNull();
+  });
+
+  it('shows its source when renderMath throws', () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { formula, host } = lineWithFormula({
+      renderMath: () => {
+        throw new Error('KaTeX parse error');
+      },
+    });
+    expect(formula()).toHaveTextContent('x^2');
+    expect(host('q')).toHaveTextContent('Below');
+    vi.restoreAllMocks();
+  });
+
+  it('is typed with dollars, the input rule converting it as the closing dollar lands', () => {
+    const canvas = mountMath([paragraph('p', 'Area')], { renderMath: fakeRenderMath });
+    canvas.caret('p', 4);
+    canvas.type(' $y^3$');
+    expect(canvas.markdown('p')).toBe('Area $y^3$');
+    expect(atomIn(canvas.host('p')).querySelector('.fake-math')).toHaveTextContent('y^3');
+    expect(canvas.selection()).toEqual(caretAt(6));
+  });
+
+  it('popover edits latex on a click: Enter stores it as one undo step, Shift+Enter breaks the line', async () => {
+    const user = userEvent.setup();
+    const canvas = lineWithFormula();
+    await user.click(canvas.formula());
+    expect(canvas.field()).toHaveValue('x^2');
+    expect(canvas.field()).toHaveFocus();
+    await user.type(canvas.field()!, '{Shift>}{Enter}{/Shift}+1');
+    expect(canvas.field()).toHaveValue('x^2\n+1');
+    await user.clear(canvas.field()!);
+    await user.type(canvas.field()!, 'x^3{Enter}');
+    expect(canvas.popover()).toBeNull();
+    expect(canvas.markdown('p')).toBe('Area $x^3$ here');
+    expect(canvas.changes).toHaveLength(1);
+    expect(canvas.selection()).toEqual(caretAt(6));
+    expect(canvas.host('p')).toHaveFocus();
+    expect(drawnCaret(canvas.host('p'))).toBe(6);
+    act(() => void canvas.handle().editor.commands.undo());
+    expect(canvas.markdown('p')).toBe('Area $x^2$ here');
+  });
+
+  it('opens on Enter with the caret right after it, and discards the edit on Escape', async () => {
+    const user = userEvent.setup();
+    const canvas = lineWithFormula();
+    canvas.caret('p', 6);
+    canvas.key('Enter');
+    expect(canvas.field()).toHaveValue('x^2');
+    await user.type(canvas.field()!, 'zz{Escape}');
+    expect(canvas.popover()).toBeNull();
+    expect(canvas.changes).toHaveLength(0);
+    expect(canvas.selection()).toEqual(caretAt(6));
+    expect(canvas.host('p')).toHaveFocus();
+  });
+
+  it('is selected and highlighted by a first Backspace, opens on Enter then, and goes with a second Backspace', () => {
+    const canvas = lineWithFormula();
+    canvas.caret('p', 6);
+    canvas.key('Backspace');
+    expect(canvas.selection()).toEqual(textSelection({ block: 'p', region: 'text', offset: 5 }, { block: 'p', region: 'text', offset: 6 }));
+    expect(canvas.formula().closest('[data-quoin-selected-atom]')).not.toBeNull();
+    canvas.key('Enter');
+    expect(canvas.field()).toHaveValue('x^2');
+    canvas.key('Escape', {}, canvas.field()!);
+    expect(canvas.selection()).toEqual(caretAt(6));
+    canvas.key('Backspace');
+    canvas.key('Backspace');
+    expect(canvas.markdown('p')).toBe('Area  here');
+  });
+
+  it('is removed, as one undo step, when its LaTeX is cleared', async () => {
+    const user = userEvent.setup();
+    const canvas = lineWithFormula();
+    await user.click(canvas.formula());
+    await user.clear(canvas.field()!);
+    await user.keyboard('{Enter}');
+    expect(canvas.markdown('p')).toBe('Area  here');
+    expect(canvas.selection()).toEqual(caretAt(5));
+    act(() => void canvas.handle().editor.commands.undo());
+    expect(canvas.markdown('p')).toBe('Area $x^2$ here');
+  });
+
+  it('opens nothing on a read-only canvas', () => {
+    const canvas = lineWithFormula({ renderMath: fakeRenderMath }, { readOnly: true });
+    fireEvent.click(canvas.formula());
+    expect(canvas.popover()).toBeNull();
+    expect(canvas.formula().querySelector('.fake-math')).toHaveTextContent('x^2');
+  });
+
+  it('has no accessibility violations, editable or read-only, with or without renderMath', async () => {
+    expect(await axe(lineWithFormula().container)).toHaveNoViolations();
+    expect(await axe(lineWithFormula({ renderMath: fakeRenderMath }, { readOnly: true }).container)).toHaveNoViolations();
+  });
+});

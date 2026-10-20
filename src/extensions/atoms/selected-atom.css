@@ -1,0 +1,7 @@
+/* An outline rather than a ring, which forced-colors mode would drop. */
+.quoin [data-quoin-selected-atom] > [data-quoin-atom] {
+  border-radius: 2px;
+  background: var(--quoin-accent);
+  outline: 2px solid var(--quoin-ring);
+  outline-offset: 1px;
+}

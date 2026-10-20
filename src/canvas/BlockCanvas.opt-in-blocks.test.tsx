@@ -1,6 +1,6 @@
-import { act, screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import { coreBlocks } from '../blocks/core';
-import { fromMarkdown, nodeSelection, textSelection, type QuoinBlock } from '../engine';
+import { atom, fromMarkdown, nodeSelection, text, textSelection, type QuoinBlock } from '../engine';
 import { mountCanvas, paragraph } from '../blocks/void/test-canvas';
 
 type OptInCase = {
@@ -22,12 +22,14 @@ const bookmark: QuoinBlock = {
   type: 'BOOKMARK',
   data: { url: 'https://quoin.dev/docs', title: 'Docs', description: 'Read me', image: 'https://cdn.quoin.dev/a.png' },
 };
+const math: QuoinBlock = { id: 't', type: 'MATH', data: { latex: '\\frac{a}{b} + c' } };
 const { widths: _widths, ...gfmTable } = table.data;
 
 const cases: Record<string, OptInCase> = {
   TABLE: { block: table, content: 'Name', plain: { type: 'TABLE', data: gfmTable } },
   EMBED: { block: embed, content: 'youtu.be', plain: { type: 'MARKDOWN', data: { markdown: '<https://youtu.be/dQw4w9WgXcQ>' } } },
   BOOKMARK: { block: bookmark, content: 'Docs', plain: { type: 'MARKDOWN', data: { markdown: '[Docs](https://quoin.dev/docs)' } } },
+  MATH: { block: math, content: 'frac', plain: { type: 'MATH', data: math.data } },
 };
 
 const doc = (block: QuoinBlock, above = 'Above', below = 'Below') => [
@@ -88,5 +90,37 @@ describe.each(Object.keys(cases))('a %s block on a canvas without its extension'
       act(() => void handle().editor.commands.undo());
       expect(last()[1]).toEqual(block);
     });
+  });
+});
+
+describe('a math formula in a line on a canvas without the math extension', () => {
+  const line = paragraph('a', 'Area $x^2$ here');
+  const formula = (shell: HTMLElement) => shell.querySelector('[data-quoin-atom="math"]');
+
+  describe.each([false, true])('read-only %s', (readOnly) => {
+    it('is drawn as its LaTeX in plain text, and opens nothing on a click', () => {
+      const { shell } = mount([line], readOnly);
+      expect(formula(shell('a'))).toHaveTextContent('x^2');
+      expect(formula(shell('a'))).toHaveAttribute('data-latex', 'x^2');
+      act(() => void fireEvent.click(formula(shell('a'))!));
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
+
+    it('round-trips its line unchanged', () => {
+      const { changes, handle } = mount([line], readOnly);
+      expect(changes).toEqual([]);
+      expect(handle().editor.getBlocks()).toEqual([line]);
+      expect(handle().editor.toMarkdown()).toBe('Area $x^2$ here\n');
+    });
+  });
+
+  it('is never typed with dollars, and goes with one Backspace', () => {
+    const { handle, press } = mount([paragraph('a', 'Area $x^2$')]);
+    const content = () => handle().editor.state.doc.blocks[0].regions.text;
+    act(() => handle().focus({ block: 'a', region: 'text', offset: 6 }));
+    for (const char of ' $y$') act(() => void handle().editor.insertText(char));
+    expect(content()).toEqual([text('Area '), atom('math', { latex: 'x^2' }), text(' $y$')]);
+    for (let typed = 0; typed < 5; typed++) press('Backspace');
+    expect(content()).toEqual([text('Area ')]);
   });
 });

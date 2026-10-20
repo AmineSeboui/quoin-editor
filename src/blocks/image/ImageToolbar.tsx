@@ -44,22 +44,41 @@ function download(src: string | null, doc: Document): void {
   link.click();
 }
 
-/** The toolbar of the image selected as a whole, drawn while focus is in the editor or in the toolbar. */
+/**
+ * The toolbar of the image selected as a whole, drawn while focus is in the editor or in the toolbar, and kept while
+ * its alt text popover is open: focus moving between the popover's controls passes through the page for a moment.
+ */
 export function ImageToolbarOverlay({ controller }: { controller: ViewController }) {
   const blockId = useEditorState(controller, selectedImage);
   const readOnly = useReadOnly(controller);
   const settled = useSelectionSettled(controller);
-  if (blockId === null || readOnly || !settled) return null;
-  return <ImageToolbar key={blockId} blockId={blockId} controller={controller} />;
+  const [altFor, setAltFor] = useState<string | null>(null);
+  if (altFor !== null && (altFor !== blockId || readOnly)) setAltFor(null);
+  if (blockId === null || readOnly || !(settled || altFor === blockId)) return null;
+  return (
+    <ImageToolbar
+      key={blockId}
+      blockId={blockId}
+      controller={controller}
+      editingAlt={altFor === blockId}
+      onEditAlt={setAltFor}
+    />
+  );
 }
 
+type ImageToolbarProps = {
+  blockId: string;
+  controller: ViewController;
+  editingAlt: boolean;
+  onEditAlt(blockId: string | null): void;
+};
+
 /** Alt+F10 moves into the toolbar, Tab goes on to the width of the image, and Escape goes back to the image. */
-function ImageToolbar({ blockId, controller }: { blockId: string; controller: ViewController }) {
+function ImageToolbar({ blockId, controller, editingAlt, onEditAlt }: ImageToolbarProps) {
   const { labels, upload, resolveAssetUrl, onError } = useQuoin();
   const state = useEditorState(controller, wholeState);
   const roving = useRovingFocus();
   const picker = useRef<HTMLInputElement>(null);
-  const [editingAlt, setEditingAlt] = useState(false);
   const anchor = useMemo(() => {
     const picture = () => part(controller, blockId, '.quoin-image-frame');
     return { current: virtualAnchor(() => picture()?.getBoundingClientRect() ?? null, picture) };
@@ -69,7 +88,7 @@ function ImageToolbar({ blockId, controller }: { blockId: string; controller: Vi
   const attrs = blockById(state.doc, blockId)?.attrs ?? {};
   const items = imageToolbarItems(blockId, labels, {
     replace: upload && (() => picker.current?.click()),
-    editAlt: () => setEditingAlt(true),
+    editAlt: () => onEditAlt(blockId),
     download: () => download(imageSource(attrs, resolveAssetUrl), picker.current?.ownerDocument ?? document),
   });
 
@@ -119,7 +138,7 @@ function ImageToolbar({ blockId, controller }: { blockId: string; controller: Vi
           controller={controller}
           anchor={anchor}
           alt={str(attrs.alt)}
-          onClose={() => setEditingAlt(false)}
+          onClose={() => onEditAlt(null)}
         />
       )}
     </Popover>

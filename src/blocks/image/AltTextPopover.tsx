@@ -21,9 +21,9 @@ type AltTextPopoverProps = {
   onClose(): void;
 };
 
-// The toolbar can take the popover down when focus or a press leaves the editor, before the popover hears of it, so
-// the text is also stored as the popover goes: on the editor itself, since the canvas's flush is refused in an effect.
-// A canvas being taken down has let go of its root first, and takes no more writes.
+// A press in the text moves the selection off the image, which takes the toolbar and the popover down before the
+// popover hears of the press, so the text is also stored as the popover goes: on the editor itself, since the canvas's
+// flush is refused in an effect. A canvas being taken down has let go of its root first, and takes no more writes.
 function storeAlt(controller: ViewController, blockId: string, alt: string): void {
   const { editor } = controller;
   if (controller.readOnly || controller.root === null) return;
@@ -31,8 +31,9 @@ function storeAlt(controller: ViewController, blockId: string, alt: string): voi
 }
 
 /**
- * The alt text of an image, asked for as required. Enter, Save, Tab out of it and a click away store it, Escape keeps
- * the one the image had, and closing it hands focus back to the image.
+ * The alt text of an image, asked for as required. Enter, Save, and Tab or Shift+Tab out of it store it and hand focus
+ * back to the image, Escape hands focus back keeping the alt text the image had, and a click away stores it and leaves
+ * focus where the click put it.
  */
 export function AltTextPopover({ blockId, controller, anchor, alt, onClose }: AltTextPopoverProps) {
   const labels = useLabels();
@@ -50,7 +51,10 @@ export function AltTextPopover({ blockId, controller, anchor, alt, onClose }: Al
   };
   const latestFinish = useRef(finish);
   latestFinish.current = finish;
-  useEffect(() => () => void latestFinish.current(true), []);
+  useEffect(() => {
+    closed.current = false;
+    return () => void latestFinish.current(true);
+  }, []);
 
   const close = (store: boolean) => {
     if (!finish(store)) return;
@@ -61,13 +65,17 @@ export function AltTextPopover({ blockId, controller, anchor, alt, onClose }: Al
     event.preventDefault();
     close(true);
   };
-  // The popover is drawn at the end of the page, where Tab out of it would leave the page.
-  const onKeyDown = (event: KeyboardEvent) => {
-    const { target, key, shiftKey } = event;
-    const leaving = shiftKey ? target instanceof HTMLInputElement : target instanceof HTMLButtonElement;
-    if (key !== 'Tab' || !leaving || isComposingKey(controller, event.nativeEvent)) return;
+  // Tab moves between the field and Save, which WebKit's own Tab skips, and out of either end stores the text: the
+  // popover is drawn at the end of the page, where Tab out of it would leave the page. The popover's own focus scope
+  // would wrap Tab round instead.
+  const onKeyDown = (event: KeyboardEvent<HTMLFormElement>) => {
+    if (event.key !== 'Tab' || isComposingKey(controller, event.nativeEvent)) return;
+    const [field, save] = event.currentTarget.elements;
+    const fromField = event.target === field;
     event.preventDefault();
-    close(true);
+    event.stopPropagation();
+    if (event.shiftKey === fromField) close(true);
+    else ((fromField ? save : field) as HTMLElement).focus();
   };
 
   return (

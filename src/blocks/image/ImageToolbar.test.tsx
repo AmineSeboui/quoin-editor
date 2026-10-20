@@ -167,6 +167,31 @@ describe('the alt text of an image', () => {
     expect(imageData()).toEqual({ storageKey: 'cat.png', alt: 'A dog' });
   });
 
+  it('keeps its toolbar while Tab goes from its field to Save, and Tab from Save stores it and goes back to the image', async () => {
+    const user = userEvent.setup();
+    const { nodeSelect, imageData, sink } = mount();
+    nodeSelect('i');
+    await user.click(button('Alt text'));
+    await user.type(screen.getByRole('textbox', { name: 'Alt text' }), ' asleep');
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'Save' })).toHaveFocus();
+    expect(toolbar()).not.toBeNull();
+    await user.tab();
+    expect(imageData()).toEqual({ storageKey: 'cat.png', alt: 'A cat asleep' });
+    expect(sink()).toHaveFocus();
+  });
+
+  it('is stored by a click on Save, which gives focus back to the image', async () => {
+    const user = userEvent.setup();
+    const { nodeSelect, imageData, sink } = mount();
+    nodeSelect('i');
+    await user.click(button('Alt text'));
+    await user.type(screen.getByRole('textbox', { name: 'Alt text' }), ' asleep');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    expect(imageData()).toEqual({ storageKey: 'cat.png', alt: 'A cat asleep' });
+    expect(sink()).toHaveFocus();
+  });
+
   it('is stored by Tab out of its last control or Shift+Tab out of its first, which go back to the image', async () => {
     const user = userEvent.setup();
     const { nodeSelect, imageData, sink } = mount();
@@ -183,16 +208,17 @@ describe('the alt text of an image', () => {
     expect(screen.queryByRole('textbox', { name: 'Alt text' })).toBeNull();
   });
 
-  it('is stored when focus leaves it some other way', async () => {
+  it('stays open with what was typed, and its toolbar, when focus goes nowhere, as when the window loses it', async () => {
     const user = userEvent.setup();
-    const { nodeSelect, imageData } = mount();
+    const { nodeSelect, changes } = mount();
     nodeSelect('i');
     await user.click(button('Alt text'));
     const field = screen.getByRole('textbox', { name: 'Alt text' });
     await user.type(field, ' asleep');
     act(() => field.blur());
-    expect(imageData()).toEqual({ storageKey: 'cat.png', alt: 'A cat asleep' });
-    expect(screen.queryByRole('textbox', { name: 'Alt text' })).toBeNull();
+    expect(changes).toEqual([]);
+    expect(screen.getByRole('textbox', { name: 'Alt text' })).toHaveValue('A cat asleep');
+    expect(toolbar()).not.toBeNull();
   });
 
   it('is stored when a click lands elsewhere, in the text or on the picture', async () => {

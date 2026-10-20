@@ -95,7 +95,7 @@ test('the alt text of an image is asked for as required and stored on Enter', as
   await expect(sink(page)).toBeFocused();
 });
 
-test('alt text typed in its popover is stored when Tab or a click leaves it, and not on Escape', async ({ page }) => {
+test('alt text typed in its popover is stored by Save, Tab or a click away, and not on Escape', async ({ page }) => {
   await openEditor(page, 'image');
   const editAlt = async (typed: string) => {
     await page.getByRole('img').first().click();
@@ -104,10 +104,25 @@ test('alt text typed in its popover is stored when Tab or a click leaves it, and
     await expect(field).toBeFocused();
     await field.fill(typed);
   };
+  const backOnTheImage = async () => {
+    await expect(page.getByRole('textbox', { name: 'Alt text' })).toHaveCount(0);
+    await expect(sink(page)).toBeFocused();
+    await expect(shell(page)).toHaveAttribute('data-selected', 'true');
+  };
   await editAlt('By Tab');
   await page.keyboard.press('Tab');
+  await expect(page.getByRole('button', { name: 'Save' })).toBeFocused();
   await page.keyboard.press('Tab');
   await expect.poll(() => imageData(page)).toMatchObject({ alt: 'By Tab' });
+  await backOnTheImage();
+  await editAlt('By Shift+Tab');
+  await page.keyboard.press('Shift+Tab');
+  await expect.poll(() => imageData(page)).toMatchObject({ alt: 'By Shift+Tab' });
+  await backOnTheImage();
+  await editAlt('By Save');
+  await page.getByRole('button', { name: 'Save' }).click();
+  await expect.poll(() => imageData(page)).toMatchObject({ alt: 'By Save' });
+  await backOnTheImage();
   await editAlt('By a click in the text');
   await page.getByRole('textbox', { name: 'Paragraph' }).last().click();
   await expect.poll(() => imageData(page)).toMatchObject({ alt: 'By a click in the text' });
@@ -119,7 +134,7 @@ test('alt text typed in its popover is stored when Tab or a click leaves it, and
   await expect.poll(() => imageData(page)).toMatchObject({ alt: 'By a click on the picture' });
   await editAlt('Not by Escape');
   await page.keyboard.press('Escape');
-  await expect(page.getByRole('textbox', { name: 'Alt text' })).toHaveCount(0);
+  await backOnTheImage();
   expect(await imageData(page)).toMatchObject({ alt: 'By a click on the picture' });
 });
 

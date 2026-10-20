@@ -23,6 +23,7 @@ import type { BlockCanvasProps, QuoinEditorHandle } from './canvas-props';
 import { collectUi } from './collect-ui';
 import { insertUploads } from './insert-uploads';
 import { placeholderFor } from './placeholders';
+import { selectedBlockLabel } from './selected-block-label';
 import { CanvasUiProvider, createCanvasUiStore } from './ui-store';
 import { useBlockLinkTarget } from './use-block-link-target';
 import { useDeleteReporter } from './use-delete-reporter';
@@ -95,6 +96,7 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
     () => [shortcutsSlashItem(labels, uiStore), ...ui.slashItems],
     [labels, uiStore, ui.slashItems],
   );
+  const blockLabel = useMemo(() => selectedBlockLabel(labels, blockTypes), [labels, blockTypes]);
   const blockPlaceholder = useMemo<BlockPlaceholder>(() => {
     const placeholderLabels = placeholder === undefined ? labels : { ...labels, placeholderEmpty: placeholder };
     return (state, block) => placeholderFor(state, block, placeholderLabels);
@@ -126,6 +128,7 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
                 hint={labels.editorHint}
                 paragraphLabel={labels.paragraph}
                 selectedContentLabel={labels.selectedContent}
+                blockLabel={blockLabel}
                 unsupportedBlockLabel={labels.unsupportedBlock}
                 placeholder={placeholder ?? labels.placeholderEmpty}
                 blockPlaceholder={blockPlaceholder}

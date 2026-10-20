@@ -40,7 +40,7 @@ test('a command chosen after a space at the end of a line takes that space with 
 
 test('/code lands the caret in the code, so what is typed next goes into it', async ({ page }) => {
   await chooseInEmptyDocument(page, '/code');
-  await expect(page.getByRole('textbox', { name: 'Code' })).toBeFocused();
+  await expect(page.getByRole('group', { name: 'Code' }).getByRole('textbox', { name: 'Code' })).toBeFocused();
   await page.keyboard.type('let x = 1;');
   await expect.poll(async () => (await blocks(page)).map((block) => block.data)).toEqual([
     { language: '', code: 'let x = 1;' },

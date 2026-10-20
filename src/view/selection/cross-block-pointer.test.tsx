@@ -67,16 +67,18 @@ describe('a press on a block that holds no caret', () => {
     const { container } = render(<Editor options={{ blocks: doc, onChange: () => {} }} onController={(c) => (controller = c)} />);
     act(() => controller.focus({ block: 'a', region: 'text', offset: 1 }));
     const shell = (id: string) => container.querySelector<HTMLElement>(`[data-block-id="${id}"]`)!;
-    return { controller, shell };
+    const sink = container.querySelector<HTMLElement>('[data-quoin-sink]')!;
+    return { controller, shell, sink };
   }
 
   it('node-selects it at once, with no native selection to read it from, as Firefox leaves none', () => {
-    const { controller, shell } = mountDivider();
+    const { controller, shell, sink } = mountDivider();
     const separator = screen.getByRole('separator');
     fire(separator, 'pointerdown', { button: 0, buttons: 1, clientX: 10, clientY: 10 });
     fire(document, 'pointerup', { button: 0, clientX: 10, clientY: 10 });
     expect(controller.editor.state.selection).toEqual(nodeSelection('d'));
     expect(shell('d')).toHaveAttribute('data-selected', 'true');
+    expect(sink).toHaveFocus();
   });
 
   it('leaves a Shift press, and a press beside the host of a block that holds a caret, to the browser', () => {

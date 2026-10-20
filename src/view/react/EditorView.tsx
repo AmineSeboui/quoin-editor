@@ -1,4 +1,5 @@
 import { useId, useRef, type ReactNode } from 'react';
+import type { EngineBlock } from '../../engine';
 import type { ViewController } from '../controller/view-controller';
 import { BlockDomIdScope } from './block-dom-id';
 import { BlockPlaceholderContext, headingPlaceholder, type BlockPlaceholder } from './block-placeholder';
@@ -25,6 +26,8 @@ export type EditorViewProps = {
   paragraphLabel?: string;
   /** The accessible name of the hidden textbox that holds a selection across blocks. */
   selectedContentLabel?: string;
+  /** The name of a block selected as a whole whose plain text is empty, such as an image without alt text. */
+  blockLabel?: (block: EngineBlock) => string;
   /** The text and accessible name of a block whose type no renderer draws, in place of the English one. */
   unsupportedBlockLabel?: string;
   /** The text of the host an empty document draws. */
@@ -50,6 +53,7 @@ export function EditorView({
   hint = HINT,
   paragraphLabel,
   selectedContentLabel,
+  blockLabel,
   unsupportedBlockLabel = UNSUPPORTED_BLOCK,
   placeholder,
   blockPlaceholder = headingPlaceholder,
@@ -82,7 +86,7 @@ export function EditorView({
           </UnsupportedBlockLabel.Provider>
         </BlockDomIdScope.Provider>
         {children}
-        <SelectionSink label={selectedContentLabel} />
+        <SelectionSink label={selectedContentLabel} blockLabel={blockLabel} />
         <div id={hintId} className="quoin-visually-hidden">
           {hint}
         </div>

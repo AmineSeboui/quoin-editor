@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { openEditor } from '../../support/editor';
 
-const area = (page: Page) => page.getByRole('textbox', { name: 'Code' });
+const area = (page: Page) => page.getByRole('group', { name: 'Code' }).getByRole('textbox', { name: 'Code' });
 
 async function caretAtEnd(page: Page) {
   await area(page).click();

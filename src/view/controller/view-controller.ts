@@ -61,6 +61,7 @@ export class ViewController {
   private detachRoot: (() => void) | null = null;
   private readOnlyFlag: boolean;
   private readonly readOnlyListeners = new Set<() => void>();
+  private shownNode: string | null = null;
 
   constructor(options: ViewControllerOptions) {
     this.editor = options.editor;
@@ -212,6 +213,7 @@ export class ViewController {
     if (heldBySink(selection) && this.sink !== null) focusSink(this);
     else if (selection?.kind === 'blocks') domSelection.removeAllRanges();
     else writeSelection(this.registry, selection, domSelection, (id) => this.blockElement(id));
+    this.showNode(selection?.kind === 'node' ? selection.block : null);
     const after = selectionPoints(domSelection);
     if (!samePoints(before, after)) this.binding?.selectionSync.suppressNext();
   }
@@ -260,6 +262,12 @@ export class ViewController {
 
   destroy(): void {
     this.detachRoot?.();
+  }
+
+  // Focus in the sink, which is fixed and focused without scrolling, no longer brings a selected block into view.
+  private showNode(block: string | null): void {
+    if (block !== null && block !== this.shownNode) this.blockElement(block)?.scrollIntoView({ block: 'nearest' });
+    this.shownNode = block;
   }
 
   private isComposing(host: HostEntry): boolean {

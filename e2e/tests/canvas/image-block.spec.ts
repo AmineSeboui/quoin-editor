@@ -9,7 +9,7 @@ const measured = { storageKey: 'key-cat.png', alt: '', width: FIXTURE_PNG.width,
 
 const imageData = async (page: Page, id = 'img') => (await blocks(page)).find((block) => block.id === id)?.data;
 const shell = (page: Page, id = 'img') => page.locator(`[data-block-id="${id}"]`);
-const sink = (page: Page) => page.getByRole('textbox', { name: 'Selected content' });
+const sink = (page: Page) => page.locator('[data-quoin-sink]');
 const toolbar = (page: Page) => page.getByRole('toolbar', { name: 'Image tools' });
 const changes = (page: Page) => page.evaluate(() => window.__quoin.changes);
 

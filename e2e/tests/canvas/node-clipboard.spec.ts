@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { blocks, openEditor } from '../../support/editor';
 
 const types = async (page: Page) => (await blocks(page)).map((block) => block.type);
-const sink = (page: Page) => page.getByRole('textbox', { name: 'Selected content' });
+const sink = (page: Page) => page.locator('[data-quoin-sink]');
 
 test.beforeEach(async ({ page, context, browserName }) => {
   if (browserName === 'chromium') await context.grantPermissions(['clipboard-read', 'clipboard-write']);

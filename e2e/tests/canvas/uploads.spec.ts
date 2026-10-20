@@ -69,7 +69,7 @@ test('an upload picked from an empty image keeps focus on its button, then hands
   await picker.setInputFiles({ name: 'cat.png', mimeType: 'image/png', buffer: Buffer.from('x') });
   await expect(picker).toHaveAttribute('aria-disabled', 'true');
   await expect(picker).toBeFocused();
-  await expect(page.getByRole('textbox', { name: 'Selected content' })).toBeFocused();
+  await expect(page.getByRole('textbox', { name: 'Image, no description' })).toBeFocused();
   await expect(page.locator('[data-block-id="img"]')).toHaveAttribute('data-selected', 'true');
   await page.keyboard.press('Enter');
   await page.keyboard.type('caption words');

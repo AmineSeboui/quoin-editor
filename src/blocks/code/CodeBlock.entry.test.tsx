@@ -4,7 +4,7 @@ import { nodeSelection } from '../../engine';
 import type { QuoinBlock } from '../../types';
 import { mountCanvas, paragraph } from '../void/test-canvas';
 
-const area = () => screen.getByRole<HTMLTextAreaElement>('textbox', { name: 'Code' });
+const area = () => within(screen.getByRole('group', { name: 'Code' })).getByRole<HTMLTextAreaElement>('textbox', { name: 'Code' });
 
 function type(text: string): void {
   for (const data of text) {

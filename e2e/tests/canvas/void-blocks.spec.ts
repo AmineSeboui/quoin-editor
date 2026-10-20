@@ -5,7 +5,7 @@ import { blocks, openEditor } from '../../support/editor';
 const shell = (page: Page) => page.locator('[data-block-id="bm"]');
 const urlField = (page: Page) => page.getByRole('textbox', { name: 'Bookmark URL' });
 const paragraphs = (page: Page) => page.getByRole('textbox', { name: 'Paragraph' });
-const sink = (page: Page) => page.getByRole('textbox', { name: 'Selected content' });
+const sink = (page: Page) => page.locator('[data-quoin-sink]');
 
 async function selectBookmarkFromAbove(page: Page) {
   await openEditor(page, 'custom');

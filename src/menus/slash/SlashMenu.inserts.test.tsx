@@ -1,4 +1,4 @@
-import { act, fireEvent, screen } from '@testing-library/react';
+import { act, fireEvent, screen, within } from '@testing-library/react';
 import { mountCanvas, paragraph } from '../../blocks/void/test-canvas';
 import { nodeSelection, textSelection } from '../../engine';
 import { inlineText } from '../../engine/model/inline';
@@ -71,7 +71,7 @@ describe('a block chosen from the slash menu that has an editor', () => {
     canvas.choose('/code');
     expect(canvas.last()).toEqual([{ id: 'a', type: 'CODE', data: { language: '', code: '' } }]);
     expect(canvas.selection()).toEqual(nodeSelection('a'));
-    expect(document.activeElement).toBe(screen.getByRole('textbox', { name: 'Code' }));
+    expect(document.activeElement).toBe(within(screen.getByRole('group', { name: 'Code' })).getByRole('textbox', { name: 'Code' }));
   });
 
   it('an image is selected as a block with its editor open, never with a caret in its caption', () => {

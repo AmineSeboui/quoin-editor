@@ -148,6 +148,44 @@ describe('the host unfurl of a bookmark', () => {
     expect(gone.last().map((block) => block.type)).toEqual(['MARKDOWN', 'MARKDOWN']);
   });
 
+  it('is asked again for a bookmark its answer missed while it was gone, once undo brings it back', async () => {
+    const answers = [deferred(), deferred()];
+    const unfurl = vi.fn(() => answers[unfurl.mock.calls.length - 1].promise);
+    const { handle, last } = mountEmbeds([bookmark()], { unfurl });
+    act(() => handle().controller.dispatch(handle().editor.createTransaction().step(removeBlocksStep(1, 1))));
+    await act(async () => answers[0].resolve({ title: 'Docs' }));
+    expect(unfurl).toHaveBeenCalledTimes(1);
+    act(() => void handle().editor.commands.undo());
+    await settle();
+    expect(unfurl).toHaveBeenCalledTimes(2);
+    await act(async () => answers[1].resolve({ title: 'Docs' }));
+    expect(last()[1].data).toEqual({ url: URL, title: 'Docs' });
+  });
+
+  it('writes an answer that comes back once undo has brought its bookmark back, without asking again', async () => {
+    const answer = deferred();
+    const unfurl = vi.fn(() => answer.promise);
+    const { handle, last } = mountEmbeds([bookmark()], { unfurl });
+    act(() => handle().controller.dispatch(handle().editor.createTransaction().step(removeBlocksStep(1, 1))));
+    act(() => void handle().editor.commands.undo());
+    await act(async () => answer.resolve({ title: 'Docs' }));
+    expect(unfurl).toHaveBeenCalledTimes(1);
+    expect(last()[1].data).toEqual({ url: URL, title: 'Docs' });
+  });
+
+  it('is asked again once a canvas that turned read-only while it waited is editable again', async () => {
+    const answers = [deferred(), deferred()];
+    const unfurl = vi.fn(() => answers[unfurl.mock.calls.length - 1].promise);
+    const { handle, last } = mountEmbeds([bookmark()], { unfurl });
+    act(() => handle().controller.setReadOnly(true));
+    await act(async () => answers[0].resolve({ title: 'Docs' }));
+    act(() => handle().controller.setReadOnly(false));
+    await settle();
+    expect(unfurl).toHaveBeenCalledTimes(2);
+    await act(async () => answers[1].resolve({ title: 'Docs' }));
+    expect(last()[1].data).toEqual({ url: URL, title: 'Docs' });
+  });
+
   it('writes nothing once the canvas is gone', async () => {
     const answer = deferred();
     const onChange = vi.fn();

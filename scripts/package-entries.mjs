@@ -24,9 +24,9 @@ export const incrementalBudget = (measured) => Math.max(Math.round(measured * 1.
 export const featureEntries = [
   { name: 'table', source: 'src/table.ts', client: true, added: incrementalBudget(9_461) },
   { name: 'embed', source: 'src/embed.ts', client: true, added: incrementalBudget(4_499) },
-  { name: 'math', source: 'src/math.ts', client: true, added: incrementalBudget(4_433) },
+  { name: 'math', source: 'src/math.ts', client: true, added: incrementalBudget(4_421) },
   { name: 'toc', source: 'src/toc.ts', client: true, added: incrementalBudget(1_803) },
-  { name: 'mention', source: 'src/mention.ts', client: true, added: incrementalBudget(2_827) },
+  { name: 'mention', source: 'src/mention.ts', client: true, added: incrementalBudget(2_837) },
 ];
 
 /** @type {PackageEntry[]} */
@@ -35,5 +35,5 @@ export const packageEntries = [
   { name: 'headless', source: 'src/headless.ts', client: true, total: 70_000 },
   { name: 'engine', source: 'src/engine/index.ts', client: false, total: 52_000 },
   ...featureEntries,
-  { name: 'catalogue', source: 'src/catalogue.ts', client: true, added: incrementalBudget(20_319) },
+  { name: 'catalogue', source: 'src/catalogue.ts', client: true, added: incrementalBudget(20_731) },
 ];

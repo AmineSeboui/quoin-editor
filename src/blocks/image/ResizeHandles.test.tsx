@@ -26,20 +26,48 @@ const pointer = (target: Element, type: string, clientX: number) =>
   act(() => void target.dispatchEvent(new MouseEvent(type, { bubbles: true, button: 0, clientX })));
 
 describe('the width handles of a picture', () => {
-  it('are a slider on each side, from 10 to 100 percent, at the width the block keeps', () => {
+  it('are a slider on each side, named after it, from 10 to 100 percent, at the width the block keeps', () => {
     mountCanvas([image({ widthPercent: 60 })], { resolveAssetUrl });
-    const handles = screen.getAllByRole('slider', { name: 'Image width' });
-    expect(handles).toHaveLength(2);
+    const handles = screen.getAllByRole('slider');
+    expect(handles.map((handle) => handle.getAttribute('aria-label'))).toEqual(['Resize from the left', 'Resize from the right']);
     for (const handle of handles) {
       expect(handle).toHaveAttribute('aria-valuenow', '60');
+      expect(handle).toHaveAttribute('aria-valuetext', '60%');
       expect(handle).toHaveAttribute('aria-valuemin', '10');
       expect(handle).toHaveAttribute('aria-valuemax', '100');
     }
   });
 
+  it('give the width the picture is drawn at before any is kept, and follow it as the layout changes', () => {
+    const observers: ResizeObserverCallback[] = [];
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(callback: ResizeObserverCallback) {
+          observers.push(callback);
+        }
+        observe() {}
+        disconnect() {}
+      },
+    );
+    const offsetWidth = vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(300);
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(600);
+    try {
+      mountCanvas([image()], { resolveAssetUrl });
+      const [start] = screen.getAllByRole('slider');
+      expect(start).toHaveAttribute('aria-valuenow', '50');
+      offsetWidth.mockReturnValue(450);
+      act(() => observers.forEach((observe) => observe([], {} as ResizeObserver)));
+      expect(start).toHaveAttribute('aria-valuenow', '75');
+    } finally {
+      vi.unstubAllGlobals();
+      vi.restoreAllMocks();
+    }
+  });
+
   it('step the width by 5 percent with the arrows and to its ends with Home and End, one undo step each', () => {
     const { handle, last } = mountCanvas([image({ widthPercent: 60 })], { resolveAssetUrl });
-    const [, end] = screen.getAllByRole('slider', { name: 'Image width' });
+    const [, end] = screen.getAllByRole('slider');
     act(() => end.focus());
     fireEvent.keyDown(end, { key: 'ArrowRight' });
     expect(last()[0].data.widthPercent).toBe(65);
@@ -56,16 +84,17 @@ describe('the width handles of a picture', () => {
     expect(last()[0].data.widthPercent).toBe(100);
   });
 
-  it('start from the width the picture is drawn at when the block keeps none', () => {
-    const { container, last } = mountCanvas([image()], { resolveAssetUrl });
-    const frame = container.querySelector<HTMLElement>('.quoin-image-frame')!;
-    vi.spyOn(frame, 'offsetWidth', 'get').mockReturnValue(300);
-    vi.spyOn(frame.parentElement!, 'clientWidth', 'get').mockReturnValue(600);
-    const [start] = screen.getAllByRole('slider', { name: 'Image width' });
-    act(() => start.focus());
-    expect(start).toHaveAttribute('aria-valuenow', '50');
-    fireEvent.keyDown(start, { key: 'ArrowRight' });
-    expect(last()[0].data.widthPercent).toBe(55);
+  it('step from the width the picture is drawn at when the block keeps none', () => {
+    vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(300);
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(600);
+    try {
+      const { last } = mountCanvas([image()], { resolveAssetUrl });
+      const [start] = screen.getAllByRole('slider');
+      fireEvent.keyDown(start, { key: 'ArrowRight' });
+      expect(last()[0].data.widthPercent).toBe(55);
+    } finally {
+      vi.restoreAllMocks();
+    }
   });
 
   it('leave the width to a drag until it ends, then write it once', () => {
@@ -73,7 +102,7 @@ describe('the width handles of a picture', () => {
     const frame = container.querySelector<HTMLElement>('.quoin-image-frame')!;
     vi.spyOn(frame, 'offsetWidth', 'get').mockReturnValue(300);
     vi.spyOn(frame.parentElement!, 'clientWidth', 'get').mockReturnValue(600);
-    const [, end] = screen.getAllByRole('slider', { name: 'Image width' });
+    const [, end] = screen.getAllByRole('slider');
     pointer(end, 'pointerdown', 400);
     pointer(end, 'pointermove', 460);
     expect(frame.style.width).toBe('60%');
@@ -90,7 +119,7 @@ describe('the width handles of a picture', () => {
     const frame = container.querySelector<HTMLElement>('.quoin-image-frame')!;
     vi.spyOn(frame, 'offsetWidth', 'get').mockReturnValue(300);
     vi.spyOn(frame.parentElement!, 'clientWidth', 'get').mockReturnValue(600);
-    const [start] = screen.getAllByRole('slider', { name: 'Image width' });
+    const [start] = screen.getAllByRole('slider');
     pointer(start, 'pointerdown', 150);
     pointer(start, 'pointermove', 120);
     pointer(start, 'pointerup', 120);

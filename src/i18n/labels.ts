@@ -157,11 +157,13 @@ export type QuoinLabels = {
   embedLink: string;
   imageLink: string;
   dropImage: string;
-  /** An image block: its caption, its toolbar, the handles of its width and the toolbar's own buttons. */
+  /** An image block: its caption, its toolbar, the handles of its width with their value, and the toolbar's buttons. */
   imageCaption: string;
   addCaption: string;
   imageTools: string;
-  imageWidth: string;
+  resizeFromLeft: string;
+  resizeFromRight: string;
+  widthValue: (percent: number) => string;
   replaceImage: string;
   download: string;
   /** The alt text of an image: its field, what the field asks for, its button, and the name of an image without one. */

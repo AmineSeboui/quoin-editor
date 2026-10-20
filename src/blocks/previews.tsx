@@ -49,7 +49,7 @@ export function ImagePreview({ data }: BlockPreviewProps) {
   const caption = captionText(str(data.caption));
   return (
     <figure>
-      <img src={src} alt={str(data.alt)} className="max-w-full rounded-md" />
+      <img src={src} alt={str(data.alt) || labels.imageNoAlt} className="max-w-full rounded-md" />
       {caption && <figcaption className={HINT}>{caption}</figcaption>}
     </figure>
   );

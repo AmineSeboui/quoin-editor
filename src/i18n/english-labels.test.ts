@@ -172,7 +172,9 @@ describe('englishLabels', () => {
     ]);
     expect(englishLabels.dropImage).toBe('Or drop or paste an image here.');
     expect([englishLabels.imageCaption, englishLabels.addCaption]).toEqual(['Image caption', 'Add a caption']);
-    expect([englishLabels.imageTools, englishLabels.imageWidth]).toEqual(['Image tools', 'Image width']);
+    expect(englishLabels.imageTools).toBe('Image tools');
+    expect([englishLabels.resizeFromLeft, englishLabels.resizeFromRight]).toEqual(['Resize from the left', 'Resize from the right']);
+    expect(englishLabels.widthValue(45)).toBe('45%');
     expect([englishLabels.replaceImage, englishLabels.download]).toEqual(['Replace image', 'Download']);
     expect([englishLabels.altText, englishLabels.save]).toEqual(['Alt text', 'Save']);
     expect(englishLabels.altTextHint).toBe('Required. Describe what the image shows for anyone who cannot see it.');

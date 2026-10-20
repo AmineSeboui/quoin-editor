@@ -1,13 +1,14 @@
 'use client';
 
-import { useRef, useState, type KeyboardEvent, type PointerEvent, type RefObject } from 'react';
+import { useRef, type KeyboardEvent, type PointerEvent, type RefObject } from 'react';
 import { useLabels } from '../../i18n/use-labels';
 import { bubblePart } from '../../menus/bubble/bubble-part';
 import type { ViewController } from '../../view';
 import { isComposingKey } from '../../view/input/keydown';
 import { NATIVE_INTERACTION } from '../../view/selection/native-interaction';
 import { setBlockAttrs } from '../text/set-block-attrs';
-import { drawnWidth, keyedWidth, MAX_WIDTH, MIN_WIDTH, snapWidth } from './resize-width';
+import { keyedWidth, MAX_WIDTH, MIN_WIDTH, snapWidth } from './resize-width';
+import { useDrawnWidth } from './use-drawn-width';
 
 type Drag = { x: number; width: number; block: number; grows: number; to: number | null };
 
@@ -27,13 +28,13 @@ type ResizeHandlesProps = {
 export function ResizeHandles({ blockId, controller, frame, percent, centred, onPreview }: ResizeHandlesProps) {
   const labels = useLabels();
   const drag = useRef<Drag | null>(null);
-  const [drawn, setDrawn] = useState(MAX_WIDTH);
+  const drawn = useDrawnWidth(frame, percent === undefined);
   const value = percent ?? drawn;
   const write = (widthPercent: number) => setBlockAttrs(controller, blockId, { widthPercent });
 
   const onKeyDown = (event: KeyboardEvent) => {
     if (isComposingKey(controller, event.nativeEvent)) return;
-    const next = keyedWidth(event.key, percent ?? drawnWidth(frame.current));
+    const next = keyedWidth(event.key, value);
     if (event.key === 'Escape') controller.focus();
     else if (next === null) return;
     else if (next !== percent) write(next);
@@ -67,15 +68,15 @@ export function ResizeHandles({ blockId, controller, frame, percent, centred, on
     <div
       role="slider"
       tabIndex={-1}
-      aria-label={labels.imageWidth}
+      aria-label={side < 0 ? labels.resizeFromLeft : labels.resizeFromRight}
       aria-valuemin={MIN_WIDTH}
       aria-valuemax={MAX_WIDTH}
       aria-valuenow={value}
+      aria-valuetext={labels.widthValue(value)}
       data-side={side}
       className="quoin-image-handle"
       {...{ [NATIVE_INTERACTION]: '' }}
       {...bubblePart(controller)}
-      onFocus={() => setDrawn(drawnWidth(frame.current))}
       onKeyDown={onKeyDown}
       onPointerDown={onPointerDown(side)}
       onPointerMove={onPointerMove}

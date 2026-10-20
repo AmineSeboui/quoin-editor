@@ -44,7 +44,7 @@ test('dragging a width handle shows the width as it goes and writes it once, whe
   await openEditor(page, 'image');
   await page.getByRole('img', { name: 'A red square' }).click();
   const frame = shell(page).locator('.quoin-image-frame');
-  const handle = (await shell(page).getByRole('slider', { name: 'Image width' }).last().boundingBox())!;
+  const handle = (await shell(page).getByRole('slider', { name: 'Resize from the right' }).boundingBox())!;
   const before = await changes(page);
   await page.mouse.move(handle.x + handle.width / 2, handle.y + handle.height / 2);
   await page.mouse.down();
@@ -72,7 +72,7 @@ test('the toolbar of a selected image is reached with Alt+F10 and aligns it, and
   await expect.poll(() => imageData(page)).toMatchObject({ align: 'center' });
   await expect(toolbar(page).getByRole('button', { name: 'Align center' })).toHaveAttribute('aria-pressed', 'true');
   await page.keyboard.press('Tab');
-  const handle = shell(page).getByRole('slider', { name: 'Image width' }).last();
+  const handle = shell(page).getByRole('slider', { name: 'Resize from the right' });
   await expect(handle).toBeFocused();
   await page.keyboard.press('ArrowLeft');
   await expect.poll(() => imageData(page)).toMatchObject({ widthPercent: 45 });

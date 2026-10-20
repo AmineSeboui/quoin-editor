@@ -74,6 +74,9 @@ describe('the toolbar of an image', () => {
     expect(button('Align center')).toHaveFocus();
     fireEvent.keyDown(button('Align center'), { key: 'End' });
     expect(button('Delete')).toHaveFocus();
+    fireEvent.keyDown(button('Delete'), { key: 'Escape', isComposing: true });
+    fireEvent.keyDown(button('Delete'), { key: 'Tab', keyCode: 229 });
+    expect(button('Delete')).toHaveFocus();
     fireEvent.keyDown(button('Delete'), { key: 'Escape' });
     expect(sink()).toHaveFocus();
   });
@@ -83,7 +86,7 @@ describe('the toolbar of an image', () => {
     nodeSelect('i');
     fireEvent.keyDown(sink(), { key: 'F10', altKey: true });
     fireEvent.keyDown(button('Align left'), { key: 'Tab' });
-    expect(screen.getAllByRole('slider', { name: 'Image width' })[1]).toHaveFocus();
+    expect(screen.getByRole('slider', { name: 'Resize from the right' })).toHaveFocus();
   });
 
   it('replaces the picture with an upload', async () => {

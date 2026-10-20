@@ -13,6 +13,7 @@ import { useFocusKey } from '../../menus/floating/use-focus-key';
 import { virtualAnchor } from '../../menus/floating/virtual-anchor';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
 import type { ViewController } from '../../view';
+import { isComposingKey } from '../../view/input/keydown';
 import { useEditorState } from '../../view/react/use-editor-state';
 import { useReadOnly } from '../../view/react/use-read-only';
 import { str } from '../str';
@@ -83,7 +84,7 @@ function ImageToolbar({ blockId, controller }: { blockId: string; controller: Vi
     );
   };
   const onKeyDown = (event: KeyboardEvent) => {
-    if (!roving.owns(event.target)) return;
+    if (!roving.owns(event.target) || isComposingKey(controller, event.nativeEvent)) return;
     const tab = event.key === 'Tab' && !event.altKey && !event.ctrlKey && !event.metaKey;
     if (tab && !event.shiftKey) part(controller, blockId, '[role="slider"][data-side="1"]')?.focus();
     else if (tab || event.key === 'Escape') controller.focus();

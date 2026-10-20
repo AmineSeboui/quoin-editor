@@ -4,7 +4,7 @@ import { useRef, useState, type Ref } from 'react';
 import { sanitizeHref } from '../../engine';
 import { selectHandlers } from '../../blocks/void/select-handlers';
 import type { ViewController } from '../../view';
-import { domainOf, webAddress } from './web-address';
+import { domainOf, webAddress } from '../web-address';
 
 type LinkCardProps = {
   controller: ViewController;

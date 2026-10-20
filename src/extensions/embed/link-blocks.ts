@@ -3,7 +3,7 @@ import type { EmbedProvider } from '../../engine';
 import { linkAddress } from '../../menus/link/link-address';
 import type { LinkKind } from './link-request';
 import { matchEmbed } from './providers';
-import { webAddress } from './web-address';
+import { webAddress } from '../web-address';
 
 export function embedOf(href: string, providers: readonly EmbedProvider[]): NewBlock | null {
   const match = matchEmbed(href, providers);

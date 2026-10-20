@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { webAddress } from '../embed/web-address';
+import { webAddress } from '../web-address';
 import type { MentionResult } from './mention-feature';
 
 /** A row of the mention menu: the result's avatar when it has a web address, its label and its description. */

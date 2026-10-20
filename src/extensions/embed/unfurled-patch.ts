@@ -1,4 +1,4 @@
-import { webAddress } from './web-address';
+import { webAddress } from '../web-address';
 
 const filled = (value: unknown): string | undefined =>
   typeof value === 'string' && value.trim() !== '' ? value : undefined;

@@ -208,7 +208,7 @@ describe('the mention menu', () => {
     expect(searchless.markdown('p')).toBe('Ask @ad');
   });
 
-  it('neither asks again nor loses its results when the host renders anew with a new search', async () => {
+  it('keeps the search it mounted with, as BlockCanvas reads its extensions once: a new one neither asks again nor clears the results', async () => {
     const first = deferredSearch();
     const second = vi.fn(async () => [{ id: '9', label: 'Other' }]);
     let renderAgain = () => {};

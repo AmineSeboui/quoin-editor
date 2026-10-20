@@ -1,4 +1,4 @@
-import { sanitizeHref } from '../../engine';
+import { sanitizeHref } from '../engine';
 
 const WEB = /^https?:\/\/[^/?#\s]/i;
 

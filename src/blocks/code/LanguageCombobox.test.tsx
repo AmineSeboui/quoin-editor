@@ -43,11 +43,15 @@ describe('the language combobox', () => {
     expect(document.activeElement).toBe(area());
   });
 
-  it('stores a language it does not list as typed, on Enter', () => {
+  it('stores a language it does not list as typed, on Enter, its words joined by hyphens', () => {
     const { last } = open('ts');
     fireEvent.change(field(), { target: { value: 'cobol ' } });
     fireEvent.keyDown(field(), { key: 'Enter' });
     expect(last()[0].data).toEqual({ language: 'cobol', code: 'x' });
+    act(() => field().focus());
+    fireEvent.change(field(), { target: { value: 'objective c' } });
+    fireEvent.keyDown(field(), { key: 'Enter' });
+    expect(last()[0].data).toEqual({ language: 'objective-c', code: 'x' });
   });
 
   it('picks an option on click', () => {

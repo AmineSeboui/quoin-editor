@@ -1,3 +1,4 @@
+import { fromMarkdown, toMarkdown } from '../../engine';
 import { CODE_LANGUAGES, languageId, languageName, languageOptions } from './code-languages';
 
 describe('the code languages', () => {
@@ -20,6 +21,12 @@ describe('the code languages', () => {
     expect(languageId(' c++ ')).toBe('cpp');
     expect(languageId(' Cobol ')).toBe('Cobol');
     expect(languageId('ts')).toBe('ts');
+  });
+
+  it('store a typed language of several words as one hyphenated word, which a markdown fence keeps whole', () => {
+    expect(languageId(' objective   c ')).toBe('objective-c');
+    const code = [{ id: 'k', type: 'CODE', data: { language: languageId('objective c'), code: 'x' } }];
+    expect(fromMarkdown(toMarkdown(code))[0].data).toEqual({ language: 'objective-c', code: 'x' });
   });
 });
 

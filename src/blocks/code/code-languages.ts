@@ -54,9 +54,12 @@ export function languageName(language: string): string | undefined {
   return CODE_LANGUAGES.find((known) => knows(known, key))?.name;
 }
 
-/** What the block stores for a language typed in: the id of a language named as listed, else the text as typed. */
+/**
+ * What the block stores for a language typed in: the id of a language named as listed, else the text as typed, its
+ * words joined by hyphens, since a markdown fence keeps only the first word of its info string.
+ */
 export function languageId(typed: string): string {
-  const text = typed.trim();
+  const text = typed.trim().replace(/\s+/g, '-');
   return CODE_LANGUAGES.find(({ name }) => name.toLowerCase() === text.toLowerCase())?.id ?? text;
 }
 

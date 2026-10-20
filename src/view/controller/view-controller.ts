@@ -53,6 +53,7 @@ export class ViewController {
   goalX: number | null = null;
   nativeVerticalMove = false;
   dragging = false;
+  focusingSink = false;
   composingKey: string | null = null;
   private readonly flush: (fn: () => void) => void;
   private readonly hosts: HostRenderer;
@@ -208,7 +209,7 @@ export class ViewController {
   syncSelectionToDom(): void {
     const doc = this.ownerDocument();
     const domSelection = doc?.getSelection();
-    if (this.composingKey !== null || !doc || !domSelection || !ownsFocus(this, doc)) return;
+    if (this.focusingSink || this.composingKey !== null || !doc || !domSelection || !ownsFocus(this, doc)) return;
     const before = selectionPoints(domSelection);
     const { selection } = this.editor.state;
     if (heldBySink(selection) && this.sink !== null) focusSink(this);
@@ -245,7 +246,7 @@ export class ViewController {
     if (selection !== null && !sameSelection(selection, editor.state.selection)) {
       this.dispatch(editor.createTransaction().setSelection(selection));
     }
-    this.drawn.focusElement()?.focus();
+    this.takeFocus();
     this.syncSelectionToDom();
   }
 
@@ -276,9 +277,13 @@ export class ViewController {
   // React replaces a host whose block changes kind, which drops focus, and Firefox does not move focus into another
   // host when a script selects inside it.
   private keepFocus(): void {
+    if (this.composingKey === null) this.takeFocus();
+  }
+
+  private takeFocus(): void {
     const element = this.drawn.focusElement();
-    if (this.composingKey === null && element && element.ownerDocument.activeElement !== element) {
-      element.focus();
-    }
+    if (!element || element.ownerDocument.activeElement === element) return;
+    if (element === this.sink) focusSink(this);
+    else element.focus();
   }
 }

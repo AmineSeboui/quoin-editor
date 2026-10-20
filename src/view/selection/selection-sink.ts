@@ -48,13 +48,18 @@ function focusInPlace(sink: HTMLElement): void {
 }
 
 // The sink's own text stays selected, so a composition replaces it and leaves only what was composed, and a screen
-// reader reads it as the selection.
+// reader reads it as the selection. Writing the selection again from its focus event would bring the block into view
+// before the scroll is put back, which would undo it, so that is left to the write that follows.
 export function focusSink(controller: ViewController): void {
   const { sink } = controller;
   if (sink === null) return;
   const text = selectionText(controller.editor.state);
   if (sink.textContent !== text) sink.textContent = text;
-  if (sink.ownerDocument.activeElement !== sink) focusInPlace(sink);
+  if (sink.ownerDocument.activeElement !== sink) {
+    controller.focusingSink = true;
+    focusInPlace(sink);
+    controller.focusingSink = false;
+  }
   sink.ownerDocument.getSelection()?.selectAllChildren(sink);
 }
 

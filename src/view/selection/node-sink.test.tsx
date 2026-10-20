@@ -114,6 +114,36 @@ describe('a node selection in the sink', () => {
     expect(scrolled).toHaveBeenCalledTimes(2);
   });
 
+  it('takes focus without scrolling, whether an edit or a call to focus brings focus to it', () => {
+    const { controller, sink, select } = mount();
+    const focus = vi.spyOn(sink, 'focus');
+    select(nodeSelection('d'));
+    const outside = document.body.appendChild(document.createElement('input'));
+    act(() => outside.focus());
+    act(() => controller.focus());
+    expect(document.activeElement).toBe(sink);
+    expect(focus.mock.calls).toEqual([[{ preventScroll: true }], [{ preventScroll: true }]]);
+  });
+
+  it('brings the block into view once the sink has taken focus, never while it takes it', () => {
+    const { controller, sink, shell, select } = mount();
+    const focus = sink.focus.bind(sink);
+    let focusing = false;
+    vi.spyOn(sink, 'focus').mockImplementation((options) => {
+      focusing = true;
+      focus(options);
+      focusing = false;
+    });
+    const revealed: boolean[] = [];
+    vi.spyOn(shell('d'), 'scrollIntoView').mockImplementation(() => void revealed.push(focusing));
+    select(nodeSelection('d'));
+    act(() => controller.focus({ block: 'c', region: 'text', offset: 0 }));
+    act(() => (document.activeElement as HTMLElement).blur());
+    select(nodeSelection('d'));
+    expect(document.activeElement).toBe(sink);
+    expect(revealed).toEqual([false, false]);
+  });
+
   it('empties the sink and hands focus to a host when the selection becomes a caret', () => {
     const { container, sink, select } = mount();
     select(nodeSelection('d'));

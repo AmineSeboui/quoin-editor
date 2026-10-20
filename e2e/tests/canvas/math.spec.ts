@@ -139,6 +139,52 @@ for (const key of ['Backspace', 'Enter']) {
   });
 }
 
+test('a drag from inside a word to past a formula at the end of its line takes the formula, so Backspace removes both', async ({
+  page,
+}) => {
+  await openEditor(page, 'math', 'math=1');
+  const host = page.locator('[data-block-id="p"] [data-quoin-host]');
+  await caretAtEnd(page, host);
+  for (let step = 0; step < ' here'.length; step++) await page.keyboard.press('Backspace');
+  await expect.poll(() => markdownOf(page, 'p')).toBe('Area $x^2$');
+  // Chromium ends such a drag inside the formula when it starts after the first character of the line.
+  const start = await host.evaluate((element) => {
+    const range = document.createRange();
+    range.setStart(element.firstChild!, 2);
+    range.setEnd(element.firstChild!, 3);
+    return range.getBoundingClientRect().left + 1;
+  });
+  const atom = (await formula(page).boundingBox())!;
+  const line = (await host.boundingBox())!;
+  const middle = atom.y + atom.height / 2;
+  await page.mouse.move(start, middle);
+  await page.mouse.down();
+  await page.mouse.move(atom.x + atom.width + 20, middle, { steps: 5 });
+  await page.mouse.move(line.x + line.width - 5, middle, { steps: 5 });
+  await page.mouse.up();
+  await page.keyboard.press('Backspace');
+  await expect.poll(() => markdownOf(page, 'p')).toBe('Ar');
+});
+
+test('a Shift+click on a formula from right after it selects the formula, and the next key types over it', async ({
+  page,
+}) => {
+  await openEditor(page, 'math', 'math=1');
+  const host = page.locator('[data-block-id="p"] [data-quoin-host]');
+  const atom = (await formula(page).boundingBox())!;
+  const middle = atom.y + atom.height / 2;
+  await page.mouse.click(atom.x + atom.width + 1, middle);
+  await expect(host).toBeFocused();
+  await page.waitForFunction(() => document.activeElement?.contains(document.getSelection()?.focusNode ?? null));
+  await page.keyboard.down('Shift');
+  await page.mouse.click(atom.x + atom.width / 2, middle);
+  await page.keyboard.up('Shift');
+  await expect(page.locator('[data-quoin-selected-atom] > [data-quoin-atom="math"]')).toHaveCount(1);
+  await expect(popover(page)).toHaveCount(0);
+  await page.keyboard.type('Z');
+  await expect.poll(() => markdownOf(page, 'p')).toBe('Area Z here');
+});
+
 test('a math block opens its editor on a click, stores on Mod+Enter and hands focus back to the block', async ({ page }) => {
   await openEditor(page, 'math', 'math=1');
   await equation(page).click();

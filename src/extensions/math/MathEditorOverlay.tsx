@@ -8,7 +8,8 @@ import { useRangeAnchor } from '../../menus/floating/use-range-anchor';
 import type { ViewController } from '../../view';
 import { useEditorState } from '../../view/react/use-editor-state';
 import { useReadOnly } from '../../view/react/use-read-only';
-import type { MathFeature } from './math-feature';
+import { useSelectionOutOfAtoms } from '../atoms/use-selection-out-of-atoms';
+import { MATH_ATOMS, type MathFeature } from './math-feature';
 import { openMath, useMathTarget } from './math-target';
 import type { AtomTarget, BlockTarget, InsertTarget, MathTarget } from './math-target';
 import { MathEditorPopover } from './MathEditorPopover';
@@ -41,6 +42,7 @@ export function MathEditorOverlay({ controller, feature }: Props) {
     useCallback((state: EditorState) => target !== null && isThere(state, target), [target]),
   );
   useMathAtomOpening(controller, !readOnly);
+  useSelectionOutOfAtoms(controller, MATH_ATOMS, !readOnly);
   const shown = target !== null && there && !readOnly;
   useEffect(() => {
     if (target !== null && !shown) openMath(controller, null);

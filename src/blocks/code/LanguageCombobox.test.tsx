@@ -79,6 +79,15 @@ describe('the language combobox', () => {
     expect(last()[0].data).toEqual({ language: 'go', code: 'x' });
   });
 
+  it('leaves the Enter that commits a composition to the input method', () => {
+    const { changes } = open('ts');
+    fireEvent.change(field(), { target: { value: 'py' } });
+    expect(fireEvent.keyDown(field(), { key: 'Enter', keyCode: 229 })).toBe(true);
+    expect(fireEvent.keyDown(field(), { key: 'Enter', isComposing: true })).toBe(true);
+    expect(changes).toEqual([]);
+    expect(document.activeElement).toBe(field());
+  });
+
   it('has no accessibility violations while its list is open', async () => {
     const { container } = open('ts');
     const block = await act(() => axe(container));

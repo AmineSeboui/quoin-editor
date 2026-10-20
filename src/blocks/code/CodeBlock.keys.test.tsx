@@ -110,3 +110,14 @@ describe('Escape in the code', () => {
     expect(document.activeElement).not.toBe(area());
   });
 });
+
+describe('a key an input method is composing with', () => {
+  it('is left to the input method, so committing a word never adds a line', () => {
+    const { changes } = mountCanvas(around('let a;'));
+    caret(6);
+    expect(fireEvent.keyDown(area(), { key: 'Enter', keyCode: 229 })).toBe(true);
+    expect(fireEvent.keyDown(area(), { key: 'Enter', isComposing: true })).toBe(true);
+    expect(fireEvent.keyDown(area(), { key: 'Tab', keyCode: 229 })).toBe(true);
+    expect(changes).toEqual([]);
+  });
+});

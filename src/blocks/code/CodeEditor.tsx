@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, type KeyboardEvent, type RefObject } fr
 import type { EngineBlock } from '../../engine';
 import { useLabels } from '../../i18n/use-labels';
 import type { ViewController } from '../../view';
+import { isComposingKey } from '../../view/input/keydown';
 import { NATIVE_INTERACTION } from '../../view/selection/native-interaction';
 import { str } from '../str';
 import { selectNode } from '../void/select-node';
@@ -47,7 +48,7 @@ export function CodeEditor({ block, controller, field, focusControls }: CodeEdit
   useTypeIntoCode(controller, blockId, field, write);
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     const area = event.currentTarget;
-    if (event.nativeEvent.isComposing) return;
+    if (isComposingKey(controller, event.nativeEvent)) return;
     const action = codeKeyAction(event, fieldOf(area), controller.isMac);
     if (action !== null && runCodeAction(action, { controller, blockId, area, write, focusControls })) event.preventDefault();
   };

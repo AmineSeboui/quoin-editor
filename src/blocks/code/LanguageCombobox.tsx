@@ -7,6 +7,7 @@ import { FOCUS_RING } from '../../ui/focus';
 import { MENU_CONTENT } from '../../ui/menu-styles';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
 import type { ViewController } from '../../view';
+import { isComposingKey } from '../../view/input/keydown';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
 import { setBlockAttrs } from '../text/set-block-attrs';
 import { languageId, languageName, languageOptions } from './code-languages';
@@ -61,6 +62,7 @@ export function LanguageCombobox({ blockId, controller, language, field, onDone 
     onDone();
   };
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (isComposingKey(controller, event.nativeEvent)) return;
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
       const step = event.key === 'ArrowDown' ? 1 : -1;

@@ -25,12 +25,26 @@ function selectionText(state: EditorState): string {
   return text === '' ? NO_TEXT : text;
 }
 
-// WebKit scrolls the page a few pixels as the sink takes focus, preventScroll notwithstanding.
+type Scrolled = { readonly at: Element | Window; readonly left: number; readonly top: number };
+
+function scrollOf(at: Element | Window): Scrolled {
+  return 'scrollY' in at ? { at, left: at.scrollX, top: at.scrollY } : { at, left: at.scrollLeft, top: at.scrollTop };
+}
+
+// WebKit scrolls the page as the sink takes focus, preventScroll notwithstanding: a few pixels, or under a transformed
+// ancestor its scroll container to the top. Every scroller around the sink is put back, at once even where the page
+// scrolls smoothly.
 function focusInPlace(sink: HTMLElement): void {
+  const scrollers: (Element | Window)[] = [];
+  for (let at = sink.parentElement; at !== null; at = at.parentElement) scrollers.push(at);
   const view = sink.ownerDocument.defaultView;
-  const [x, y] = [view?.scrollX, view?.scrollY];
+  if (view !== null) scrollers.push(view);
+  const before = scrollers.map(scrollOf);
   sink.focus({ preventScroll: true });
-  if (view && (view.scrollX !== x || view.scrollY !== y)) view.scrollTo(x ?? 0, y ?? 0);
+  for (const { at, left, top } of before) {
+    const now = scrollOf(at);
+    if (now.left !== left || now.top !== top) at.scrollTo({ left, top, behavior: 'instant' });
+  }
 }
 
 // The sink's own text stays selected, so a composition replaces it and leaves only what was composed, and a screen

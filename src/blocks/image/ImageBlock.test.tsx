@@ -110,6 +110,15 @@ describe('the image block', () => {
     expect(screen.getByRole('textbox', { name: 'Paragraph' })).toHaveTextContent('above');
   });
 
+  it.each(['javascript:alert(1)', 'file:///etc/passwd', 'app:cat.png'])(
+    'draws a picture as missing when the host gives its key an address that is no web, blob or data address, %s',
+    (address) => {
+      mountCanvas([image()], { resolveAssetUrl: () => address });
+      expect(screen.getByRole('img', { name: 'A cat' })).not.toHaveAttribute('src');
+      expect(screen.getByRole('img', { name: 'A cat' })).toHaveTextContent('A cat');
+    },
+  );
+
   it('draws neither handles nor an empty caption on a read-only canvas, and says an empty block has no image', () => {
     mountCanvas([image(), image({ storageKey: '' })].map((block, n) => ({ ...block, id: `i${n}` })), {
       resolveAssetUrl,

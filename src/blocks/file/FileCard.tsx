@@ -7,9 +7,10 @@ import { optionalNumber } from '../../engine/blocks/data-fields';
 import { bubblePart } from '../../menus/bubble/bubble-part';
 import type { BlockRenderProps } from '../../view';
 import { str } from '../str';
+import { assetHref } from '../upload/resolved-asset';
 import { selectHandlers } from '../void/select-handlers';
 import { fileIcon } from './file-icon';
-import { fileHref, fileName } from './file-source';
+import { fileName } from './file-source';
 
 type FileCardProps = BlockRenderProps & { readOnly: boolean };
 
@@ -23,7 +24,7 @@ export function FileCard({ block, controller, readOnly }: FileCardProps) {
   const { id, attrs } = block;
   const name = fileName(attrs);
   const size = optionalNumber(attrs.size);
-  const href = fileHref(attrs, resolveAssetUrl);
+  const href = assetHref(resolveAssetUrl, str(attrs.storageKey));
   const Icon = fileIcon(str(attrs.mime), name);
 
   return (

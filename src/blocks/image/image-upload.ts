@@ -9,7 +9,7 @@ import {
   writeAttrs,
   type BlockUploader,
 } from '../upload/block-upload';
-import { resolvedAsset } from '../upload/resolved-asset';
+import { assetHref } from '../upload/resolved-asset';
 
 export const isImageFile = (file: File): boolean => file.type.startsWith('image/');
 
@@ -25,7 +25,7 @@ export async function measureImage(
   resolveAssetUrl: (storageKey: string) => string,
   token = claimUpload(controller, blockId),
 ): Promise<void> {
-  const src = resolvedAsset(resolveAssetUrl, storageKey);
+  const src = assetHref(resolveAssetUrl, storageKey);
   const size = src === null ? null : await intrinsicSize(src);
   if (size && isNewestUpload(controller, blockId, token) && sameAsset(assetOf(controller, blockId, 'IMAGE'), { url: '', storageKey })) {
     writeAttrs(controller, blockId, { ...size }, false);

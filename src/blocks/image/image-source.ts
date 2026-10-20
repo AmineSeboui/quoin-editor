@@ -1,6 +1,6 @@
 import { sanitizeHref, type BlockAttrs } from '../../engine';
 import { str } from '../str';
-import { resolvedAsset } from '../upload/resolved-asset';
+import { assetHref } from '../upload/resolved-asset';
 
 /** The key of the uploaded picture or the address of a linked one, whichever the block has. */
 export const hasPicture = (attrs: BlockAttrs): boolean => str(attrs.url) !== '' || str(attrs.storageKey) !== '';
@@ -8,7 +8,5 @@ export const hasPicture = (attrs: BlockAttrs): boolean => str(attrs.url) !== '' 
 /** Where the picture of an image block loads from: its link when it has one, else the host's address for its key. */
 export function imageSource(attrs: BlockAttrs, resolveAssetUrl: (storageKey: string) => string): string | null {
   const url = str(attrs.url);
-  if (url !== '') return sanitizeHref(url);
-  const key = str(attrs.storageKey);
-  return key === '' ? null : resolvedAsset(resolveAssetUrl, key);
+  return url === '' ? assetHref(resolveAssetUrl, str(attrs.storageKey)) : sanitizeHref(url);
 }

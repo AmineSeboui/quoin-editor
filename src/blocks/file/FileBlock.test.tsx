@@ -26,10 +26,13 @@ describe('a file block holding a file', () => {
     expect(download).toHaveAttribute('rel', 'noopener');
   });
 
-  it('links the address the host gives, wherever it points, as long as it runs no script', () => {
-    mountCanvas([file()], { resolveAssetUrl: (key) => `blob:https://quoin.dev/${key}` });
-    expect(link()).toHaveAttribute('href', 'blob:https://quoin.dev/notes.pdf');
-  });
+  it.each(['https://cdn.quoin.dev/notes.pdf', 'blob:https://quoin.dev/1f2e', 'data:application/pdf;base64,JVBERg==', '/files/notes.pdf'])(
+    'links the http, https, blob, data or relative address the host gives, here %s',
+    (address) => {
+      mountCanvas([file()], { resolveAssetUrl: () => address });
+      expect(link()).toHaveAttribute('href', address);
+    },
+  );
 
   it('shows an icon for the type of the file, and no size for a file that has none', () => {
     mountCanvas([file({ size: undefined, mime: undefined, filename: 'backup.zip' })], { resolveAssetUrl });
@@ -52,6 +55,8 @@ describe('a file block holding a file', () => {
     ['it has a name but no key', { storageKey: '' }, resolveAssetUrl],
     ['its key resolves to a script', { storageKey: ' JaVa\tScript:alert(1)' }, String],
     ['its key resolves to another script', { storageKey: 'vbscript:msgbox(1)' }, String],
+    ['its key resolves to a local file', { storageKey: 'file:///etc/passwd' }, String],
+    ['its key resolves to another application', { storageKey: 'ms-word:ofe|u|https://x.y/a.doc' }, String],
   ])('draws the card without a link when %s', (_case, data, resolve) => {
     mountCanvas([file(data)], { resolveAssetUrl: resolve });
     expect(card()).toHaveTextContent('notes.pdf');

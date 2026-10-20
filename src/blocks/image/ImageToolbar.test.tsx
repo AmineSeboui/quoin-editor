@@ -116,6 +116,18 @@ describe('the toolbar of an image', () => {
     }
   });
 
+  it('downloads nothing when the host gives the key an address that is no web, blob or data address', () => {
+    const { nodeSelect } = mount(undefined, { resolveAssetUrl: () => 'file:///etc/passwd' });
+    nodeSelect('i');
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    try {
+      fireEvent.click(button('Download'));
+      expect(click).not.toHaveBeenCalled();
+    } finally {
+      click.mockRestore();
+    }
+  });
+
   it('deletes the image and gives focus back to the editor', () => {
     const { nodeSelect, last } = mount();
     nodeSelect('i');

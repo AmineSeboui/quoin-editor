@@ -91,6 +91,23 @@ describe('the code block', () => {
     expect(within(group).getByRole('button', { name: 'Copy code' })).toBeInTheDocument();
   });
 
+  it('lets a keyboard scroll the code and reach the copy button on a read-only canvas', () => {
+    mountCanvas([code('k', 'let a;'), code('p', 'x', '')], { readOnly: true });
+    const [named, plain] = screen.getAllByRole('region');
+    expect(named).toHaveAccessibleName('TypeScript');
+    expect(plain).toHaveAccessibleName('Code');
+    expect(named).toHaveAttribute('tabindex', '0');
+    expect(named.querySelector('pre')).toHaveTextContent('let a;');
+    for (const copy of screen.getAllByRole('button', { name: 'Copy code' })) expect(copy).not.toHaveAttribute('tabindex');
+  });
+
+  it('keeps the editor its one tab stop on an editable canvas', () => {
+    mountCanvas([code('k', 'let a;')]);
+    expect(screen.queryByRole('region')).toBeNull();
+    expect(area()).toHaveAttribute('tabindex', '-1');
+    expect(screen.getByRole('button', { name: 'Copy code' })).toHaveAttribute('tabindex', '-1');
+  });
+
   it('opens on Enter when node-selected, with focus in its code', () => {
     const { nodeSelect, press } = mountCanvas([paragraph('a', 'above'), code('k', 'x')]);
     nodeSelect('k');

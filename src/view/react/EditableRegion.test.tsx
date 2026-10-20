@@ -5,6 +5,7 @@ import { coreExtensions } from '../../engine/extension/core-extensions';
 import type { Extension } from '../../engine';
 import { textSelection } from '../../engine/state/selection';
 import type { ViewController } from '../controller/view-controller';
+import type { BlockPlaceholder } from './block-placeholder';
 import { defaultRenderers, type BlockRenderer } from './default-renderers';
 import { Editor, hostOf, md } from './test-harness';
 
@@ -75,10 +76,56 @@ describe('EditableRegion', () => {
     const { container, controller } = mount([md('h', '## ')]);
     const host = hostOf(container, 'h');
     expect(host).toHaveAttribute('data-placeholder', 'Heading 2');
+    expect(host).toHaveAttribute('aria-placeholder', 'Heading 2');
     expect(host.querySelector('br[data-quoin-filler]')).not.toBeNull();
     act(() => controller.dispatch(controller.editor.createTransaction().setSelection(caretIn('h', 0))));
     act(() => controller.run(insertText('T')));
     expect(host).not.toHaveAttribute('data-placeholder');
+    expect(host).not.toHaveAttribute('aria-placeholder');
+  });
+});
+
+describe('EditableRegion placeholders from the view', () => {
+  const caretHolder: BlockPlaceholder = (state, block) =>
+    state.selection?.kind === 'text' && state.selection.head.block === block.id ? `Write in ${block.id}` : undefined;
+  const callout = { id: 'c', type: 'CALLOUT', data: { tone: 'info', body: '' } };
+
+  function mountPlaceholders(blockPlaceholder: BlockPlaceholder, readOnly = false) {
+    let controller!: ViewController;
+    const view = render(
+      <Editor
+        options={{ blocks: [md('a', ''), md('b', ''), callout], onChange: () => {}, readOnly }}
+        view={{ blockPlaceholder }}
+        onController={(c) => (controller = c)}
+      />,
+    );
+    const host = (id: string) => view.container.querySelector(`[data-block-id="${id}"] [data-quoin-host]`)!;
+    return { controller, host };
+  }
+
+  it('asks the view for the placeholder of each empty block, and follows the editor state', () => {
+    const { controller, host } = mountPlaceholders(caretHolder);
+    act(() => controller.dispatch(controller.editor.createTransaction().setSelection(caretIn('a', 0))));
+    expect(host('a')).toHaveAttribute('data-placeholder', 'Write in a');
+    expect(host('a')).toHaveAttribute('aria-placeholder', 'Write in a');
+    expect(host('b')).not.toHaveAttribute('data-placeholder');
+    expect(host('b')).not.toHaveAttribute('aria-placeholder');
+    act(() => controller.dispatch(controller.editor.createTransaction().setSelection(caretIn('b', 0))));
+    expect(host('a')).not.toHaveAttribute('data-placeholder');
+    expect(host('b')).toHaveAttribute('data-placeholder', 'Write in b');
+  });
+
+  it('gives a block with another main region its placeholder there', () => {
+    const { host } = mountPlaceholders((_, block) => (block.type === 'CALLOUT' ? 'Callout' : undefined));
+    expect(host('c')).toHaveAttribute('data-placeholder', 'Callout');
+  });
+
+  it('shows no placeholder while read-only', () => {
+    const { host } = mountPlaceholders(() => 'Anything', true);
+    for (const id of ['a', 'b', 'c']) {
+      expect(host(id)).not.toHaveAttribute('data-placeholder');
+      expect(host(id)).not.toHaveAttribute('aria-placeholder');
+    }
   });
 });
 

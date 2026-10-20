@@ -11,6 +11,7 @@ import { descendantsEnd, isParagraph, isTextFlow, regionLength } from './block-h
 import { capIndents } from './cap-indents';
 import { hidingToggle, isClosedToggle } from './collapsed-toggle';
 import type { Command } from './command';
+import { LINE_JOIN } from './line-join';
 import { paragraphStep } from './paragraph-step';
 import { shiftSubtree } from './shift-subtree';
 
@@ -53,7 +54,7 @@ export const deleteAtStart: Command = (state, dispatch) => {
   const { block, index, pos } = caret;
   const previous = doc.blocks[index - 1];
   const hidden = hidingToggle(doc, index);
-  const tr = new Transaction(state);
+  const tr = new Transaction(state).setMeta(LINE_JOIN, true);
   if (!isParagraph(block)) {
     tr.step(paragraphStep(schema, block, pos.region));
     tr.setSelection(startOf(tr.doc, schema, block.id));
@@ -81,7 +82,7 @@ export const deleteAtEnd: Command = (state, dispatch) => {
   const nextIndex = isClosedToggle(block) ? descendantsEnd(doc, index) : index + 1;
   const next = doc.blocks[nextIndex];
   if (next === undefined) return false;
-  const tr = new Transaction(state);
+  const tr = new Transaction(state).setMeta(LINE_JOIN, true);
   if (isTextFlow(schema, next) && nextIndex > index + 1) {
     joinIntoSummary(tr, schema, block, next);
   } else if (isTextFlow(schema, next)) {

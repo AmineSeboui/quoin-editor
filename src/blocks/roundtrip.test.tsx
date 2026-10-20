@@ -6,11 +6,7 @@ import { coreBlocks } from './core';
 
 const TYPED = 'distinctive-round-trip-text';
 
-const CASES = [
-  { type: 'MARKDOWN', field: 'Markdown' },
-  { type: 'CALLOUT', field: 'Callout text' },
-  { type: 'CODE', field: 'Code' },
-] as const;
+const CASES = [{ type: 'CODE', field: 'Code' }] as const;
 
 describe('editor to preview round trip', () => {
   it.each(CASES)('$type preview shows what its editor wrote', ({ type, field }) => {

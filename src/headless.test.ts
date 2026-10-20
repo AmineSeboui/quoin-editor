@@ -1,18 +1,10 @@
-import { wrapSelection, continueList, shouldOpenPalette } from './headless';
+import * as engine from './engine';
+import * as headless from './headless';
+import * as view from './view';
 
 describe('headless entry', () => {
-  it('wraps a selection in bold markers', () => {
-    const edit = wrapSelection('bold', 'hello world', 0, 5);
-    expect(edit?.value).toBe('**hello** world');
-  });
-
-  it('continues a bullet list on Enter', () => {
-    const edit = continueList('- one', 5, 'Enter');
-    expect(edit?.value).toBe('- one\n- ');
-  });
-
-  it('opens the palette only at the start of an empty line', () => {
-    expect(shouldOpenPalette('', 0, 0)).toBe(true);
-    expect(shouldOpenPalette('text', 4, 4)).toBe(false);
+  it('exports the editable view and the engine, and nothing else', () => {
+    const expected = new Set([...Object.keys(view), ...Object.keys(engine)]);
+    expect(Object.keys(headless).sort()).toEqual([...expected].sort());
   });
 });

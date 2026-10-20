@@ -35,6 +35,7 @@ import {
   unsetLink,
   unsetMark,
 } from './marks';
+import { moveBlocksTo } from './move-blocks-to';
 import { selectAll, selectBlock, setSelection } from './selection-commands';
 import { splitBlock } from './split-block';
 import { setBlockType } from './turn-into';
@@ -76,6 +77,7 @@ export const coreCommandFactories = {
   outdent: () => outdent,
   moveBlocksUp: () => moveBlocksUp,
   moveBlocksDown: () => moveBlocksDown,
+  moveBlocksTo,
   duplicateBlocks,
   deleteBlocks: () => deleteBlocks,
   insertBlockAfter,

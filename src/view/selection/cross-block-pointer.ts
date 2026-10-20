@@ -1,10 +1,12 @@
 import type { Pos, Selection } from '../../engine';
-import { blockRangeSelection, sameSelection, textSelection } from '../../engine/state/selection';
+import { blockRangeSelection, nodeSelection, sameSelection, textSelection } from '../../engine/state/selection';
 import { domToPos } from '../controller/dom-selection';
 import type { HostEntry } from '../controller/host-registry';
 import type { ViewController } from '../controller/view-controller';
+import { entryEdge } from '../navigation/neighbour-block';
 import { createAutoScroll } from './auto-scroll';
 import { blockAt, caretPosAt, hostAt } from './pointer-targets';
+import { NATIVE_INTERACTION } from './native-interaction';
 import { isCrossSelection } from './selection-decorations';
 
 export type CrossBlockPointer = { attach(root: HTMLElement): () => void };
@@ -15,7 +17,7 @@ type Press =
 
 const DRAGGING = 'data-quoin-dragging';
 const DRAG_DISTANCE = 4;
-const CONTROLS = 'button, a, input, select, textarea';
+const CONTROLS = `button, a, input, select, textarea, [${NATIVE_INTERACTION}]`;
 
 const sameHost = (pos: Pos, host: HostEntry): boolean => pos.block === host.block && pos.region === host.region;
 
@@ -35,7 +37,7 @@ export function createCrossBlockPointer(controller: ViewController): CrossBlockP
       let press: Press | null = null;
       let last = { x: 0, y: 0 };
       let preventMouseDown = false;
-      const scroll = createAutoScroll(view, () => follow(last.x, last.y));
+      const scroll = createAutoScroll(root, () => follow(last.x, last.y));
 
       function select(selection: Selection): void {
         if (sameSelection(selection, controller.editor.state.selection)) return;
@@ -121,6 +123,9 @@ export function createCrossBlockPointer(controller: ViewController): CrossBlockP
           if (event.shiftKey) extendFrom(host, event.clientX, event.clientY);
         } else if (block !== undefined && !(control && root.contains(control))) {
           press = { kind: 'blocks', start: block, x: event.clientX, y: event.clientY };
+          // A node selection is otherwise read from the native one, and Firefox leaves none after a press on a block
+          // with no text, such as a divider.
+          if (!event.shiftKey && entryEdge(controller, block, 1).kind === 'node') select(nodeSelection(block));
         } else {
           return;
         }

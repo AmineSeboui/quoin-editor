@@ -1,12 +1,12 @@
 import type { ComponentType } from 'react';
-import type { LucideIcon } from 'lucide-react';
 import type { BlockEditorProps, BlockPreviewProps } from './types';
 
 /** The fields every block definition carries, whatever it can do with its data. */
 type BlockDefinitionCommon<D extends object> = {
   type: string;
   label: string;
-  icon: LucideIcon;
+  /** Any icon component, such as a lucide one, that takes a class name and can be hidden from assistive technology. */
+  icon: ComponentType<{ className?: string; 'aria-hidden'?: boolean | 'true' | 'false' }>;
   /**
    * Called when a new block of this type is inserted, to seed its data.
    * `NoInfer` keeps `D` inferred from `editor` and `preview` alone, so the seed is checked
@@ -33,6 +33,10 @@ type BlockDefinitionCommon<D extends object> = {
  * for it and a click goes through to whatever the preview itself renders.
  *
  * Omitting both is a type error, because such a block would only ever draw its own label.
+ *
+ * A definition of a type the canvas draws itself, other than Quoin's own, draws that type as a void block: `DIVIDER`
+ * everywhere, and `MARKDOWN`, `CALLOUT` and `TOGGLE` only on a read-only canvas, since an editable one types into them
+ * in place.
  */
 export type BlockDefinition<D extends object = Record<string, unknown>> =
   | (BlockDefinitionCommon<D> & {
@@ -72,7 +76,7 @@ export function defineBlock<D extends object = Record<string, unknown>>(
 
 /** The definition for a type, or undefined; the last registration of a type wins, so a host can override a core block. */
 export function blockByType(
-  definitions: AnyBlockDefinition[],
+  definitions: readonly AnyBlockDefinition[],
   type: string,
 ): AnyBlockDefinition | undefined {
   for (let i = definitions.length - 1; i >= 0; i -= 1) {

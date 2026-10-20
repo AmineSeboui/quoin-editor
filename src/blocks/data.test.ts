@@ -1,5 +1,3 @@
-import markdownSrc from './MarkdownBlockEditor.tsx?raw';
-import calloutSrc from './CalloutBlockEditor.tsx?raw';
 import codeSrc from './CodeBlockEditor.tsx?raw';
 import imageSrc from './ImageBlockEditor.tsx?raw';
 import fileSrc from './FileBlockEditor.tsx?raw';
@@ -42,13 +40,11 @@ const _assert: [_M, _C, _O, _I, _F] = [true, true, true, true, true];
 type _S = keyof IntrinsicSize extends keyof ImageBlockData ? true : never;
 const _spread: _S = true;
 
-const EDITOR_SOURCE: Record<keyof typeof KEYS, string> = {
-  MARKDOWN: markdownSrc,
-  CALLOUT: calloutSrc,
+const EDITOR_SOURCE = {
   CODE: codeSrc,
   IMAGE: imageSrc,
   FILE: fileSrc,
-};
+} satisfies Partial<Record<keyof typeof KEYS, string>>;
 
 /** The object spreads an editor may use when it writes. `...data`, `...latest.current` and
  *  `...patch` are the `set` helper's own plumbing and carry no new names; `...size` is the
@@ -114,7 +110,7 @@ describe('core block data shapes', () => {
     },
   );
 
-  it.each(Object.keys(KEYS) as (keyof typeof KEYS)[])(
+  it.each(Object.keys(EDITOR_SOURCE) as (keyof typeof EDITOR_SOURCE)[])(
     'the %s editor writes only declared fields',
     (type) => {
       const { keys, spreads } = writtenKeys(EDITOR_SOURCE[type]);

@@ -9,6 +9,7 @@ export { useViewController } from './react/editor-context';
 export { useEditorState } from './react/use-editor-state';
 export { useQuoinEditor, type UseQuoinEditorOptions } from './react/use-quoin-editor';
 export { EditorView, type EditorViewProps } from './react/EditorView';
+export type { BlockPlaceholder } from './react/block-placeholder';
 export { EditableRegion, type EditableRegionProps } from './react/EditableRegion';
 export { BlockShell } from './react/BlockShell';
 export { SelectionSink } from './react/SelectionSink';

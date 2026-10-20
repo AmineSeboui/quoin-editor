@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { QuoinProvider } from '../context';
 import { blockByType } from '../registry';
 import { coreBlocks } from './core';
@@ -24,29 +24,21 @@ describe('coreBlocks', () => {
     expect(blockByType(coreBlocks, 'CALLOUT')?.initialData?.()).toEqual({ tone: 'info', body: '' });
   });
 
-  it('renders the markdown editor through its definition', () => {
-    const definition = blockByType(coreBlocks, 'MARKDOWN');
-    const Editor = definition!.editor!;
-    render(
-      <QuoinProvider value={{ blockTypes: coreBlocks }}>
-        <Editor data={{ markdown: 'hello' }} onChange={() => {}} />
-      </QuoinProvider>,
-    );
-    expect(screen.getByLabelText('Markdown')).toHaveValue('hello');
+  it('leaves markdown and callouts to the canvas, which edits them in place', () => {
+    expect(blockByType(coreBlocks, 'MARKDOWN')?.editor).toBeUndefined();
+    expect(blockByType(coreBlocks, 'CALLOUT')?.editor).toBeUndefined();
   });
 
   it.each(coreBlocks.map((b) => [b.type, b] as const))(
-    'mounts the %s editor and preview on its own initialData',
+    'mounts the %s preview, and its editor if it has one, on its own initialData',
     (_type, block) => {
       const data = block.initialData?.() ?? {};
-      const { editor, preview: Preview } = block;
-      expect(editor).toBeDefined();
+      const { editor: Editor, preview: Preview } = block;
       expect(Preview).toBeDefined();
-      const Editor = editor!;
       expect(() =>
         render(
           <QuoinProvider value={{ blockTypes: coreBlocks }}>
-            <Editor data={data} onChange={() => {}} />
+            {Editor && <Editor data={data} onChange={() => {}} />}
             {Preview && <Preview data={data} />}
           </QuoinProvider>,
         ),

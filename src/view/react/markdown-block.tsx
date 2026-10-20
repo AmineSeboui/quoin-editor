@@ -1,26 +1,19 @@
 import type { BlockRenderProps, BlockRenderer } from './block-renderer-types';
 import { EditableRegion } from './EditableRegion';
-import { orderedNumber } from './list-numbers';
+import { headingLevel } from './heading-level';
 import { TaskCheckbox } from './TaskCheckbox';
-import { useEditorState } from './use-editor-state';
+import { useOrderedNumber } from './use-ordered-number';
 
 const REGION = 'text';
 
-function headingLevel(level: unknown): number {
-  return typeof level === 'number' && Number.isInteger(level) ? Math.min(6, Math.max(1, level)) : 1;
-}
+type TextRegionProps = { block: BlockRenderProps['block']; label: string };
 
-type TextRegionProps = { block: BlockRenderProps['block']; label: string; placeholder?: string };
-
-function TextRegion({ block, label, placeholder }: TextRegionProps) {
-  return <EditableRegion block={block.id} region={REGION} label={label} placeholder={placeholder} />;
+function TextRegion({ block, label }: TextRegionProps) {
+  return <EditableRegion block={block.id} region={REGION} label={label} />;
 }
 
 function NumberedItem({ block, controller }: BlockRenderProps) {
-  const number = useEditorState(controller, ({ doc }) => {
-    const index = doc.index.get(block.id);
-    return index === undefined ? 1 : orderedNumber(doc, index);
-  });
+  const number = useOrderedNumber(controller, block.id);
   return (
     <div className="quoin-list-item" data-list="ordered">
       <span className="quoin-marker" aria-hidden="true">{`${number}.`}</span>
@@ -36,7 +29,7 @@ export const MarkdownBlock: BlockRenderer = (props) => {
       const level = headingLevel(block.attrs.level);
       return (
         <div role="heading" aria-level={level} className="quoin-heading">
-          <TextRegion block={block} label={`Heading ${level}`} placeholder={`Heading ${level}`} />
+          <TextRegion block={block} label={`Heading ${level}`} />
         </div>
       );
     }

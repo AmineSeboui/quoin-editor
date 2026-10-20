@@ -1,6 +1,6 @@
-import type { EngineBlock, Pos, Selection, TextSelection } from '../../engine';
+import type { BlockRangeSelection, EngineBlock, Pos, Selection, TextSelection } from '../../engine';
 import { isTextFlow } from '../../engine/commands/block-helpers';
-import { primaryRegion, textSelection } from '../../engine/state/selection';
+import { blockRangeSelection, primaryRegion, textSelection } from '../../engine/state/selection';
 import { domToPos, posToDom } from '../controller/dom-selection';
 import type { ViewController } from '../controller/view-controller';
 import { isCrossSelection } from '../selection/selection-decorations';
@@ -93,9 +93,18 @@ function moveText(controller: ViewController, selection: TextSelection, directio
   return true;
 }
 
+function extendBlocks(controller: ViewController, { anchor, head }: BlockRangeSelection, direction: -1 | 1): boolean {
+  const { editor } = controller;
+  const next = neighbourBlock(editor.state.doc, head, direction);
+  if (next === null) return false;
+  controller.dispatch(editor.createTransaction().setSelection(blockRangeSelection(anchor, next.id)));
+  return true;
+}
+
 export function moveVertically(controller: ViewController, direction: -1 | 1, extend: boolean): boolean {
   const { selection } = controller.editor.state;
   if (selection?.kind === 'node') return !extend && moveToNeighbour(controller, selection.block, direction);
+  if (selection?.kind === 'blocks') return extend && extendBlocks(controller, selection, direction);
   if (selection?.kind !== 'text') return false;
   if (!isCrossSelection(selection)) return moveText(controller, selection, direction, extend);
   controller.goalX = null;

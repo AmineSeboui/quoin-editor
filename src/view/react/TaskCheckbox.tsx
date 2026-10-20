@@ -2,16 +2,26 @@ import { flipCommand } from '../input/flip-block';
 import { onBlock } from './block-command';
 import type { BlockRenderProps } from './block-renderer-types';
 import { keepFocus } from './prevent-mouse-focus';
+import { useReadOnly } from './use-read-only';
 
-export function TaskCheckbox({ block, controller }: Pick<BlockRenderProps, 'block' | 'controller'>) {
+type TaskCheckboxProps = Pick<BlockRenderProps, 'block' | 'controller'> & {
+  /** The name of the checkbox while the elements it is labelled by have no text. */
+  label?: string;
+  labelledBy?: string;
+};
+
+export function TaskCheckbox({ block, controller, label = 'Task', labelledBy }: TaskCheckboxProps) {
   const checked = block.attrs.checked === true;
   const flip = flipCommand(block);
+  const readOnly = useReadOnly(controller);
   return (
     <button
       type="button"
       role="checkbox"
       aria-checked={checked}
-      aria-label="Task"
+      aria-readonly={readOnly ? 'true' : undefined}
+      aria-label={label}
+      aria-labelledby={labelledBy}
       className="quoin-task-box"
       contentEditable={false}
       tabIndex={-1}

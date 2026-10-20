@@ -15,9 +15,39 @@ describe('the main entry', () => {
     expect(main.FilePickerButton).toBeTypeOf('function');
   });
 
+  it('exports the English labels and the means to override and read them', () => {
+    expect(main.englishLabels.bold).toBe('Bold');
+    expect(main.resolveLabels({ bold: 'Gras' }).bold).toBe('Gras');
+    expect(main.useLabels).toBeTypeOf('function');
+  });
+
+  it('keeps formatShortcut, the utility that writes a shortcut the way the platform does', () => {
+    expect(main.formatShortcut('mod+b', { isMac: false })).toBe('Ctrl+B');
+  });
+
   it('still exports the editor surface alongside them', () => {
-    expect(main.BlockCanvas).toBeTypeOf('function');
+    expect(main.BlockCanvas).toBeDefined();
     expect(main.coreBlocks.length).toBeGreaterThan(0);
+  });
+
+  it('no longer exports the textarea editor or its helpers', () => {
+    const removed = [
+      'useBlockList',
+      'useAutoGrow',
+      'TEXT_COMMANDS',
+      'applyEdit',
+      'lineAt',
+      'toggleLinePrefix',
+      'continueList',
+      'indentList',
+      'wrapSelection',
+      'linkPaste',
+      'insertCommand',
+      'shouldOpenPalette',
+      'caretRect',
+      'useMarkdownKeymap',
+    ];
+    expect(removed.filter((name) => name in main)).toEqual([]);
   });
 });
 

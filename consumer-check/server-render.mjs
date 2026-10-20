@@ -14,9 +14,13 @@ const blocks = [
   { id: 'file', type: 'FILE', data: { storageKey: 'notes.pdf', filename: 'notes.pdf' } },
 ];
 
-const html = renderToString(createElement(BlockCanvas, { blocks, onChange: () => {} }));
+const labels = { document: 'Server notes', editorHint: 'Leave with Escape, then Tab.' };
+const html = renderToString(createElement(BlockCanvas, { blocks, onChange: () => {}, labels }));
 
-if (!html.includes('Mind the gap.')) errors.push('The server-rendered canvas is missing the sample document.');
+if (!html.includes('data-block-id="callout"')) errors.push('The server-rendered canvas is missing the sample document.');
+if (!html.includes(`aria-label="${labels.document}"`) || !html.includes(labels.editorHint)) {
+  errors.push('The server-rendered canvas does not speak the labels it was given.');
+}
 if (errors.length > 0) {
   process.stderr.write(`${errors.join('\n\n')}\n`);
   process.exit(1);

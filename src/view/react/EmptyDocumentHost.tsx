@@ -4,7 +4,9 @@ import { useViewController } from './editor-context';
 import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect';
 import { useReadOnly } from './use-read-only';
 
-export function EmptyDocumentHost({ placeholder }: { placeholder?: string }) {
+type EmptyDocumentHostProps = { placeholder?: string; label?: string };
+
+export function EmptyDocumentHost({ placeholder, label = 'Paragraph' }: EmptyDocumentHostProps) {
   const controller = useViewController();
   const ref = useRef<HTMLDivElement>(null);
   const readOnly = useReadOnly(controller);
@@ -24,10 +26,11 @@ export function EmptyDocumentHost({ placeholder }: { placeholder?: string }) {
       role="textbox"
       aria-multiline="true"
       aria-readonly={readOnly ? 'true' : undefined}
-      aria-label="Paragraph"
+      aria-label={label}
       data-quoin-host=""
       data-quoin-empty=""
       data-placeholder={readOnly ? undefined : placeholder}
+      aria-placeholder={readOnly ? undefined : placeholder}
       spellCheck
       onClick={() => ref.current?.focus()}
     />

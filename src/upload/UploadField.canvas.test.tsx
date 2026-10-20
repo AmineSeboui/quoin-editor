@@ -4,6 +4,7 @@ import { Paperclip } from 'lucide-react';
 import { BlockCanvas } from '../canvas/BlockCanvas';
 import { coreBlocks } from '../blocks/core';
 import { defineBlock } from '../registry';
+import type { QuoinLabels } from '../i18n/labels';
 import type { BlockEditorProps, QuoinBlock, UploadFn } from '../types';
 import { UploadField } from './UploadField';
 
@@ -35,9 +36,9 @@ const slides = defineBlock({
 const blockTypes = [...coreBlocks, slides];
 const blocks: QuoinBlock[] = [{ id: 's', type: 'SLIDES', data: { storageKey: '' } }];
 
-function renderCanvas(upload?: UploadFn) {
+function renderCanvas(upload?: UploadFn, labels?: Partial<QuoinLabels>) {
   const onChange = vi.fn();
-  render(<BlockCanvas blocks={blocks} onChange={onChange} blockTypes={blockTypes} upload={upload} />);
+  render(<BlockCanvas blocks={blocks} onChange={onChange} blockTypes={blockTypes} upload={upload} labels={labels} />);
   return { onChange };
 }
 
@@ -59,11 +60,22 @@ describe('UploadField inside a custom block', () => {
     const upload = vi.fn().mockReturnValue(new Promise((resolve) => { finish = resolve; }));
     renderCanvas(upload);
     await user.upload(screen.getByLabelText('Upload slides'), new File(['x'], 'deck.pdf'));
-    // dnd-kit's own live region is also role="status", so the announcement is found by its text.
     expect(screen.getByText('Uploading...')).toHaveAttribute('role', 'status');
-    expect(screen.getByLabelText('Upload slides')).toBeDisabled();
+    expect(screen.getByLabelText('Upload slides')).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByLabelText('Upload slides')).toHaveFocus();
     finish({ storageKey: 'deck/1', filename: 'deck.pdf', size: 2 });
     await waitFor(() => expect(screen.queryByText('Uploading...')).toBeNull());
+  });
+
+  it('words its messages with the labels given to the canvas', async () => {
+    const user = userEvent.setup();
+    let finish: (result: { storageKey: string; filename: string; size: number }) => void = () => {};
+    const upload = vi.fn().mockReturnValue(new Promise((resolve) => { finish = resolve; }));
+    renderCanvas(upload, { uploading: 'Envoi en cours', uploaded: (name) => `Envoy\u00e9 ${name}` });
+    await user.upload(screen.getByLabelText('Upload slides'), new File(['x'], 'deck.pdf'));
+    expect(screen.getByText('Envoi en cours')).toHaveAttribute('role', 'status');
+    finish({ storageKey: 'deck/1', filename: 'deck.pdf', size: 2 });
+    expect(await screen.findByText('Envoy\u00e9 deck.pdf')).toHaveAttribute('role', 'status');
   });
 
   it('says so when the canvas was given no upload function', () => {

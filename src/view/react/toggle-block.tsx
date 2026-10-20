@@ -1,30 +1,13 @@
-import { flipCommand } from '../input/flip-block';
-import { onBlock } from './block-command';
 import type { BlockRenderer } from './block-renderer-types';
 import { EditableRegion } from './EditableRegion';
-import { keepFocus } from './prevent-mouse-focus';
+import { ToggleChevron } from './ToggleChevron';
+import { useToggleOpen } from './use-reader-choices';
 
 export const ToggleBlock: BlockRenderer = ({ block, controller }) => {
-  const open = block.attrs.open === true;
-  const flip = flipCommand(block);
+  const open = useToggleOpen(controller, block);
   return (
     <div className="quoin-toggle" data-open={open}>
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-label="Toggle"
-        className="quoin-toggle-button"
-        contentEditable={false}
-        tabIndex={-1}
-        onMouseDown={keepFocus}
-        onClick={() => {
-          if (flip && !controller.readOnly) controller.run(onBlock(block.id, flip));
-        }}
-      >
-        <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-          <path d="M6 3.5l4.5 4.5L6 12.5" fill="none" stroke="currentColor" strokeWidth="2" />
-        </svg>
-      </button>
+      <ToggleChevron block={block} controller={controller} />
       <EditableRegion block={block.id} region="text" label="Toggle" />
     </div>
   );

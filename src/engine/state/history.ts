@@ -36,6 +36,10 @@ type Config = { readonly depth: number; readonly groupDelay: number };
 
 export const historyKey = createPluginKey<HistoryState>('history');
 
+// A transaction meta key naming the group its change belongs to: consecutive changes of one group inside the group
+// delay undo as one step, as typing does.
+export const HISTORY_GROUP = 'historyGroup';
+
 const emptyHistory: HistoryState = { done: [], undone: [], lastTime: 0, lastGroup: null, lastInputRule: null };
 
 const historyOf = (state: EditorState): HistoryState | undefined =>
@@ -51,6 +55,11 @@ function groupKey(selection: Selection | null): string | null {
   return selection?.kind === 'text' ? JSON.stringify([selection.head.block, selection.head.region]) : null;
 }
 
+function groupOf(tr: Transaction): string | null {
+  if (tr.getMeta<boolean>('closeHistory') === true) return null;
+  return tr.getMeta<string>(HISTORY_GROUP) ?? (tr.origin === 'input' ? groupKey(tr.before.selection) : null);
+}
+
 function inputRuleRecord(tr: Transaction, steps: readonly Step[]): InputRuleRecord | null {
   const rule = tr.getMeta<{ undoText: string }>('inputRule');
   const before = tr.before.selection;
@@ -61,8 +70,7 @@ function inputRuleRecord(tr: Transaction, steps: readonly Step[]): InputRuleReco
 
 function recorded(tr: Transaction, value: HistoryState, { depth, groupDelay }: Config): HistoryState {
   const steps = invertTransaction(tr);
-  const closed = tr.getMeta<boolean>('closeHistory') === true;
-  const group = tr.origin === 'input' && !closed ? groupKey(tr.before.selection) : null;
+  const group = groupOf(tr);
   const last = value.done.at(-1);
   const merges =
     last !== undefined && group !== null && group === value.lastGroup && tr.time - value.lastTime < groupDelay;

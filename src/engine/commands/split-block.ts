@@ -7,6 +7,7 @@ import { insertBlocksStep } from '../transform/block-steps';
 import { createBlock, descendantsEnd } from './block-helpers';
 import type { Command } from './command';
 import { deleteRange } from './delete-range';
+import { LINE_SPLIT } from './line-split';
 import { splitAt } from './split-at';
 
 export function splitBlock(options: { newId?: () => string } = {}): Command {
@@ -14,7 +15,7 @@ export function splitBlock(options: { newId?: () => string } = {}): Command {
   return (state, dispatch) => {
     const { doc, schema, selection } = state;
     if (selection === null || selection.kind === 'blocks') return false;
-    const tr = new Transaction(state);
+    const tr = new Transaction(state).setMeta(LINE_SPLIT, true);
     if (selection.kind === 'node') {
       const index = requireBlockIndex(doc, selection.block);
       const paragraph = createBlock(schema, schema.defaultTextBlock, {}, doc.blocks[index].indent, makeId());

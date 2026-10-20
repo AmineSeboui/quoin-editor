@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { Button } from './button';
 import { Input } from './input';
 import { Textarea } from './textarea';
@@ -14,16 +14,23 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from './dropdown-menu';
-import { Select, SelectContent, SelectItem, SelectTrigger } from './select';
-import { Command, CommandItem, CommandList } from './command';
-import { DocumentStarter } from '../canvas/DocumentStarter';
+import {
+  ContextMenu,
+  ContextMenuCheckboxItem,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuRadioGroup,
+  ContextMenuRadioItem,
+  ContextMenuSub,
+  ContextMenuSubTrigger,
+  ContextMenuTrigger,
+} from './context-menu';
+import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import { FilePickerButton } from '../upload/FilePickerButton';
-import { renderCanvas } from '../../test/support/render-canvas';
 
 const SOURCES = import.meta.glob<string>('../**/*.{ts,tsx}', { query: '?raw', import: 'default', eager: true });
 
 const RING_CLASSES = [
-  'outline-hidden',
   'focus-visible:outline-2',
   'focus-visible:outline-offset-2',
   'focus-visible:outline-solid',
@@ -32,15 +39,28 @@ const RING_CLASSES = [
 
 const BAR = 'shadow-[inset_2px_0_0_var(--quoin-foreground)]';
 
+/** Unconditional, this utility draws a 2px outline round every control at rest in forced-colors mode, so the one with
+ *  focus no longer stands out. Scoped to :focus it frames only the focused control. */
+const FORCED_COLORS_FRAME = 'outline-hidden';
+
 function classesOf(el: Element | null): string[] {
   if (!el) throw new Error('element not rendered');
   return el.className.split(/\s+/);
+}
+
+function expectHighlightedRows(rows: HTMLElement[]) {
+  for (const row of rows) {
+    expect(classesOf(row)).toContain(`data-[highlighted]:${BAR}`);
+    expect(classesOf(row)).toContain(`focus:${FORCED_COLORS_FRAME}`);
+    expect(classesOf(row)).not.toContain(FORCED_COLORS_FRAME);
+  }
 }
 
 function expectFocusRing(el: Element | null) {
   const classes = classesOf(el);
   expect(classes).toEqual(expect.arrayContaining(RING_CLASSES));
   expect(classes).not.toContain('outline-none');
+  expect(classes).not.toContain(FORCED_COLORS_FRAME);
   expect(classes.some((c) => c.includes('ring-ring'))).toBe(false);
 }
 
@@ -60,15 +80,6 @@ describe('keyboard focus is a solid outline', () => {
     expectFocusRing(screen.getByLabelText('Notes'));
   });
 
-  it('on a select trigger', () => {
-    render(
-      <Select>
-        <SelectTrigger aria-label="Tone" />
-      </Select>,
-    );
-    expectFocusRing(screen.getByRole('combobox', { name: 'Tone' }));
-  });
-
   it('on the dialog close button', () => {
     render(
       <Dialog open>
@@ -79,11 +90,6 @@ describe('keyboard focus is a solid outline', () => {
       </Dialog>,
     );
     expectFocusRing(screen.getByRole('button', { name: 'Close' }));
-  });
-
-  it('on the line that starts a document', () => {
-    renderCanvas(<DocumentStarter onStart={() => {}} onInsertBlock={() => {}} />);
-    expectFocusRing(screen.getByLabelText('Write something'));
   });
 
   it('around the file picker, which paints it on a wrapper because the input is invisible', () => {
@@ -124,33 +130,46 @@ describe('a highlighted row carries a bar as well as a background', () => {
       screen.getByRole('menuitemradio', { name: 'Radio' }),
       screen.getByRole('menuitem', { name: 'Sub' }),
     ];
-    for (const row of rows) {
-      expect(classesOf(row)).toContain(`data-[highlighted]:${BAR}`);
-      expect(classesOf(row)).toContain('outline-hidden');
-    }
+    expectHighlightedRows(rows);
   });
 
-  it('in a select', () => {
+  it('in a context menu', () => {
     render(
-      <Select open defaultValue="a">
-        <SelectTrigger aria-label="Tone" />
-        <SelectContent>
-          <SelectItem value="a">Alpha</SelectItem>
-        </SelectContent>
-      </Select>,
+      <ContextMenu>
+        <ContextMenuTrigger>Area</ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem>Item</ContextMenuItem>
+          <ContextMenuCheckboxItem checked>Checkbox</ContextMenuCheckboxItem>
+          <ContextMenuRadioGroup value="a">
+            <ContextMenuRadioItem value="a">Radio</ContextMenuRadioItem>
+          </ContextMenuRadioGroup>
+          <ContextMenuSub>
+            <ContextMenuSubTrigger>Sub</ContextMenuSubTrigger>
+          </ContextMenuSub>
+        </ContextMenuContent>
+      </ContextMenu>,
     );
-    expect(classesOf(screen.getByRole('option', { name: 'Alpha' }))).toContain(`data-[highlighted]:${BAR}`);
+    fireEvent.contextMenu(screen.getByText('Area'));
+    expectHighlightedRows([
+      screen.getByRole('menuitem', { name: 'Item' }),
+      screen.getByRole('menuitemcheckbox', { name: 'Checkbox' }),
+      screen.getByRole('menuitemradio', { name: 'Radio' }),
+      screen.getByRole('menuitem', { name: 'Sub' }),
+    ]);
   });
+});
 
-  it('in the palette', () => {
+describe('forced-colors mode', () => {
+  it('frames a popover only while it holds focus', () => {
     render(
-      <Command>
-        <CommandList>
-          <CommandItem>Heading</CommandItem>
-        </CommandList>
-      </Command>,
+      <Popover open>
+        <PopoverTrigger>Open</PopoverTrigger>
+        <PopoverContent>Body</PopoverContent>
+      </Popover>,
     );
-    expect(classesOf(screen.getByRole('option', { name: 'Heading' }))).toContain(`data-[selected=true]:${BAR}`);
+    const classes = classesOf(document.querySelector('[data-slot="popover-content"]'));
+    expect(classes).toContain(`focus:${FORCED_COLORS_FRAME}`);
+    expect(classes).not.toContain(FORCED_COLORS_FRAME);
   });
 });
 

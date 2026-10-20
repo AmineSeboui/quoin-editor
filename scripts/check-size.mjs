@@ -4,8 +4,8 @@ import { resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
 const budgets = [
-  ['dist/index.js', 158_000],
-  ['dist/headless.js', 73_000],
+  ['dist/index.js', 155_000],
+  ['dist/headless.js', 70_000],
   ['dist/engine.js', 52_000],
 ];
 const external = ['react', 'react-dom', 'react/jsx-runtime', 'yjs'];

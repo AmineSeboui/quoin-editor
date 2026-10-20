@@ -1,6 +1,7 @@
 import type { EditorState } from '../../engine';
 import { isTextFlow } from '../../engine/commands/block-helpers';
-import { hidingToggleAt } from '../navigation/visible-blocks';
+import { NO_CHOICES, type ReaderChoices } from '../controller/reader-toggles';
+import { isHiddenAt } from '../navigation/visible-blocks';
 import { isCrossSelection } from '../selection/selection-decorations';
 
 export type BlockStatus = 'plain' | 'selected' | 'hidden';
@@ -22,9 +23,9 @@ function covers(state: EditorState, id: string, index: number): boolean {
   return within(state, index, [selection.anchor.block, selection.head.block]);
 }
 
-export function blockStatus(state: EditorState, id: string): BlockStatus {
+export function blockStatus(state: EditorState, id: string, choices: ReaderChoices = NO_CHOICES): BlockStatus {
   const index = state.doc.index.get(id);
   if (index === undefined) return 'plain';
-  if (hidingToggleAt(state.doc, index) !== null) return 'hidden';
+  if (isHiddenAt(state.doc, index, choices)) return 'hidden';
   return covers(state, id, index) ? 'selected' : 'plain';
 }

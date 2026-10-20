@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { openHeadless } from '../../support/headless';
+import { host, openHeadless } from '../../support/headless';
 
 const outlineOf = (block: Locator) =>
   block.evaluate((element) => {
@@ -38,6 +38,50 @@ test.describe('forced colors', () => {
     await expect(other).not.toHaveAttribute('data-selected', 'true');
     expect((await outlineOf(other)).outlineStyle).toBe('none');
   });
+
+  test('frames the focused text in a 2px solid outline and leaves the rest unframed', async ({ page }) => {
+    await page.emulateMedia({ forcedColors: 'active' });
+    await openHeadless(page, 'three');
+    await host(page, 1).click();
+    await expect(host(page, 1)).toBeFocused();
+    expect(await outlineOf(host(page, 1))).toMatchObject({ outlineStyle: 'solid', outlineWidth: '2px' });
+    expect((await outlineOf(host(page, 0))).outlineStyle).toBe('none');
+  });
+
+  test('frames the highlighted row of a menu, where its inset bar and background are dropped', async ({ page }) => {
+    await page.emulateMedia({ forcedColors: 'active' });
+    await openHeadless(page);
+    await page.evaluate(() => {
+      const menu = document.createElement('div');
+      menu.className = 'quoin';
+      menu.innerHTML = '<div role="menuitem" data-highlighted="">On</div><div role="menuitem">Off</div>';
+      document.body.append(menu);
+    });
+    expect(await outlineOf(page.getByRole('menuitem', { name: 'On' }))).toMatchObject({ outlineStyle: 'solid', outlineWidth: '2px' });
+    expect((await outlineOf(page.getByRole('menuitem', { name: 'Off' }))).outlineStyle).toBe('none');
+  });
+});
+
+test.describe('color-scheme', () => {
+  const schemeOf = (page: Page) => page.getByRole('group', { name: 'Document' }).evaluate((root) => getComputedStyle(root).colorScheme);
+
+  test('is light on an editor in a light page', async ({ page }) => {
+    await page.emulateMedia({ colorScheme: 'light' });
+    await openHeadless(page);
+    expect(await schemeOf(page)).toBe('light');
+  });
+
+  test('is dark under a .dark ancestor and on a root that carries .dark itself', async ({ page }) => {
+    await page.emulateMedia({ colorScheme: 'light' });
+    await openHeadless(page);
+    await page.evaluate(() => document.body.classList.add('dark'));
+    expect(await schemeOf(page)).toBe('dark');
+    await page.evaluate(() => {
+      document.body.classList.remove('dark');
+      document.querySelector('.quoin-editor')!.classList.add('dark');
+    });
+    expect(await schemeOf(page)).toBe('dark');
+  });
 });
 
 test.describe('reduced motion', () => {
@@ -54,5 +98,19 @@ test.describe('reduced motion', () => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await openHeadless(page, 'closed');
     expect(await chevron(page)).toBe('0s');
+  });
+
+  test('nothing in the editor transitions or scrolls smoothly when the reader asks for reduced motion', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await openHeadless(page);
+    const motion = await page.evaluate(() => {
+      const probe = document.createElement('div');
+      probe.className = 'quoin';
+      probe.innerHTML = '<button style="transition: color 200ms; scroll-behavior: smooth">Go</button>';
+      document.body.append(probe);
+      const { transitionDuration, scrollBehavior } = getComputedStyle(probe.firstElementChild!);
+      return { transitionDuration, scrollBehavior };
+    });
+    expect(motion).toEqual({ transitionDuration: '0s', scrollBehavior: 'auto' });
   });
 });

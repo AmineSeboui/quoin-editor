@@ -1,11 +1,14 @@
 import { memo, useRef, type CSSProperties } from 'react';
 import type { EngineBlock } from '../../engine';
+import { alignOrUndefined, paletteOrUndefined } from '../../engine/blocks/data-fields';
+import { useBlockDomId } from './block-dom-id';
 import type { BlockRenderer } from './block-renderer-types';
 import { blockStatus } from './block-status';
 import { defaultRenderers, VoidBlockFallback } from './default-renderers';
 import { useViewController } from './editor-context';
 import { useEditorState } from './use-editor-state';
 import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect';
+import { useReaderChoices } from './use-reader-choices';
 
 type BlockShellProps = {
   block: EngineBlock;
@@ -20,7 +23,9 @@ function rendererFor(renderers: Readonly<Record<string, BlockRenderer>>, type: s
 export const BlockShell = memo(function BlockShell({ block, renderers }: BlockShellProps) {
   const controller = useViewController();
   const ref = useRef<HTMLDivElement>(null);
-  const status = useEditorState(controller, (state) => blockStatus(state, block.id));
+  const domId = useBlockDomId();
+  const choices = useReaderChoices(controller);
+  const status = useEditorState(controller, (state) => blockStatus(state, block.id, choices));
   const hidden = status === 'hidden';
 
   useIsomorphicLayoutEffect(() => {
@@ -30,15 +35,19 @@ export const BlockShell = memo(function BlockShell({ block, renderers }: BlockSh
 
   if (hidden) return null;
   const Renderer = rendererFor(renderers, block.type);
-  const { kind } = block.attrs;
+  const { kind, color, background, align } = block.attrs;
   return (
     <div
       ref={ref}
+      id={domId(block.id)}
       data-quoin-block=""
       data-block-id={block.id}
       data-type={block.type}
       data-kind={typeof kind === 'string' ? kind : undefined}
       data-indent={block.indent}
+      data-color={paletteOrUndefined(color)}
+      data-bg={paletteOrUndefined(background)}
+      data-align={alignOrUndefined(align)}
       style={{ '--quoin-indent': block.indent } as CSSProperties}
       tabIndex={-1}
       data-selected={status === 'selected' ? 'true' : undefined}

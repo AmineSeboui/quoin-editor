@@ -1,212 +1,94 @@
-import * as React from 'react';
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { createRef } from 'react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { axe } from 'vitest-axe';
-import { BlockCanvas } from './BlockCanvas';
-import { coreBlocks } from '../blocks/core';
+import { defineExtension } from '../engine';
 import type { QuoinBlock } from '../types';
+import { BlockCanvas } from './BlockCanvas';
+import type { QuoinEditorHandle } from './canvas-props';
 
-const blocks: QuoinBlock[] = [{ id: 'a', type: 'MARKDOWN', data: { markdown: '# Title' } }];
+const md = (id: string, markdown: string): QuoinBlock => ({ id, type: 'MARKDOWN', data: { markdown } });
+const blocks: QuoinBlock[] = [
+  md('h', '# Title'),
+  md('p', 'Some **bold** text.'),
+  { id: 'c', type: 'CALLOUT', data: { tone: 'warning', body: 'Mind the gap.' } },
+];
+
+const hosts = (container: HTMLElement) => Array.from(container.querySelectorAll<HTMLElement>('[data-quoin-host]'));
 
 describe('BlockCanvas', () => {
-  it('renders each block in order', () => {
-    const two: QuoinBlock[] = [...blocks, { id: 'b', type: 'CODE', data: { code: 'x = 1' } }];
-    render(<BlockCanvas blocks={two} onChange={() => {}} />);
-    expect(screen.getAllByRole('listitem')).toHaveLength(2);
+  it('draws every block as an editable host with its kind', () => {
+    const { container } = render(<BlockCanvas blocks={blocks} onChange={() => {}} />);
+    expect(screen.getByRole('textbox', { name: 'Heading 1' })).toHaveTextContent('Title');
+    expect(screen.getByRole('textbox', { name: 'Paragraph' }).innerHTML).toBe('Some <strong>bold</strong> text.');
+    expect(screen.getByText('Mind the gap.')).toBeInTheDocument();
+    expect(hosts(container).every((host) => host.contentEditable === 'true')).toBe(true);
   });
 
-  it('reports an edited block back through onChange', async () => {
-    const user = userEvent.setup();
-    const onChange = vi.fn();
-    render(<BlockCanvas blocks={blocks} onChange={onChange} />);
-    await user.click(screen.getByText('# Title'));
-    await user.type(screen.getByLabelText('Markdown'), '!');
-    expect(onChange).toHaveBeenCalled();
+  it('is a group named Editor unless the host names it', () => {
+    const { rerender } = render(<BlockCanvas blocks={blocks} onChange={() => {}} />);
+    expect(screen.getByRole('group', { name: 'Editor' })).toBeInTheDocument();
+    rerender(<BlockCanvas blocks={blocks} onChange={() => {}} aria-label="Notes" />);
+    expect(screen.getByRole('group', { name: 'Notes' })).toBeInTheDocument();
   });
 
-  it('does not report a change on mount', () => {
-    const onChange = vi.fn();
-    render(<BlockCanvas blocks={blocks} onChange={onChange} />);
-    expect(onChange).not.toHaveBeenCalled();
-  });
-
-  it('defaults to the core block types', async () => {
-    const user = userEvent.setup();
-    render(<BlockCanvas blocks={[]} onChange={() => {}} />);
-    await user.click(screen.getByRole('button', { name: /insert a block at the start/i }));
-    expect(await screen.findByText('Markdown')).toBeInTheDocument();
-  });
-
-  it('seeds a new block from its definition', async () => {
-    const user = userEvent.setup();
-    const onChange = vi.fn();
-    const seeded = {
-      type: 'SEEDED',
-      label: 'Seeded',
-      icon: (() => null) as never,
-      editor: () => <div>seeded editor</div>,
-      initialData: () => ({ count: 3 }),
-    };
-    render(<BlockCanvas blocks={[]} onChange={onChange} blockTypes={[seeded]} />);
-    await user.click(screen.getByRole('button', { name: /insert a block at the start/i }));
-    await user.click(await screen.findByText('Seeded'));
-    expect(onChange).toHaveBeenLastCalledWith([expect.objectContaining({ type: 'SEEDED', data: { count: 3 } })]);
-  });
-
-  it('renders a host-registered block type', () => {
-    const chart = {
-      type: 'CHART',
-      label: 'Chart',
-      icon: (() => null) as never,
-      editor: () => <div>chart editor</div>,
-    };
-    render(
-      <BlockCanvas
-        blocks={[{ id: 'c', type: 'CHART', data: {} }]}
-        onChange={() => {}}
-        blockTypes={[...coreBlocks, chart]}
-      />,
-    );
-    expect(screen.getByRole('listitem')).toBeInTheDocument();
-  });
-
-  it('draws an unregistered block type instead of an empty row, and reports it', () => {
-    const onError = vi.fn();
-    render(<BlockCanvas blocks={[{ id: 'z', type: 'GONE', data: {} }]} onChange={() => {}} onError={onError} />);
-    expect(screen.getAllByRole('listitem')).toHaveLength(1);
-    expect(screen.getByText('GONE')).toBeInTheDocument();
-    expect(onError).toHaveBeenCalledTimes(1);
-  });
-
-  it('accepts a blocks array supplied from outside after mount', async () => {
-    function Host() {
-      const [current, setBlocks] = React.useState<QuoinBlock[]>([]);
-      return (
-        <>
-          <button onClick={() => setBlocks([{ id: 'x', type: 'MARKDOWN', data: { markdown: 'loaded' } }])}>
-            load
-          </button>
-          <BlockCanvas blocks={current} onChange={setBlocks} />
-        </>
-      );
-    }
-    const user = userEvent.setup();
-    render(<Host />);
-    expect(screen.queryByText('loaded')).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'load' }));
-    expect(await screen.findByText('loaded')).toBeInTheDocument();
-  });
-
-  it('does not loop when the host echoes its own onChange back', async () => {
-    const user = userEvent.setup();
-    const onChange = vi.fn();
-    function Host() {
-      const [current, setBlocks] = React.useState<QuoinBlock[]>(blocks);
-      return (
-        <BlockCanvas
-          blocks={current}
-          onChange={(next) => {
-            onChange(next);
-            setBlocks(next);
-          }}
-        />
-      );
-    }
-    render(<Host />);
-    await user.click(screen.getByText('# Title'));
-    await user.type(screen.getByLabelText('Markdown'), '!');
-    expect(onChange.mock.calls.length).toBeLessThan(20);
-  });
-
-  it('keeps editing after the host echoes an edit back', async () => {
-    const user = userEvent.setup();
-    function Host() {
-      const [current, setBlocks] = React.useState<QuoinBlock[]>(blocks);
-      return <BlockCanvas blocks={current} onChange={setBlocks} />;
-    }
-    render(<Host />);
-    await user.click(screen.getByText('# Title'));
-    await user.type(screen.getByLabelText('Markdown'), '!?');
-    expect(screen.getByLabelText('Markdown')).toHaveValue('# Title!?');
-  });
-
-  it('keeps an edit when the host rebuilds an equal array on an unrelated re-render', async () => {
-    const user = userEvent.setup();
-    function Host() {
-      const [ticks, setTicks] = React.useState(0);
-      return (
-        <>
-          <button onClick={() => setTicks(ticks + 1)}>tick {ticks}</button>
-          <BlockCanvas blocks={blocks.map((b) => ({ ...b, data: { ...b.data } }))} onChange={() => {}} />
-        </>
-      );
-    }
-    render(<Host />);
-    await user.click(screen.getByText('# Title'));
-    await user.type(screen.getByLabelText('Markdown'), '!');
-    await user.click(screen.getByRole('button', { name: /tick/ }));
-    expect(screen.getByText('# Title!')).toBeInTheDocument();
-  });
-
-  it('accepts a host undo that replays an older emitted array', async () => {
-    const user = userEvent.setup();
-    function Host() {
-      const [current, setBlocks] = React.useState<QuoinBlock[]>(blocks);
-      const history = React.useRef<QuoinBlock[][]>([]);
-      return (
-        <>
-          <button onClick={() => setBlocks(history.current[0])}>undo</button>
-          <BlockCanvas
-            blocks={current}
-            onChange={(next) => {
-              history.current.push(next);
-              setBlocks(next);
-            }}
-          />
-        </>
-      );
-    }
-    render(<Host />);
-    await user.click(screen.getByText('# Title'));
-    await user.type(screen.getByLabelText('Markdown'), '!?');
-    expect(screen.getByLabelText('Markdown')).toHaveValue('# Title!?');
-    await user.click(screen.getByRole('button', { name: 'undo' }));
-    expect(screen.getByText('# Title!')).toBeInTheDocument();
-  });
-
-  it('merges a passed className with its own classes and forwards id and aria-label', () => {
+  it('adds the host class to its own scope class and forwards the id', () => {
     render(<BlockCanvas blocks={blocks} onChange={() => {}} className="my-canvas" id="doc" aria-label="Notes" />);
     const root = screen.getByRole('group', { name: 'Notes' });
-    expect(root).toHaveClass('my-canvas', 'flex', 'flex-col');
+    expect(root).toHaveClass('quoin', 'my-canvas');
     expect(root).toHaveAttribute('id', 'doc');
   });
 
-  it('merges a passed className in read-only mode too', () => {
-    const { container } = render(<BlockCanvas blocks={blocks} onChange={() => {}} readOnly className="my-canvas" />);
-    expect(container.firstElementChild).toHaveClass('my-canvas', 'flex', 'flex-col');
+  it('runs the host extensions alongside the core ones', () => {
+    const ref = createRef<QuoinEditorHandle>();
+    const onTransaction = vi.fn();
+    const extensions = [defineExtension({ name: 'spy', onTransaction })];
+    render(<BlockCanvas ref={ref} blocks={blocks} onChange={() => {}} extensions={extensions} />);
+    act(() => void ref.current!.editor.commands.selectAll());
+    expect(onTransaction).toHaveBeenCalledTimes(1);
   });
 
-  it('adds no group role when there is no label', () => {
-    render(<BlockCanvas blocks={blocks} onChange={() => {}} />);
-    expect(screen.queryByRole('group')).not.toBeInTheDocument();
+  it('draws the overlays its extensions add, handing them the controller', () => {
+    const ref = createRef<QuoinEditorHandle>();
+    const seen = vi.fn();
+    const Overlay = ({ controller }: { controller: unknown }) => {
+      seen(controller);
+      return <p>Overlay</p>;
+    };
+    const extensions = [defineExtension({ name: 'overlay', ui: { overlays: [Overlay] } })];
+    render(<BlockCanvas ref={ref} blocks={blocks} onChange={() => {}} extensions={extensions} />);
+    expect(screen.getByText('Overlay')).toBeInTheDocument();
+    expect(seen).toHaveBeenLastCalledWith(ref.current!.controller);
   });
 
-  it('renders no editing affordances in read-only mode', () => {
-    render(<BlockCanvas blocks={blocks} onChange={() => {}} readOnly />);
-    expect(screen.queryByRole('button', { name: /insert a block/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /block actions/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /reorder block/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /edit block/i })).not.toBeInTheDocument();
-    expect(screen.queryByLabelText('Write something')).not.toBeInTheDocument();
+  it('draws a block type it has no renderer for instead of dropping it, under a readable name', () => {
+    const { container } = render(
+      <BlockCanvas blocks={[md('a', 'before'), { id: 'z', type: 'CHART', data: {} }]} onChange={() => {}} />,
+    );
+    expect(container.querySelector('[data-block-id="z"]')).toHaveTextContent('Unsupported block');
   });
 
-  it('does not open an editor on click in read-only mode', async () => {
-    const user = userEvent.setup();
+  it('shows the placeholder on the host of an empty document', () => {
+    render(<BlockCanvas blocks={[]} onChange={() => {}} placeholder="Write something" />);
+    expect(screen.getByRole('textbox', { name: 'Paragraph' })).toHaveAttribute('data-placeholder', 'Write something');
+  });
+
+  it('makes no host editable and reports nothing when read-only', () => {
     const onChange = vi.fn();
-    render(<BlockCanvas blocks={blocks} onChange={onChange} readOnly />);
-    await user.click(screen.getByText('# Title'));
-    expect(screen.queryByLabelText('Markdown')).not.toBeInTheDocument();
+    const { container } = render(<BlockCanvas blocks={blocks} onChange={onChange} readOnly />);
+    expect(hosts(container)).toHaveLength(3);
+    for (const host of hosts(container)) expect(host).toHaveAttribute('contenteditable', 'false');
+    const paragraph = screen.getByRole('textbox', { name: 'Paragraph' });
+    act(() => paragraph.focus());
+    fireEvent(paragraph, new InputEvent('beforeinput', { inputType: 'insertText', data: 'x', bubbles: true, cancelable: true }));
+    fireEvent.keyDown(paragraph, { key: 'Enter' });
     expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('makes the empty document host read-only too', () => {
+    render(<BlockCanvas blocks={[]} onChange={() => {}} readOnly placeholder="Write something" />);
+    const host = screen.getByRole('textbox', { name: 'Paragraph' });
+    expect(host).toHaveAttribute('contenteditable', 'false');
+    expect(host).not.toHaveAttribute('data-placeholder');
   });
 
   it('has no accessibility violations', async () => {
@@ -214,7 +96,7 @@ describe('BlockCanvas', () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 
-  it('has no accessibility violations in read-only mode', async () => {
+  it('has no accessibility violations when read-only', async () => {
     const { container } = render(<BlockCanvas blocks={blocks} onChange={() => {}} readOnly />);
     expect(await axe(container)).toHaveNoViolations();
   });

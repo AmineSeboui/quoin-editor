@@ -2,14 +2,17 @@
 
 import { useEffect, useRef } from 'react';
 import { useQuoin } from '../context';
+import { useLabels } from '../i18n/use-labels';
 import { Input } from '../ui/input';
 import { UploadField } from '../upload/UploadField';
 import type { BlockEditorProps, UploadResult } from '../types';
+import { captionMarkdown, captionText } from './caption-markdown';
 import { str } from './str';
 import { intrinsicSize } from './intrinsic-size';
 
 export function ImageBlockEditor({ data, onChange }: BlockEditorProps) {
   const { resolveAssetUrl } = useQuoin();
+  const labels = useLabels();
   // Read through a ref: measuring the upload is async, and the alt/caption fields
   // stay editable while it runs.
   const latest = useRef(data);
@@ -31,26 +34,26 @@ export function ImageBlockEditor({ data, onChange }: BlockEditorProps) {
 
   return (
     <div className="flex flex-col gap-2">
-      <UploadField category="image" label="Upload image" onUploaded={onUploaded} />
+      <UploadField category="image" label={labels.uploadImage} onUploaded={onUploaded} />
       <label className="flex flex-col gap-1">
-        <span className="text-sm font-medium leading-none">Alt text</span>
+        <span className="text-sm font-medium leading-none">{labels.altText}</span>
         <Input
-          aria-label="Image alt text"
+          aria-label={labels.imageAltText}
           value={str(data.alt)}
           onChange={(e) => set({ alt: e.target.value })}
           className="text-sm"
         />
       </label>
       <label className="flex flex-col gap-1">
-        <span className="text-sm font-medium leading-none">Caption (optional)</span>
+        <span className="text-sm font-medium leading-none">{labels.captionOptional}</span>
         <Input
-          aria-label="Image caption"
-          value={str(data.caption)}
-          onChange={(e) => set({ caption: e.target.value })}
+          aria-label={labels.imageCaption}
+          value={captionText(str(data.caption))}
+          onChange={(e) => set({ caption: captionMarkdown(e.target.value) })}
           className="text-sm"
         />
       </label>
-      {str(data.storageKey) && <span className="text-xs text-muted-foreground">Image attached</span>}
+      {str(data.storageKey) && <span className="text-xs text-muted-foreground">{labels.imageAttached}</span>}
     </div>
   );
 }

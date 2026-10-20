@@ -73,6 +73,11 @@ function handle(controller: ViewController, event: KeyboardEvent): boolean {
   );
 }
 
+/** A read-only editor takes no key but the one that opens or closes a toggle for its reader. */
+export function handleReaderKeydown(controller: ViewController, event: KeyboardEvent): void {
+  if (flip(controller, event)) event.preventDefault();
+}
+
 export function handleKeydown(controller: ViewController, event: KeyboardEvent): void {
   if (isComposingKey(controller, event)) return;
   controller.nativeVerticalMove = false;

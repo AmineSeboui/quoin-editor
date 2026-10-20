@@ -23,6 +23,7 @@ function mount(onFiles?: (files: File[], at: unknown) => void) {
     blocks: [
       { id: 'a', type: 'MARKDOWN', data: { markdown: 'alpha' } },
       { id: 'b', type: 'MARKDOWN', data: { markdown: 'beta' } },
+      { id: 'd', type: 'DIVIDER', data: {} },
     ],
   });
   const controller = new ViewController({ editor, onFiles });
@@ -44,7 +45,10 @@ function mount(onFiles?: (files: File[], at: unknown) => void) {
     doc.elementFromPoint = () => host;
     doc.caretPositionFromPoint = () => ({ offsetNode: host.firstChild, offset });
   };
-  return { editor, controller, hosts, dropAt, markdown: () => editor.getBlocks().map((block) => block.data.markdown) };
+  const divider = root.appendChild(document.createElement('div'));
+  detachers.push(controller.registerBlockElement('d', divider));
+  const markdown = () => editor.getBlocks().flatMap((block) => (block.type === 'MARKDOWN' ? [block.data.markdown] : []));
+  return { editor, controller, hosts, divider, dropAt, markdown };
 }
 
 describe('dropping data', () => {
@@ -82,6 +86,18 @@ describe('dropping data', () => {
     handleDrop(controller, dragEvent('drop', fakeTransfer({}, [file]).transfer, 5, 10));
     expect(onFiles).toHaveBeenCalledWith([file], { block: 'b', region: 'text', offset: 1 });
     expect(markdown()).toEqual(['alpha', 'beta']);
+  });
+
+  it('hands files dropped on a block drawn without text to onFiles with that block, and leaves the caret', () => {
+    const onFiles = vi.fn();
+    const { editor, controller, hosts, divider, dropAt } = mount(onFiles);
+    dropAt(hosts.a, 2);
+    doc.elementFromPoint = () => divider;
+    const before = editor.state.selection;
+    const file = new File(['x'], 'cat.png', { type: 'image/png' });
+    handleDrop(controller, dragEvent('drop', fakeTransfer({}, [file]).transfer, 5, 30));
+    expect(onFiles).toHaveBeenCalledWith([file], { block: 'd', region: '', offset: 0 });
+    expect(editor.state.selection).toBe(before);
   });
 
   it('still cancels a drop that carries no data transfer', () => {

@@ -83,9 +83,11 @@ describe('default renderers', () => {
     expect(controller.editor.getBlocks()[1].data.markdown).toBe('- [ ] job');
   });
 
-  it('does not toggle a task while read-only', () => {
+  it('does not toggle a task while read-only, and says the task is read-only', () => {
     const { controller } = mount([md('b', '- [ ] job')], { readOnly: true });
-    act(() => screen.getByRole('checkbox', { name: 'Task' }).click());
+    const box = screen.getByRole('checkbox', { name: 'Task' });
+    expect(box).toHaveAttribute('aria-readonly', 'true');
+    act(() => box.click());
     expect(controller.editor.getBlocks()[0].data.markdown).toBe('- [ ] job');
   });
 
@@ -135,12 +137,13 @@ describe('toggle blocks', () => {
     expect(controller.registry.get('g', 'text')).toBeUndefined();
   });
 
-  it('does not open or close while read-only, and reports no change', () => {
+  it('opens for a reader while read-only, leaving the document alone and reporting no change', () => {
     const onChange = vi.fn();
-    const { controller } = mount(toggle(false), { readOnly: true, onChange });
+    const { controller, container } = mount(toggle(false), { readOnly: true, onChange });
     act(() => screen.getByRole('button', { name: 'Toggle' }).click());
     expect(controller.editor.state.doc.blocks[0].attrs.open).not.toBe(true);
-    expect(screen.getByRole('button', { name: 'Toggle' })).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByRole('button', { name: 'Toggle' })).toHaveAttribute('aria-expanded', 'true');
+    expect(container.querySelector('[data-block-id="g"]')).toHaveTextContent('grandchild');
     expect(onChange).not.toHaveBeenCalled();
   });
 
@@ -153,11 +156,29 @@ describe('toggle blocks', () => {
 });
 
 describe('block renderer lookup', () => {
-  it('falls back to a plain box naming the type for a type nothing renders', () => {
+  it('falls back to a separator with no text for a divider nothing renders', () => {
     const { container } = mount([{ id: 'd', type: 'DIVIDER', data: {} }]);
     const box = container.querySelector('[data-type="DIVIDER"] .quoin-void');
-    expect(box).toHaveTextContent('DIVIDER');
+    expect(box).toHaveAttribute('role', 'separator');
+    expect(box).toHaveTextContent('');
     expect(box).toHaveAttribute('contenteditable', 'false');
+  });
+
+  it('falls back to a box named "Unsupported block", never by its type, for any other type nothing renders', () => {
+    const { container } = mount([{ id: 'z', type: 'CHART', data: {} }]);
+    const box = screen.getByRole('group', { name: 'Unsupported block' });
+    expect(box).toHaveTextContent('Unsupported block');
+    expect(container.querySelector('[data-type="CHART"]')).not.toHaveTextContent('CHART');
+  });
+
+  it('names the fallback box as the caller asks', () => {
+    render(
+      <Editor
+        options={{ blocks: [{ id: 'z', type: 'CHART', data: {} }], onChange: () => {} }}
+        view={{ unsupportedBlockLabel: 'Bloc non pris en charge' }}
+      />,
+    );
+    expect(screen.getByRole('group', { name: 'Bloc non pris en charge' })).toHaveTextContent('Bloc non pris en charge');
   });
 
   it('does not mistake a type named like an Object property for a renderer', () => {

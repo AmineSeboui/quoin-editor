@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { blocks, openEditor } from '../../support/editor';
 
-const area = (page: Page) => page.getByRole('group', { name: 'Code' }).getByRole('textbox', { name: 'Code' });
+const area = (page: Page) => page.getByRole('textbox', { name: 'Code', exact: true });
 const paragraphs = (page: Page) => page.getByRole('textbox', { name: 'Paragraph' });
 const shapes = async (page: Page) => (await blocks(page)).map((block) => [block.type, block.data.code ?? block.data.markdown]);
 

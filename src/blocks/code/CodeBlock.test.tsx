@@ -7,7 +7,7 @@ import { mountCanvas, paragraph } from '../void/test-canvas';
 import type { CodeHighlighter } from './code-highlighter';
 
 const code = (id: string, value: string, language = 'ts'): QuoinBlock => ({ id, type: 'CODE', data: { language, code: value } });
-const area = () => within(screen.getByRole('group', { name: 'Code' })).getByRole<HTMLTextAreaElement>('textbox', { name: 'Code' });
+const area = () => screen.getByRole<HTMLTextAreaElement>('textbox', { name: 'Code' });
 
 function caret(start: number, end = start) {
   act(() => {

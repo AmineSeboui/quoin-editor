@@ -1,7 +1,7 @@
-import type { EditorState, EngineBlock, Selection } from '../../engine';
+import type { EditorState, EngineBlock, Schema, Selection } from '../../engine';
 import { markRanges, rangeContent } from '../../engine/commands/selection-marks';
 import { blockById } from '../../engine/model/doc';
-import { blockPlainText, inlinePlainText } from '../../engine/render/block-plain-text';
+import { inlinePlainText } from '../../engine/render/block-plain-text';
 import type { ViewController } from '../controller/view-controller';
 import { isCrossSelection } from './selection-decorations';
 
@@ -36,16 +36,16 @@ export function focusSink(controller: ViewController): void {
   sink.ownerDocument.getSelection()?.selectAllChildren(sink);
 }
 
+/** What the editor calls a block selected as a whole, given the schema it can read the block's text with. */
+export type BlockLabel = (block: EngineBlock, schema: Schema) => string;
+
 /**
- * What a block selected as a whole is called while the sink holds it: its plain text, such as an image's alt text, or
- * else the name the editor gives the block. Null for any other selection, and empty when neither says anything.
+ * What a block selected as a whole is called while the sink holds it, the name the editor gives it. Null for any other
+ * selection, and empty when the editor names no blocks.
  */
-export function selectedBlockName(
-  { doc, schema, selection }: EditorState,
-  blockLabel?: (block: EngineBlock) => string,
-): string | null {
+export function selectedBlockName({ doc, schema, selection }: EditorState, blockLabel?: BlockLabel): string | null {
   const block = selection?.kind === 'node' ? blockById(doc, selection.block) : undefined;
-  return block === undefined ? null : blockPlainText(block, schema) || (blockLabel?.(block) ?? '');
+  return block === undefined ? null : (blockLabel?.(block, schema) ?? '');
 }
 
 export function clearSink(controller: ViewController): void {

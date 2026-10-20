@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
 import { blocks, openEditor } from '../../support/editor';
 
-const area = (page: Page) => page.getByRole('group', { name: 'Code' }).getByRole('textbox', { name: 'Code' });
+const area = (page: Page) => page.getByRole('textbox', { name: 'Code', exact: true });
 const paragraphs = (page: Page) => page.getByRole('textbox', { name: 'Paragraph' });
 const codeOf = async (page: Page) => String((await blocks(page))[1].data.code);
 const texts = async (page: Page) => (await blocks(page)).map((block) => block.data.markdown ?? block.data.code);

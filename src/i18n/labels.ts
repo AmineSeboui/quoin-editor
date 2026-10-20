@@ -174,6 +174,8 @@ export type QuoinLabels = {
   uploadFile: string;
   /** A code block: its code, its language, the name of a code in no language, and its copy button. */
   codeText: string;
+  /** The name of a code block selected as a whole, given the name of its language. */
+  codeBlockName: (language: string) => string;
   codeLanguage: string;
   plainText: string;
   copyCode: string;

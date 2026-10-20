@@ -1,10 +1,10 @@
-import { act, fireEvent, screen, within } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import { blockRangeSelection, nodeSelection, textSelection } from '../../engine';
 import type { QuoinBlock } from '../../types';
 import { mountCanvas, paragraph } from '../void/test-canvas';
 
 const code = (id: string, value: string): QuoinBlock => ({ id, type: 'CODE', data: { language: 'ts', code: value } });
-const area = () => within(screen.getByRole('group', { name: 'Code' })).getByRole<HTMLTextAreaElement>('textbox', { name: 'Code' });
+const area = () => screen.getByRole<HTMLTextAreaElement>('textbox', { name: 'Code' });
 const paragraphs = () => screen.getAllByRole('textbox', { name: 'Paragraph' });
 
 function caret(start: number, end = start) {

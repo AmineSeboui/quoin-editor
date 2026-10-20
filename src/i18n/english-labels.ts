@@ -184,6 +184,7 @@ export const englishLabels: QuoinLabels = {
   imageNoAlt: 'Image, no description',
   uploadFile: 'Upload file',
   codeText: 'Code',
+  codeBlockName: (language) => `Code, ${language}`,
   codeLanguage: 'Language',
   plainText: 'Plain text',
   copyCode: 'Copy code',

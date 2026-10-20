@@ -190,6 +190,7 @@ describe('englishLabels', () => {
 
   it('names the code of a code block, its language, a code in no language and its copy button', () => {
     expect([englishLabels.codeText, englishLabels.codeLanguage]).toEqual(['Code', 'Language']);
+    expect(englishLabels.codeBlockName('TypeScript')).toBe('Code, TypeScript');
     expect(englishLabels.plainText).toBe('Plain text');
     expect(englishLabels.copyCode).toBe('Copy code');
     expect(englishLabels.copied).toBe('Copied');

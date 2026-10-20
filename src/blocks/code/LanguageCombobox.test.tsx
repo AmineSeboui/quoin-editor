@@ -6,7 +6,7 @@ import { mountCanvas } from '../void/test-canvas';
 const code = (language: string): QuoinBlock => ({ id: 'k', type: 'CODE', data: { language, code: 'x' } });
 const field = () => screen.getByRole<HTMLInputElement>('combobox', { name: 'Language' });
 const options = () => within(screen.getByRole('listbox', { name: 'Language' })).getAllByRole('option');
-const area = () => within(screen.getByRole('group', { name: 'Code' })).getByRole('textbox', { name: 'Code' });
+const area = () => screen.getByRole('textbox', { name: 'Code' });
 
 function open(language: string) {
   const canvas = mountCanvas([code(language)]);

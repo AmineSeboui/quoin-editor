@@ -73,18 +73,18 @@ describe('a node selection in the sink', () => {
     expect(controller.editor.state.selection).toEqual(nodeSelection('d'));
   });
 
-  it('is named by the plain text of the selected block, or else by the name the editor gives the block', () => {
+  it('is named by the name the editor gives the selected block, and is no multi-line field while it holds one', () => {
     const image = (id: string, alt: string): QuoinBlock => ({ id, type: 'IMAGE', data: { storageKey: 'k', alt } });
-    const blocks = [md('a', 'hello'), image('i', 'A cat'), image('j', ''), divider];
+    const blocks = [md('a', 'hello'), image('i', 'A cat'), divider];
     const { sink, select } = mount(blocks, (block) => `a block of type ${block.type}`);
     select(nodeSelection('i'));
-    expect(sink).toHaveAccessibleName('A cat');
-    select(nodeSelection('j'));
     expect(sink).toHaveAccessibleName('a block of type IMAGE');
+    expect(sink).not.toHaveAttribute('aria-multiline');
     select(nodeSelection('d'));
     expect(sink).toHaveAccessibleName('a block of type DIVIDER');
     select(blockRangeSelection('a', 'd'));
     expect(sink).toHaveAccessibleName('Selected content');
+    expect(sink).toHaveAttribute('aria-multiline', 'true');
   });
 
   it('keeps its own name for a block with no text in an editor that names no blocks', () => {

@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { blocks, openEditor } from '../../support/editor';
 import { dropEvent, pasteFilesEvent } from '../../support/synthetic-events';
 
@@ -7,6 +7,16 @@ const pdf = { name: 'notes.pdf', type: 'application/pdf' };
 
 const shape = async (page: Page) =>
   (await blocks(page)).map((block) => `${block.type}:${String(block.data.markdown ?? block.data.storageKey ?? '')}`);
+
+// The editor reads the caret of a click on the selectionchange that follows it. A drop made before then sees the writer
+// move on during the upload, and leaves out the empty line after what it inserts.
+async function clickAndSettle(page: Page, target: Locator) {
+  const selection = await page.evaluateHandle(() => ({
+    changed: new Promise<void>((resolve) => document.addEventListener('selectionchange', () => resolve(), { once: true })),
+  }));
+  await target.click();
+  await selection.evaluate(({ changed }) => changed);
+}
 
 async function caretAtEndOfParagraph(page: Page, upload: number) {
   await openEditor(page, 'sample', `upload=${upload}`);
@@ -45,7 +55,7 @@ test('the first key after a pasted file lands goes into a new line under it, and
 
 test('a file dropped on the picture of an image goes in after that image', async ({ page }) => {
   await openEditor(page, 'image', 'upload=50');
-  await page.getByRole('textbox', { name: 'Paragraph' }).first().click();
+  await clickAndSettle(page, page.getByRole('textbox', { name: 'Paragraph' }).first());
   const image = (await page.getByRole('img', { name: 'A red square' }).boundingBox())!;
   await dropEvent(page, { x: image.x + image.width / 2, y: image.y + image.height / 2 }, { files: [png] });
   await expect.poll(() => shape(page)).toEqual([

@@ -306,7 +306,7 @@ Each core block keeps its content under its own keys. A host that persists block
 | `CALLOUT` | `tone: string`, `body: string` | `CalloutBlockData` |
 | `CODE` | `language: string`, `code: string` | `CodeBlockData` |
 | `IMAGE` | `storageKey: string`, `alt: string`, `caption?: string`, `width?: number`, `height?: number`, `url?: string`, `align?: 'left' \| 'center' \| 'right'`, `widthPercent?: number` | `ImageBlockData` |
-| `FILE` | `storageKey: string`, `filename: string`, `size?: number` | `FileBlockData` |
+| `FILE` | `storageKey: string`, `filename: string`, `size?: number`, `mime?: string` | `FileBlockData` |
 
 `CoreBlockData` maps each `type` string to its shape, for a host writing one function over all five.
 
@@ -315,13 +315,13 @@ Two of these are worth saying out loud, because both have been guessed wrong:
 - **The callout's prose is `body`, not `text`.** The label over the field reads "Callout text", which is what the author sees; `body` is what the block stores. `tone` is one of `info`, `tip`, `warning`, `success` or `danger`, each drawn in its own colour; anything else falls back to the neutral border and fill.
 - **Markdown blocks store markdown source, not rendered HTML.** Quoin edits and stores the source and renders it as plain text; supply a `preview` if you want it rendered.
 
-The optional fields are written after a block's first save, and only once set: an image's `caption` when the author types one, its `width` and `height` once the uploaded bytes have been measured, its `url`, `align` and `widthPercent` when the author links, aligns or resizes it, a file's `size` when the upload reports it. `src/blocks/data.test.ts` holds the table above to the declared types and to the keys the file editor writes, and the image block's tests check the exact data each of its controls writes.
+The optional fields are written after a block's first save, and only once set: an image's `caption` when the author types one, its `width` and `height` once the uploaded bytes have been measured, its `url`, `align` and `widthPercent` when the author links, aligns or resizes it, a file's `size` when the upload reports it and its `mime` when the file declares a type. `src/blocks/data.test.ts` holds the table above to the declared types and to the keys a file upload writes, and the image and file blocks' tests check the exact data each of their controls writes.
 
 ### Reaching uploads from a custom block
 
 A block editor receives only `data` and `onChange`, but the canvas configuration reaches it through context, so an upload control inside a custom block needs no wiring from you.
 
-`UploadField` is the control the file block uses, and it is exported for yours. It reads `upload` from the canvas it is rendered in, disables itself while a file is in flight, announces the progress to assistive technology, renders a rejection's message beside the button, and says that uploads are not configured when the host wired none.
+`UploadField` is an upload control exported for your own blocks. It reads `upload` from the canvas it is rendered in, disables itself while a file is in flight, announces the progress to assistive technology, renders a rejection's message beside the button, and says that uploads are not configured when the host wired none.
 
 ```tsx
 import { UploadField, type BlockEditorProps } from 'quoin-editor';
@@ -480,6 +480,14 @@ An image block with no picture yet offers an upload button, a link to embed inst
 The picture is drawn from `url` when the block has one, otherwise from `resolveAssetUrl(storageKey)`. A picture that cannot be resolved or loaded is drawn as missing, with its alt text. An image without alt text is announced as "Image, no description".
 
 The arrows select an image as a whole. Enter on the selected image, or a key typed on it, takes the caret into its caption, which is inline markdown like any text. While the image is selected, a toolbar offers left, centre and right alignment, a new upload in its place, its alt text, a download and Delete: Alt+F10 reaches it, the arrows walk it, Tab goes on to the width handles and Escape goes back to the image. The handles on either side of the picture are sliders: drag one, or press the arrows, Home and End on a focused one, to set the width in steps of 5 percent, from 10 to 100 percent of the line. A read-only canvas draws the picture and a caption it has, and nothing to edit.
+
+## File blocks
+
+A file block with no file yet offers an upload button and room to drop or paste any file. A file other than an image pasted or dropped anywhere else in the canvas becomes a file block of its own. Once `upload` resolves, the block keeps the `storageKey`, `filename` and `size` it returned, and the type the file declares as `mime`, in one step of history. Of two uploads into one block, the one started last wins.
+
+A file block holding a file is a card: an icon for its type, chosen from `mime` and else from the extension of its name, the name, the size in binary units (`1.5 KB`), and a Download link to `resolveAssetUrl(storageKey)`, named "Download" and the file's name, which opens in a new tab where the browser cannot download it. A card whose key cannot be resolved, or resolves to an address that runs a script (`javascript:` or `vbscript:`), has no link. The size is worded by the `fileSize` label, so a host can write it in its own language.
+
+The arrows select a card as a whole, and it is announced as "File" and the file's name. Enter on the selected card goes on in a new line under it, and a key typed on it never replaces it; on an empty file block, Enter focuses the upload button. While the card is selected, a toolbar offers a new upload in its place and Delete: Alt+F10 reaches it, the arrows walk it, Tab goes on to the Download link and Escape goes back to the card. A read-only canvas draws the card with its link in the tab order, and nothing to edit.
 
 ## Read-only
 

@@ -4,9 +4,8 @@ import { blocks, openEditor } from '../../support/editor';
 const types = async (page: Page) => (await blocks(page)).map((block) => block.type);
 const sink = (page: Page) => page.locator('[data-quoin-sink]');
 
-test.beforeEach(async ({ page, context, browserName }) => {
+test.beforeEach(async ({ context, browserName }) => {
   if (browserName === 'chromium') await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-  await openEditor(page, 'image');
 });
 
 async function caretAtEndOfLastLine(page: Page) {
@@ -14,25 +13,34 @@ async function caretAtEndOfLastLine(page: Page) {
   await page.keyboard.press('End');
 }
 
-const clicks: Record<string, (page: Page) => Promise<void>> = {
-  image: (page) => page.getByRole('img', { name: 'A red square' }).click(),
-  divider: (page) => page.getByRole('separator').click(),
-};
-const selected: Record<string, string> = { image: 'img', divider: 'd' };
+type Case = { doc: string; selected: string; type: string; click(page: Page): Promise<void> };
 
-for (const [name, click] of Object.entries(clicks)) {
+const cases: Record<string, Case> = {
+  image: { doc: 'image', selected: 'img', type: 'IMAGE', click: (page) => page.getByRole('img', { name: 'A red square' }).click() },
+  divider: { doc: 'image', selected: 'd', type: 'DIVIDER', click: (page) => page.getByRole('separator').click() },
+  'file card': {
+    doc: 'file',
+    selected: 'f',
+    type: 'FILE',
+    click: (page) => page.locator('[data-block-id="f"]').getByText('notes.pdf').click(),
+  },
+};
+
+for (const [name, { doc, selected, type, click }] of Object.entries(cases)) {
   test(`a clicked ${name} is copied with Mod+C and pasted elsewhere with Mod+V`, async ({ page }) => {
+    await openEditor(page, doc);
     await click(page);
-    await expect(page.locator(`[data-block-id="${selected[name]}"]`)).toHaveAttribute('data-selected', 'true');
+    await expect(page.locator(`[data-block-id="${selected}"]`)).toHaveAttribute('data-selected', 'true');
     await expect(sink(page)).toBeFocused();
+    const before = (await types(page)).filter((each) => each === type).length;
     await page.keyboard.press('ControlOrMeta+c');
     await caretAtEndOfLastLine(page);
     await page.keyboard.press('ControlOrMeta+v');
-    const type = name === 'image' ? 'IMAGE' : 'DIVIDER';
-    await expect.poll(async () => (await types(page)).filter((each) => each === type)).toHaveLength(2);
+    await expect.poll(async () => (await types(page)).filter((each) => each === type)).toHaveLength(before + 1);
   });
 
   test(`a clicked ${name} is cut with Mod+X and brought back with Mod+Z`, async ({ page }) => {
+    await openEditor(page, doc);
     const before = await types(page);
     await click(page);
     await page.keyboard.press('ControlOrMeta+x');

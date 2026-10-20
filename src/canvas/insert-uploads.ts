@@ -1,3 +1,4 @@
+import { fileAttrs } from '../blocks/file/file-upload';
 import { isImageFile, measureImage } from '../blocks/image/image-upload';
 import { insertBlocks, type NewBlock } from '../blocks/insert-blocks';
 import type { Pos, Selection } from '../engine';
@@ -19,9 +20,9 @@ type Writer = { selection: Selection | null; focus: Element | null };
 
 const asError = (cause: unknown) => (cause instanceof Error ? cause : new Error(String(cause)));
 
-function fileBlock(file: File, { storageKey, filename, size }: UploadResult): NewBlock {
-  if (isImageFile(file)) return { id: newId(), type: 'IMAGE', attrs: { storageKey, alt: '' } };
-  return { type: 'FILE', attrs: { storageKey, filename, size } };
+function fileBlock(file: File, stored: UploadResult): NewBlock {
+  if (isImageFile(file)) return { id: newId(), type: 'IMAGE', attrs: { storageKey: stored.storageKey, alt: '' } };
+  return { type: 'FILE', attrs: fileAttrs(file, stored) };
 }
 
 function anchorBlock(controller: ViewController, at: Pos | null): string | null {

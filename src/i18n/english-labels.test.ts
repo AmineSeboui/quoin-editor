@@ -9,6 +9,8 @@ const NAMED_ARGUMENTS: Partial<Record<keyof QuoinLabels, unknown[]>> = {
   undoHint: ['Ctrl+Z'],
   keySequence: ['Escape', 'Tab'],
   uploaded: ['photo.png'],
+  downloadFile: ['notes.pdf'],
+  fileBlockName: ['notes.pdf'],
 };
 
 function sampleText(key: keyof QuoinLabels): string[] {
@@ -181,8 +183,15 @@ describe('englishLabels', () => {
     expect(englishLabels.imageNoAlt).toBe('Image, no description');
   });
 
-  it('names the field of the file editor and says what an empty preview lacks', () => {
-    expect(englishLabels.uploadFile).toBe('Upload file');
+  it('names the parts of a file block, its download link after the file, and a selected one by the file', () => {
+    expect([englishLabels.uploadFile, englishLabels.dropFile]).toEqual(['Upload file', 'Or drop or paste a file here.']);
+    expect([englishLabels.fileTools, englishLabels.replaceFile]).toEqual(['File tools', 'Replace file']);
+    expect(englishLabels.downloadFile('notes.pdf')).toBe('Download notes.pdf');
+    expect(englishLabels.fileBlockName('notes.pdf')).toBe('File, notes.pdf');
+    expect([englishLabels.fileSize(0), englishLabels.fileSize(1536)]).toEqual(['0 B', '1.5 KB']);
+  });
+
+  it('says what an empty preview lacks', () => {
     expect([englishLabels.emptyImage, englishLabels.emptyFile]).toEqual(['No image chosen', 'No file chosen']);
     expect(englishLabels.emptyMarkdown).toBe('Empty markdown block');
     expect(englishLabels.emptyCallout).toBe('Empty callout');

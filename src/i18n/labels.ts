@@ -171,7 +171,18 @@ export type QuoinLabels = {
   altTextHint: string;
   save: string;
   imageNoAlt: string;
+  /** An empty file block: its upload button and what can be dropped or pasted on it. */
   uploadFile: string;
+  dropFile: string;
+  /** A file block: its toolbar and the toolbar's replace button. */
+  fileTools: string;
+  replaceFile: string;
+  /** The name of a file's download link, given the file's name. It contains `download`, the link's visible text. */
+  downloadFile: (name: string) => string;
+  /** The size of a file, given in bytes. */
+  fileSize: (bytes: number) => string;
+  /** The name of a file block selected as a whole, given the file's name. */
+  fileBlockName: (name: string) => string;
   /** A code block: its code, its language, the name of a code in no language, and its copy button. */
   codeText: string;
   /** The name of a code block selected as a whole, given the name of its language. */

@@ -28,10 +28,12 @@ describe('coreBlocks', () => {
     expect(blockByType(coreBlocks, 'CODE')?.initialData?.()).toEqual({ language: '', code: '' });
   });
 
-  it('leaves markdown, callouts and code to the canvas, which edits them in place', () => {
-    expect(blockByType(coreBlocks, 'MARKDOWN')?.editor).toBeUndefined();
-    expect(blockByType(coreBlocks, 'CALLOUT')?.editor).toBeUndefined();
-    expect(blockByType(coreBlocks, 'CODE')?.editor).toBeUndefined();
+  it('leaves every core type to the canvas, which edits them in place', () => {
+    for (const block of coreBlocks) expect(block.editor).toBeUndefined();
+  });
+
+  it('starts a file block with no file', () => {
+    expect(blockByType(coreBlocks, 'FILE')?.initialData?.()).toEqual({ storageKey: '', filename: '' });
   });
 
   it.each(coreBlocks.map((b) => [b.type, b] as const))(

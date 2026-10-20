@@ -3,6 +3,7 @@ import type { QuoinBlock } from '../types';
 
 const image = (id: string, data: Record<string, unknown>): QuoinBlock => ({ id, type: 'IMAGE', data: { alt: '', ...data } });
 const code = (id: string, language: string): QuoinBlock => ({ id, type: 'CODE', data: { language, code: 'let code = 1;' } });
+const file = (id: string, data: Record<string, unknown>): QuoinBlock => ({ id, type: 'FILE', data });
 
 describe('a block the canvas selects as a whole', () => {
   it('is named in the sink by a bounded summary of what it shows, never by its whole text', () => {
@@ -15,6 +16,9 @@ describe('a block the canvas selects as a whole', () => {
       code('c', 'ts'),
       code('p', ''),
       code('f', 'zig'),
+      file('n1', { storageKey: 'k', filename: 'notes.pdf' }),
+      file('n2', { storageKey: 'k', filename: `${'x'.repeat(90)}.pdf` }),
+      file('n3', { storageKey: '', filename: '' }),
       bookmarkBlock('b', 'quoin.dev'),
       bookmarkBlock('l', `https://quoin.dev/${'x'.repeat(100)}`),
       { id: 'm', type: 'MATH', data: { latex: 'a + b\nc' } },
@@ -33,6 +37,9 @@ describe('a block the canvas selects as a whole', () => {
       'Code, TypeScript',
       'Code, Plain text',
       'Code, zig',
+      'File, notes.pdf',
+      `File, ${'x'.repeat(79)}\u2026`,
+      'File',
       'quoin.dev',
       `https://quoin.dev/${'x'.repeat(61)}\u2026`,
       'a + b',
@@ -47,13 +54,21 @@ describe('a block the canvas selects as a whole', () => {
   });
 
   it('is named in the labels the host gave the canvas', () => {
-    const { nodeSelect, sink } = mountCanvas([image('j', { storageKey: 'k' }), code('c', '')], {
-      labels: { imageNoAlt: 'Image sans description', plainText: 'Texte brut', codeBlockName: (language) => `Code en ${language}` },
+    const blocks = [image('j', { storageKey: 'k' }), code('c', ''), file('n', { storageKey: 'k', filename: 'notes.pdf' })];
+    const { nodeSelect, sink } = mountCanvas(blocks, {
+      labels: {
+        imageNoAlt: 'Image sans description',
+        plainText: 'Texte brut',
+        codeBlockName: (language) => `Code en ${language}`,
+        fileBlockName: (name) => `Fichier ${name}`,
+      },
     });
     nodeSelect('j');
     expect(sink()).toHaveAccessibleName('Image sans description');
     nodeSelect('c');
     expect(sink()).toHaveAccessibleName('Code en Texte brut');
+    nodeSelect('n');
+    expect(sink()).toHaveAccessibleName('Fichier notes.pdf');
   });
 
   it('keeps its name while the code of a selected code block is typed', () => {

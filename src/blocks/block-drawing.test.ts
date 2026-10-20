@@ -18,15 +18,21 @@ describe('drawsType', () => {
     expect(drawsType([chart], 'IMAGE')).toBe(false);
   });
 
+  it('draws the file block only while a definition of FILE is registered', () => {
+    expect(drawsType(coreBlocks, 'FILE')).toBe(true);
+    expect(drawsType([chart], 'FILE')).toBe(false);
+  });
+
   it('draws its own text blocks and the divider whatever is registered', () => {
     for (const type of ['MARKDOWN', 'CALLOUT', 'TOGGLE', 'DIVIDER']) expect(drawsType([chart], type)).toBe(true);
   });
 });
 
 describe('opensEditor', () => {
-  it("opens Quoin's code and image blocks, edited in place, but not a host definition of CODE without an editor", () => {
+  it("opens Quoin's code, image and file blocks, edited in place, but not a host definition of CODE without an editor", () => {
     expect(opensEditor(coreBlocks, 'CODE')).toBe(true);
     expect(opensEditor(coreBlocks, 'IMAGE')).toBe(true);
+    expect(opensEditor(coreBlocks, 'FILE')).toBe(true);
     expect(opensEditor([...coreBlocks, snippet], 'CODE')).toBe(false);
   });
 });

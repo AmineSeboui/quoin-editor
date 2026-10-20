@@ -82,6 +82,12 @@ const docs: Record<string, QuoinBlock[]> = {
     { id: 'd', type: 'DIVIDER', data: {} },
     { id: 'q', type: 'MARKDOWN', data: { markdown: 'Below the image' } },
   ],
+  file: [
+    { id: 'p', type: 'MARKDOWN', data: { markdown: 'Above the file' } },
+    { id: 'f', type: 'FILE', data: { storageKey: 'notes.pdf', filename: 'notes.pdf', size: 1536, mime: 'application/pdf' } },
+    { id: 'e', type: 'FILE', data: { storageKey: '', filename: '' } },
+    { id: 'q', type: 'MARKDOWN', data: { markdown: 'Below the file' } },
+  ],
   closed: [
     { id: 't', type: 'TOGGLE', data: { markdown: 'Details', open: false } },
     { id: 'tc', type: 'MARKDOWN', data: { markdown: 'Hidden detail' }, indent: 1 },

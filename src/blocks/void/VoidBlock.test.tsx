@@ -1,9 +1,12 @@
 import { act, fireEvent, screen } from '@testing-library/react';
+import { Paperclip } from 'lucide-react';
 import { nodeSelection } from '../../engine';
 import { resetDevWarnings } from '../../dev-warn';
+import { defineBlock } from '../../registry';
 import type { QuoinBlock, UploadResult } from '../../types';
+import { UploadField } from '../../upload/UploadField';
 import type * as UploadFieldModule from '../../upload/UploadField';
-import { bookmarkBlock, mountCanvas, paragraph } from './test-canvas';
+import { bookmarkBlock, mountCanvas, paragraph, testBlockTypes } from './test-canvas';
 
 const picker = vi.hoisted(() => ({
   onUploaded: undefined as ((result: UploadResult) => void | Promise<void>) | undefined,
@@ -17,6 +20,16 @@ vi.mock('../../upload/UploadField', async (importOriginal) => {
       return <actual.UploadField {...props} />;
     },
   };
+});
+
+const attachment = defineBlock<{ storageKey: string }>({
+  type: 'ATTACHMENT',
+  label: 'Attachment',
+  icon: Paperclip,
+  editor: ({ onChange }) => (
+    <UploadField category="file" label="Attach" onUploaded={({ storageKey }) => onChange({ storageKey })} />
+  ),
+  preview: ({ data }) => <p>{data.storageKey}</p>,
 });
 
 const doc: QuoinBlock[] = [paragraph('a', 'above'), bookmarkBlock('b', 'quoin.dev'), paragraph('c', 'below')];
@@ -98,8 +111,10 @@ describe('VoidBlock', () => {
   });
 
   it('leaves focus where it is when its editor writes, even once focus has fallen to the body', async () => {
-    const file: QuoinBlock = { id: 'f', type: 'FILE', data: { storageKey: '', filename: '' } };
-    const { nodeSelect, press, last } = mountCanvas([paragraph('a', 'above'), file]);
+    const file: QuoinBlock = { id: 'f', type: 'ATTACHMENT', data: { storageKey: '' } };
+    const { nodeSelect, press, last } = mountCanvas([paragraph('a', 'above'), file], {
+      blockTypes: [...testBlockTypes, attachment],
+    });
     nodeSelect('f');
     press('Enter');
     act(() => (document.activeElement as HTMLElement).blur());

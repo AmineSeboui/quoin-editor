@@ -8,7 +8,7 @@
  * later than the block's first save, and only once set: an image's `caption` when the
  * author types one, its `width` and `height` once the uploaded bytes have been measured,
  * its `url`, `align` and `widthPercent` when the author links, aligns or resizes it, a
- * file's `size` when the upload reports it.
+ * file's `size` when the upload reports it and its `mime` when the file declares a type.
  */
 
 /** `MARKDOWN`. The source text, not rendered HTML: Quoin stores and edits markdown. */
@@ -36,8 +36,11 @@ export type ImageBlockData = {
   widthPercent?: number;
 };
 
-/** `FILE`. `storageKey` names the uploaded file; `filename` is what the author picked. */
-export type FileBlockData = { storageKey: string; filename: string; size?: number };
+/**
+ * `FILE`. `storageKey` names the uploaded file, which the host's `resolveAssetUrl` turns into a URL; `filename` is the
+ * name the upload kept, `size` its size in bytes and `mime` the type the file declared.
+ */
+export type FileBlockData = { storageKey: string; filename: string; size?: number; mime?: string };
 
 /** Maps each core block's `type` string to its data shape. */
 export type CoreBlockData = {

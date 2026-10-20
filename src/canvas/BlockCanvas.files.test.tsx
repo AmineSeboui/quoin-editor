@@ -44,7 +44,8 @@ describe('files dropped or pasted on the canvas', () => {
     ]);
     expect(last()[0]).toEqual(paragraph('a', 'one'));
     expect(last()[1]).toMatchObject({ type: 'IMAGE', data: { storageKey: 'key/cat.png', alt: '' } });
-    expect(last()[2]).toMatchObject({ type: 'FILE', data: { storageKey: 'key/notes.pdf', filename: 'notes.pdf', size: 8 } });
+    expect(last()[2]).toMatchObject({ type: 'FILE' });
+    expect(last()[2].data).toEqual({ storageKey: 'key/notes.pdf', filename: 'notes.pdf', size: 8, mime: 'application/pdf' });
     expect(last()[3]).toEqual(paragraph(last()[3].id, ''));
     expect(last()[4]).toEqual(paragraph('b', 'two'));
   });
@@ -114,6 +115,13 @@ describe('files dropped or pasted on the canvas', () => {
     act(() => handle().controller.onFiles?.([pdf], null));
     const fileThenLine = [{ type: 'FILE', data: { filename: 'notes.pdf' } }, { type: 'MARKDOWN' }];
     await waitFor(() => expect(last()).toMatchObject(fileThenLine));
+  });
+
+  it('write no type for a file that declares none', async () => {
+    const { handle, last } = mountCanvas([paragraph('a', 'one')], { upload: stored });
+    act(() => handle().controller.onFiles?.([new File(['x'], 'data.bin')], caretIn('a')));
+    await waitFor(() => expect(types(last())).toEqual(['MARKDOWN', 'FILE', 'MARKDOWN']));
+    expect(last()[1].data).toEqual({ storageKey: 'key/data.bin', filename: 'data.bin', size: 1 });
   });
 
   it('are left out and reported when the canvas has no upload function', async () => {

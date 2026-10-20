@@ -71,12 +71,23 @@ describe('collectUi', () => {
   it("draws Quoin's image block in place, with the toolbar of a selected image after the extensions' overlays", () => {
     const ui = collectUi([withUi('a', { overlays: [Drawn] })], coreBlocks);
     expect(ui.renderers.IMAGE).toBe(inPlaceRenderers.IMAGE);
-    expect(ui.overlays).toEqual([Drawn, inPlaceOverlays.IMAGE]);
+    expect(ui.overlays).toEqual([Drawn, inPlaceOverlays.IMAGE, inPlaceOverlays.FILE]);
     const photo = defineBlock({ type: 'IMAGE', label: 'Photo', icon: Star, preview: () => null });
     const hosted = collectUi([], [...coreBlocks, photo]);
     expect(hosted.renderers.IMAGE).not.toBe(inPlaceRenderers.IMAGE);
-    expect(hosted.overlays).toEqual([]);
+    expect(hosted.overlays).toEqual([inPlaceOverlays.FILE]);
     expect(collectUi([], [chart]).overlays).toEqual([]);
+  });
+
+  it("draws Quoin's file block in place with the toolbar of a selected file, unless the host defines FILE", () => {
+    const ui = collectUi([], coreBlocks, true);
+    expect(ui.renderers.FILE).toBe(inPlaceRenderers.FILE);
+    expect(ui.overlays).toContain(inPlaceOverlays.FILE);
+    const attachment = defineBlock({ type: 'FILE', label: 'Attachment', icon: Star, preview: () => null });
+    const hosted = collectUi([], [...coreBlocks, attachment]);
+    expect(hosted.renderers.FILE).not.toBe(inPlaceRenderers.FILE);
+    expect(hosted.overlays).not.toContain(inPlaceOverlays.FILE);
+    expect(collectUi([], [chart]).renderers.FILE).toBeUndefined();
   });
 
   it('merges the render options, a later extension winning an atom both draw', () => {

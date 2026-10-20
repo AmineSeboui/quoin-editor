@@ -1,3 +1,4 @@
+import { formatSize } from '../blocks/file/format-size';
 import type { QuoinLabels } from './labels';
 
 export const englishLabels: QuoinLabels = {
@@ -183,6 +184,12 @@ export const englishLabels: QuoinLabels = {
   save: 'Save',
   imageNoAlt: 'Image, no description',
   uploadFile: 'Upload file',
+  dropFile: 'Or drop or paste a file here.',
+  fileTools: 'File tools',
+  replaceFile: 'Replace file',
+  downloadFile: (name) => `Download ${name}`,
+  fileSize: formatSize,
+  fileBlockName: (name) => `File, ${name}`,
   codeText: 'Code',
   codeBlockName: (language) => `Code, ${language}`,
   codeLanguage: 'Language',

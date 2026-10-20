@@ -114,6 +114,19 @@ describe('a node selection in the sink', () => {
     expect(scrolled).toHaveBeenCalledTimes(2);
   });
 
+  it('scrolls the block into view again when the selection comes back to it after the page moved it elsewhere', () => {
+    const { controller, container, shell, select } = mount();
+    const scrolled = vi.spyOn(shell('d'), 'scrollIntoView');
+    select(nodeSelection('d'));
+    act(() => {
+      document.getSelection()!.collapse(hostOf(container, 'c').firstChild!, 2);
+      controller.readSelectionFromDom();
+    });
+    expect(controller.editor.state.selection).toEqual(textSelection({ block: 'c', region: 'text', offset: 2 }));
+    select(nodeSelection('d'));
+    expect(scrolled).toHaveBeenCalledTimes(2);
+  });
+
   it('takes focus without scrolling, whether an edit or a call to focus brings focus to it', () => {
     const { controller, sink, select } = mount();
     const focus = vi.spyOn(sink, 'focus');

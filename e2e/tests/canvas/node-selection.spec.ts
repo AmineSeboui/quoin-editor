@@ -27,6 +27,29 @@ test('a block the arrows select as a whole is scrolled into view and named by wh
   await expect.poll(() => inView(page, divider)).toBe(true);
 });
 
+test('a block selected as a whole comes into view again when the arrows come back to it after a click', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 900, height: 400 });
+  await openEditor(page, 'image');
+  await page.addStyleTag({ content: 'body { padding-bottom: 2000px } [data-block-id="q"] { margin-top: 900px }' });
+  const divider = page.locator('[data-block-id="d"]');
+  const below = page.getByRole('textbox', { name: 'Paragraph' }).last();
+  const clickStartOfBelow = async () => {
+    await below.scrollIntoViewIfNeeded();
+    const box = (await below.boundingBox())!;
+    await page.mouse.click(box.x + 1, box.y + box.height / 2);
+  };
+  for (const arrival of ['first', 'again']) {
+    await clickStartOfBelow();
+    await expect(divider).not.toHaveAttribute('data-selected', 'true');
+    expect(await inView(page, divider), `out of view before the ${arrival} arrival`).toBe(false);
+    await page.keyboard.press('ArrowUp');
+    await expect(divider).toHaveAttribute('data-selected', 'true');
+    await expect.poll(() => inView(page, divider), `in view after the ${arrival} arrival`).toBe(true);
+  }
+});
+
 test('a block a click selects as a whole stays where it is on the page', async ({ page }) => {
   await page.setViewportSize({ width: 900, height: 200 });
   await openEditor(page, 'image');

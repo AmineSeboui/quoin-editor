@@ -1,7 +1,13 @@
+import type { Selection } from '../../engine';
+
+const nodeOf = (selection: Selection | null): string | null => (selection?.kind === 'node' ? selection.block : null);
+
 export type NodeReveal = {
   /** Marks a block a press is selecting, which is under the pointer already. */
   pressed(block: string): void;
-  show(block: string | null): void;
+  /** Forgets the block shown once the selection leaves it, however it leaves, so coming back brings it into view. */
+  follow(selection: Selection | null): void;
+  show(selection: Selection | null): void;
 };
 
 /**
@@ -15,7 +21,11 @@ export function createNodeReveal(element: (block: string) => HTMLElement | undef
     pressed(block) {
       pressed = block;
     },
-    show(block) {
+    follow(selection) {
+      if (nodeOf(selection) !== shown) shown = null;
+    },
+    show(selection) {
+      const block = nodeOf(selection);
       if (block !== null && block !== shown && block !== pressed) element(block)?.scrollIntoView({ block: 'nearest' });
       shown = block;
       pressed = null;

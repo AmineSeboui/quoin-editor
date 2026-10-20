@@ -94,6 +94,7 @@ export class ViewController {
     this.detachRoot?.();
     const binding = bindRoot(this, root, this.cross, () => {
       this.outside.committed();
+      this.nodeReveal.follow(this.editor.state.selection);
       this.drawn.syncTabStop();
       this.cross.syncLater();
     });
@@ -214,7 +215,7 @@ export class ViewController {
     if (heldBySink(selection) && this.sink !== null) focusSink(this);
     else if (selection?.kind === 'blocks') domSelection.removeAllRanges();
     else writeSelection(this.registry, selection, domSelection, (id) => this.blockElement(id));
-    this.nodeReveal.show(selection?.kind === 'node' ? selection.block : null);
+    this.nodeReveal.show(selection);
     const after = selectionPoints(domSelection);
     if (!samePoints(before, after)) this.binding?.selectionSync.suppressNext();
   }

@@ -24,7 +24,8 @@ function caretLeft(drawn: HTMLElement, caret: number): number | null {
 
 /**
  * Scrolls the caret of the text area into view, which the browser does not do for a caret set by script. The drawn
- * code holds the same text, character for character and line for line, so the mark is put where it draws the caret.
+ * code holds the same text, character for character and line for line, so the mark is put where it draws the caret,
+ * or at the very left of a line for a caret at its start, so the padding before the line comes back into view too.
  */
 export function revealCaret(area: HTMLTextAreaElement, drawn: HTMLElement, mark: HTMLElement): void {
   const { value, selectionEnd: caret } = area;
@@ -33,6 +34,6 @@ export function revealCaret(area: HTMLTextAreaElement, drawn: HTMLElement, mark:
   const atLineStart = caret === 0 || value[caret - 1] === '\n';
   const left = atLineStart ? null : caretLeft(drawn, caret);
   mark.style.top = `${(parseFloat(style.paddingTop) || 0) + line * (parseFloat(style.lineHeight) || 0)}px`;
-  mark.style.left = `${left ?? (parseFloat(style.paddingLeft) || 0)}px`;
+  mark.style.left = `${left ?? 0}px`;
   mark.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }

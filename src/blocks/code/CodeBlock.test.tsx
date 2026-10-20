@@ -77,6 +77,20 @@ describe('the code block', () => {
     }
   });
 
+  it('scrolls the caret into view when the code opens with it at the end', () => {
+    const scrolled = vi.spyOn(HTMLElement.prototype, 'scrollIntoView');
+    try {
+      const { nodeSelect, press } = mountCanvas([paragraph('a', 'above'), code('k', 'let a;')]);
+      nodeSelect('k');
+      press('Enter');
+      expect(document.activeElement).toBe(area());
+      const marks = scrolled.mock.contexts as HTMLElement[];
+      expect(marks.some((mark) => mark.getAttribute('aria-hidden') === 'true' && area().parentElement!.contains(mark))).toBe(true);
+    } finally {
+      scrolled.mockRestore();
+    }
+  });
+
   it('draws the tokens of the host highlighter in their colours under the text', () => {
     mountCanvas([code('k', 'let a;\nlet b;')], { highlight: keywords });
     const tokens = screen.getByRole('group', { name: 'Code' }).querySelectorAll('pre span');

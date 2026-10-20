@@ -40,22 +40,29 @@ export function CodeEditor({ block, controller, field, focusControls }: CodeEdit
   const { editing, stop } = useVoidEditing(controller, block.id);
   const blockId = block.id;
 
+  const reveal = useCallback(() => {
+    if (field.current !== null && drawn.current !== null && mark.current !== null) {
+      revealCaret(field.current, drawn.current, mark.current);
+    }
+  }, [field]);
+
   useEffect(() => {
     const area = field.current;
     if (!editing || area === null) return;
     area.focus();
     area.setSelectionRange(area.value.length, area.value.length);
+    reveal();
     stop();
-  }, [editing, stop, field]);
+  }, [editing, stop, field, reveal]);
 
   const edit = useCallback(
     (next: CodeField) => {
       const area = field.current;
       if (area === null) return;
       applyCodeEdit(area, next, (value) => writeCode(controller, blockId, value, group.current));
-      if (drawn.current !== null && mark.current !== null) revealCaret(area, drawn.current, mark.current);
+      reveal();
     },
-    [controller, blockId, field],
+    [controller, blockId, field, reveal],
   );
   useTypeIntoCode(controller, blockId, field, edit);
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {

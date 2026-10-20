@@ -26,3 +26,25 @@ test('Tab keeps the caret in view at the end of a line wider than the block', as
   const scroller = page.locator('[data-block-id="k"] .quoin-code-scroll');
   await expect.poll(() => scroller.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
 });
+
+const scrolled = (page: Page) =>
+  page.locator('[data-block-id="k"] .quoin-code-scroll').evaluate((element) => element.scrollLeft);
+
+test('opening the code with Enter brings the caret at its end into view', async ({ page }) => {
+  await openEditor(page, 'long-code');
+  await page.getByRole('textbox', { name: 'Paragraph' }).click();
+  await page.keyboard.press('End');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Enter');
+  await expect(area(page)).toBeFocused();
+  await expect.poll(() => scrolled(page)).toBeGreaterThan(0);
+});
+
+test('Enter at the end of a long line scrolls the code back to its left edge', async ({ page }) => {
+  await openEditor(page, 'long-code');
+  await caretAtEnd(page);
+  await page.keyboard.press('Tab');
+  await expect.poll(() => scrolled(page)).toBeGreaterThan(0);
+  await page.keyboard.press('Enter');
+  await expect.poll(() => scrolled(page)).toBe(0);
+});

@@ -1,5 +1,5 @@
 import { blockRangeSelection, redo, undo, type Command } from '../../engine';
-import { setSelection } from '../../engine/commands/selection-commands';
+import { selectAll, setSelection } from '../../engine/commands/selection-commands';
 import type { ViewController } from '../../view';
 import { textDiff } from '../../view/dom/text-diff';
 import { codeToParagraph, leaveCode } from './code-actions';
@@ -46,6 +46,8 @@ export function runCodeAction(action: CodeKeyAction, context: CodeActionContext)
       return travel(context, undo);
     case 'redo':
       return travel(context, redo);
+    case 'selectAll':
+      return selectAndFocus(context, selectAll);
     case 'escape':
       return selectAndFocus(context, setSelection(blockRangeSelection(blockId)));
     case 'controls':

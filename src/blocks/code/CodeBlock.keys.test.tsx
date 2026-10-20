@@ -45,6 +45,17 @@ describe('leaving the code block with the arrows', () => {
     expect(document.activeElement).toBe(paragraphs()[0]);
   });
 
+  it('goes to the end of the previous block on ArrowLeft at its start, and the start of the next on ArrowRight at its end', () => {
+    const { selection } = mountCanvas(around('ab'));
+    caret(0);
+    expect(fireEvent.keyDown(area(), { key: 'ArrowLeft' })).toBe(false);
+    expect(selection()).toEqual(at('a', 5));
+    caret(2);
+    expect(fireEvent.keyDown(area(), { key: 'ArrowRight' })).toBe(false);
+    expect(selection()).toEqual(at('b', 0));
+    expect(document.activeElement).toBe(paragraphs()[1]);
+  });
+
   it('moves between its own lines in the text area', () => {
     const { selection } = mountCanvas(around('one\ntwo'));
     caret(5);
@@ -119,5 +130,16 @@ describe('a key an input method is composing with', () => {
     expect(fireEvent.keyDown(area(), { key: 'Enter', isComposing: true })).toBe(true);
     expect(fireEvent.keyDown(area(), { key: 'Tab', keyCode: 229 })).toBe(true);
     expect(changes).toEqual([]);
+  });
+});
+
+describe('Mod+A in the code', () => {
+  it('is left to the text area until all the code is selected, then selects every block', () => {
+    const canvas = mountCanvas(around('ab'));
+    caret(1);
+    expect(fireEvent.keyDown(area(), { key: 'a', ...modifier(canvas) })).toBe(true);
+    caret(0, 2);
+    expect(fireEvent.keyDown(area(), { key: 'a', ...modifier(canvas) })).toBe(false);
+    expect(canvas.selection()).toEqual(blockRangeSelection('a', 'b'));
   });
 });

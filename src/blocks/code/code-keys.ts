@@ -4,7 +4,7 @@ import { indentLines, insertIndent, newlineKeepingIndent, outdentLines, type Cod
 export type CodeKeyAction =
   | { kind: 'edit'; field: CodeField }
   | { kind: 'leave'; direction: -1 | 1 }
-  | { kind: 'paragraph' | 'undo' | 'redo' | 'escape' | 'controls' };
+  | { kind: 'paragraph' | 'undo' | 'redo' | 'selectAll' | 'escape' | 'controls' };
 
 type KeyHandler = (field: CodeField) => CodeKeyAction | null;
 
@@ -20,6 +20,8 @@ const KEYS: Readonly<Record<string, KeyHandler>> = {
   Enter: (field) => edit(newlineKeepingIndent(field)),
   ArrowUp: leaveWhen(-1, ({ value, start }) => !value.slice(0, start).includes('\n')),
   ArrowDown: leaveWhen(1, ({ value, end }) => !value.slice(end).includes('\n')),
+  ArrowLeft: leaveWhen(-1, ({ start }) => start === 0),
+  ArrowRight: leaveWhen(1, ({ value, end }) => end === value.length),
   Backspace: ({ value }) => (value === '' ? { kind: 'paragraph' } : null),
   Escape: () => ({ kind: 'escape' }),
   'Alt-F10': () => ({ kind: 'controls' }),
@@ -29,6 +31,7 @@ const MOD_KEYS: readonly (readonly [string, KeyHandler])[] = [
   ['Mod-z', () => ({ kind: 'undo' })],
   ['Mod-Shift-z', () => ({ kind: 'redo' })],
   ['Mod-y', () => ({ kind: 'redo' })],
+  ['Mod-a', ({ value, start, end }) => (start === 0 && end === value.length ? { kind: 'selectAll' } : null)],
 ];
 
 export function codeKeyAction(event: KeyLike, field: CodeField, isMac: boolean): CodeKeyAction | null {

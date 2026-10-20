@@ -34,9 +34,12 @@ describe('codeKeyAction', () => {
     expect(onPc(key('ArrowDown'), field(code, 5))).toBeNull();
   });
 
-  it('leaves Left and Right to the text area, even at the ends of the code', () => {
-    expect(onPc(key('ArrowLeft'), field('ab', 0))).toBeNull();
-    expect(onPc(key('ArrowRight'), field('ab', 2))).toBeNull();
+  it('leaves the block left from the very start and right from the very end', () => {
+    expect(onPc(key('ArrowLeft'), field('ab', 0))).toEqual({ kind: 'leave', direction: -1 });
+    expect(onPc(key('ArrowLeft'), field('ab', 1))).toBeNull();
+    expect(onPc(key('ArrowRight'), field('ab', 2))).toEqual({ kind: 'leave', direction: 1 });
+    expect(onPc(key('ArrowRight'), field('ab', 1))).toBeNull();
+    expect(onPc(key('ArrowLeft', { shiftKey: true }), field('ab', 0))).toBeNull();
   });
 
   it('never leaves while text is selected or while the arrow extends or jumps', () => {
@@ -58,8 +61,9 @@ describe('codeKeyAction', () => {
     expect(codeKeyAction(key('z', { ctrlKey: true }), field('a', 1), true)).toBeNull();
   });
 
-  it('leaves Mod+A to the text area, which selects the code', () => {
+  it('leaves Mod+A to the text area until all the code is selected, then selects every block', () => {
     expect(onPc(key('a', { ctrlKey: true }), field('ab', 1))).toBeNull();
+    expect(onPc(key('a', { ctrlKey: true }), field('ab', 0, 2))).toEqual({ kind: 'selectAll' });
   });
 
   it('selects the block on Escape and reaches the block controls on Alt+F10', () => {

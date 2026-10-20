@@ -86,6 +86,23 @@ test('ArrowDown on the last line goes on in the next block, ArrowUp on the first
   await expect.poll(() => texts(page)).toEqual(['Above the codeY', 'let a = 1;\nlet b = 2;', 'ZBelow the code']);
 });
 
+test('ArrowLeft at the start and ArrowRight at the end leave the code, and a second Mod+A selects every block', async ({
+  page,
+}) => {
+  await openEditor(page, 'code');
+  await caretAt(page, 0);
+  await page.keyboard.press('ArrowLeft');
+  await expect(paragraphs(page).first()).toBeFocused();
+  await caretAt(page, 'end');
+  await page.keyboard.press('ArrowRight');
+  await expect(paragraphs(page).nth(1)).toBeFocused();
+  await caretAt(page, 3);
+  await page.keyboard.press('ControlOrMeta+a');
+  await expect(page.locator('[data-block-id="p"]')).not.toHaveAttribute('data-selected');
+  await page.keyboard.press('ControlOrMeta+a');
+  for (const id of ['p', 'k', 'q']) await expect(page.locator(`[data-block-id="${id}"]`)).toHaveAttribute('data-selected', 'true');
+});
+
 test("undo in the code goes to the editor's history, not to the browser's", async ({ page }) => {
   await openEditor(page, 'code');
   await paragraphs(page).first().click();

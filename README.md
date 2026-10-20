@@ -225,9 +225,9 @@ import {
 } from 'quoin-editor';
 import 'quoin-editor/styles.css';
 
-type BookmarkData = { url: string; title: string };
+type SavedLinkData = { url: string; title: string };
 
-function BookmarkEditor({ data, onChange }: BlockEditorProps<BookmarkData>) {
+function SavedLinkEditor({ data, onChange }: BlockEditorProps<SavedLinkData>) {
   return (
     <div>
       <input
@@ -244,21 +244,21 @@ function BookmarkEditor({ data, onChange }: BlockEditorProps<BookmarkData>) {
   );
 }
 
-function BookmarkPreview({ data }: BlockPreviewProps<BookmarkData>) {
-  if (data.url === '') return <p>No bookmark yet</p>;
+function SavedLinkPreview({ data }: BlockPreviewProps<SavedLinkData>) {
+  if (data.url === '') return <p>No link yet</p>;
   return <a href={data.url}>{data.title || data.url}</a>;
 }
 
-const bookmark = defineBlock({
-  type: 'BOOKMARK',
-  label: 'Bookmark',
+const savedLink = defineBlock({
+  type: 'SAVED_LINK',
+  label: 'Saved link',
   icon: Bookmark,
-  editor: BookmarkEditor,
-  preview: BookmarkPreview,
+  editor: SavedLinkEditor,
+  preview: SavedLinkPreview,
   initialData: () => ({ url: '', title: '' }),
 });
 
-const blockTypes: AnyBlockDefinition[] = [...coreBlocks, bookmark];
+const blockTypes: AnyBlockDefinition[] = [...coreBlocks, savedLink];
 
 export function Editor({ blocks, onChange }: { blocks: QuoinBlock[]; onChange: (next: QuoinBlock[]) => void }) {
   return <BlockCanvas blocks={blocks} onChange={onChange} blockTypes={blockTypes} />;

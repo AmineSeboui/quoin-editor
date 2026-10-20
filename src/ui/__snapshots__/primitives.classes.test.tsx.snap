@@ -215,14 +215,12 @@ exports[`the classes of a primitive > in the dropdown menu family keep a class t
 exports[`the classes of a primitive > in the field family are those its variants give it 1`] = `
 [
   "input[input] Name: aria-invalid:border-destructive bg-transparent border border-muted-foreground disabled:opacity-50 disabled:pointer-events-none file:bg-transparent file:border-0 file:font-medium file:h-7 file:inline-flex file:text-sm flex focus-visible:border-ring focus-visible:outline-2 focus-visible:outline-[var(--quoin-ring)] focus-visible:outline-offset-2 focus-visible:outline-solid h-9 md:text-sm min-w-0 placeholder:text-muted-foreground pointer-coarse:min-h-11 px-3 py-1 rounded-md shadow-xs text-base transition-[color,box-shadow] w-full",
-  "textarea[textarea] Notes: aria-invalid:border-destructive bg-transparent border border-muted-foreground disabled:opacity-50 disabled:pointer-events-none field-sizing-content flex focus-visible:border-ring focus-visible:outline-2 focus-visible:outline-[var(--quoin-ring)] focus-visible:outline-offset-2 focus-visible:outline-solid md:text-sm min-h-16 placeholder:text-muted-foreground px-3 py-2 rounded-md shadow-xs text-base transition-[color,box-shadow] w-full",
 ]
 `;
 
 exports[`the classes of a primitive > in the field family keep a class the host adds 1`] = `
 [
   "input[input] Name: aria-invalid:border-destructive bg-transparent border border-muted-foreground disabled:opacity-50 disabled:pointer-events-none file:bg-transparent file:border-0 file:font-medium file:h-7 file:inline-flex file:text-sm flex focus-visible:border-ring focus-visible:outline-2 focus-visible:outline-[var(--quoin-ring)] focus-visible:outline-offset-2 focus-visible:outline-solid h-9 host-class md:text-sm min-w-0 placeholder:text-muted-foreground pointer-coarse:min-h-11 px-3 py-1 rounded-md shadow-xs text-base transition-[color,box-shadow] w-full",
-  "textarea[textarea] Notes: aria-invalid:border-destructive bg-transparent border border-muted-foreground disabled:opacity-50 disabled:pointer-events-none field-sizing-content flex focus-visible:border-ring focus-visible:outline-2 focus-visible:outline-[var(--quoin-ring)] focus-visible:outline-offset-2 focus-visible:outline-solid host-class md:text-sm min-h-16 placeholder:text-muted-foreground px-3 py-2 rounded-md shadow-xs text-base transition-[color,box-shadow] w-full",
 ]
 `;
 

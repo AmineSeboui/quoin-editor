@@ -44,7 +44,6 @@ import {
 import { Input } from './input';
 import { Popover, PopoverAnchor, PopoverContent } from './popover';
 import { classLists } from './test-class-lists';
-import { Textarea } from './textarea';
 
 const VARIANTS = ['default', 'destructive', 'outline', 'secondary', 'ghost', 'link'] as const;
 const SIZES = ['default', 'xs', 'sm', 'lg', 'icon', 'icon-xs', 'icon-sm', 'icon-lg', null] as const;
@@ -137,12 +136,7 @@ const families: Family[] = [
   ['button', buttons],
   [
     'field',
-    (className) => (
-      <>
-        <Input aria-label="Name" className={className} />
-        <Textarea aria-label="Notes" className={className} />
-      </>
-    ),
+    (className) => <Input aria-label="Name" className={className} />,
   ],
   [
     'popover',

@@ -1,7 +1,6 @@
 'use client';
 
 import type { KeyboardEvent, ReactNode, Ref, RefObject } from 'react';
-import type { EditorState } from '../../engine';
 import type { ToolbarItem } from '../../extensions/ui-types';
 import { ToolbarButton } from '../../menus/bubble/bubble-items';
 import { bubblePart } from '../../menus/bubble/bubble-part';
@@ -14,10 +13,8 @@ import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
 import { preventDefault } from '../../ui/prevent-default';
 import type { ViewController } from '../../view';
 import { isComposingKey } from '../../view/input/keydown';
-import { useEditorState } from '../../view/react/use-editor-state';
+import { useEditorState, wholeState } from '../../view/react/use-editor-state';
 import { blockPart } from './block-part';
-
-const wholeState = (state: EditorState) => state;
 
 type NodeToolbarProps = {
   blockId: string;

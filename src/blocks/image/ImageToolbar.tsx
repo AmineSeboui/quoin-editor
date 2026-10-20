@@ -2,10 +2,9 @@
 
 import { useRef, useState } from 'react';
 import { useQuoin } from '../../context';
-import type { EditorState } from '../../engine';
 import { blockById } from '../../engine/model/doc';
 import type { ViewController } from '../../view';
-import { useEditorState } from '../../view/react/use-editor-state';
+import { useEditorState, wholeState } from '../../view/react/use-editor-state';
 import { str } from '../str';
 import { useReplacePicker } from '../upload/use-replace-picker';
 import { usePartAnchor } from '../void/block-part';
@@ -15,8 +14,6 @@ import { AltTextPopover } from './AltTextPopover';
 import { hasPicture, imageSource } from './image-source';
 import { imageToolbarItems } from './image-toolbar-items';
 import { uploadImage } from './image-upload';
-
-const wholeState = (state: EditorState) => state;
 
 const selectedImage = selectedBlock('IMAGE', hasPicture);
 

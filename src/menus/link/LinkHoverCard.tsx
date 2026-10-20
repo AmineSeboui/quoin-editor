@@ -3,13 +3,13 @@
 import { ExternalLink, Pencil, Unlink } from 'lucide-react';
 import { useMemo, useRef, type RefObject } from 'react';
 import type { CanvasUiStore } from '../../canvas/ui-store';
-import { sanitizeHref, textSelection, type EditorState } from '../../engine';
+import { sanitizeHref, textSelection } from '../../engine';
 import type { QuoinLabels } from '../../i18n/labels';
 import { Button } from '../../ui/button';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
 import { preventDefault } from '../../ui/prevent-default';
 import type { ViewController } from '../../view';
-import { useEditorState } from '../../view/react/use-editor-state';
+import { useEditorState, wholeState } from '../../view/react/use-editor-state';
 import { keepFocus } from '../floating/keep-focus';
 import { rangeRect } from '../floating/range-rect';
 import { virtualAnchor } from '../floating/virtual-anchor';
@@ -25,7 +25,6 @@ const URL_LENGTH = 48;
 const CARD = 'flex w-auto items-center gap-0.5 py-1 ps-3 pe-1 shadow-md';
 const ADDRESS = 'me-1 whitespace-nowrap text-sm text-muted-foreground';
 
-const wholeState = (state: EditorState) => state;
 type LinkHoverCardProps = { controller: ViewController; labels: QuoinLabels; store: CanvasUiStore };
 
 type LinkCardProps = LinkHoverCardProps & {

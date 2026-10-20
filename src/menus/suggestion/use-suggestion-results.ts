@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { toError } from '../../to-error';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
 
 export type SuggestionSource<T> = (query: string) => readonly T[] | Promise<readonly T[]>;
@@ -16,8 +17,6 @@ const CLOSED: Results<never> = { items: [], pending: false };
 
 const isPromise = <T>(value: unknown): value is Promise<T> =>
   typeof (value as Promise<T> | null)?.then === 'function';
-
-const toError = (reason: unknown) => (reason instanceof Error ? reason : new Error(String(reason)));
 
 /**
  * The items for the query, asked of the source from an effect whenever the query or the source changes. Until the

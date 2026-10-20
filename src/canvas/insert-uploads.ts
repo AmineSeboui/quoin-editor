@@ -6,6 +6,7 @@ import { headBlockId } from '../engine/commands/block-helpers';
 import { newId } from '../engine/model/new-id';
 import { sameSelection } from '../engine/state/selection';
 import type { UploadFn, UploadResult } from '../types';
+import { toError } from '../to-error';
 import type { ViewController } from '../view';
 
 export type InsertUploadsOptions = {
@@ -18,8 +19,6 @@ export type InsertUploadsOptions = {
 };
 
 type Writer = { selection: Selection | null; focus: Element | null };
-
-const asError = (cause: unknown) => (cause instanceof Error ? cause : new Error(String(cause)));
 
 function fileBlock(file: File, stored: UploadResult): NewBlock {
   if (isImageFile(file)) return { id: newId(), type: 'IMAGE', attrs: { storageKey: stored.storageKey, alt: '' } };
@@ -59,7 +58,7 @@ export async function insertUploads(
   const outcomes = await Promise.allSettled(files.map(async (file) => upload(file, isImageFile(file) ? 'image' : 'file')));
   const blocks: NewBlock[] = [];
   outcomes.forEach((outcome, index) => {
-    if (outcome.status === 'rejected') onError(asError(outcome.reason));
+    if (outcome.status === 'rejected') onError(toError(outcome.reason));
     else if (typeof outcome.value?.storageKey === 'string') blocks.push(fileBlock(files[index], outcome.value));
     else onError(new Error(failed));
   });

@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, type KeyboardEvent } from 'react';
-import type { EditorState } from '../../engine';
 import type { ToolbarItem } from '../../extensions/ui-types';
 import type { CanvasUiStore } from '../../canvas/ui-store';
 import type { QuoinLabels } from '../../i18n/labels';
@@ -9,7 +8,7 @@ import { FLOATING_TOOLBAR } from '../../ui/menu-styles';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
 import { preventDefault } from '../../ui/prevent-default';
 import type { ViewController } from '../../view';
-import { useEditorState } from '../../view/react/use-editor-state';
+import { useEditorState, wholeState } from '../../view/react/use-editor-state';
 import { keepFocus } from '../floating/keep-focus';
 import { useFocusKey } from '../floating/use-focus-key';
 import { useSelectionAnchor } from '../floating/use-selection-anchor';
@@ -21,8 +20,6 @@ import { TurnIntoDropdown } from './TurnIntoDropdown';
 import { useRovingFocus } from './use-roving-focus';
 
 const DIVIDER = 'mx-0.5 h-5 w-px shrink-0 bg-border';
-
-const wholeState = (state: EditorState) => state;
 
 type BubbleToolbarProps = {
   controller: ViewController;

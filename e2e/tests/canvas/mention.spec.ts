@@ -56,6 +56,25 @@ test('the menu says it is searching, then that nothing matches, and Escape leave
   await expect.poll(() => markdownOf(page)).toBe('@zz');
 });
 
+test('@ and then / open one menu at a time, and the line is a text box again once both have closed', async ({ page }) => {
+  await openEditor(page, 'empty', 'mention=1');
+  const host = page.locator('[data-quoin-host]').first();
+  await host.click();
+  await caretSettled(page, host);
+  await page.keyboard.type('Ask @Ada');
+  await expect(menu(page).getByRole('option').first()).toBeVisible();
+  await page.keyboard.type(' /');
+  await expect(page.getByRole('listbox', { name: 'Commands' })).toBeVisible();
+  await expect(page.getByRole('listbox')).toHaveCount(1);
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('listbox')).toHaveCount(0);
+  await expect(host).toHaveAttribute('role', 'textbox');
+  await expect(host).toHaveAttribute('aria-multiline', 'true');
+  await expect(host).not.toHaveAttribute('aria-expanded');
+  expect(await axeViolations(page)).toEqual([]);
+});
+
 test('a click on a chip opens its mention, on an editable or a read-only canvas', async ({ page }) => {
   await openEditor(page, 'mention', 'mention=1');
   await chip(page).click();

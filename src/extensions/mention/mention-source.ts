@@ -1,3 +1,4 @@
+import { toError } from '../../to-error';
 import type { MentionResult } from './mention-feature';
 
 export const SEARCH_DELAY_MS = 120;
@@ -14,8 +15,6 @@ export type MentionSource = {
   readonly source: (query: string) => Promise<readonly MentionResult[]>;
   cancel(): void;
 };
-
-const toError = (reason: unknown) => (reason instanceof Error ? reason : new Error(String(reason)));
 
 function isResult(value: unknown): value is MentionResult {
   const { id, label } = (value ?? {}) as Partial<Record<keyof MentionResult, unknown>>;

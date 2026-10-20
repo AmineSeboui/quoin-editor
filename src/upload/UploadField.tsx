@@ -4,6 +4,7 @@ import * as React from 'react';
 import { useQuoin } from '../context';
 import { useLabels } from '../i18n/use-labels';
 import type { QuoinLabels } from '../i18n/labels';
+import { toError } from '../to-error';
 import type { UploadResult } from '../types';
 import { FilePickerButton } from './FilePickerButton';
 
@@ -51,7 +52,7 @@ export function UploadField({ category, label, accept, onUploaded }: UploadField
       await onUploaded(result);
       setState({ phase: 'uploaded', name: result.filename || file.name });
     } catch (cause) {
-      onError(cause instanceof Error ? cause : new Error(String(cause)));
+      onError(toError(cause));
       setState({ phase: 'idle' });
     }
   }

@@ -73,10 +73,16 @@ export function columnMenuItems(labels: TableLabels, blockId: string, col: numbe
   ];
 }
 
-export type AlignItem = { readonly value: ColumnAlign; readonly label: string; readonly icon: Icon };
+export type AlignItem = {
+  readonly value: ColumnAlign;
+  readonly label: string;
+  readonly icon: Icon;
+  /** What is announced once the column takes the alignment. */
+  readonly done: string;
+};
 
 export const alignItems = (labels: TableLabels): AlignItem[] => [
-  { value: 'left', label: labels.alignLeft, icon: AlignLeft },
-  { value: 'center', label: labels.alignCenter, icon: AlignCenter },
-  { value: 'right', label: labels.alignRight, icon: AlignRight },
+  { value: 'left', label: labels.alignLeft, icon: AlignLeft, done: labels.alignedLeft },
+  { value: 'center', label: labels.alignCenter, icon: AlignCenter, done: labels.alignedCenter },
+  { value: 'right', label: labels.alignRight, icon: AlignRight, done: labels.alignedRight },
 ];

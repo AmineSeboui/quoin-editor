@@ -74,6 +74,30 @@ test('the + on the edge between two columns inserts a column there', async ({ pa
   ]);
 });
 
+// The pointer rests on the + after the last column or row while the keyboard deletes that column or row.
+for (const axis of ['column', 'row'] as const) {
+  test(`deleting the last ${axis} under a pointer resting on the + after it keeps the canvas`, async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await openEditor(page, 'table', 'table=1');
+    await caretIn(page, axis === 'column' ? 2 : 3, axis === 'column' ? 3 : 1);
+    const table = (await page.locator('.quoin-table table').boundingBox())!;
+    if (axis === 'column') await page.mouse.move(table.x + table.width - 1, table.y + 4);
+    else await page.mouse.move(table.x + 6, table.y + table.height - 1);
+    await expect(page.getByRole('button', { name: axis === 'column' ? 'Insert column 4' : 'Insert row 4' })).toBeVisible();
+    await page.keyboard.press('Alt+F10');
+    if (axis === 'row') await page.keyboard.press('ArrowLeft');
+    await page.keyboard.press('Enter');
+    await page.getByRole('menu').getByRole('menuitem', { name: `Delete ${axis}` }).focus();
+    await page.keyboard.press('Enter');
+    await expect.poll(async () => (axis === 'column' ? (await rowsOf(page))?.[0].length : (await rowsOf(page))?.length)).toBe(2);
+    await page.waitForTimeout(100);
+    await expect(page.getByRole('group', { name: 'Document' })).toBeVisible();
+    await expect(page.getByRole('button', { name: new RegExp(`^Insert ${axis}`) })).toHaveCount(0);
+    expect(errors).toEqual([]);
+  });
+}
+
 test('dragging the border of a column resizes it, written once when the drag ends', async ({ page }) => {
   await openEditor(page, 'table', 'table=1');
   const first = await box(page, 2, 1);

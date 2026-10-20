@@ -1,9 +1,13 @@
-import { act, fireEvent, screen, within } from '@testing-library/react';
+import { createRef, useState } from 'react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { textSelection, type QuoinBlock } from '../../engine';
 import { cellKey } from '../../engine/blocks/table-spec';
+import { addColumn, removeColumn, removeRow } from '../../engine/commands/table-commands';
 import { mountCanvas, paragraph } from '../../blocks/void/test-canvas';
+import { BlockCanvas } from '../../canvas/BlockCanvas';
+import type { QuoinEditorHandle } from '../../canvas/canvas-props';
 import { tableExtension } from './table-extension';
 
 const ROWS = [
@@ -71,6 +75,31 @@ describe('the controls of a table', () => {
     expect(screen.getAllByRole('separator', { name: /^Resize column/ })).toHaveLength(2);
   });
 
+  it('come back as soon as a read-only canvas turns editable again', () => {
+    const extensions = [tableExtension()];
+    const handle = createRef<QuoinEditorHandle>();
+    function Host() {
+      const [readOnly, setReadOnly] = useState(false);
+      const [blocks, setBlocks] = useState([paragraph('p', 'Above'), table()]);
+      return (
+        <>
+          <button type="button" onClick={() => setReadOnly((current) => !current)}>
+            Switch
+          </button>
+          <BlockCanvas ref={handle} blocks={blocks} onChange={setBlocks} extensions={extensions} readOnly={readOnly} />
+        </>
+      );
+    }
+    render(<Host />);
+    act(() => handle.current!.focus(at(1, 1)));
+    const toolbar = () => screen.queryByRole('toolbar', { name: 'Table controls' });
+    expect(toolbar()).not.toBeNull();
+    act(() => void fireEvent.click(screen.getByRole('button', { name: 'Switch' })));
+    expect(toolbar()).toBeNull();
+    act(() => void fireEvent.click(screen.getByRole('button', { name: 'Switch' })));
+    expect(toolbar()).not.toBeNull();
+  });
+
   it('are never drawn on a read-only canvas', () => {
     const { caretIn } = mount({}, { readOnly: true });
     caretIn(1, 1);
@@ -105,6 +134,7 @@ describe('the controls of a table', () => {
     expect(header).toBeChecked();
     await user.click(header);
     expect(dataOf().header).toBe(false);
+    expect(screen.getByRole('status')).toHaveTextContent('Header row off');
   });
 
   it('open a column menu that aligns, clears the alignment and deletes the column', async () => {
@@ -115,10 +145,12 @@ describe('the controls of a table', () => {
     open();
     await user.click(screen.getByRole('menuitemradio', { name: 'Align right' }));
     expect(dataOf().align).toEqual([null, 'right']);
+    expect(screen.getByRole('status')).toHaveTextContent('Column aligned right');
     open();
     expect(screen.getByRole('menuitemradio', { name: 'Align right' })).toBeChecked();
     await user.click(screen.getByRole('menuitemradio', { name: 'Align right' }));
     expect(dataOf().align).toEqual([null, null]);
+    expect(screen.getByRole('status')).toHaveTextContent('Column alignment cleared');
     open();
     await user.click(screen.getByRole('menuitem', { name: 'Delete column' }));
     expect(dataOf().rows).toEqual([['Name'], ['a'], ['b']]);
@@ -170,6 +202,45 @@ describe('the insert buttons of a table', () => {
     act(() => void cell.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: COL + 3, clientY: 4 })));
     act(() => void fireEvent.click(screen.getByRole('button', { name: 'Insert column 2' })));
     expect(dataOf().rows).toEqual([['Name', '', 'Size'], ['a', '', '2'], ['b', '', '3']]);
+  });
+
+  // The table is measured again a frame after a change, so the edge the pointer last rested on is past its end then.
+  const nextFrames = () => act(() => new Promise((resolve) => setTimeout(resolve, 50)));
+  const hover = (target: Element, clientX: number, clientY: number) =>
+    act(() => void target.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX, clientY })));
+
+  it('leave an edge past the end of a table that lost its last column under a pointer that has not moved', async () => {
+    layOutTable();
+    const { shell, handle } = mount();
+    hover(shell('t').querySelector('th[data-col="1"]')!, 2 * COL - 1, 4);
+    expect(screen.getByRole('button', { name: 'Insert column 3' })).toBeInTheDocument();
+    act(() => void handle().controller.run(removeColumn('t', 1)));
+    await nextFrames();
+    expect(screen.getByRole('group', { name: 'Editor' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Insert column/ })).toBeNull();
+  });
+
+  it('leave an edge past the end of a table that lost its last row under a pointer that has not moved', async () => {
+    layOutTable();
+    const { shell, handle } = mount();
+    hover(shell('t').querySelector('td[data-row="2"][data-col="0"]')!, 6, 3 * ROW - 1);
+    expect(screen.getByRole('button', { name: 'Insert row 4' })).toBeInTheDocument();
+    act(() => void handle().controller.run(removeRow('t', 2)));
+    await nextFrames();
+    expect(screen.getByRole('group', { name: 'Editor' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Insert row/ })).toBeNull();
+  });
+
+  it('go away once the table changes shape, until the pointer moves again', async () => {
+    layOutTable();
+    const { shell, handle } = mount();
+    const header = shell('t').querySelector('th[data-col="1"]')!;
+    hover(header, COL + 3, 4);
+    act(() => void handle().controller.run(addColumn('t', 2)));
+    await nextFrames();
+    expect(screen.queryByRole('button', { name: /^Insert column/ })).toBeNull();
+    hover(header, COL + 3, 4);
+    expect(screen.getByRole('button', { name: 'Insert column 2' })).toBeInTheDocument();
   });
 });
 

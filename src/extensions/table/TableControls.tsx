@@ -9,6 +9,7 @@ import { tableBlock } from '../../engine/commands/table-shape';
 import type { KeyInterceptor, ViewController } from '../../view';
 import { isComposingKey } from '../../view/input/keydown';
 import { useEditorState } from '../../view/react/use-editor-state';
+import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
 import { useReadOnly } from '../../view/react/use-read-only';
 import { controlsSlot } from './controls-slot';
 import type { TableLabels } from './table-labels';
@@ -33,6 +34,7 @@ export function TableControls({ controller, labels }: { controller: ViewControll
   const readOnly = useReadOnly(controller);
   const [held, setHeld] = useState<Held | null>(null);
   const [focusFor, setFocusFor] = useState<string | null>(null);
+  const [slot, setSlot] = useState<HTMLElement | null>(null);
   const target = useTableTarget(controller, held?.target ?? null);
   useCutCells(controller);
   const blockId = target?.block ?? null;
@@ -72,8 +74,14 @@ export function TableControls({ controller, labels }: { controller: ViewControll
     setHeld((current) => (current?.menu === null ? null : current));
   }, []);
 
-  const slot = block === null || readOnly ? null : controlsSlot(controller, block.id);
-  if (target === null || block === null || slot === null) return null;
+  // The table draws its slot in the same commit as this, when the canvas turns editable or the table remounts, so the
+  // slot is looked up once that commit is in the document.
+  useIsomorphicLayoutEffect(() => {
+    const drawn = block === null || readOnly ? null : controlsSlot(controller, block.id);
+    setSlot((current) => (current === drawn ? current : drawn));
+  });
+
+  if (target === null || block === null || readOnly || slot === null || !slot.isConnected) return null;
   return createPortal(
     <PlacedHandles
       key={block.id}

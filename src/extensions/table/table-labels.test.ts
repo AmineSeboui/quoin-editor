@@ -11,6 +11,16 @@ describe('the table labels', () => {
     expect(labels.insertColumnAt(2)).toBe('Insert column 2');
     expect(labels.resizeColumn(1)).toBe('Resize column 1');
     expect(labels.columnWidth(120)).toBe('120 pixels');
+    expect([labels.headerRowOn, labels.headerRowOff, labels.alignmentCleared]).toEqual([
+      'Header row on',
+      'Header row off',
+      'Column alignment cleared',
+    ]);
+    expect([labels.alignedLeft, labels.alignedCenter, labels.alignedRight]).toEqual([
+      'Column aligned left',
+      'Column aligned center',
+      'Column aligned right',
+    ]);
   });
 
   it('take the host overrides, and keep English for a key left out or undefined', () => {

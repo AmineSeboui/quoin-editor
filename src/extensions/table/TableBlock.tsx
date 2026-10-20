@@ -28,7 +28,8 @@ export function TableBlock({ block, controller, labels }: TableBlockProps) {
   const { rows, cols } = tableShape(block);
   const header = block.attrs.header !== false && rows > 0;
   const aligns = columnAligns(block, cols);
-  const widths = useWidthPreview(controller, block.id) ?? storedWidths(block, cols);
+  const preview = useWidthPreview(controller, block.id);
+  const widths = preview?.length === cols ? preview : storedWidths(block, cols);
   useTableKeys(controller, block.id, !readOnly);
   useCellPress(controller, block.id, table, !readOnly);
   useRevealCell(controller, block.id);

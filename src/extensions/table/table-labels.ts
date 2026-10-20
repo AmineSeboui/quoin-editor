@@ -33,6 +33,12 @@ export type TableLabels = {
   columnInserted: string;
   columnDeleted: string;
   columnMoved: string;
+  headerRowOn: string;
+  headerRowOff: string;
+  alignedLeft: string;
+  alignedCenter: string;
+  alignedRight: string;
+  alignmentCleared: string;
 };
 
 export const englishTableLabels: TableLabels = {
@@ -66,6 +72,12 @@ export const englishTableLabels: TableLabels = {
   columnInserted: 'Column inserted',
   columnDeleted: 'Column deleted',
   columnMoved: 'Column moved',
+  headerRowOn: 'Header row on',
+  headerRowOff: 'Header row off',
+  alignedLeft: 'Column aligned left',
+  alignedCenter: 'Column aligned center',
+  alignedRight: 'Column aligned right',
+  alignmentCleared: 'Column alignment cleared',
 };
 
 /** The English labels with the host's overrides on top. A key left out, or passed as undefined, stays English. */

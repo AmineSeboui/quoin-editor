@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { EditorState } from '../../engine';
-import { tableBlock } from '../../engine/commands/table-shape';
+import { tableBlock, tableShape } from '../../engine/commands/table-shape';
 import type { ViewController } from '../../view';
 import { useEditorState } from '../../view/react/use-editor-state';
 import { CONTROLS_SLOT } from './controls-slot';
@@ -59,6 +59,17 @@ function pointerTarget(controller: ViewController, event: PointerEvent): TableTa
 
 type Focus = 'none' | 'editor' | 'controls';
 
+// What the pointer was over, with the shape of its table then: an edge it rested on means nothing once rows or columns
+// have come or gone under a pointer that has not moved since.
+type Hover = { readonly target: TableTarget; readonly shape: string | null };
+
+function shapeOf(state: EditorState, blockId: string): string | null {
+  const block = tableBlock(state.doc, blockId);
+  if (block === null) return null;
+  const { rows, cols } = tableShape(block);
+  return `${rows}x${cols}`;
+}
+
 function focusOf(root: HTMLElement): Focus {
   const active = root.ownerDocument.activeElement;
   if (active === null || !root.contains(active)) return 'none';
@@ -71,17 +82,28 @@ function focusOf(root: HTMLElement): Focus {
  * the pointer over another table never takes the controls from under the focus.
  */
 export function useTableTarget(controller: ViewController, held: TableTarget | null): TableTarget | null {
-  const [hovered, setHovered] = useState<TableTarget | null>(null);
+  const [hovered, setHovered] = useState<Hover | null>(null);
   const [focus, setFocus] = useState<Focus>('none');
   const caret = useEditorState(controller, caretTarget, sameTarget);
+  const hoveredBlock = hovered?.target.block ?? null;
+  const shape = useEditorState(
+    controller,
+    useCallback((state: EditorState) => (hoveredBlock === null ? null : shapeOf(state, hoveredBlock)), [hoveredBlock]),
+  );
+  const pointed = hovered !== null && hovered.shape === shape ? hovered.target : null;
 
   useEffect(() => {
     const root = controller.root;
     if (root === null) return;
     const onPointerMove = (event: PointerEvent) => {
       if (event.pointerType === 'touch') return;
-      const next = pointerTarget(controller, event);
-      setHovered((current) => (sameTarget(current, next) ? current : next));
+      const target = pointerTarget(controller, event);
+      const next = target && { target, shape: shapeOf(controller.editor.state, target.block) };
+      setHovered((current) =>
+        current !== null && next !== null && sameTarget(current.target, next.target) && current.shape === next.shape
+          ? current
+          : next,
+      );
     };
     const onPointerLeave = () => setHovered(null);
     const onFocusChange = () => setFocus(focusOf(root));
@@ -103,6 +125,6 @@ export function useTableTarget(controller: ViewController, held: TableTarget | n
   }, [controller]);
 
   if (held !== null) return held;
-  if (focus === 'controls') return caret ?? hovered;
-  return hovered ?? (focus === 'editor' ? caret : null);
+  if (focus === 'controls') return caret ?? pointed;
+  return pointed ?? (focus === 'editor' ? caret : null);
 }

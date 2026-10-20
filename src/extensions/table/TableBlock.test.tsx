@@ -5,6 +5,7 @@ import { cellKey } from '../../engine/blocks/table-spec';
 import { mountCanvas, paragraph } from '../../blocks/void/test-canvas';
 import { clipboardEvent, fakeTransfer } from '../../view/clipboard/test-transfer';
 import { tableExtension } from './table-extension';
+import { tableUiStore } from './table-ui-store';
 
 const table = (data: Record<string, unknown> = {}): QuoinBlock => ({
   id: 't',
@@ -46,6 +47,17 @@ describe('a table block', () => {
     const grid = shell('t').querySelector('table')!;
     expect(grid).toHaveStyle({ width: '200px', tableLayout: 'fixed' });
     expect([...grid.querySelectorAll('col')].map((col) => col.style.width)).toEqual(['120px', '80px']);
+  });
+
+  it('shows the widths a column drag previews, unless they no longer match its columns', () => {
+    const { handle, shell } = mount();
+    const preview = (widths: number[]) =>
+      act(() => tableUiStore(handle().controller).set({ preview: { block: 't', widths } }));
+    preview([50, 60]);
+    expect([...shell('t').querySelectorAll('col')].map((col) => col.style.width)).toEqual(['50px', '60px']);
+    preview([50, 60, 70]);
+    expect(shell('t').querySelector('colgroup')).toBeNull();
+    act(() => tableUiStore(handle().controller).set({ preview: null }));
   });
 
   it('draws every row as data when it has no header row', () => {

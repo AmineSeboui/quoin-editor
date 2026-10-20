@@ -43,7 +43,12 @@ export type TableHandlesProps = {
 const BESIDE = 4;
 
 const end = (span: Span) => span.start + span.size;
-const edgeOf = (spans: readonly Span[], edge: number) => (edge === spans.length ? end(spans[edge - 1]) : spans[edge].start);
+
+/** Where the edge before the span at `edge` is drawn, the edge after the last one at their count, if the table has it. */
+function edgeOf(spans: readonly Span[], edge: number | null): number | null {
+  if (edge === null || !Number.isInteger(edge) || edge < 0 || edge > spans.length || spans.length === 0) return null;
+  return edge === spans.length ? end(spans[edge - 1]) : spans[edge].start;
+}
 const middle = (span: Span) => span.start + span.size / 2;
 
 const isTab = (event: KeyboardEvent) => event.key === 'Tab' && !event.altKey && !event.ctrlKey && !event.metaKey;
@@ -63,6 +68,9 @@ export function TableHandles(props: TableHandlesProps) {
   const col = Math.min(target.col, shape.cols - 1);
   const align = columnAligns(block, shape.cols)[col];
   const drawn = geometry.cols.map((span) => span.size);
+  const { rowEdge, colEdge } = target;
+  const rowInsertAt = edgeOf(geometry.rows, rowEdge);
+  const columnInsertAt = edgeOf(geometry.cols, colEdge);
 
   useIsomorphicLayoutEffect(() => {
     if (!focusRequested) return;
@@ -70,8 +78,8 @@ export function TableHandles(props: TableHandlesProps) {
     onFocused();
   }, [focusRequested, onFocused]);
 
-  const run = (command: Command, done?: string) => {
-    if (controller.run(command) && done !== undefined) controller.announce(done);
+  const run = (command: Command, done: string) => {
+    if (controller.run(command)) controller.announce(done);
   };
   const onKeyDown = (event: KeyboardEvent) => {
     const handles = [rowHandle.current, columnHandle.current].filter((handle) => handle !== null);
@@ -103,7 +111,7 @@ export function TableHandles(props: TableHandlesProps) {
         />
       ))}
       <div role="toolbar" aria-label={labels.tableControls} className="quoin-table-toolbar" onKeyDown={onKeyDown}>
-        {target.rowEdge === null && geometry.rows[row] && (
+        {rowInsertAt === null && geometry.rows[row] && (
           <HandleMenu
             controller={controller}
             axis="row"
@@ -117,14 +125,14 @@ export function TableHandles(props: TableHandlesProps) {
             {row === 0 && (
               <DropdownMenuCheckboxItem
                 checked={block.attrs.header !== false}
-                onCheckedChange={() => run(toggleHeaderRow(block.id))}
+                onCheckedChange={(on) => run(toggleHeaderRow(block.id), on ? labels.headerRowOn : labels.headerRowOff)}
               >
                 {labels.headerRow}
               </DropdownMenuCheckboxItem>
             )}
           </HandleMenu>
         )}
-        {target.colEdge === null && geometry.cols[col] && (
+        {columnInsertAt === null && geometry.cols[col] && (
           <HandleMenu
             controller={controller}
             axis="column"
@@ -137,11 +145,15 @@ export function TableHandles(props: TableHandlesProps) {
           >
             <DropdownMenuSeparator />
             <DropdownMenuRadioGroup value={align ?? ''}>
-              {alignItems(labels).map(({ value, label, icon }) => (
+              {alignItems(labels).map(({ value, label, icon, done }) => (
                 <DropdownMenuRadioItem
                   key={value}
                   value={value}
-                  onSelect={() => run(setColumnAlign(block.id, col, align === value ? null : value))}
+                  onSelect={() =>
+                    align === value
+                      ? run(setColumnAlign(block.id, col, null), labels.alignmentCleared)
+                      : run(setColumnAlign(block.id, col, value), done)
+                  }
                 >
                   <MenuIcon icon={icon} />
                   {label}
@@ -151,32 +163,32 @@ export function TableHandles(props: TableHandlesProps) {
           </HandleMenu>
         )}
       </div>
-      {target.rowEdge !== null && geometry.rows.length > 0 && (
+      {rowEdge !== null && rowInsertAt !== null && (
         <button
           type="button"
           tabIndex={-1}
-          aria-label={labels.insertRowAt(target.rowEdge + 1)}
+          aria-label={labels.insertRowAt(rowEdge + 1)}
           data-axis="row"
           className="quoin-table-insert"
-          style={place(geometry.left - BESIDE, edgeOf(geometry.rows, target.rowEdge))}
+          style={place(geometry.left - BESIDE, rowInsertAt)}
           onPointerDown={keepFocus}
           onMouseDown={keepFocus}
-          onClick={() => run(addRow(block.id, target.rowEdge ?? 0), labels.rowInserted)}
+          onClick={() => run(addRow(block.id, rowEdge), labels.rowInserted)}
         >
           <Plus aria-hidden="true" />
         </button>
       )}
-      {target.colEdge !== null && geometry.cols.length > 0 && (
+      {colEdge !== null && columnInsertAt !== null && (
         <button
           type="button"
           tabIndex={-1}
-          aria-label={labels.insertColumnAt(target.colEdge + 1)}
+          aria-label={labels.insertColumnAt(colEdge + 1)}
           data-axis="column"
           className="quoin-table-insert"
-          style={place(edgeOf(geometry.cols, target.colEdge), geometry.top)}
+          style={place(columnInsertAt, geometry.top)}
           onPointerDown={keepFocus}
           onMouseDown={keepFocus}
-          onClick={() => run(addColumn(block.id, target.colEdge ?? 0), labels.columnInserted)}
+          onClick={() => run(addColumn(block.id, colEdge), labels.columnInserted)}
         >
           <Plus aria-hidden="true" />
         </button>

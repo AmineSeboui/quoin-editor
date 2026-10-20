@@ -67,6 +67,13 @@ describe('an embed', () => {
 });
 
 describe('an embed on an editable canvas', () => {
+  it('is called by its label when selected as a whole with no address, and in the title of its block menu', () => {
+    const { nodeSelect, sink, openBlockMenu } = mountEmbeds([embedBlock('')], { labels: { embed: 'Player' } });
+    nodeSelect('e');
+    expect(sink()).toHaveAccessibleName('Player');
+    expect(openBlockMenu()).toHaveAccessibleName('Player block menu');
+  });
+
   it('keeps its frame out of the tab order, under a cover a press selects the block through', () => {
     const { shell, selection, sink } = mountEmbeds([embedBlock(YOUTUBE)]);
     expect(frame()).toHaveAttribute('tabindex', '-1');

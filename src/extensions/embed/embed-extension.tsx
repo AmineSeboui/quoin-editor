@@ -45,6 +45,7 @@ export function embedExtension(options: EmbedOptions = {}): Extension {
   const ui: ExtensionUI = {
     slashItems: embedSlashItems(feature.labels),
     renderers: { EMBED: EmbedRenderer, BOOKMARK: BookmarkRenderer },
+    blockNames: { EMBED: feature.labels.embed, BOOKMARK: feature.labels.bookmark },
     overlays: [ChoiceOverlay, InputOverlay],
   };
   return defineExtension({ name: 'embed', plugins: [linkChoicePlugin], pasteRules: [pasteLinkChoice], ui });

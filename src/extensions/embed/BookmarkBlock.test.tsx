@@ -54,6 +54,14 @@ describe('a bookmark', () => {
     expect(card().querySelector('b, img')).toBeNull();
   });
 
+  it('is called by its label when selected as a whole with no address, and in the title of its block menu', () => {
+    const labels = { bookmark: 'Saved link' };
+    const { nodeSelect, sink, openBlockMenu } = mountEmbeds([bookmark({ url: '' })], { labels });
+    nodeSelect('b');
+    expect(sink()).toHaveAccessibleName('Saved link');
+    expect(openBlockMenu()).toHaveAccessibleName('Saved link block menu');
+  });
+
   it('has no accessibility violations, editable or read-only', async () => {
     const full = bookmark({ title: 'Docs', description: 'Read me', image: 'https://cdn.quoin.dev/a.png' });
     const editable = mountEmbeds([full]);

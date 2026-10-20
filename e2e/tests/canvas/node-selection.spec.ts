@@ -67,3 +67,30 @@ test('a click that selects a block as a whole leaves the host scroll container w
   await page.waitForTimeout(250);
   expect(await root.evaluate((scroller) => scroller.scrollTop)).toBe(226);
 });
+
+test('the arrows onto an image or a divider, with the page going on below, leave the page where it is', async ({ page }) => {
+  await page.setViewportSize({ width: 900, height: 700 });
+  await openEditor(page, 'image');
+  await page.addStyleTag({ content: 'body { padding-bottom: 2000px }' });
+  const scrollY = () => page.evaluate(() => window.scrollY);
+  const above = page.getByRole('textbox', { name: 'Paragraph' }).first();
+  const box = (await above.boundingBox())!;
+  await page.mouse.click(box.x + box.width - 2, box.y + box.height / 2);
+  for (const [key, block] of [
+    ['ArrowDown', 'img'],
+    ['ArrowDown', 'd'],
+    ['ArrowUp', 'img'],
+  ] as const) {
+    await page.keyboard.press(key);
+    await expect(page.locator(`[data-block-id="${block}"]`)).toHaveAttribute('data-selected', 'true');
+    await page.waitForTimeout(400);
+    expect(await scrollY(), `${key} onto ${block}`).toBe(0);
+  }
+  const below = page.getByRole('textbox', { name: 'Paragraph' }).last();
+  const start = (await below.boundingBox())!;
+  await page.mouse.click(start.x + 1, start.y + start.height / 2);
+  await page.keyboard.press('ArrowUp');
+  await expect(page.locator('[data-block-id="d"]')).toHaveAttribute('data-selected', 'true');
+  await page.waitForTimeout(400);
+  expect(await scrollY(), 'ArrowUp onto d').toBe(0);
+});

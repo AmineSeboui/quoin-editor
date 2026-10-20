@@ -131,7 +131,20 @@ describe('toHTML media blocks', () => {
     expect(html(b('IMAGE', { storageKey: 'a/b.png', alt: 'x' }))).toBe('<figure><img src="a/b.png" alt="x"></figure>');
   });
 
-  it('trusts what a host resolver returns, and writes nothing when it returns nothing', () => {
+  it('keeps an http, https, blob, data or relative address a host resolver returns, and writes no other', () => {
+    for (const kept of ['https://a.b/k', 'http://a.b/k', 'blob:https://a.b/1', 'data:image/png;base64,AA', '/a/k']) {
+      const resolveAssetUrl = () => kept;
+      expect(html(b('IMAGE', { storageKey: 'k', alt: 'x' }), { resolveAssetUrl })).toBe(`<figure><img src="${kept}" alt="x"></figure>`);
+      expect(html(b('FILE', { storageKey: 'k', filename: 'f' }), { resolveAssetUrl })).toBe(`<p><a href="${kept}" download>f</a></p>`);
+    }
+    for (const dropped of ['javascript:alert(1)', 'vbscript:x', 'file:///etc/passwd', 'mailto:a@b.c', 'app:k']) {
+      const resolveAssetUrl = () => dropped;
+      expect(html(b('IMAGE', { storageKey: 'k', alt: 'x' }), { resolveAssetUrl })).toBe('');
+      expect(html(b('FILE', { storageKey: 'k', filename: 'f' }), { resolveAssetUrl })).toBe('');
+    }
+  });
+
+  it('writes what a host resolver returns for a key, and nothing when it returns nothing', () => {
     const resolveAssetUrl = (key: string) => (key === 'gone' ? '' : `/a/${key}`);
     expect(html(b('IMAGE', { storageKey: 'gone', alt: 'x' }), { resolveAssetUrl })).toBe('');
     expect(html(b('FILE', { storageKey: 'gone', filename: 'f' }), { resolveAssetUrl })).toBe('');

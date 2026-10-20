@@ -14,6 +14,7 @@ import { collectHeadings } from './toc-html';
 
 export type HTMLOptions = {
   schema?: Schema;
+  /** The address of a stored picture or file. One that is no http, https, blob, data or relative address is left out. */
   resolveAssetUrl?: (storageKey: string) => string;
   renderMath?: (latex: string, options: { displayMode: boolean }) => string;
   embeds?: 'iframe' | 'link';

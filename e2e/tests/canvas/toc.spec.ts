@@ -117,3 +117,26 @@ test('on a read-only canvas the entries are in the tab order, and go to their he
   expect(await page.evaluate(() => window.__quoin.changes)).toBe(0);
   expect(await markdownOf(page, 'usage')).toBe('### Using it');
 });
+
+test('focus stays in the block when the host takes away or moves the heading of the focused entry', async ({ page }) => {
+  await openEditor(page, 'toc', 'toc=1');
+  await host(page, 'intro').click();
+  await page.keyboard.press('Home');
+  await page.keyboard.press('ArrowUp');
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('Tab');
+  await expect(entry(page, 'Setting up')).toBeFocused();
+
+  await page.evaluate(() =>
+    window.__quoin.setBlocks!((blocks) =>
+      blocks.map((block) => (block.id === 'setup' ? { ...block, data: { markdown: '# Setting up' } } : block)),
+    ),
+  );
+  await expect(toc(page).locator(':scope > ul > li > a').nth(1)).toHaveText('Setting up');
+  await expect(entry(page, 'Setting up')).toBeFocused();
+
+  await page.evaluate(() => window.__quoin.setBlocks!((blocks) => blocks.filter((block) => block.id !== 'setup')));
+  await expect(entry(page, 'Setting up')).toHaveCount(0);
+  await expect(sink(page)).toBeFocused();
+  await expect(tocShell(page)).toHaveAttribute('data-selected', 'true');
+});

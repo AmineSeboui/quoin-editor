@@ -8,6 +8,7 @@ import { useReadOnly } from '../../view/react/use-read-only';
 import { tocHandlers } from './toc-handlers';
 import type { TocLabels } from './toc-labels';
 import { TocList } from './TocList';
+import { useEntryFocus } from './use-entry-focus';
 import { useTocHeadings } from './use-toc-headings';
 import { useTocNumber } from './use-toc-number';
 
@@ -25,6 +26,7 @@ export function TocBlock({ block, controller, labels }: TocBlockProps) {
   const root = useRef<HTMLElement>(null);
   const keys = useMemo(() => ({ enter: () => root.current?.querySelector<HTMLElement>('a[href]')?.focus() }), []);
   useNodeKeys(controller, block.id, !readOnly, listed.length > 0, root, keys);
+  const entryFocus = useEntryFocus(controller, block.id, root, nested);
   const number = useTocNumber(controller, block.id);
 
   return (
@@ -34,6 +36,7 @@ export function TocBlock({ block, controller, labels }: TocBlockProps) {
       contentEditable={false}
       className="quoin-toc"
       {...tocHandlers(controller, block.id, root, readOnly)}
+      {...entryFocus}
     >
       {nested.length === 0 ? (
         <p className="quoin-toc-empty">{labels.noHeadings}</p>

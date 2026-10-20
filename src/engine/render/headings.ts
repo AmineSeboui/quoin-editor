@@ -8,4 +8,4 @@ export function headingLevel(block: EngineBlock): number | null {
   return typeof level === 'number' && Number.isInteger(level) ? Math.min(6, Math.max(1, level)) : 1;
 }
 
-export type Heading = { readonly id: string; readonly level: number; readonly text: string };
+export type Heading = { readonly blockId: string; readonly level: number; readonly text: string };

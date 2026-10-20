@@ -8,7 +8,7 @@ import { FilePickerButton } from '../../upload/FilePickerButton';
 import type { ViewController } from '../../view';
 import { isComposingKey } from '../../view/input/keydown';
 import { isInteractive } from '../void/interactive-target';
-import { selectNode } from '../void/select-node';
+import { focusNode } from '../void/select-node';
 import { EmbedLinkForm } from './EmbedLinkForm';
 import { useImageUpload } from './use-image-upload';
 
@@ -38,8 +38,7 @@ export function ImageUploadArea({ blockId, controller }: { blockId: string; cont
 
   const select = () => {
     setLinking(false);
-    selectNode(controller, blockId);
-    controller.focus();
+    focusNode(controller, blockId);
   };
   const onPaste = (event: ClipboardEvent) => {
     const file = imageIn(event.clipboardData);

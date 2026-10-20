@@ -8,11 +8,10 @@ import type { VirtualAnchor } from '../../menus/floating/virtual-anchor';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
+import { preventDefault } from '../../ui/prevent-default';
 import type { ViewController } from '../../view';
 import { isComposingKey } from '../../view/input/keydown';
 import { onBlock } from '../../view/react/block-command';
-
-const preventDefault = (event: Event) => event.preventDefault();
 
 type AltTextPopoverProps = {
   blockId: string;

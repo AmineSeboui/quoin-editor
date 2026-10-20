@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState, type RefObject } from 'react';
 import { useQuoin } from '../../context';
 import type { ViewController } from '../../view';
-import { selectNode } from '../void/select-node';
+import { focusNode } from '../void/select-node';
 import { uploadImage } from './image-upload';
 
 type UploadState = { busy: boolean; error: string };
@@ -28,9 +28,7 @@ export function useImageUpload(controller: ViewController, blockId: string, area
       };
       setState({ busy: true, error: '' });
       const onLand = () => {
-        if (!area.current?.contains(area.current.ownerDocument.activeElement)) return;
-        selectNode(controller, blockId);
-        controller.focus();
+        if (area.current?.contains(area.current.ownerDocument.activeElement)) focusNode(controller, blockId);
       };
       uploadImage(controller, blockId, file, { upload, resolveAssetUrl, onLand }).then(
         () => settle(IDLE),

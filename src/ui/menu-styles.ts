@@ -1,6 +1,9 @@
 import { HIGHLIGHT_BAR } from './focus';
 import { TAP_TARGET_FLOOR } from './touch-target';
 
+/** A row of buttons floating over the canvas, as the formatting toolbar and the toolbar of a selected image are. */
+export const FLOATING_TOOLBAR = 'flex w-auto items-center gap-0.5 p-1 shadow-md';
+
 /** The classes the dropdown menu and the context menu share, so the block menu reads the same opened either way. */
 export const MENU_CONTENT =
   'quoin bg-popover text-popover-foreground z-50 max-h-(--radix-popper-available-height) min-w-[8rem] overflow-x-hidden overflow-y-auto rounded-md border border-border p-1 shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0';

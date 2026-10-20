@@ -13,7 +13,7 @@ import { useReadOnly } from '../../view/react/use-read-only';
 import { NATIVE_INTERACTION } from '../../view/selection/native-interaction';
 import { insertAfterBlock, readBlockData, writeBlockData } from './block-data';
 import { isInteractive } from './interactive-target';
-import { selectNode } from './select-node';
+import { focusNode } from './select-node';
 import { useEditingFocus } from './use-editing-focus';
 import { useVoidEditing } from './use-void-editing';
 
@@ -47,10 +47,7 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
   const focusHandlers = useEditingFocus(root, editing, stop);
   useMissingPreviewWarning(readOnly, definition);
 
-  const select = useCallback(() => {
-    selectNode(controller, blockId);
-    controller.focus();
-  }, [controller, blockId]);
+  const select = useCallback(() => focusNode(controller, blockId), [controller, blockId]);
   const leave = useCallback(() => {
     stop();
     select();

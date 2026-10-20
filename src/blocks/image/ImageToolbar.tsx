@@ -11,7 +11,9 @@ import { useSelectionSettled } from '../../menus/bubble/use-selection-settled';
 import { keepFocus } from '../../menus/floating/keep-focus';
 import { useFocusKey } from '../../menus/floating/use-focus-key';
 import { virtualAnchor } from '../../menus/floating/virtual-anchor';
+import { FLOATING_TOOLBAR } from '../../ui/menu-styles';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
+import { preventDefault } from '../../ui/prevent-default';
 import type { ViewController } from '../../view';
 import { isComposingKey } from '../../view/input/keydown';
 import { useEditorState } from '../../view/react/use-editor-state';
@@ -22,10 +24,7 @@ import { hasPicture, imageSource } from './image-source';
 import { imageToolbarItems } from './image-toolbar-items';
 import { uploadImage } from './image-upload';
 
-const TOOLBAR = 'flex w-auto items-center gap-0.5 p-1 shadow-md';
-
 const wholeState = (state: EditorState) => state;
-const preventDefault = (event: Event) => event.preventDefault();
 
 function selectedImage({ doc, selection }: EditorState): string | null {
   const block = selection?.kind === 'node' ? blockById(doc, selection.block) : undefined;
@@ -100,7 +99,7 @@ function ImageToolbar({ blockId, controller }: { blockId: string; controller: Vi
         role="toolbar"
         aria-label={labels.imageTools}
         side="top"
-        className={TOOLBAR}
+        className={FLOATING_TOOLBAR}
         onOpenAutoFocus={preventDefault}
         onCloseAutoFocus={preventDefault}
         onPointerDown={keepFocus}

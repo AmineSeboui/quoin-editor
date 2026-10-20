@@ -9,6 +9,7 @@ import type { QuoinLabels } from '../../i18n/labels';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
+import { preventDefault } from '../../ui/prevent-default';
 import type { ViewController } from '../../view';
 import { rangeRect } from '../floating/range-rect';
 import { selectionRect } from '../floating/selection-rect';
@@ -20,8 +21,6 @@ import { linkAtSelection, type LinkAtSelection } from './link-at-selection';
 const CONTENT = 'w-80 p-2 shadow-md';
 const FIELD = 'h-8';
 const MESSAGE = 'mt-1.5 px-1 text-sm text-destructive';
-
-const preventDefault = (event: Event) => event.preventDefault();
 
 // The selected text, or at a collapsed caret the link it is in, or the caret itself.
 function popoverAnchor(controller: ViewController, link: LinkAtSelection | null): VirtualAnchor | null {

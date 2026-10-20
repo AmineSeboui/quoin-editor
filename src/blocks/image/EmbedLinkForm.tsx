@@ -8,7 +8,7 @@ import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import type { ViewController } from '../../view';
 import { setBlockAttrs } from '../text/set-block-attrs';
-import { selectNode } from '../void/select-node';
+import { focusNode } from '../void/select-node';
 
 /** The address of a picture to embed rather than upload, refused when the engine would not keep it as a link. */
 export function EmbedLinkForm({ blockId, controller }: { blockId: string; controller: ViewController }) {
@@ -25,8 +25,7 @@ export function EmbedLinkForm({ blockId, controller }: { blockId: string; contro
       return;
     }
     setBlockAttrs(controller, blockId, { url });
-    selectNode(controller, blockId);
-    controller.focus();
+    focusNode(controller, blockId);
   };
 
   return (

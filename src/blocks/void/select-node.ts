@@ -7,3 +7,9 @@ export function selectNode(controller: ViewController, blockId: string): void {
   if (selection?.kind === 'node' && selection.block === blockId) return;
   controller.dispatch(editor.createTransaction().setSelection(nodeSelection(blockId)));
 }
+
+/** Selects the block as a whole and hands focus to the editor, where the sink holding the selection takes it. */
+export function focusNode(controller: ViewController, blockId: string): void {
+  selectNode(controller, blockId);
+  controller.focus();
+}

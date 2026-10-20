@@ -7,6 +7,7 @@ import { sanitizeHref, textSelection, type EditorState } from '../../engine';
 import type { QuoinLabels } from '../../i18n/labels';
 import { Button } from '../../ui/button';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
+import { preventDefault } from '../../ui/prevent-default';
 import type { ViewController } from '../../view';
 import { useEditorState } from '../../view/react/use-editor-state';
 import { keepFocus } from '../floating/keep-focus';
@@ -25,8 +26,6 @@ const CARD = 'flex w-auto items-center gap-0.5 py-1 ps-3 pe-1 shadow-md';
 const ADDRESS = 'me-1 whitespace-nowrap text-sm text-muted-foreground';
 
 const wholeState = (state: EditorState) => state;
-const preventDefault = (event: Event) => event.preventDefault();
-
 type LinkHoverCardProps = { controller: ViewController; labels: QuoinLabels; store: CanvasUiStore };
 
 type LinkCardProps = LinkHoverCardProps & {

@@ -6,6 +6,7 @@ import { SuggestionOption } from '../../menus/suggestion/SuggestionOption';
 import { FOCUS_RING } from '../../ui/focus';
 import { MENU_CONTENT } from '../../ui/menu-styles';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
+import { preventDefault } from '../../ui/prevent-default';
 import type { ViewController } from '../../view';
 import { isComposingKey } from '../../view/input/keydown';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
@@ -16,8 +17,6 @@ const FIELD = `quoin-code-language quoin-code-control ${FOCUS_RING}`;
 // The listbox scrolls rather than the popover around it, as the combobox's own popup, which the arrows walk while focus
 // stays in the field.
 const CONTENT = `${MENU_CONTENT} flex max-h-64 w-48 flex-col overflow-y-hidden`;
-
-const preventDefault = (event: Event) => event.preventDefault();
 
 type LanguageComboboxProps = {
   blockId: string;

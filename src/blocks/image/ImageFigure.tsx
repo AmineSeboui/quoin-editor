@@ -6,7 +6,7 @@ import { useQuoin } from '../../context';
 import { optionalNumber } from '../../engine/blocks/data-fields';
 import { EditableRegion, type BlockRenderProps } from '../../view';
 import { str } from '../str';
-import { selectNode } from '../void/select-node';
+import { focusNode } from '../void/select-node';
 import { imageSource } from './image-source';
 import { ResizeHandles } from './ResizeHandles';
 
@@ -27,10 +27,7 @@ export function ImageFigure({ block, controller, readOnly }: ImageFigureProps) {
   const name = alt || labels.imageNoAlt;
   const percent = optionalNumber(attrs.widthPercent);
   const width = preview ?? percent;
-  const select = () => {
-    selectNode(controller, id);
-    controller.focus();
-  };
+  const select = () => focusNode(controller, id);
 
   return (
     <>

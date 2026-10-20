@@ -6,6 +6,7 @@ import type { SuggestionRange } from '../../extensions/ui-types';
 import { MENU_CONTENT } from '../../ui/menu-styles';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
 import { cn } from '../../ui/cn';
+import { preventDefault } from '../../ui/prevent-default';
 import type { ViewController } from '../../view';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
 import { useRangeAnchor } from '../floating/use-range-anchor';
@@ -34,8 +35,6 @@ const CONTENT = cn(
 );
 const LISTBOX = 'min-h-0 overflow-y-auto';
 const GROUP_LABEL = 'px-2 pt-2 pb-1 text-xs font-medium text-muted-foreground';
-const preventDefault = (event: Event) => event.preventDefault();
-
 type SectionProps<T> = {
   section: SuggestionSection<T>;
   labelId: string;

@@ -17,14 +17,6 @@ async function caretIn(page: Page, target: Locator = page.locator('[data-quoin-h
   await page.waitForFunction(() => document.activeElement?.contains(document.getSelection()?.focusNode ?? null));
 }
 
-// How far the page scrolled while a click on the entry was handled, before any frame of a smooth scroll ran.
-const scrolledByClick = (page: Page, blockId: string) =>
-  page.evaluate((href) => {
-    const before = window.scrollY;
-    document.querySelector<HTMLElement>(`.quoin-toc a[href="${href}"]`)!.click();
-    return window.scrollY - before;
-  }, `#block-${blockId}`);
-
 test('the / menu inserts a table of contents, which lists the headings as they are typed', async ({ page }) => {
   await openEditor(page, 'empty', 'toc=1');
   await caretIn(page);
@@ -43,27 +35,15 @@ test('the / menu inserts a table of contents, which lists the headings as they a
   expect((await blocks(page)).map((block) => block.type)).toEqual(['TOC', 'MARKDOWN', 'MARKDOWN']);
 });
 
-test('a click on an entry puts the caret at the end of its heading, which scrolls into view smoothly', async ({
+test('a click on an entry puts the caret at the end of its heading, and leaves the address as it was', async ({
   page,
 }) => {
   await openEditor(page, 'toc', 'toc=1');
-  const heading = host(page, 'usage');
-  await expect(heading).not.toBeInViewport();
-  const jumped = await scrolledByClick(page, 'usage');
-  await expect(heading).toBeFocused();
-  await expect(heading).toBeInViewport();
+  await entry(page, 'Using it').click();
+  await expect(host(page, 'usage')).toBeFocused();
   await page.keyboard.type('!');
   await expect.poll(() => markdownOf(page, 'usage')).toBe('### Using it!');
   expect(new URL(page.url()).hash).toBe('');
-  expect(jumped).toBe(0);
-});
-
-test('for a reader who prefers reduced motion, the heading is scrolled to at once', async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await openEditor(page, 'toc', 'toc=1');
-  expect(await scrolledByClick(page, 'setup')).toBeGreaterThan(0);
-  await expect(host(page, 'setup')).toBeFocused();
-  await expect(host(page, 'setup')).toBeInViewport();
 });
 
 test('a press beside the entries selects the block, and a press on one goes to its heading', async ({ page }) => {

@@ -2,9 +2,9 @@ import { formatSize } from './format-size';
 
 describe('the size of a file', () => {
   it('is written in binary units, with one decimal above bytes', () => {
-    expect(formatSize(0) === '0 B').toBe(true);
-    expect(formatSize(1536) === '1.5 KB').toBe(true);
-    expect(formatSize(5 * 1024 ** 3) === '5.0 GB').toBe(true);
+    expect(formatSize(0)).toBe('0 B');
+    expect(formatSize(1536)).toBe('1.5 KB');
+    expect(formatSize(5 * 1024 ** 3)).toBe('5.0 GB');
   });
 
   it('stays in bytes below a kilobyte and moves up a unit where one decimal would round to 1024', () => {

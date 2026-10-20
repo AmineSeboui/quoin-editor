@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent, type RefObject } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent, type RefObject } from 'react';
 import { setAttrs } from '../../engine/commands/block-style';
 import { useLabels } from '../../i18n/use-labels';
-import { bubblePart } from '../../menus/bubble/bubble-part';
+import { bubblePart, isBubblePart } from '../../menus/bubble/bubble-part';
 import type { VirtualAnchor } from '../../menus/floating/virtual-anchor';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
@@ -12,6 +12,7 @@ import { preventDefault } from '../../ui/prevent-default';
 import type { ViewController } from '../../view';
 import { isComposingKey } from '../../view/input/keydown';
 import { onBlock } from '../../view/react/block-command';
+import { useOutsidePress } from './use-outside-press';
 
 type AltTextPopoverProps = {
   blockId: string;
@@ -32,8 +33,9 @@ function storeAlt(controller: ViewController, blockId: string, alt: string): voi
 
 /**
  * The alt text of an image, asked for as required. Enter, Save, and Tab or Shift+Tab out of it store it and hand focus
- * back to the image, Escape hands focus back keeping the alt text the image had, and a click away stores it and leaves
- * focus where the click put it.
+ * back to the image, and Escape hands focus back keeping the alt text the image had. A press elsewhere, or a script
+ * moving focus elsewhere, stores it and leaves focus where that puts it; a press on the image's toolbar or handles
+ * hands focus back to the image.
  */
 export function AltTextPopover({ blockId, controller, anchor, alt, onClose }: AltTextPopoverProps) {
   const labels = useLabels();
@@ -56,11 +58,14 @@ export function AltTextPopover({ blockId, controller, anchor, alt, onClose }: Al
     return () => void latestFinish.current(true);
   }, []);
 
-  const close = (store: boolean) => {
+  const close = (store: boolean, refocus = true) => {
     if (!finish(store)) return;
     onClose();
-    controller.focus();
+    if (refocus) controller.focus();
   };
+  const content = useRef<HTMLDivElement>(null);
+  const ownerDocument = useCallback(() => controller.root?.ownerDocument ?? document, [controller]);
+  useOutsidePress(content, ownerDocument, (target) => close(true, isBubblePart(target, controller)));
   const save = (event: FormEvent) => {
     event.preventDefault();
     close(true);
@@ -83,11 +88,12 @@ export function AltTextPopover({ blockId, controller, anchor, alt, onClose }: Al
       open
       modal={false}
       onOpenChange={(open) => {
-        if (!open) close(true);
+        if (!open) close(true, false);
       }}
     >
       <PopoverAnchor virtualRef={anchor} />
       <PopoverContent
+        ref={content}
         aria-label={labels.altText}
         side="bottom"
         className="w-80 p-3"

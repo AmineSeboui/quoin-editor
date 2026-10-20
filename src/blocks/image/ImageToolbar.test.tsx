@@ -236,6 +236,54 @@ describe('the alt text of an image', () => {
     expect(imageData()).toEqual({ storageKey: 'cat.png', alt: 'A cat asleep again' });
   });
 
+  it('is stored by a click on a control outside the editor, which keeps the focus it took and the keys typed next', async () => {
+    const user = userEvent.setup();
+    const { nodeSelect, imageData } = mount();
+    const outside = document.body.appendChild(document.createElement('input'));
+    outside.setAttribute('aria-label', 'Search');
+    try {
+      nodeSelect('i');
+      await user.click(button('Alt text'));
+      await user.type(screen.getByRole('textbox', { name: 'Alt text' }), ' asleep');
+      await user.click(outside);
+      expect(imageData()).toEqual({ storageKey: 'cat.png', alt: 'A cat asleep' });
+      expect(outside).toHaveFocus();
+      await user.keyboard('Q');
+      expect(outside).toHaveValue('Q');
+      expect(imageData()).toEqual({ storageKey: 'cat.png', alt: 'A cat asleep' });
+    } finally {
+      outside.remove();
+    }
+  });
+
+  it('is stored when a script moves focus elsewhere, which keeps it there', async () => {
+    const user = userEvent.setup();
+    const { nodeSelect, imageData } = mount();
+    const outside = document.body.appendChild(document.createElement('input'));
+    try {
+      nodeSelect('i');
+      await user.click(button('Alt text'));
+      await user.type(screen.getByRole('textbox', { name: 'Alt text' }), ' asleep');
+      act(() => outside.focus());
+      expect(imageData()).toEqual({ storageKey: 'cat.png', alt: 'A cat asleep' });
+      expect(outside).toHaveFocus();
+      expect(screen.queryByRole('textbox', { name: 'Alt text' })).toBeNull();
+    } finally {
+      outside.remove();
+    }
+  });
+
+  it('is stored as soon as a press lands outside it, before any click, and a press on the toolbar keeps the image', () => {
+    const { nodeSelect, imageData, sink } = mount();
+    nodeSelect('i');
+    fireEvent.click(button('Alt text'));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Alt text' }), { target: { value: 'A cat asleep' } });
+    fireEvent.pointerDown(button('Align center'));
+    expect(imageData()).toEqual({ storageKey: 'cat.png', alt: 'A cat asleep' });
+    expect(screen.queryByRole('textbox', { name: 'Alt text' })).toBeNull();
+    expect(sink()).toHaveFocus();
+  });
+
   it('has no accessibility violations', async () => {
     const user = userEvent.setup();
     const { nodeSelect } = mount();

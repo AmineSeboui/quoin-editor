@@ -164,6 +164,33 @@ describe('the alt text of an image', () => {
     expect(imageData()).toEqual({ storageKey: 'cat.png', alt: 'A dog' });
   });
 
+  it('is stored when focus leaves it, as Tab out of its last control does', async () => {
+    const user = userEvent.setup();
+    const { nodeSelect, imageData } = mount();
+    nodeSelect('i');
+    await user.click(button('Alt text'));
+    const field = screen.getByRole('textbox', { name: 'Alt text' });
+    await user.type(field, ' asleep');
+    act(() => field.blur());
+    expect(imageData()).toEqual({ storageKey: 'cat.png', alt: 'A cat asleep' });
+    expect(screen.queryByRole('textbox', { name: 'Alt text' })).toBeNull();
+  });
+
+  it('is stored when a click lands elsewhere, in the text or on the picture', async () => {
+    const user = userEvent.setup();
+    const { nodeSelect, imageData, shell } = mount();
+    for (const [typed, target] of [
+      [' asleep', () => shell('a').querySelector('[data-quoin-host]')!],
+      [' again', () => screen.getByRole('img')],
+    ] as const) {
+      nodeSelect('i');
+      await user.click(button('Alt text'));
+      await user.type(screen.getByRole('textbox', { name: 'Alt text' }), typed);
+      await user.click(target());
+    }
+    expect(imageData()).toEqual({ storageKey: 'cat.png', alt: 'A cat asleep again' });
+  });
+
   it('has no accessibility violations', async () => {
     const user = userEvent.setup();
     const { nodeSelect } = mount();

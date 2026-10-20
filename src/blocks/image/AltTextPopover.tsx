@@ -1,6 +1,7 @@
 'use client';
 
-import { useId, useRef, useState, type FormEvent, type RefObject } from 'react';
+import { useEffect, useId, useRef, useState, type FormEvent, type RefObject } from 'react';
+import { setAttrs } from '../../engine/commands/block-style';
 import { useLabels } from '../../i18n/use-labels';
 import { bubblePart } from '../../menus/bubble/bubble-part';
 import type { VirtualAnchor } from '../../menus/floating/virtual-anchor';
@@ -9,7 +10,7 @@ import { Input } from '../../ui/input';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
 import type { ViewController } from '../../view';
 import { isComposingKey } from '../../view/input/keydown';
-import { setBlockAttrs } from '../text/set-block-attrs';
+import { onBlock } from '../../view/react/block-command';
 
 const preventDefault = (event: Event) => event.preventDefault();
 
@@ -21,9 +22,18 @@ type AltTextPopoverProps = {
   onClose(): void;
 };
 
+// The toolbar can take the popover down when focus or a press leaves the editor, before the popover hears of it, so
+// the text is also stored as the popover goes: on the editor itself, since the canvas's flush is refused in an effect.
+// A canvas being taken down has let go of its root first, and takes no more writes.
+function storeAlt(controller: ViewController, blockId: string, alt: string): void {
+  const { editor } = controller;
+  if (controller.readOnly || controller.root === null) return;
+  onBlock(blockId, setAttrs({ alt }))(editor.state, (tr) => editor.dispatch(tr));
+}
+
 /**
- * The alt text of an image, asked for as required. Enter, Save and a click away store it, Escape keeps the one the image
- * had, and focus goes back to the image either way.
+ * The alt text of an image, asked for as required. Enter, Save, Tab and a click away store it, Escape keeps the one the
+ * image had, and closing it hands focus back to the image.
  */
 export function AltTextPopover({ blockId, controller, anchor, alt, onClose }: AltTextPopoverProps) {
   const labels = useLabels();
@@ -32,11 +42,19 @@ export function AltTextPopover({ blockId, controller, anchor, alt, onClose }: Al
   const hintId = `${fieldId}-hint`;
   const closed = useRef(false);
 
-  // Handing focus back to the image is focus leaving the popover, which would close it a second time, storing the text.
-  const close = (store: boolean) => {
-    if (closed.current) return;
+  // Handing focus back to the image is focus leaving the popover, which would close it a second time.
+  const finish = (store: boolean) => {
+    if (closed.current) return false;
     closed.current = true;
-    if (store && draft !== alt) setBlockAttrs(controller, blockId, { alt: draft });
+    if (store && draft !== alt) storeAlt(controller, blockId, draft);
+    return true;
+  };
+  const latestFinish = useRef(finish);
+  latestFinish.current = finish;
+  useEffect(() => () => void latestFinish.current(true), []);
+
+  const close = (store: boolean) => {
+    if (!finish(store)) return;
     onClose();
     controller.focus();
   };

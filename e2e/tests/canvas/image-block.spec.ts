@@ -95,6 +95,34 @@ test('the alt text of an image is asked for as required and stored on Enter', as
   await expect(sink(page)).toBeFocused();
 });
 
+test('alt text typed in its popover is stored when Tab or a click leaves it, and not on Escape', async ({ page }) => {
+  await openEditor(page, 'image');
+  const editAlt = async (typed: string) => {
+    await page.getByRole('img').first().click();
+    await toolbar(page).getByRole('button', { name: 'Alt text' }).click();
+    const field = page.getByRole('textbox', { name: 'Alt text' });
+    await expect(field).toBeFocused();
+    await field.fill(typed);
+  };
+  await editAlt('By Tab');
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  await expect.poll(() => imageData(page)).toMatchObject({ alt: 'By Tab' });
+  await editAlt('By a click in the text');
+  await page.getByRole('textbox', { name: 'Paragraph' }).last().click();
+  await expect.poll(() => imageData(page)).toMatchObject({ alt: 'By a click in the text' });
+  await editAlt('By a click on the page');
+  await page.mouse.click(5, page.viewportSize()!.height - 5);
+  await expect.poll(() => imageData(page)).toMatchObject({ alt: 'By a click on the page' });
+  await editAlt('By a click on the picture');
+  await page.getByRole('img').first().click();
+  await expect.poll(() => imageData(page)).toMatchObject({ alt: 'By a click on the picture' });
+  await editAlt('Not by Escape');
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('textbox', { name: 'Alt text' })).toHaveCount(0);
+  expect(await imageData(page)).toMatchObject({ alt: 'By a click on the picture' });
+});
+
 test('Enter on a selected image takes the caret into its caption, and Left from the caption start selects it', async ({
   page,
 }) => {

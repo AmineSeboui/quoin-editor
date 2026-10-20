@@ -27,6 +27,7 @@ export const featureEntries = [
   { name: 'math', source: 'src/math.ts', client: true, added: incrementalBudget(4_421) },
   { name: 'toc', source: 'src/toc.ts', client: true, added: incrementalBudget(1_803) },
   { name: 'mention', source: 'src/mention.ts', client: true, added: incrementalBudget(2_837) },
+  { name: 'emoji', source: 'src/emoji.ts', client: true, added: incrementalBudget(3_149) },
 ];
 
 /**
@@ -35,7 +36,7 @@ export const featureEntries = [
  * on its own, which the entry that loads it leaves out of its measure.
  * @type {{ name: string, source: string, total: number }[]}
  */
-export const lazyChunks = [];
+export const lazyChunks = [{ name: 'emoji-data', source: 'src/emoji/index.ts', total: 60_000 }];
 
 /** @type {PackageEntry[]} */
 export const packageEntries = [
@@ -43,5 +44,5 @@ export const packageEntries = [
   { name: 'headless', source: 'src/headless.ts', client: true, total: 70_000 },
   { name: 'engine', source: 'src/engine/index.ts', client: false, total: 52_000 },
   ...featureEntries,
-  { name: 'catalogue', source: 'src/catalogue.ts', client: true, added: incrementalBudget(20_731) },
+  { name: 'catalogue', source: 'src/catalogue.ts', client: true, added: incrementalBudget(23_709) },
 ];

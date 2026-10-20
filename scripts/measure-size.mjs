@@ -18,7 +18,7 @@ const leaveDynamicImports = (loaded) => ({
   },
 });
 
-async function gzipOf(root, contents, loaded) {
+async function bundle(root, contents, loaded) {
   const result = await build({
     stdin: { contents, resolveDir: root, loader: 'js' },
     bundle: true,
@@ -30,12 +30,19 @@ async function gzipOf(root, contents, loaded) {
     plugins: [leaveDynamicImports(loaded)],
     logLevel: 'silent',
   });
-  return gzipSync(result.outputFiles[0].contents).length;
+  return result.outputFiles[0].contents;
 }
+
+const gzipOf = async (root, contents, loaded) => gzipSync(await bundle(root, contents, loaded)).length;
 
 const built = (name) => `./dist/${name}.js`;
 
-export const totalGzip = (root, name, loaded = new Set()) => gzipOf(root, `export * from '${built(name)}';`, loaded);
+const whole = (name) => `export * from '${built(name)}';`;
+
+/** The minified code of a built entry as it is measured, without the chunks it loads on demand. */
+export const entryBundle = async (root, name) => new TextDecoder().decode(await bundle(root, whole(name), new Set()));
+
+export const totalGzip = (root, name, loaded = new Set()) => gzipOf(root, whole(name), loaded);
 
 // Namespaces rather than two star exports: a name the two entries export differently would be ambiguous, and dropped
 // with its code.

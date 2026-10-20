@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { BlockCanvas, coreBlocks, type QuoinBlock, type UploadFn } from 'quoin-editor';
 import { embedExtension, type Unfurl } from 'quoin-editor/embed';
+import { emojiExtension } from 'quoin-editor/emoji';
 import { mathExtension, type RenderMath } from 'quoin-editor/math';
 import { mentionExtension, type MentionResult } from 'quoin-editor/mention';
 import { tableExtension } from 'quoin-editor/table';
@@ -44,6 +45,7 @@ const extensions = [
   ...(params.get('mention') === '1'
     ? [mentionExtension({ search: searchPeople, onOpen: (mention) => window.__quoin.opened?.push(mention) })]
     : []),
+  ...(params.get('emoji') === '1' ? [emojiExtension()] : []),
 ];
 
 // Each upload is kept as an object URL under its key, so the picture of an uploaded image loads.

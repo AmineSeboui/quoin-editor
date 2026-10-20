@@ -39,6 +39,8 @@
    excluded for the same reason, a class named in an assertion is not a class we ship. */
 @source "./**/*.{ts,tsx}";
 @source not "./**/*.test.{ts,tsx}";
+/* The emoji dataset holds tags such as "shadow" and "uppercase", which would read as class names. */
+@source not "./emoji/data.ts";
 
 @layer quoin.base {
   /* Tailwind's preflight would reset the host's whole page, and browser defaults sit below every

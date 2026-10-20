@@ -4,6 +4,7 @@ import type { Extension } from './engine';
 import { createCatalogue, type CatalogueOptionsOf } from './extensions/create-catalogue';
 // Through each feature's entry, which reaches the whole main entry, for the reason src/table.ts gives.
 import { embedExtension } from './embed';
+import { emojiExtension } from './emoji';
 import { mathExtension } from './math';
 import { mentionExtension } from './mention';
 import { tableExtension } from './table';
@@ -15,6 +16,7 @@ const features = {
   math: mathExtension,
   toc: tocExtension,
   mention: mentionExtension,
+  emoji: emojiExtension,
 };
 
 export type CatalogueOptions = CatalogueOptionsOf<typeof features>;

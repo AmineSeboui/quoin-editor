@@ -1,7 +1,7 @@
-import { act, fireEvent, screen } from '@testing-library/react';
-import { coreBlocks } from '../../blocks/core';
-import { mountCanvas } from '../../blocks/void/test-canvas';
+import { act, screen } from '@testing-library/react';
+import type { mountCanvas } from '../../blocks/void/test-canvas';
 import type { QuoinBlock } from '../../engine';
+import { mountTypingCanvas } from '../typing-test-canvas';
 import { mentionExtension, type MentionOptions } from './mention-extension';
 import type { MentionResult } from './mention-feature';
 
@@ -38,22 +38,8 @@ export function mountMentions(
   options: MentionOptions = {},
   canvas: Parameters<typeof mountCanvas>[1] = {},
 ) {
-  const mounted = mountCanvas(blocks, { blockTypes: coreBlocks, extensions: [mentionExtension(options)], ...canvas });
-  const host = (id: string) => mounted.shell(id).querySelector<HTMLElement>('[data-quoin-host]')!;
-  const caret = (block: string, offset: number) =>
-    act(() => mounted.handle().focus({ block, region: 'text', offset }));
-  const type = (typed: string) => {
-    for (const data of typed) {
-      const event = new InputEvent('beforeinput', { inputType: 'insertText', data, bubbles: true, cancelable: true });
-      act(() => void fireEvent(document.activeElement!, event));
-    }
-  };
-  const key = (name: string, init: KeyboardEventInit = {}) =>
-    act(() => void fireEvent.keyDown(document.activeElement ?? document.body, { key: name, ...init }));
-  const undo = () => key('z', mounted.handle().controller.isMac ? { metaKey: true } : { ctrlKey: true });
+  const mounted = mountTypingCanvas(blocks, { extensions: [mentionExtension(options)], ...canvas });
   const menu = () => screen.queryByRole('listbox', { name: 'Mentions' });
-  const chip = (id: string) => host(id).querySelector<HTMLElement>('[data-quoin-atom="mention"]');
-  const markdown = (id: string) =>
-    (mounted.last() ?? mounted.handle().editor.getBlocks()).find((block) => block.id === id)?.data.markdown;
-  return { ...mounted, host, caret, type, key, undo, menu, chip, markdown };
+  const chip = (id: string) => mounted.host(id).querySelector<HTMLElement>('[data-quoin-atom="mention"]');
+  return { ...mounted, menu, chip };
 }

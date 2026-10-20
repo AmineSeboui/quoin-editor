@@ -588,6 +588,28 @@ const extensions = [
 
 Backspace right after a chip selects it, and a second Backspace deletes it; Shift with an arrow steps a selection over it whole. With `onOpen`, a click on a chip, or Enter while it is selected, hands its mention (`id`, `label` and `kind`) to the host, once for a double click. On a read-only canvas the click does too, and each chip is a button in the tab order that Enter and Space open. A chip is never a link: without `onOpen` it is text. Without `search`, `@` opens nothing, and a read-only canvas opens no menu.
 
+### Emoji
+
+`quoin-editor/emoji` adds a `:` menu and an emoji picker, drawn from a dataset of about 1,900 emoji in their base forms, with their GitHub shortcodes and their tags, generated from [emojibase](https://emojibase.dev). The dataset is a chunk of its own, under 60 kB gzip, which the entry loads the first time the menu or the picker opens: neither the main entry nor `quoin-editor/emoji` holds it.
+
+`:` typed at the start of a line or after a space, then two characters with no space, opens a menu of the eight best matches: an emoji whose shortcode is the query, then those with a shortcode that starts with it, then with a tag that starts with it, then with a shortcode or a tag that holds it. A `:` inside a word, as in a time (`10:30`) or a web address (`https://`), opens nothing. The arrows walk the matches, Enter or Tab puts the chosen emoji in place of the `:` and the query, as text, and one undo brings the query back; Escape closes the menu and keeps the text. The menu says it is loading the emoji until they come. When they cannot be loaded it says so, the error reaches `onError`, and the menu tries again the next time it opens.
+
+The block menu of a callout gains Choose icon, which opens a picker of every emoji under a search field, a grid for each group, or a grid of what the search finds, best first. The arrows, Home and End walk the cells, Enter or a click writes the emoji to the icon of the callout in one undo step, and Escape closes the picker; either hands focus back to the callout. A press outside closes it too, and leaves focus where the press puts it. The six icons of the callout's own Icon menu stay as they are. On a read-only canvas `:` opens nothing, and there is no block menu.
+
+```ts
+import { emojiExtension, loadEmojiData } from 'quoin-editor/emoji';
+
+const extensions = [emojiExtension({ labels: { chooseIcon: 'Pick an icon' } })];
+
+// Loads the dataset once, however often it is called.
+export async function emojiOf(shortcode: string): Promise<string | undefined> {
+  const { emojiByShortcode } = await loadEmojiData();
+  return emojiByShortcode(shortcode)?.emoji;
+}
+```
+
+`loadEmojiData()` resolves to `searchEmoji(query, limit?)`, which ranks as the menu does and finds every emoji for an empty query, `emojiByShortcode(code)`, and `skinTones`, the five skin tone modifiers from light to dark.
+
 ## Read-only
 
 ```tsx
@@ -819,6 +841,8 @@ From `quoin-editor/math`: `mathExtension`, its `MathOptions`, `MathLabels` and `
 From `quoin-editor/toc`: `tocExtension`, its `TocOptions`, `TocLabels` and `englishTocLabels`, and `headings` with its `TocHeading` type.
 
 From `quoin-editor/mention`: `mentionExtension`, its `MentionOptions`, `MentionLabels` and `englishMentionLabels`, and the `Mention`, `MentionResult` and `MentionSearch` types.
+
+From `quoin-editor/emoji`: `emojiExtension`, its `EmojiOptions`, `EmojiLabels` and `englishEmojiLabels`, `loadEmojiData` with its `EmojiData`, and the `Emoji` and `EmojiGroup` types.
 
 From `quoin-editor/catalogue`: `catalogue`, every opt-in feature at once.
 

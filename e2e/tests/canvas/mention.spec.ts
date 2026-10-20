@@ -1,6 +1,6 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
-import { blocks, openEditor } from '../../support/editor';
+import { blocks, caretSettled, openEditor } from '../../support/editor';
 
 const menu = (page: Page) => page.getByRole('listbox', { name: 'Mentions' });
 const popup = (page: Page) => menu(page).locator('..');
@@ -10,12 +10,6 @@ const markdownOf = async (page: Page, id?: string) =>
   (await blocks(page)).find((block, index) => (id === undefined ? index === 0 : block.id === id))?.data.markdown;
 const opened = (page: Page) => page.evaluate(() => window.__quoin.opened);
 const ada = { id: '1', label: 'Ada Lovelace', kind: 'user' };
-
-// The click places the caret through the browser, so its selectionchange has to reach the editor before a key does.
-async function caretSettled(page: Page, host: Locator) {
-  await expect(host).toBeFocused();
-  await page.waitForFunction(() => document.activeElement?.contains(document.getSelection()?.focusNode ?? null));
-}
 
 async function caretAtEnd(page: Page, host: Locator) {
   const box = (await host.boundingBox())!;

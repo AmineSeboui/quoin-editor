@@ -15,6 +15,7 @@ import { createHostRegistry, hostKey, type HostEntry, type HostRegistry } from '
 import { hostDecorations } from './host-decorations';
 import { createHostRenderer, type HostRenderer } from './host-renderer';
 import { createOutsideChanges } from './outside-changes';
+import { createReadOnly, type ReadOnly } from './read-only';
 import { bindRoot, type RootBinding } from './root-binding';
 import { samePoints, selectionPoints } from './selection-sync';
 
@@ -62,8 +63,7 @@ export class ViewController {
   private readonly outside = createOutsideChanges(() => hasFocus(this, this.ownerDocument()));
   private binding: RootBinding | null = null;
   private detachRoot: (() => void) | null = null;
-  private readOnlyFlag: boolean;
-  private readonly readOnlyListeners = new Set<() => void>();
+  private readonly readOnlyState: ReadOnly;
 
   constructor(options: ViewControllerOptions) {
     this.editor = options.editor;
@@ -72,7 +72,7 @@ export class ViewController {
     this.isMac = options.isMac ?? detectMac();
     const decorationsOf = (block: string, region: string) => this.decorationsFor(block, region);
     this.hosts = createHostRenderer(options.editor, options.render, decorationsOf, (host) => this.binding?.input.drain(host));
-    this.readOnlyFlag = options.readOnly ?? false;
+    this.readOnlyState = createReadOnly(this.registry, options.readOnly ?? false);
   }
 
   get root(): HTMLElement | null {
@@ -80,7 +80,7 @@ export class ViewController {
   }
 
   get readOnly(): boolean {
-    return this.readOnlyFlag;
+    return this.readOnlyState.current();
   }
 
   get sink(): HTMLElement | null {
@@ -251,15 +251,11 @@ export class ViewController {
   }
 
   setReadOnly(readOnly: boolean): void {
-    const changed = readOnly !== this.readOnlyFlag;
-    this.readOnlyFlag = readOnly;
-    for (const { element } of this.registry.all()) element.contentEditable = readOnly ? 'false' : 'true';
-    if (changed) for (const listener of [...this.readOnlyListeners]) listener();
+    this.readOnlyState.set(readOnly);
   }
 
   subscribeReadOnly(listener: () => void): () => void {
-    this.readOnlyListeners.add(listener);
-    return () => void this.readOnlyListeners.delete(listener);
+    return this.readOnlyState.subscribe(listener);
   }
 
   destroy(): void {

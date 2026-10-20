@@ -193,12 +193,14 @@ export class ViewController {
   }
 
   // A redraw of the decorations alone, such as one that follows a selection the browser made, replaces the nodes that
-  // selection sits in, and nothing else writes it back.
+  // selection sits in, and nothing else writes it back. It is written only while the editor holds focus: written while
+  // focus is on the page, it would pull focus into the line.
   renderHost(block: string, region: string): void {
     const element = this.registry.get(block, region);
     const host = element && { block, region, element };
     if (!host || this.isComposing(host) || !this.hosts.render(host)) return;
-    if (element.contains(this.domSelection()?.focusNode ?? null)) this.syncSelectionToDom();
+    const inSelection = element.contains(this.domSelection()?.focusNode ?? null);
+    if (inSelection && hasFocus(this, element.ownerDocument)) this.syncSelectionToDom();
   }
 
   domSelection(): globalThis.Selection | null {

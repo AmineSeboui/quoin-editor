@@ -105,6 +105,13 @@ describe('collectUi', () => {
     expect(collectUi([withUi('a', {})], []).render).toBeUndefined();
   });
 
+  it('merges the names the extensions give their block types, a later extension winning a type both name', () => {
+    const first = withUi('a', { blockNames: { CHART: 'Chart', MAP: 'Map' } });
+    const ui = collectUi([first, withUi('b', { blockNames: { MAP: 'Plan' } })], []);
+    expect(ui.blockNames).toEqual({ CHART: 'Chart', MAP: 'Plan' });
+    expect(collectUi([withUi('a', {})], []).blockNames).toEqual({});
+  });
+
   it('gathers block menu items, bubble items and overlays, and ignores a ui field that is not an object', () => {
     const action = { id: 'star', label: 'Star', icon: Star, run: () => {} };
     const button = { id: 'star', title: 'Star', icon: Star, run: () => {} };

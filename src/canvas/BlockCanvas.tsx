@@ -9,6 +9,7 @@ import { coreExtensions } from '../engine';
 import { BlockContextMenu } from '../gutter/BlockContextMenu';
 import { coreBlockMenuActions, menuActions } from '../gutter/block-menu-items';
 import { blockMenuKeymap } from '../gutter/block-menu-keymap';
+import { ExtensionBlockNames } from '../gutter/extension-block-names';
 import { Gutter } from '../gutter/Gutter';
 import { resolveLabels } from '../i18n/resolve-labels';
 import { bubbleExtension, BubbleItemsProvider } from '../menus/bubble/bubble-extension';
@@ -97,7 +98,10 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
     () => [shortcutsSlashItem(labels, uiStore), ...ui.slashItems],
     [labels, uiStore, ui.slashItems],
   );
-  const blockLabel = useMemo(() => selectedBlockLabel(labels, blockTypes), [labels, blockTypes]);
+  const blockLabel = useMemo(
+    () => selectedBlockLabel(labels, blockTypes, ui.blockNames),
+    [labels, blockTypes, ui.blockNames],
+  );
   const blockPlaceholder = useMemo<BlockPlaceholder>(() => {
     const placeholderLabels = placeholder === undefined ? labels : { ...labels, placeholderEmpty: placeholder };
     return (state, block) => placeholderFor(state, block, placeholderLabels);
@@ -135,8 +139,12 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
                 blockPlaceholder={blockPlaceholder}
                 blocksSelectedLabel={labels.blocksSelected}
               >
-                {!readOnly && <Gutter controller={controller} store={uiStore} actions={actions} />}
-                {!readOnly && <BlockContextMenu controller={controller} store={uiStore} actions={actions} />}
+                {!readOnly && (
+                  <ExtensionBlockNames.Provider value={ui.blockNames}>
+                    <Gutter controller={controller} store={uiStore} actions={actions} />
+                    <BlockContextMenu controller={controller} store={uiStore} actions={actions} />
+                  </ExtensionBlockNames.Provider>
+                )}
                 {ui.overlays.map((Overlay, index) => (
                   <Overlay key={index} controller={controller} />
                 ))}

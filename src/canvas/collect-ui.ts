@@ -15,6 +15,7 @@ export type CollectedUi = {
   bubbleItems: readonly ToolbarItem[];
   blockMenuItems: readonly BlockMenuAction[];
   renderers: Readonly<Record<string, BlockRenderer>>;
+  blockNames: Readonly<Record<string, string>>;
   render: RenderOptions | undefined;
   overlays: readonly ComponentType<{ controller: ViewController }>[];
 };
@@ -63,6 +64,7 @@ export function collectUi(
     bubbleItems: uis.flatMap((ui) => ui.bubbleItems ?? []),
     blockMenuItems: uis.flatMap((ui) => ui.blockMenuItems ?? []),
     renderers: Object.assign({}, canvasRenderers(definitions, readOnly), ...uis.map((ui) => ui.renderers)),
+    blockNames: Object.assign({}, ...uis.map((ui) => ui.blockNames)),
     render: mergeRender(uis),
     overlays: [
       ...uis.flatMap((ui) => ui.overlays ?? []),

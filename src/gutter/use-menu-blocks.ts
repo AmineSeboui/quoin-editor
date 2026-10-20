@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useContext, useEffect } from 'react';
 import type { BlockMenuState, CanvasUiStore } from '../canvas/ui-store';
 import { useQuoin } from '../context';
 import type { EditorState, EngineBlock } from '../engine';
@@ -8,6 +8,7 @@ import type { ViewController } from '../view';
 import { useEditorState } from '../view/react/use-editor-state';
 import { closeBlockMenu } from './block-menu-state';
 import { blockTypeLabel } from './block-type-label';
+import { ExtensionBlockNames } from './extension-block-names';
 
 const sameBlocks = (a: readonly EngineBlock[], b: readonly EngineBlock[]) =>
   a.length === b.length && a.every((block, i) => block === b[i]);
@@ -27,6 +28,7 @@ export function useMenuBlocks(
 ): { blocks: EngineBlock[]; styled: EngineBlock[]; title: string } {
   const labels = useLabels();
   const { blockTypes } = useQuoin();
+  const extensionNames = useContext(ExtensionBlockNames);
   const blocks = useLiveBlocks(controller, menu.blockIds);
   const styled = useLiveBlocks(controller, menu.styleIds);
   const gone = blocks.length === 0;
@@ -35,5 +37,5 @@ export function useMenuBlocks(
     if (gone) closeBlockMenu(store);
   }, [gone, store]);
 
-  return { blocks, styled, title: gone ? '' : blockTypeLabel(labels, blocks[0], blockTypes) };
+  return { blocks, styled, title: gone ? '' : blockTypeLabel(labels, blocks[0], blockTypes, extensionNames) };
 }

@@ -1,4 +1,7 @@
+import { act, fireEvent, screen } from '@testing-library/react';
 import { bookmarkBlock, mountCanvas, paragraph } from '../blocks/void/test-canvas';
+import { defineExtension } from '../engine';
+import type { ExtensionUI } from '../extensions/ui-types';
 import type { QuoinBlock } from '../types';
 
 const image = (id: string, data: Record<string, unknown>): QuoinBlock => ({ id, type: 'IMAGE', data: { alt: '', ...data } });
@@ -82,5 +85,30 @@ describe('a block the canvas selects as a whole', () => {
     }
     expect(setLabel.mock.calls.filter(([name]) => name === 'aria-label')).toEqual([]);
     expect(sink()).toHaveAccessibleName('Code, TypeScript');
+  });
+});
+
+describe('a block of a type an extension draws and names', () => {
+  const widgets = defineExtension({
+    name: 'widgets',
+    ui: { renderers: { WIDGET: () => <p>A widget</p> }, blockNames: { WIDGET: 'Widget' } } satisfies ExtensionUI,
+  });
+  const widget: QuoinBlock = { id: 'w', type: 'WIDGET', data: {} };
+
+  it('is called by that name when selected as a whole and in the title of its block menu', () => {
+    const { nodeSelect, sink, handle } = mountCanvas([paragraph('a', 'above'), widget], {
+      extensions: [widgets],
+    });
+    nodeSelect('w');
+    expect(sink()).toHaveAccessibleName('Widget');
+    const mod = handle().controller.isMac ? { metaKey: true } : { ctrlKey: true };
+    act(() => void fireEvent.keyDown(sink(), { key: '/', ...mod }));
+    expect(screen.getByRole('menu')).toHaveAccessibleName('Widget block menu');
+  });
+
+  it('is an unsupported block without the extension that names it', () => {
+    const { nodeSelect, sink } = mountCanvas([paragraph('a', 'above'), widget]);
+    nodeSelect('w');
+    expect(sink()).toHaveAccessibleName('Unsupported block');
   });
 });

@@ -20,7 +20,7 @@ function firstLine(text: string): string {
  * language, a file by its name, and any other block by the first line of its text, or else by its type.
  */
 export const selectedBlockLabel =
-  (labels: QuoinLabels, definitions: AnyBlockDefinition[]) =>
+  (labels: QuoinLabels, definitions: AnyBlockDefinition[], extensionNames: Readonly<Record<string, string>>) =>
   (block: EngineBlock, schema: Schema): string => {
     const { attrs } = block;
     if (block.type === 'IMAGE') return hasPicture(attrs) ? str(attrs.alt) || labels.imageNoAlt : labels.emptyImage;
@@ -29,5 +29,5 @@ export const selectedBlockLabel =
       return labels.codeBlockName(languageName(language) ?? (language || labels.plainText));
     }
     if (block.type === 'FILE' && hasFile(attrs)) return labels.fileBlockName(firstLine(fileName(attrs)));
-    return firstLine(blockPlainText(block, schema)) || blockTypeLabel(labels, block, definitions);
+    return firstLine(blockPlainText(block, schema)) || blockTypeLabel(labels, block, definitions, extensionNames);
   };

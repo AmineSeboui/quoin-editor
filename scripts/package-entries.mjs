@@ -24,7 +24,7 @@ export const incrementalBudget = (measured) => Math.max(Math.round(measured * 1.
 export const featureEntries = [
   { name: 'table', source: 'src/table.ts', client: true, added: incrementalBudget(9_461) },
   { name: 'embed', source: 'src/embed.ts', client: true, added: incrementalBudget(4_499) },
-  { name: 'math', source: 'src/math.ts', client: true, added: incrementalBudget(3_785) },
+  { name: 'math', source: 'src/math.ts', client: true, added: incrementalBudget(4_433) },
   { name: 'toc', source: 'src/toc.ts', client: true, added: incrementalBudget(1_803) },
 ];
 

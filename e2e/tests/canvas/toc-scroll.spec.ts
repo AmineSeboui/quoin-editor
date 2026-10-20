@@ -3,17 +3,21 @@ import { openEditor } from '../../support/editor';
 
 const FRAMES = 90;
 
-type Sampled = Window & { scrollFrames?: number[] };
+type Sampled = Window & { scrollFrames?: number[]; scrollHandled?: number };
+type Scrolled = { start: number; handled: number; end: number };
 
 const toc = (page: Page) => page.getByRole('navigation', { name: 'Table of contents' });
 const entry = (page: Page, name: string) => toc(page).getByRole('link', { name });
 const host = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
 
-// The page's scroll position at every frame, from just before the action until well after a smooth scroll ends.
-async function scrollFrames(page: Page, action: () => Promise<void>): Promise<number[]> {
+// Where the page had scrolled to before the action, once the click it makes on an entry was handled, and once a
+// smooth scroll is long over. The page listens after the canvas, so it reads the scroll the handler left.
+async function scrollOf(page: Page, action: () => Promise<void>): Promise<Scrolled> {
   await page.evaluate((count) => {
+    const sampled = window as Sampled;
     const frames = [Math.round(window.scrollY)];
-    (window as Sampled).scrollFrames = frames;
+    sampled.scrollFrames = frames;
+    document.addEventListener('click', () => (sampled.scrollHandled = Math.round(window.scrollY)), { once: true });
     const sample = () => {
       frames.push(Math.round(window.scrollY));
       if (frames.length < count) requestAnimationFrame(sample);
@@ -22,15 +26,10 @@ async function scrollFrames(page: Page, action: () => Promise<void>): Promise<nu
   }, FRAMES);
   await action();
   await page.waitForFunction((count) => ((window as Sampled).scrollFrames?.length ?? 0) >= count, FRAMES);
-  return page.evaluate(() => (window as Sampled).scrollFrames!);
-}
-
-// The share of the whole way down that the first frame to move covers: a glide moves a little at first, a jump most.
-function firstStep(frames: number[]): number {
-  const [start] = frames;
-  const end = frames[frames.length - 1];
-  expect(end).toBeGreaterThan(start);
-  return ((frames.find((at) => at !== start) ?? start) - start) / (end - start);
+  return page.evaluate((): Scrolled => {
+    const { scrollFrames: frames = [], scrollHandled = NaN } = window as Sampled;
+    return { start: frames[0], handled: scrollHandled, end: frames[frames.length - 1] };
+  });
 }
 
 async function keyboardToUsage(page: Page) {
@@ -50,8 +49,9 @@ for (const readOnly of [false, true]) {
     test('a click on an entry glides to its heading, which takes the caret at its end', async ({ page }) => {
       await openEditor(page, 'toc', query);
       await expect(host(page, 'usage')).not.toBeInViewport();
-      const frames = await scrollFrames(page, () => entry(page, 'Using it').click());
-      expect(firstStep(frames)).toBeLessThan(0.5);
+      const { start, handled, end } = await scrollOf(page, () => entry(page, 'Using it').click());
+      expect(handled).toBe(start);
+      expect(end).toBeGreaterThan(start);
       await expect(host(page, 'usage')).toBeFocused();
       await expect(host(page, 'usage')).toBeInViewport();
     });
@@ -60,16 +60,17 @@ for (const readOnly of [false, true]) {
       await openEditor(page, 'toc', query);
       if (readOnly) await entry(page, 'Using it').focus();
       else await keyboardToUsage(page);
-      const frames = await scrollFrames(page, () => page.keyboard.press('Enter'));
-      expect(firstStep(frames)).toBeLessThan(0.5);
+      const { start, handled, end } = await scrollOf(page, () => page.keyboard.press('Enter'));
+      expect(handled).toBe(start);
+      expect(end).toBeGreaterThan(start);
       await expect(host(page, 'usage')).toBeFocused();
     });
 
     test('for a reader who prefers reduced motion, a click scrolls to the heading at once', async ({ page }) => {
       await page.emulateMedia({ reducedMotion: 'reduce' });
       await openEditor(page, 'toc', query);
-      const frames = await scrollFrames(page, () => entry(page, 'Using it').click());
-      expect(firstStep(frames)).toBe(1);
+      const { start, handled, end } = await scrollOf(page, () => entry(page, 'Using it').click());
+      expect(handled - start).toBeGreaterThan(0.9 * (end - start));
       await expect(host(page, 'usage')).toBeFocused();
     });
   });

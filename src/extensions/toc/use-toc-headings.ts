@@ -1,9 +1,9 @@
-import type { EditorState } from '../../engine';
 import type { ViewController } from '../../view';
 import { useEditorState } from '../../view/react/use-editor-state';
 import { headings, type TocHeading } from './headings';
+import { perDoc } from './per-doc';
 
-const selectHeadings = ({ doc, schema }: EditorState): readonly TocHeading[] => headings(doc, { schema });
+const selectHeadings = perDoc(({ doc, schema }): readonly TocHeading[] => headings(doc, { schema }));
 
 const sameHeading = (a: TocHeading, b: TocHeading): boolean =>
   a.blockId === b.blockId && a.level === b.level && a.text === b.text;

@@ -144,6 +144,40 @@ describe('a node selection in the sink', () => {
     expect(revealed).toEqual([false, false]);
   });
 
+  it('keeps writing the selection after a focus of the sink that throws, with nothing on the controller to turn it off', () => {
+    const { controller, container, sink, select } = mount();
+    expect(controller).not.toHaveProperty('focusingSink');
+    vi.spyOn(sink, 'focus').mockImplementationOnce(() => {
+      throw new Error('focus refused');
+    });
+    expect(() => select(nodeSelection('d'))).toThrow('focus refused');
+    select(textSelection({ block: 'c', region: 'text', offset: 3 }));
+    const caret = document.getSelection()!;
+    expect(hostOf(container, 'c').contains(caret.anchorNode)).toBe(true);
+    expect(caret.anchorOffset).toBe(3);
+  });
+
+  it('brings the block into view after the outer focus of the sink when another one nests inside it', () => {
+    const { controller, sink, shell, select } = mount();
+    const focus = sink.focus.bind(sink);
+    let depth = 0;
+    vi.spyOn(sink, 'focus').mockImplementation((options) => {
+      depth += 1;
+      focus(options);
+      depth -= 1;
+    });
+    const refocus = () => {
+      sink.blur();
+      controller.focus();
+    };
+    sink.addEventListener('focus', refocus, { once: true });
+    const revealed: number[] = [];
+    vi.spyOn(shell('d'), 'scrollIntoView').mockImplementation(() => void revealed.push(depth));
+    select(nodeSelection('d'));
+    expect(document.activeElement).toBe(sink);
+    expect(revealed).toEqual([0]);
+  });
+
   it('empties the sink and hands focus to a host when the selection becomes a caret', () => {
     const { container, sink, select } = mount();
     select(nodeSelection('d'));

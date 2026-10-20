@@ -5,7 +5,7 @@ import type { RenderOptions } from '../dom/render-inline';
 import type { KeyInterceptor } from '../input/keydown';
 import { createCrossMode } from '../selection/cross-mode';
 import { createNodeReveal } from '../selection/node-reveal';
-import { focusSink, heldBySink } from '../selection/selection-sink';
+import { focusingSink, focusSink, heldBySink } from '../selection/selection-sink';
 import { createAnnouncer } from './announcer';
 import { readSelection, writeSelection } from './dom-selection';
 import { createDrawnElements } from './drawn-elements';
@@ -54,7 +54,6 @@ export class ViewController {
   goalX: number | null = null;
   nativeVerticalMove = false;
   dragging = false;
-  focusingSink = false;
   composingKey: string | null = null;
   private readonly flush: (fn: () => void) => void;
   private readonly hosts: HostRenderer;
@@ -209,7 +208,7 @@ export class ViewController {
   syncSelectionToDom(): void {
     const doc = this.ownerDocument();
     const domSelection = doc?.getSelection();
-    if (this.focusingSink || this.composingKey !== null || !doc || !domSelection || !ownsFocus(this, doc)) return;
+    if (focusingSink(this) || this.composingKey !== null || !doc || !domSelection || !ownsFocus(this, doc)) return;
     const before = selectionPoints(domSelection);
     const { selection } = this.editor.state;
     if (heldBySink(selection) && this.sink !== null) focusSink(this);

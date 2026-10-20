@@ -26,8 +26,9 @@ test('Turn into Code keeps the text and the caret at its end', async ({ page }) 
   await openEditor(page, 'sample');
   await paragraphs(page).click();
   await page.keyboard.press('ControlOrMeta+/');
-  await page.getByRole('menuitem', { name: 'Turn into' }).click();
-  await page.getByRole('menuitem', { name: 'Code' }).click();
+  // A click can land while the submenu is still being placed, and on Firefox hit the menu under it.
+  await page.getByRole('menuitem', { name: 'Turn into' }).press('ArrowRight');
+  await page.getByRole('menuitem', { name: 'Code' }).press('Enter');
   await expect(area(page)).toBeFocused();
   await page.keyboard.type('x');
   await expect.poll(() => shapes(page)).toEqual([

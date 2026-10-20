@@ -143,6 +143,15 @@ describe('an inline math formula', () => {
     expect(canvas.markdown('p')).toBe('Area  here');
   });
 
+  it('is selected exactly, and highlighted, by Shift+ArrowLeft right after it at the end of a line', () => {
+    const canvas = mountMath([paragraph('p', 'Area $x^2$')]);
+    canvas.caret('p', 6);
+    canvas.key('ArrowLeft', { shiftKey: true });
+    expect(canvas.selection()).toEqual(textSelection({ block: 'p', region: 'text', offset: 6 }, { block: 'p', region: 'text', offset: 5 }));
+    expect(canvas.host('p').querySelector('[data-quoin-selected-atom]')).not.toBeNull();
+    expect(drawnCaret(canvas.host('p'))).toBe(5);
+  });
+
   it('keeps the selection the browser drew over it at the end of a line once the highlight redraws it', () => {
     const canvas = mountMath([paragraph('p', 'Area $x^2$')]);
     const host = canvas.host('p');

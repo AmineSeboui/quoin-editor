@@ -118,8 +118,7 @@ test('Backspace selects a formula with a highlight, Enter then edits it, and a s
 });
 
 for (const key of ['Backspace', 'Enter']) {
-  test(`a Shift selection over a formula at the end of a line is the formula, for ${key}`, async ({ page, browserName }) => {
-    test.skip(browserName === 'firefox', "Firefox's own Shift+ArrowLeft there selects the space before the formula too");
+  test(`a Shift selection over a formula at the end of a line is the formula, for ${key}`, async ({ page }) => {
     await openEditor(page, 'math', 'math=1');
     const host = page.locator('[data-block-id="p"] [data-quoin-host]');
     await caretAtEnd(page, host);

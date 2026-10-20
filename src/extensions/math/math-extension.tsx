@@ -2,7 +2,7 @@
 
 import { defineExtension, type Extension } from '../../engine';
 import type { BlockRenderProps, ViewController } from '../../view';
-import { selectAtomBackward } from '../atoms/select-atom-backward';
+import { atomKeymap } from '../atoms/atom-keymap';
 import { selectedAtomDecorations } from '../atoms/selected-atom-decorations';
 import type { ExtensionUI } from '../ui-types';
 import { inlineMathRenderer } from './InlineMath';
@@ -47,7 +47,7 @@ export function mathExtension(options: MathOptions = {}): Extension {
     name: 'math',
     priority: ABOVE_CORE_KEYS,
     inputRules: [inlineMathRule],
-    keymap: { Backspace: selectAtomBackward(MATH_ATOMS) },
+    keymap: atomKeymap(MATH_ATOMS),
     decorations: selectedAtomDecorations(MATH_ATOMS),
     ui,
   });

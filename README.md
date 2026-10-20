@@ -539,7 +539,7 @@ On an editable canvas a press on an embed selects the block rather than the fram
 
 ### Math
 
-`quoin-editor/math` draws `MATH` blocks, and the math formulas in a line, through the host's `renderMath(latex, { displayMode })`: in display mode for a block, inline for a formula. The HTML `renderMath` returns is trusted, and the canvas inserts it as it is, so it has to come from a renderer such as KaTeX or MathJax. Without `renderMath`, or when it throws or returns anything but a string, the LaTeX shows as monospace text. `toHTML` takes the same function as its own `renderMath` option.
+`quoin-editor/math` draws `MATH` blocks, and the math formulas in a line, through the host's `renderMath(latex, { displayMode })`: in display mode for a block, inline for a formula. The HTML `renderMath` returns is trusted, and the canvas inserts it as it is, so it has to come from a renderer such as KaTeX or MathJax. Without `renderMath`, or when it throws or returns anything but a string with something in it, the LaTeX shows as monospace text. `toHTML` takes the same function as its own `renderMath` option.
 
 ```tsx
 import { mathExtension } from 'quoin-editor/math';

@@ -46,11 +46,14 @@ describe('a math block', () => {
     warn.mockRestore();
   });
 
-  it('shows the source when renderMath returns something other than a string', () => {
-    const vague = (() => undefined) as unknown as () => string;
+  it.each([
+    ['something other than a string', () => undefined as unknown as string],
+    ['a blank string', () => ' \n'],
+  ])('shows the source, in the block and in a line, when renderMath returns %s', (_, renderMath) => {
     vi.spyOn(console, 'warn').mockImplementation(() => {});
-    mountMath(around('a+b'), { renderMath: vague });
+    const { shell } = mountMath([paragraph('p', 'Area $x$'), mathBlock('a+b')], { renderMath });
     expect(equation().querySelector('pre.quoin-math-source')).toHaveTextContent('a+b');
+    expect(shell('p').querySelector('[data-quoin-atom="math"]')).toHaveTextContent('x');
     vi.restoreAllMocks();
   });
 

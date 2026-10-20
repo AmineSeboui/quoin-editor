@@ -21,15 +21,17 @@ export type LinkChoice = { readonly block: string; readonly href: string };
 
 const linkChoiceKey = createPluginKey<LinkChoice | null>('linkChoice');
 
-/** Holds the link just pasted alone on its line, until the text changes or the selection moves. */
+/** Holds the link just pasted alone on its line, until that line changes or the selection moves. */
 export const linkChoicePlugin: PluginSpec<LinkChoice | null> = {
   key: linkChoiceKey,
   init: () => null,
-  apply(tr, value) {
+  apply(tr, value, before, after) {
     const pasted = tr.getMeta<LinkChoice>(linkChoiceKey.name);
     if (pasted !== undefined) return pasted;
+    if (value === null) return null;
     const moved = tr.selectionSet && !sameSelection(tr.before.selection, tr.selection);
-    return value !== null && (tr.docChanged || moved) ? null : value;
+    const lineChanged = blockById(before.doc, value.block) !== blockById(after.doc, value.block);
+    return moved || lineChanged ? null : value;
   },
 };
 

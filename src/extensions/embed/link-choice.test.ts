@@ -1,8 +1,22 @@
-import { coreExtensions, createEditor, defineExtension, redo, textSelection, undo, type QuoinBlock } from '../../engine';
+import {
+  coreExtensions,
+  createEditor,
+  defineExtension,
+  insertBlocksStep,
+  redo,
+  removeBlocksStep,
+  setAttrsStep,
+  textSelection,
+  undo,
+  type Editor,
+  type QuoinBlock,
+} from '../../engine';
+import { blockById } from '../../engine/model/doc';
 import { linkChoice, linkChoicePlugin, pasteLinkChoice, replaceLink } from './link-choice';
 
 const md = (id: string, markdown: string): QuoinBlock => ({ id, type: 'MARKDOWN', data: { markdown } });
 const URL = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+const blockOf = (editor: Editor, id: string) => blockById(editor.state.doc, id)!;
 
 function editorWith(blocks: QuoinBlock[], caret: { block: string; offset: number }) {
   const choice = defineExtension({ name: 'embed', plugins: [linkChoicePlugin], pasteRules: [pasteLinkChoice] });
@@ -42,6 +56,24 @@ describe('a link pasted alone on an empty line', () => {
   ])('is pasted as usual, and offered as nothing, on %s or followed by more', (_, blocks, offset, text) => {
     const { editor, choice } = editorWith(blocks, { block: 'a', offset });
     editor.paste({ text });
+    expect(choice()).toBeNull();
+  });
+
+  it('is still offered through changes to other blocks, and no longer once its own line changes', () => {
+    const { editor, choice } = editorWith([md('a', ''), md('b', 'after')], { block: 'a', offset: 0 });
+    editor.paste({ text: URL });
+    editor.dispatch(editor.createTransaction().step(setAttrsStep('b', { align: 'center' })));
+    editor.dispatch(editor.createTransaction().step(insertBlocksStep(2, [{ ...blockOf(editor, 'b'), id: 'c' }])));
+    expect(choice()).toEqual({ block: 'a', href: URL });
+    editor.dispatch(editor.createTransaction().step(setAttrsStep('a', { align: 'center' })));
+    expect(choice()).toBeNull();
+  });
+
+  it('is offered no longer once its line is removed', () => {
+    const { editor, choice } = editorWith([md('a', ''), md('b', 'after')], { block: 'a', offset: 0 });
+    editor.paste({ text: URL });
+    const caretBelow = textSelection({ block: 'b', region: 'text', offset: 0 });
+    editor.dispatch(editor.createTransaction().step(removeBlocksStep(0, 1)).setSelection(caretBelow));
     expect(choice()).toBeNull();
   });
 

@@ -10,7 +10,7 @@ import { resolveEmbedLabels, type EmbedLabels } from './embed-labels';
 import { embedSlashItems } from './embed-slash-items';
 import { linkChoicePlugin, pasteLinkChoice } from './link-choice';
 import { LinkChoicePopover } from './LinkChoicePopover';
-import { LinkInputOverlay } from './LinkInputPopover';
+import { LinkInputOverlay } from './LinkInputOverlay';
 
 export type { UnfurledLink, Unfurl } from './embed-feature';
 

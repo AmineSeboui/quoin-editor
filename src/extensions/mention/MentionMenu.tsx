@@ -24,6 +24,7 @@ const renderItem = (result: MentionResult) => <MentionItem result={result} />;
 export function MentionMenu({ controller, labels, search }: Props) {
   const { onError } = useQuoin();
   const latest = useRef({ search, onError });
+  const mounted = useRef(false);
   useIsomorphicLayoutEffect(() => {
     latest.current = { search, onError };
   });
@@ -34,11 +35,19 @@ export function MentionMenu({ controller, labels, search }: Props) {
         search: (query) => latest.current.search(query),
         isAsked: (query) =>
           !controller.readOnly && getPluginState(controller.editor.state, mentionKey).active?.query === query,
-        onError: (error) => latest.current.onError(error),
+        onError: (error) => {
+          if (mounted.current) latest.current.onError(error);
+        },
       }),
     [controller],
   );
-  useEffect(() => mentions.cancel, [mentions]);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      mentions.cancel();
+    };
+  }, [mentions]);
   useCloseOnSpace(controller, mentions.foundNothing);
   const choose = useCallback(
     (result: MentionResult, range: SuggestionRange) => chooseMention(controller, result, range),

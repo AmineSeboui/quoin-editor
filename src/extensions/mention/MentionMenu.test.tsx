@@ -181,6 +181,18 @@ describe('the mention menu', () => {
     expect(search).not.toHaveBeenCalled();
   });
 
+  it('reports no failure that comes once the canvas is gone', async () => {
+    const onError = vi.fn();
+    const { search, last } = deferredSearch();
+    const canvas = mountMentions([paragraph('p', 'Ask')], { search }, { onError });
+    canvas.caret('p', 3);
+    canvas.type(' @ad');
+    waitForSearch();
+    cleanup();
+    await last().reject(new Error('offline'));
+    expect(onError).not.toHaveBeenCalled();
+  });
+
   it('stays closed on a read-only canvas, and without a search', () => {
     const readOnly = openOn('Ask @ad', { readOnly: true });
     waitForSearch();

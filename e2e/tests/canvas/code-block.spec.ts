@@ -164,6 +164,14 @@ test('the language is picked from the keyboard after Alt+F10, and Escape then Ta
   await expect(page.getByRole('textbox', { name: 'After the editor' })).toBeFocused();
 });
 
+test('a language typed in the picker is kept when the writer clicks back into the code', async ({ page }) => {
+  await openEditor(page, 'code');
+  await page.getByRole('combobox', { name: 'Language' }).click();
+  await page.keyboard.type('python');
+  await area(page).click();
+  await expect.poll(async () => (await blocks(page))[1].data.language).toBe('python');
+});
+
 test('the copy button puts the code on the clipboard', async ({ page, context, browserName }) => {
   test.skip(browserName !== 'chromium', 'only Chromium lets a page read the clipboard back');
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
@@ -171,6 +179,7 @@ test('the copy button puts the code on the clipboard', async ({ page, context, b
   await page.locator('[data-block-id="k"]').hover();
   await page.getByRole('button', { name: 'Copy code' }).click();
   await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe('let a = 1;\nlet b = 2;');
+  await expect(page.getByRole('button', { name: 'Copy code' }).locator('.lucide-check')).toBeVisible();
   await expect(page.getByRole('status').filter({ hasText: 'Copied' })).toHaveCount(1);
 });
 

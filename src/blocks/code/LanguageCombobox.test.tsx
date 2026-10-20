@@ -57,7 +57,7 @@ describe('the language combobox', () => {
     expect(last()[0].data).toEqual({ language: 'rust', code: 'x' });
   });
 
-  it('keeps the language when left with Escape or by moving focus away, whatever was typed', () => {
+  it('keeps the language on Escape, and when focus leaves before anything was typed', () => {
     const { changes } = open('ts');
     fireEvent.change(field(), { target: { value: 'go' } });
     fireEvent.keyDown(field(), { key: 'Escape' });
@@ -65,11 +65,17 @@ describe('the language combobox', () => {
     expect(document.activeElement).toBe(area());
     expect(field()).toHaveValue('TypeScript');
     act(() => field().focus());
-    fireEvent.change(field(), { target: { value: 'Go' } });
     act(() => field().blur());
     expect(changes).toEqual([]);
-    expect(field()).toHaveValue('TypeScript');
     expect(field()).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('stores what was typed when focus leaves the field', () => {
+    const { last } = open('ts');
+    fireEvent.change(field(), { target: { value: 'cobol' } });
+    act(() => field().blur());
+    expect(last()[0].data).toEqual({ language: 'cobol', code: 'x' });
+    expect(field()).toHaveValue('cobol');
   });
 
   it('stores a listed name typed in full as its id, on Enter', () => {

@@ -80,6 +80,23 @@ describe('the code block', () => {
     expect(await screen.findByText('Copied')).toBeInTheDocument();
   });
 
+  it('shows a check on the copy button for a moment once the code is copied', async () => {
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: vi.fn().mockResolvedValue(undefined) } });
+    vi.useFakeTimers();
+    try {
+      mountCanvas([code('k', 'let a;')]);
+      const copy = screen.getByRole('button', { name: 'Copy code' });
+      await act(async () => void fireEvent.click(copy));
+      expect(copy.querySelector('.lucide-check')).not.toBeNull();
+      act(() => void vi.advanceTimersByTime(1500));
+      expect(copy.querySelector('.lucide-check')).toBeNull();
+      expect(copy.querySelector('.lucide-copy')).not.toBeNull();
+    } finally {
+      vi.useRealTimers();
+      Reflect.deleteProperty(navigator, 'clipboard');
+    }
+  });
+
   it('draws only the highlighted code, its language and the copy button on a read-only canvas', () => {
     mountCanvas([code('k', 'let a;')], { readOnly: true, highlight: keywords });
     const group = screen.getByRole('group', { name: 'Code' });

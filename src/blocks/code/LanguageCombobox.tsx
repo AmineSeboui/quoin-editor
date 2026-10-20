@@ -28,13 +28,15 @@ type LanguageComboboxProps = {
 };
 
 /**
- * The language of a code block: a listed language picked from a list it filters as it is typed in, or any text typed
- * and confirmed with Enter. Leaving it any other way keeps the language it had.
+ * The language of a code block: a listed language picked from a list it filters as it is typed in, or any text typed.
+ * Enter, a pick or leaving the field stores it, and Escape keeps the language the block had.
  */
 export function LanguageCombobox({ blockId, controller, language, field, onDone }: LanguageComboboxProps) {
   const labels = useLabels();
   const listboxId = useId();
   const list = useRef<HTMLDivElement>(null);
+  const settled = useRef(false);
+  const focusedByPress = useRef(false);
   const shown = languageName(language) ?? language;
   const [draft, setDraft] = useState<string | null>(null);
   const [active, setActive] = useState(-1);
@@ -59,6 +61,11 @@ export function LanguageCombobox({ blockId, controller, language, field, onDone 
     if (option !== undefined) choose(option.id);
     else if (draft !== null && draft !== shown) choose(languageId(draft));
     else close();
+  };
+  // Handing focus back blurs the field, whose handler still holds the draft until the next render.
+  const finish = (settle: () => void) => {
+    settled.current = true;
+    settle();
     onDone();
   };
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -67,13 +74,9 @@ export function LanguageCombobox({ blockId, controller, language, field, onDone 
       event.preventDefault();
       const step = event.key === 'ArrowDown' ? 1 : -1;
       setActive((index) => Math.min(Math.max(index + step, 0), options.length - 1));
-    } else if (event.key === 'Enter') {
+    } else if (event.key === 'Enter' || event.key === 'Escape') {
       event.preventDefault();
-      commit();
-    } else if (event.key === 'Escape') {
-      event.preventDefault();
-      close();
-      onDone();
+      finish(event.key === 'Enter' ? commit : close);
     }
   };
 
@@ -95,10 +98,21 @@ export function LanguageCombobox({ blockId, controller, language, field, onDone 
           autoComplete="off"
           className={FIELD}
           onFocus={(event) => {
+            settled.current = false;
             setDraft(shown);
             event.currentTarget.select();
           }}
-          onBlur={close}
+          onBlur={() => {
+            if (!settled.current) commit();
+          }}
+          onMouseDown={(event) => {
+            focusedByPress.current = event.currentTarget.ownerDocument.activeElement !== event.currentTarget;
+          }}
+          onMouseUp={(event) => {
+            // WebKit puts the caret where the press ended, undoing the selection made when the press focused the field.
+            if (focusedByPress.current) event.preventDefault();
+            focusedByPress.current = false;
+          }}
           onChange={(event) => {
             setDraft(event.target.value);
             setActive(-1);
@@ -120,10 +134,7 @@ export function LanguageCombobox({ blockId, controller, language, field, onDone 
               id={optionId(index)}
               active={index === active}
               onHighlight={() => setActive(index)}
-              onChoose={() => {
-                choose(option.id);
-                onDone();
-              }}
+              onChoose={() => finish(() => choose(option.id))}
             >
               {option.name}
             </SuggestionOption>

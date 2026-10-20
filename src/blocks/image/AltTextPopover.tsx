@@ -23,9 +23,9 @@ type AltTextPopoverProps = {
   onClose(): void;
 };
 
-// The text is also stored as the popover goes, whatever takes it down, such as its button or a host moving the
-// selection off the image: on the editor itself, since the canvas's flush is refused in an effect. A canvas being taken
-// down has let go of its root first, and takes no more writes.
+// The text is also stored as the popover goes, whatever takes it down, such as the caret of a tap being read into the
+// text or a host moving the selection off the image: on the editor itself, since the canvas's flush is refused in an
+// effect. A canvas being taken down has let go of its root first, and takes no more writes.
 function storeAlt(controller: ViewController, blockId: string, alt: string): void {
   const { editor } = controller;
   if (controller.readOnly || controller.root === null) return;
@@ -59,7 +59,10 @@ export function AltTextPopover({ blockId, controller, anchor, opener, alt, onClo
     return () => void latestFinish.current(true);
   }, []);
 
+  // A tap gives the text focus and the caret before its click closes the popover, and the editor reads the caret only on
+  // the next selection change. It is read first, or storing the text would hand focus back to the image.
   const close = (store: boolean, refocus = true) => {
+    if (!refocus) controller.readSelectionFromDom();
     if (!finish(store)) return;
     onClose();
     if (refocus) controller.focus();

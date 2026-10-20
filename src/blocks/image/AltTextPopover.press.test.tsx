@@ -1,5 +1,6 @@
 import { act, fireEvent, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { textSelection } from '../../engine';
 import type { QuoinBlock } from '../../types';
 import { intrinsicSize } from '../intrinsic-size';
 import { mountCanvas, paragraph } from '../void/test-canvas';
@@ -58,6 +59,29 @@ describe('the alt text of an image, when something outside it is pressed', () =>
     act(() => void fireEvent.click(below));
     expect(alt()).toBe('A cat asleep');
     expect(field()).toBeNull();
+  });
+
+  it('is stored by a tap into the text, which keeps the focus and the caret the tap gave the text', async () => {
+    const { alt, below, handle } = await editAlt(' asleep');
+    pointer(below, 'pointerdown', 'touch');
+    act(() => {
+      (below as HTMLElement).focus();
+      document.getSelection()!.collapse(below.firstChild!, 2);
+    });
+    act(() => void fireEvent.click(below));
+    expect(alt()).toBe('A cat asleep');
+    expect(field()).toBeNull();
+    expect(below).toHaveFocus();
+    expect(handle().editor.state.selection).toEqual(textSelection({ block: 'b', region: 'text', offset: 2 }));
+  });
+
+  it('is stored by a mouse press into the text, which keeps the focus and the caret the press gave the text', async () => {
+    const { alt, below, user, handle } = await editAlt(' asleep');
+    await user.click(below);
+    expect(alt()).toBe('A cat asleep');
+    expect(field()).toBeNull();
+    expect(below).toHaveFocus();
+    expect(handle().editor.state.selection).toMatchObject({ kind: 'text', head: { block: 'b' } });
   });
 
   it('is closed by its Alt text button, which stores it once and hands focus back to the image', async () => {

@@ -68,6 +68,31 @@ describe('the inline math input rule', () => {
     expect(code.content()).toEqual([text('$a '), text('x', [{ type: 'code' }]), text(' b$')]);
   });
 
+  it('reads code as the parser reads a code span, whole, so its dollars neither open nor close a formula', () => {
+    const home = editorAt('`$HOME` is set; \\$x^2');
+    home.type('$');
+    expect(home.content()).toEqual([text('$HOME', [{ type: 'code' }]), text(' is set; '), math('x^2')]);
+
+    const fences = editorAt('`$aa``a``a`\\$\\$b');
+    fences.type('$');
+    expect(fences.content().some((node) => node.kind === 'atom')).toBe(false);
+
+    const inside = editorAt('b1ab`$`b 11\\$a1\\$1');
+    inside.type('$');
+    expect(inside.content().at(-1)).toEqual(math('a1$1'));
+  });
+
+  it('never converts a span that crosses the edge of a link or of any other mark', () => {
+    const link = editorAt('[pay \\$a](https://a.b) and \\$x');
+    link.type('$');
+    const href = [{ type: 'link', attrs: { href: 'https://a.b' } }];
+    expect(link.content()).toEqual([text('pay $a', href), text(' and $x$')]);
+
+    const bold = editorAt('**a \\$b** c');
+    bold.type('$');
+    expect(bold.content()).toEqual([text('a $b', [{ type: 'bold' }]), text(' c$')]);
+  });
+
   it('keeps the marks of the opening dollar on the atom', () => {
     const { content, type } = editorAt('**a $x**');
     type('$');

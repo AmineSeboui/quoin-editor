@@ -61,6 +61,22 @@ describe('the code block', () => {
     expect(area().selectionStart).toBe(14);
   });
 
+  it('scrolls the caret into view after the keys it handles, which the browser leaves where it was', () => {
+    const scrolled = vi.spyOn(HTMLElement.prototype, 'scrollIntoView');
+    try {
+      mountCanvas([code('k', 'a')]);
+      caret(1);
+      fireEvent.keyDown(area(), { key: 'Enter' });
+      fireEvent.keyDown(area(), { key: 'Tab' });
+      const marks = scrolled.mock.contexts as HTMLElement[];
+      expect(marks).toHaveLength(2);
+      expect(marks.every((mark) => mark.getAttribute('aria-hidden') === 'true' && area().parentElement!.contains(mark))).toBe(true);
+      expect(scrolled).toHaveBeenLastCalledWith({ block: 'nearest', inline: 'nearest' });
+    } finally {
+      scrolled.mockRestore();
+    }
+  });
+
   it('draws the tokens of the host highlighter in their colours under the text', () => {
     mountCanvas([code('k', 'let a;\nlet b;')], { highlight: keywords });
     const tokens = screen.getByRole('group', { name: 'Code' }).querySelectorAll('pre span');

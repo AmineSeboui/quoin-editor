@@ -10,9 +10,11 @@ import { str } from '../str';
 import { selectNode } from '../void/select-node';
 import { useVoidEditing } from '../void/use-void-editing';
 import { writeCode } from './code-actions';
-import { fieldOf } from './code-field';
+import type { CodeField } from './code-edits';
+import { applyCodeEdit, fieldOf } from './code-field';
 import { codeKeyAction } from './code-keys';
 import { HighlightOverlay } from './HighlightOverlay';
+import { revealCaret } from './reveal-caret';
 import { runCodeAction } from './run-code-action';
 import { useTypeIntoCode } from './use-type-into-code';
 
@@ -33,6 +35,8 @@ type CodeEditorProps = {
 export function CodeEditor({ block, controller, field, focusControls }: CodeEditorProps) {
   const labels = useLabels();
   const group = useRef('');
+  const drawn = useRef<HTMLPreElement>(null);
+  const mark = useRef<HTMLSpanElement>(null);
   const { editing, stop } = useVoidEditing(controller, block.id);
   const blockId = block.id;
 
@@ -44,19 +48,33 @@ export function CodeEditor({ block, controller, field, focusControls }: CodeEdit
     stop();
   }, [editing, stop, field]);
 
-  const write = useCallback((value: string) => writeCode(controller, blockId, value, group.current), [controller, blockId]);
-  useTypeIntoCode(controller, blockId, field, write);
+  const edit = useCallback(
+    (next: CodeField) => {
+      const area = field.current;
+      if (area === null) return;
+      applyCodeEdit(area, next, (value) => writeCode(controller, blockId, value, group.current));
+      if (drawn.current !== null && mark.current !== null) revealCaret(area, drawn.current, mark.current);
+    },
+    [controller, blockId, field],
+  );
+  useTypeIntoCode(controller, blockId, field, edit);
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     const area = event.currentTarget;
     if (isComposingKey(controller, event.nativeEvent)) return;
     const action = codeKeyAction(event, fieldOf(area), controller.isMac);
-    if (action !== null && runCodeAction(action, { controller, blockId, area, write, focusControls })) event.preventDefault();
+    if (action !== null && runCodeAction(action, { controller, blockId, area, edit, focusControls })) event.preventDefault();
   };
 
   return (
     <div {...{ [NATIVE_INTERACTION]: '' }} dir="ltr" className="quoin-code-scroll">
       <div className="quoin-code-lines">
-        <HighlightOverlay aria-hidden="true" code={str(block.attrs.code)} language={str(block.attrs.language)} />
+        <HighlightOverlay
+          aria-hidden="true"
+          drawnRef={drawn}
+          code={str(block.attrs.code)}
+          language={str(block.attrs.language)}
+        />
+        <span ref={mark} aria-hidden="true" className="quoin-code-caret" />
         <textarea
           ref={field}
           aria-label={labels.codeText}
@@ -74,7 +92,7 @@ export function CodeEditor({ block, controller, field, focusControls }: CodeEdit
             group.current = `code:${blockId}:${sessions}`;
             selectNode(controller, blockId);
           }}
-          onChange={(event) => write(event.target.value)}
+          onChange={(event) => writeCode(controller, blockId, event.target.value, group.current)}
           onKeyDown={onKeyDown}
         />
       </div>

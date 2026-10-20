@@ -3,14 +3,14 @@ import { selectAll, setSelection } from '../../engine/commands/selection-command
 import type { ViewController } from '../../view';
 import { textDiff } from '../../view/dom/text-diff';
 import { codeToParagraph, leaveCode } from './code-actions';
-import { applyCodeEdit } from './code-field';
+import type { CodeField } from './code-edits';
 import type { CodeKeyAction } from './code-keys';
 
 export type CodeActionContext = {
   controller: ViewController;
   blockId: string;
   area: HTMLTextAreaElement;
-  write(value: string): void;
+  edit(next: CodeField): void;
   focusControls(): void;
 };
 
@@ -33,10 +33,10 @@ function travel({ controller, blockId, area }: CodeActionContext, command: Comma
 
 /** Runs what a key asked of the code block. False when the key is the text area's after all. */
 export function runCodeAction(action: CodeKeyAction, context: CodeActionContext): boolean {
-  const { controller, blockId, area } = context;
+  const { controller, blockId } = context;
   switch (action.kind) {
     case 'edit':
-      applyCodeEdit(area, action.field, context.write);
+      context.edit(action.field);
       return true;
     case 'leave':
       return leaveCode(controller, blockId, action.direction, action.addsLine);

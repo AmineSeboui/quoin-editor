@@ -2,8 +2,7 @@
 
 import { useEffect, type RefObject } from 'react';
 import type { KeyInterceptor, ViewController } from '../../view';
-import { insertInCode } from './code-edits';
-import { applyCodeEdit } from './code-field';
+import { insertInCode, type CodeField } from './code-edits';
 
 /**
  * A character typed while the code block is selected as a whole goes at the end of its code, where the editor would
@@ -13,7 +12,7 @@ export function useTypeIntoCode(
   controller: ViewController,
   blockId: string,
   field: RefObject<HTMLTextAreaElement | null>,
-  write: (value: string) => void,
+  edit: (next: CodeField) => void,
 ): void {
   useEffect(() => {
     const typeInto: KeyInterceptor = (event) => {
@@ -24,10 +23,10 @@ export function useTypeIntoCode(
       event.preventDefault();
       area.focus();
       const end = area.value.length;
-      applyCodeEdit(area, insertInCode({ value: area.value, start: end, end }, event.key), write);
+      edit(insertInCode({ value: area.value, start: end, end }, event.key));
       return true;
     };
     controller.keyInterceptors.add(typeInto);
     return () => void controller.keyInterceptors.delete(typeInto);
-  }, [controller, blockId, field, write]);
+  }, [controller, blockId, field, edit]);
 }

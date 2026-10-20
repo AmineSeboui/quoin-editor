@@ -23,6 +23,15 @@
   min-width: 100%;
 }
 
+.quoin .quoin-code-caret {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 1.5rem;
+  pointer-events: none;
+}
+
 /* The text area lies over the highlighted code with the same type metrics, so every character typed lands on the one
    drawn under it. Neither wraps: a long line scrolls the block sideways. */
 .quoin .quoin-code-text {

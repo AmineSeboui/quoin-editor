@@ -1,5 +1,5 @@
 import { createRef, useState } from 'react';
-import { act, fireEvent, render } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { Bookmark, StickyNote } from 'lucide-react';
 import { BlockCanvas } from '../../canvas/BlockCanvas';
 import type { BlockCanvasProps, QuoinEditorHandle } from '../../canvas/canvas-props';
@@ -100,5 +100,10 @@ export function mountCanvas(initial: QuoinBlock[], props: Props = {}) {
     act(() => void fireEvent.keyDown(target, { key }));
   const selection = () => handle().editor.state.selection;
   const last = () => changes[changes.length - 1];
-  return { changes, container, handle, shell, sink, nodeSelect, press, selection, last };
+  const openBlockMenu = () => {
+    const mod = handle().controller.isMac ? { metaKey: true } : { ctrlKey: true };
+    act(() => void fireEvent.keyDown(document.activeElement ?? document.body, { key: '/', ...mod }));
+    return screen.getByRole('menu');
+  };
+  return { changes, container, handle, shell, sink, nodeSelect, press, selection, last, openBlockMenu };
 }

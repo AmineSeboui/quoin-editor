@@ -38,6 +38,7 @@ export function tableExtension(options: TableOptions = {}): Extension {
   const ui: ExtensionUI = {
     slashItems: [tableSlashItem(labels)],
     renderers: { TABLE: TableRenderer },
+    blockNames: { TABLE: labels.table },
     overlays: [TableOverlay],
   };
   return defineExtension({

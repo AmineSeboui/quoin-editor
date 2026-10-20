@@ -60,6 +60,15 @@ describe('a table block', () => {
     act(() => tableUiStore(handle().controller).set({ preview: null }));
   });
 
+  it('is called by its label when selected as a whole with no text, and in the title of its block menu', () => {
+    const empty = { rows: [['', '']], header: false, align: [null, null] };
+    const extensions = [tableExtension({ labels: { table: 'Grid' } })];
+    const { nodeSelect, sink, openBlockMenu } = mount(empty, { extensions });
+    nodeSelect('t');
+    expect(sink()).toHaveAccessibleName('Grid');
+    expect(openBlockMenu()).toHaveAccessibleName('Grid block menu');
+  });
+
   it('draws every row as data when it has no header row', () => {
     mount({ header: false });
     expect(screen.queryByRole('columnheader')).toBeNull();

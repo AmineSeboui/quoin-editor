@@ -1,5 +1,5 @@
 import { StrictMode, createRef, useState } from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BlockCanvas } from '../../canvas/BlockCanvas';
 import type { QuoinEditorHandle } from '../../canvas/canvas-props';
@@ -104,6 +104,21 @@ describe('the math editor, when what it edits changes under it', () => {
     act(() => void handle().editor.setBlocks([paragraph('p', 'Area $x$ here'), paragraph('q', 'Below')]));
     expect(field()).toBeNull();
     expect(changes.some((blocks) => latexOf(blocks) !== undefined)).toBe(false);
+  });
+
+  it('closes and writes nothing once the LaTeX of its block changes under it, typed in or not', async () => {
+    const user = userEvent.setup();
+    for (const typed of ['', 'b']) {
+      const canvas = mountMath([mathBlock('a'), paragraph('q', 'Below')]);
+      await user.click(screen.getByRole('group', { name: 'Equation' }));
+      if (typed !== '') await user.type(field()!, typed);
+      act(() => void canvas.handle().editor.setBlocks([mathBlock('remote'), paragraph('q', 'Below')]));
+      expect(field()).toBeNull();
+      pointer(canvas.host('q'), 'pointerdown', 'mouse');
+      expect(canvas.handle().editor.getBlocks()[0].data.latex).toBe('remote');
+      expect(canvas.changes).toEqual([]);
+      cleanup();
+    }
   });
 
   it.each(['Now $x$ here', 'Area $z$ here'])(

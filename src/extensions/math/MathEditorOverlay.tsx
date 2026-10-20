@@ -1,25 +1,23 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { str } from '../../blocks/str';
 import { usePartAnchor } from '../../blocks/void/block-part';
 import { focusNode } from '../../blocks/void/select-node';
 import type { EditorState } from '../../engine';
-import { blockById } from '../../engine/model/doc';
 import { useRangeAnchor } from '../../menus/floating/use-range-anchor';
 import type { ViewController } from '../../view';
 import { useEditorState } from '../../view/react/use-editor-state';
 import { useReadOnly } from '../../view/react/use-read-only';
 import type { MathFeature } from './math-feature';
-import { openMath, useMathTarget, type AtomTarget, type MathTarget } from './math-target';
+import { openMath, useMathTarget, type AtomTarget, type BlockTarget, type MathTarget } from './math-target';
 import { MathEditorPopover } from './MathEditorPopover';
-import { storeAtomLatex, storeBlockLatex, targetAtom } from './store-latex';
+import { storeAtomLatex, storeBlockLatex, targetAtom, targetBlockThere } from './store-latex';
 import { useMathAtomOpening } from './use-math-atom-opening';
 
 type Props = { controller: ViewController; feature: MathFeature };
 
 const isThere = (state: EditorState, target: MathTarget): boolean =>
-  target.kind === 'block' ? blockById(state.doc, target.block)?.type === 'MATH' : targetAtom(state, target) !== null;
+  target.kind === 'block' ? targetBlockThere(state, target) : targetAtom(state, target) !== null;
 
 /**
  * The editor of the math block or the formula in a line that a click or Enter opened, while it is still there and the
@@ -40,29 +38,25 @@ export function MathEditorOverlay({ controller, feature }: Props) {
 
   if (!shown) return null;
   return target.kind === 'block' ? (
-    <BlockMathEditor key={target.block} controller={controller} feature={feature} blockId={target.block} />
+    <BlockMathEditor key={JSON.stringify(target)} controller={controller} feature={feature} target={target} />
   ) : (
     <AtomMathEditor key={JSON.stringify(target)} controller={controller} feature={feature} target={target} />
   );
 }
 
-function BlockMathEditor({ controller, feature, blockId }: Props & { blockId: string }) {
-  const latex = useEditorState(
-    controller,
-    useCallback((state: EditorState) => str(blockById(state.doc, blockId)?.attrs.latex), [blockId]),
-  );
-  const anchor = usePartAnchor(controller, blockId, '.quoin-math');
+function BlockMathEditor({ controller, feature, target }: Props & { target: BlockTarget }) {
+  const anchor = usePartAnchor(controller, target.block, '.quoin-math');
   return (
     <MathEditorPopover
       controller={controller}
       feature={feature}
       anchor={anchor}
       side="bottom"
-      latex={latex}
+      latex={target.latex}
       displayMode
-      onStore={(next, refocus) => storeBlockLatex(controller, blockId, next, refocus)}
+      onStore={(next, refocus) => storeBlockLatex(controller, target, next, refocus)}
       onClose={() => openMath(controller, null)}
-      onReturn={() => focusNode(controller, blockId)}
+      onReturn={() => focusNode(controller, target.block)}
     />
   );
 }

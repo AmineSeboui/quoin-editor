@@ -20,9 +20,10 @@ export function MathBlock({ block, controller, feature }: MathBlockProps) {
   const readOnly = useReadOnly(controller);
   const root = useRef<HTMLDivElement>(null);
   const blockId = block.id;
+  const latex = str(block.attrs.latex);
   const keys = useMemo(
-    () => ({ enter: () => openMath(controller, { kind: 'block', block: blockId }) }),
-    [controller, blockId],
+    () => ({ enter: () => openMath(controller, { kind: 'block', block: blockId, latex }) }),
+    [controller, blockId, latex],
   );
   useNodeKeys(controller, blockId, !readOnly, true, root, keys);
   const open = () => {
@@ -40,7 +41,7 @@ export function MathBlock({ block, controller, feature }: MathBlockProps) {
       data-editable={readOnly ? undefined : ''}
       onClick={readOnly ? undefined : open}
     >
-      <MathOutput feature={feature} latex={str(block.attrs.latex)} displayMode />
+      <MathOutput feature={feature} latex={latex} displayMode />
     </div>
   );
 }

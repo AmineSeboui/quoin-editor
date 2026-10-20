@@ -19,8 +19,11 @@ export const atomTarget = ({ block, region, offset, node }: AtomPlace): AtomTarg
   latex: node.attrs.latex ?? '',
 });
 
+/** A math block, kept with the LaTeX it held when its editor opened. */
+export type BlockTarget = { readonly kind: 'block'; readonly block: string; readonly latex: string };
+
 /** What the math editor of a canvas is open on: a math block or a formula in a line. */
-export type MathTarget = { readonly kind: 'block'; readonly block: string } | AtomTarget;
+export type MathTarget = BlockTarget | AtomTarget;
 
 type Store = { target: MathTarget | null; readonly listeners: Set<() => void> };
 

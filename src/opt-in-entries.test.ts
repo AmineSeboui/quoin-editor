@@ -29,6 +29,8 @@ const PINNED: Readonly<Record<string, { load: () => Promise<object>; exports: re
   catalogue: { load: () => import('./catalogue'), exports: ['catalogue'] },
 };
 
+const ENTRY_IMPORT_TIMEOUT = 60_000;
+
 const optIn = packageEntries.filter((entry) => entry.added !== undefined).map(({ name }) => name);
 
 describe('the opt-in entries', () => {
@@ -36,8 +38,13 @@ describe('the opt-in entries', () => {
     expect(optIn).toEqual(Object.keys(PINNED));
   });
 
-  it.each(optIn)('%s exports its pinned names and nothing else', async (name) => {
-    const entry = PINNED[name];
-    expect(Object.keys(await entry.load()).sort()).toEqual([...entry.exports].sort());
-  });
+  // Each entry is imported cold, the whole main entry with it, which takes seconds on a loaded machine.
+  it.each(optIn)(
+    '%s exports its pinned names and nothing else',
+    async (name) => {
+      const entry = PINNED[name];
+      expect(Object.keys(await entry.load()).sort()).toEqual([...entry.exports].sort());
+    },
+    ENTRY_IMPORT_TIMEOUT,
+  );
 });

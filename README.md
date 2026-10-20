@@ -494,7 +494,7 @@ The arrows select a card as a whole, and it is announced as "File" and the file'
 
 Features beyond the core blocks ship as their own entries, so a host that leaves one out never downloads it. Add a feature's extension to `extensions`, or `catalogue()` from `quoin-editor/catalogue` for all of them, each taking its options under its own name (`catalogue({ table: { labels } })`, or `false` to leave one out). Every string a feature shows or speaks comes from its own `labels` option, English by default.
 
-A block whose feature is not installed, such as a table on a canvas without `tableExtension()`, is drawn as an unsupported block. Its data is kept as it was, through edits around it, `onChange` and markdown.
+A block whose feature is not installed, such as a table on a canvas without `tableExtension()` or an embed without `embedExtension()`, is drawn as an unsupported block. Its data is kept as it was, through edits around it, `onChange` and markdown.
 
 ```tsx
 import { BlockCanvas, type QuoinBlock } from 'quoin-editor';
@@ -515,6 +515,27 @@ export function Editor({ blocks, onChange }: { blocks: QuoinBlock[]; onChange: (
 The handles of a row and of a column open menus that insert, move and delete rows and columns, align a column and turn the header row on and off. Alt+F10 from a cell reaches them, the arrows move between them, Tab goes on to the border of the column, and Escape goes back to the caret. A + on the edge between two rows or two columns inserts one there; the same inserts are in the menus. A column border is a separator: drag it, or press the arrows on it, to set the width of the column, kept in pixels in `widths`. A drag across cells selects them as a range, which Backspace and Delete empty, a key typed or text pasted replaces, and the formatting shortcuts format whole. A read-only canvas draws the table and nothing to edit.
 
 The engine commands, such as `insertTable`, `addRow` and `setColumnWidth`, and the cell selection plugin are exported from `quoin-editor/table` too.
+
+### Embeds and bookmarks
+
+`quoin-editor/embed` draws `EMBED` blocks as the frame of the provider that frames their address, and `BOOKMARK` blocks as cards that link to their page. The built-in providers are YouTube (`youtube.com/watch?v=`, `youtu.be/` and shorts, framed from `youtube-nocookie.com`), Vimeo, Loom, Figma, CodePen, Spotify and SoundCloud, the same ones `toHTML` frames. Every frame is https only, `sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"`, `loading="lazy"` and `referrerpolicy="strict-origin-when-cross-origin"`, titled after its provider, at the ratio of a video (Spotify and SoundCloud players at their own heights). An `EMBED` whose address no provider frames is drawn as a link card instead.
+
+```tsx
+import { embedExtension } from 'quoin-editor/embed';
+
+const extensions = [
+  embedExtension({
+    // Tried before the built-in providers, as `toHTML`'s `embedProviders` are.
+    providers: [{ name: 'acme', match: (url) => (url.hostname === 'video.acme.test' ? `https://embed.acme.test${url.pathname}` : null) }],
+    // Asked once for a bookmark with no title; the title, description and https picture it finds are written to the block.
+    unfurl: (url) => fetch(`/api/unfurl?url=${encodeURIComponent(url)}`).then((response) => response.json()),
+  }),
+];
+```
+
+A link pasted alone on an empty line stays a link, and a toolbar beside it offers Embed (when a provider frames it), Bookmark or Keep as link. It never takes focus: Alt+F10 moves into it, the arrows walk it, and Escape, a press elsewhere or any edit keeps the link. Choosing Embed or Bookmark puts the block in place of the link, and one undo brings the link back. `/embed` and `/bookmark` ask for the link: Enter places it, Escape asks no more, and a press outside places a valid link.
+
+On an editable canvas a press on an embed selects the block rather than the frame, which is out of the tab order; Enter on the selected embed moves focus into the frame. A read-only canvas draws the frames as they are, in the tab order. Without `unfurl`, a bookmark shows its address and domain. Every string a bookmark holds is drawn as text, and its picture only from an http or https address.
 
 ## Read-only
 
@@ -739,6 +760,8 @@ From `quoin-editor/headless`: the editing engine and its editable view, with no 
 From `quoin-editor/engine`: the engine alone, with no React and no `'use client'` banner.
 
 From `quoin-editor/table`: `tableExtension`, its `TableLabels` and `englishTableLabels`, and the table commands and cell selection.
+
+From `quoin-editor/embed`: `embedExtension`, its `EmbedOptions`, `EmbedLabels` and `englishEmbedLabels`, and the `Unfurl` and `UnfurledLink` types.
 
 From `quoin-editor/catalogue`: `catalogue`, every opt-in feature at once.
 

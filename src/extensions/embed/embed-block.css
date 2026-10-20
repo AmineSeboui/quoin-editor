@@ -1,0 +1,103 @@
+.quoin .quoin-embed,
+.quoin .quoin-bookmark {
+  padding-block: 0.25rem;
+}
+
+.quoin .quoin-embed-frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--quoin-radius);
+  background: var(--quoin-muted);
+}
+
+.quoin .quoin-embed-frame[data-player] {
+  aspect-ratio: auto;
+}
+
+.quoin .quoin-embed-frame > iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.quoin .quoin-embed-cover {
+  position: absolute;
+  inset: 0;
+}
+
+.quoin .quoin-link-card {
+  display: flex;
+  align-items: stretch;
+  gap: 0.75rem;
+  overflow: hidden;
+  border: 1px solid var(--quoin-border);
+  border-radius: var(--quoin-radius);
+  user-select: none;
+}
+
+.quoin .quoin-link-card-text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  padding: 0.75rem 1rem;
+}
+
+.quoin .quoin-link-card-title {
+  overflow-wrap: anywhere;
+  font-weight: 500;
+  color: inherit;
+  text-decoration: none;
+}
+
+.quoin a.quoin-link-card-title:hover {
+  text-decoration: underline;
+}
+
+.quoin a.quoin-link-card-title:focus-visible {
+  outline: 2px solid var(--quoin-ring);
+  outline-offset: 2px;
+}
+
+.quoin .quoin-link-card-description {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: var(--quoin-muted-foreground);
+  font-size: 0.875rem;
+}
+
+.quoin .quoin-link-card-domain {
+  color: var(--quoin-muted-foreground);
+  font-size: 0.75rem;
+}
+
+.quoin .quoin-link-card-image {
+  flex: none;
+  width: 8rem;
+  max-height: 7rem;
+  object-fit: cover;
+}
+
+.quoin .quoin-embed-ask {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.quoin .quoin-embed-ask > input {
+  flex: 1 1 10rem;
+}
+
+.quoin .quoin-embed-ask-message {
+  flex-basis: 100%;
+  padding-inline: 0.25rem;
+  color: var(--quoin-destructive);
+  font-size: 0.875rem;
+}

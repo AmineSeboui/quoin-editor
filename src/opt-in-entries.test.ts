@@ -25,6 +25,7 @@ const PINNED: Readonly<Record<string, { load: () => Promise<object>; exports: re
       'setCellsMark',
     ],
   },
+  embed: { load: () => import('./embed'), exports: ['embedExtension', 'englishEmbedLabels'] },
   catalogue: { load: () => import('./catalogue'), exports: ['catalogue'] },
 };
 

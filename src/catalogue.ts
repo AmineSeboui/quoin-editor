@@ -3,9 +3,10 @@
 import type { Extension } from './engine';
 import { createCatalogue, type CatalogueOptionsOf } from './extensions/create-catalogue';
 // Through each feature's entry, which reaches the whole main entry, for the reason src/table.ts gives.
+import { embedExtension } from './embed';
 import { tableExtension } from './table';
 
-const features = { table: tableExtension };
+const features = { table: tableExtension, embed: embedExtension };
 
 export type CatalogueOptions = CatalogueOptionsOf<typeof features>;
 

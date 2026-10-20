@@ -87,6 +87,16 @@
         "default": "./dist/table.cjs"
       }
     },
+    "./embed": {
+      "import": {
+        "types": "./dist/embed.d.ts",
+        "default": "./dist/embed.js"
+      },
+      "require": {
+        "types": "./dist/embed.d.cts",
+        "default": "./dist/embed.cjs"
+      }
+    },
     "./catalogue": {
       "import": {
         "types": "./dist/catalogue.d.ts",

@@ -21,7 +21,10 @@ export const incrementalBudget = (measured) => Math.max(Math.round(measured * 1.
  * the main entry and the catalogue imports the feature's source, as src/table.ts explains.
  * @type {PackageEntry[]}
  */
-export const featureEntries = [{ name: 'table', source: 'src/table.ts', client: true, added: incrementalBudget(9_461) }];
+export const featureEntries = [
+  { name: 'table', source: 'src/table.ts', client: true, added: incrementalBudget(9_461) },
+  { name: 'embed', source: 'src/embed.ts', client: true, added: incrementalBudget(4_418) },
+];
 
 /** @type {PackageEntry[]} */
 export const packageEntries = [
@@ -29,5 +32,5 @@ export const packageEntries = [
   { name: 'headless', source: 'src/headless.ts', client: true, total: 70_000 },
   { name: 'engine', source: 'src/engine/index.ts', client: false, total: 52_000 },
   ...featureEntries,
-  { name: 'catalogue', source: 'src/catalogue.ts', client: true, added: incrementalBudget(9_312) },
+  { name: 'catalogue', source: 'src/catalogue.ts', client: true, added: incrementalBudget(13_532) },
 ];

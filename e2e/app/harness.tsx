@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { BlockCanvas, coreBlocks, type QuoinBlock, type UploadFn } from 'quoin-editor';
+import { embedExtension, type Unfurl } from 'quoin-editor/embed';
 import { tableExtension } from 'quoin-editor/table';
 import { bookmarkDemo } from './bookmark-demo';
 import { fixtureDataUrl } from './fixture-png';
@@ -10,7 +11,16 @@ const blockTypes = [...coreBlocks, bookmarkDemo, noteDemo];
 const params = new URLSearchParams(location.search);
 const READ_ONLY = params.get('readonly') === '1';
 const UPLOAD_DELAY = params.get('upload');
-const extensions = params.get('table') === '1' ? [tableExtension()] : undefined;
+// Stands in for a server that reads a page's metadata, so no test depends on the network.
+const UNFURL_DELAY = Number(params.get('unfurl') ?? 0);
+const unfurl: Unfurl = (url) =>
+  new Promise((resolve) =>
+    setTimeout(() => resolve({ title: `Unfurled ${new URL(url).hostname}`, description: 'Found by the host' }), UNFURL_DELAY),
+  );
+const extensions = [
+  ...(params.get('table') === '1' ? [tableExtension()] : []),
+  ...(params.get('embed') === '1' ? [embedExtension({ unfurl })] : []),
+];
 
 // Each upload is kept as an object URL under its key, so the picture of an uploaded image loads.
 const uploads = new Map<string, string>([['fixture.png', fixtureDataUrl]]);
@@ -40,6 +50,22 @@ const docs: Record<string, QuoinBlock[]> = {
   'wide-table': [
     { id: 'p', type: 'MARKDOWN', data: { markdown: 'Above the table' } },
     { id: 't', type: 'TABLE', data: { rows: grid(2, 16), header: true, align: Array(16).fill(null) } },
+  ],
+  embeds: [
+    { id: 'p', type: 'MARKDOWN', data: { markdown: 'Above the embeds' } },
+    { id: 'e', type: 'EMBED', data: { url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', provider: 'youtube' } },
+    {
+      id: 'b',
+      type: 'BOOKMARK',
+      data: {
+        url: 'https://quoin.dev/docs',
+        title: 'Quoin docs',
+        description: 'How to write with Quoin',
+        image: 'https://cdn.quoin.test/cover.png',
+      },
+    },
+    { id: 's', type: 'EMBED', data: { url: 'https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC', provider: 'spotify' } },
+    { id: 'q', type: 'MARKDOWN', data: { markdown: 'Below the embeds' } },
   ],
   sample: [
     { id: 'a', type: 'MARKDOWN', data: { markdown: '# Title' } },

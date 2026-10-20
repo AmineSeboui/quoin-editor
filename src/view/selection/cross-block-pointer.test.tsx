@@ -81,6 +81,19 @@ describe('a press on a block that holds no caret', () => {
     expect(sink).toHaveFocus();
   });
 
+  it('leaves the page where it is, where a block selected by keyboard is scrolled into view', () => {
+    const { controller, shell } = mountDivider();
+    const scrolled = vi.spyOn(shell('d'), 'scrollIntoView');
+    fire(screen.getByRole('separator'), 'pointerdown', { button: 0, buttons: 1, clientX: 10, clientY: 10 });
+    fire(document, 'pointerup', { button: 0, clientX: 10, clientY: 10 });
+    act(() => controller.focus());
+    expect(controller.editor.state.selection).toEqual(nodeSelection('d'));
+    expect(scrolled).not.toHaveBeenCalled();
+    act(() => controller.focus({ block: 'b', region: 'text', offset: 0 }));
+    act(() => controller.dispatch(controller.editor.createTransaction().setSelection(nodeSelection('d'))));
+    expect(scrolled).toHaveBeenCalledTimes(1);
+  });
+
   it('leaves a Shift press, and a press beside the host of a block that holds a caret, to the browser', () => {
     const { controller, shell } = mountDivider();
     const caret = controller.editor.state.selection;

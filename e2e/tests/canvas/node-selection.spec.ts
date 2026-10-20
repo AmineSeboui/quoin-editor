@@ -26,3 +26,14 @@ test('a block the arrows select as a whole is scrolled into view and named by wh
   await expect(sink(page)).toHaveAccessibleName('Divider');
   await expect.poll(() => inView(page, divider)).toBe(true);
 });
+
+test('a block a click selects as a whole stays where it is on the page', async ({ page }) => {
+  await page.setViewportSize({ width: 900, height: 200 });
+  await openEditor(page, 'image');
+  await page.evaluate(() => window.scrollTo(0, 100));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(100);
+  await page.mouse.click(200, 100);
+  await expect(page.locator('[data-block-id="img"]')).toHaveAttribute('data-selected', 'true');
+  await expect(sink(page)).toBeFocused();
+  expect(await page.evaluate(() => window.scrollY)).toBe(100);
+});

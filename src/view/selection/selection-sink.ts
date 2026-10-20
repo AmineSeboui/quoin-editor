@@ -25,6 +25,14 @@ function selectionText(state: EditorState): string {
   return text === '' ? NO_TEXT : text;
 }
 
+// WebKit scrolls the page a few pixels as the sink takes focus, preventScroll notwithstanding.
+function focusInPlace(sink: HTMLElement): void {
+  const view = sink.ownerDocument.defaultView;
+  const [x, y] = [view?.scrollX, view?.scrollY];
+  sink.focus({ preventScroll: true });
+  if (view && (view.scrollX !== x || view.scrollY !== y)) view.scrollTo(x ?? 0, y ?? 0);
+}
+
 // The sink's own text stays selected, so a composition replaces it and leaves only what was composed, and a screen
 // reader reads it as the selection.
 export function focusSink(controller: ViewController): void {
@@ -32,7 +40,7 @@ export function focusSink(controller: ViewController): void {
   if (sink === null) return;
   const text = selectionText(controller.editor.state);
   if (sink.textContent !== text) sink.textContent = text;
-  if (sink.ownerDocument.activeElement !== sink) sink.focus({ preventScroll: true });
+  if (sink.ownerDocument.activeElement !== sink) focusInPlace(sink);
   sink.ownerDocument.getSelection()?.selectAllChildren(sink);
 }
 

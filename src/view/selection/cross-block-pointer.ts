@@ -125,7 +125,10 @@ export function createCrossBlockPointer(controller: ViewController): CrossBlockP
           press = { kind: 'blocks', start: block, x: event.clientX, y: event.clientY };
           // A node selection is otherwise read from the native one, and Firefox leaves none after a press on a block
           // with no text, such as a divider.
-          if (!event.shiftKey && entryEdge(controller, block, 1).kind === 'node') select(nodeSelection(block));
+          if (!event.shiftKey && entryEdge(controller, block, 1).kind === 'node') {
+            controller.nodeReveal.pressed(block);
+            select(nodeSelection(block));
+          }
         } else {
           return;
         }

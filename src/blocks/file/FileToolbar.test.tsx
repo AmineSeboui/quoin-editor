@@ -86,6 +86,16 @@ describe('the toolbar of a file', () => {
     await waitFor(() => expect(fileData()).toEqual({ storageKey: 'key/data.bin', filename: 'data.bin', size: 1 }));
   });
 
+  it('reports an upload that resolves to no stored key through onError, in its own words, and writes nothing', async () => {
+    const onError = vi.fn();
+    const { nodeSelect, changes } = mount(undefined, { upload: async () => undefined, onError });
+    nodeSelect('f');
+    const picker = toolbar()!.querySelector<HTMLInputElement>('input[type="file"]')!;
+    fireEvent.change(picker, { target: { files: [new File(['x'], 'data.bin')] } });
+    await waitFor(() => expect(onError).toHaveBeenCalledWith(new Error('Upload failed.')));
+    expect(changes).toEqual([]);
+  });
+
   it('deletes the file block and gives focus back to the editor', () => {
     const { nodeSelect, last } = mount();
     nodeSelect('f');

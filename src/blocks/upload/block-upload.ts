@@ -61,6 +61,8 @@ export async function uploadInto(
   const token = claimUpload(controller, blockId);
   const before = assetOf(controller, blockId, type);
   const stored = await upload(file, category);
+  // An upload that resolves to no stored key fails with no message, so that the block words the failure itself.
+  if (typeof stored?.storageKey !== 'string') throw new Error();
   if (!isNewestUpload(controller, blockId, token) || !sameAsset(assetOf(controller, blockId, type), before)) return;
   onLand?.();
   await land(stored, token);

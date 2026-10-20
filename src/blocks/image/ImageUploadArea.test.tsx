@@ -1,7 +1,7 @@
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { nodeSelection, textSelection } from '../../engine';
-import type { QuoinBlock, UploadFn } from '../../types';
+import type { QuoinBlock, UploadFn, UploadResult } from '../../types';
 import { clipboardEvent, dragEvent, fakeTransfer } from '../../view/clipboard/test-transfer';
 import { intrinsicSize } from '../intrinsic-size';
 import { mountCanvas, paragraph } from '../void/test-canvas';
@@ -92,6 +92,14 @@ describe('an image block with no picture yet', () => {
     await act(async () => fail(new Error('That file is too large.')));
     expect(within(area()).getByRole('alert')).toHaveTextContent('That file is too large.');
     expect(within(area()).getByRole('status')).toHaveTextContent('');
+  });
+
+  it.each([undefined, {}, { storageKey: 7 }])('says the upload failed, writing nothing, when the upload resolves to %o', async (junk) => {
+    const user = userEvent.setup();
+    const { changes } = mount(async () => junk as unknown as UploadResult);
+    await user.upload(screen.getByLabelText('Upload image'), png);
+    expect(await within(area()).findByRole('alert')).toHaveTextContent(/^Upload failed\.$/);
+    expect(changes).toEqual([]);
   });
 
   it('stays busy while the newest of two uploads into it runs', async () => {

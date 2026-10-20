@@ -47,6 +47,15 @@ describe('an upload into a file block', () => {
     expect(fileData()).toMatchObject({ storageKey: 'k-new', filename: 'new.pdf' });
   });
 
+  it('rejects with no message of its own, writing nothing, when the upload resolves to no stored key', async () => {
+    const { controller, changes } = mountFile();
+    for (const junk of [undefined, null, {}, { storageKey: 7 }]) {
+      const upload = async () => junk as unknown as UploadResult;
+      await expect(uploadFile(controller(), 'f', pdf('notes.pdf'), { upload, resolveAssetUrl })).rejects.toThrow(/^$/);
+    }
+    expect(changes).toEqual([]);
+  });
+
   it('drops an upload that lands once the block holds another file, and writes nothing to a read-only canvas', async () => {
     const { upload, uploaded } = held();
     const { controller, fileData } = mountFile();

@@ -7,7 +7,8 @@ import type { BlockUploader } from './block-upload';
 
 /**
  * The hidden file input of a toolbar's replace button, which uploads the file picked into the block, says that it is
- * uploading, and reports a failure to `onError`. There is nothing to open while the canvas has no upload function.
+ * uploading, and reports a failure to `onError`, in the words of `uploadFailed` when it brings none of its own. There
+ * is nothing to open while the canvas has no upload function.
  */
 export function useReplacePicker(controller: ViewController, blockId: string, uploader: BlockUploader, accept?: string) {
   const { labels, upload, resolveAssetUrl, onError } = useQuoin();
@@ -18,7 +19,7 @@ export function useReplacePicker(controller: ViewController, blockId: string, up
     if (file === undefined || !upload) return;
     controller.announce(labels.uploading);
     uploader(controller, blockId, file, { upload, resolveAssetUrl }).catch((cause: unknown) =>
-      onError(cause instanceof Error ? cause : new Error(String(cause))),
+      onError(cause instanceof Error && cause.message ? cause : new Error(labels.uploadFailed)),
     );
   };
   return {

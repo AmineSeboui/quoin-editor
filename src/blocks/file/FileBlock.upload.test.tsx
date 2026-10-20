@@ -1,7 +1,7 @@
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { nodeSelection } from '../../engine';
-import type { QuoinBlock, UploadFn } from '../../types';
+import type { QuoinBlock, UploadFn, UploadResult } from '../../types';
 import { clipboardEvent, dragEvent, fakeTransfer } from '../../view/clipboard/test-transfer';
 import { mountCanvas, paragraph } from '../void/test-canvas';
 
@@ -72,6 +72,14 @@ describe('a file block with no file yet', () => {
     expect(within(area()).getByRole('status')).toHaveTextContent('Uploading...');
     await act(async () => fail(new Error('That file is too large.')));
     expect(within(area()).getByRole('alert')).toHaveTextContent('That file is too large.');
+  });
+
+  it.each([undefined, {}, { storageKey: 7 }])('says the upload failed, writing nothing, when the upload resolves to %o', async (junk) => {
+    const user = userEvent.setup();
+    const { changes } = mount(async () => junk as unknown as UploadResult);
+    await user.upload(picker(), pdf);
+    expect(await within(area()).findByRole('alert')).toHaveTextContent(/^Upload failed\.$/);
+    expect(changes).toEqual([]);
   });
 
   it('says uploads are not set up when the canvas has none, and through onError when a file is dropped or pasted', () => {

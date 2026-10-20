@@ -14,6 +14,8 @@ type SourceOptions = {
 
 export type MentionSource = {
   readonly source: (query: string) => Promise<readonly MentionResult[]>;
+  /** Whether the last answer, to this very query, held no results. */
+  foundNothing(query: string): boolean;
   cancel(): void;
 };
 
@@ -24,20 +26,25 @@ export type MentionSource = {
  */
 export function createMentionSource({ search, isAsked, onError }: SourceOptions): MentionSource {
   let timer: ReturnType<typeof setTimeout> | undefined;
+  let emptyFor: string | null = null;
   const cancel = () => clearTimeout(timer);
   const source = (query: string) =>
     new Promise<readonly MentionResult[]>((resolve) => {
       cancel();
+      const answered = (results: readonly MentionResult[]) => {
+        emptyFor = results.length === 0 ? query : null;
+        resolve(results);
+      };
       timer = setTimeout(() => {
         if (!isAsked(query)) return;
         new Promise<unknown>((answer) => answer(search(query))).then(
-          (answer) => resolve(mentionResults(answer)),
+          (answer) => answered(mentionResults(answer)),
           (reason: unknown) => {
             onError(toError(reason));
-            resolve([]);
+            answered([]);
           },
         );
       }, SEARCH_DELAY_MS);
     });
-  return { source, cancel };
+  return { source, foundNothing: (query) => query === emptyFor, cancel };
 }

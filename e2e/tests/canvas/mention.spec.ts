@@ -56,6 +56,18 @@ test('the menu says it is searching, then that nothing matches, and Escape leave
   await expect.poll(() => markdownOf(page)).toBe('@zz');
 });
 
+test('a space closes the menu once nothing matches, and the words go on as text', async ({ page }) => {
+  await openEditor(page, 'empty', 'mention=1');
+  const host = page.locator('[data-quoin-host]').first();
+  await host.click();
+  await caretSettled(page, host);
+  await page.keyboard.type('@zz');
+  await expect(popup(page).getByText('No matches')).toBeVisible();
+  await page.keyboard.type(' and more');
+  await expect(menu(page)).toHaveCount(0);
+  await expect.poll(() => markdownOf(page)).toBe('@zz and more');
+});
+
 test('@ and then / open one menu at a time, and the line is a text box again once both have closed', async ({ page }) => {
   await openEditor(page, 'empty', 'mention=1');
   const host = page.locator('[data-quoin-host]').first();

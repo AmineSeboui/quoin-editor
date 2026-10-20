@@ -140,6 +140,36 @@ describe('the mention menu', () => {
     expect(canvas.menu()).toBeNull();
   });
 
+  it('closes on a space right after the @, and asks nothing for the words after it', () => {
+    const { canvas, search } = openOn('Ask');
+    canvas.type(' @ ');
+    expect(canvas.menu()).toBeNull();
+    canvas.type('and more');
+    waitForSearch();
+    expect(canvas.menu()).toBeNull();
+    expect(search).not.toHaveBeenCalled();
+    expect(canvas.markdown('p')).toBe('Ask @ and more');
+  });
+
+  it('closes on a space once the host has found nothing, and stays open on one after results', async () => {
+    const { canvas, last, queries } = openOn('Ask');
+    canvas.type(' @zz');
+    waitForSearch();
+    await last().resolve([]);
+    canvas.type(' ');
+    expect(canvas.menu()).toBeNull();
+    canvas.type('top');
+    waitForSearch();
+    expect(queries()).toEqual(['zz']);
+    expect(canvas.markdown('p')).toBe('Ask @zz top');
+
+    canvas.type(' @ada');
+    waitForSearch();
+    await last().resolve([ada]);
+    canvas.type(' ');
+    expect(optionTexts()).toEqual(['Ada']);
+  });
+
   it('asks nothing once the menu closes during the wait, or once the canvas is gone', () => {
     const { canvas, search } = openOn('Ask');
     canvas.type(' @ad');

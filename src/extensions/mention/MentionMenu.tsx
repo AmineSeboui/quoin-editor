@@ -13,6 +13,7 @@ import { mentionKey } from './mention-key';
 import type { MentionLabels } from './mention-labels';
 import { resultKey } from './mention-results';
 import { createMentionSource } from './mention-source';
+import { useCloseOnSpace } from './use-close-on-space';
 import { MentionItem } from './MentionItem';
 
 type Props = { controller: ViewController; labels: MentionLabels; search: MentionSearch };
@@ -38,6 +39,7 @@ export function MentionMenu({ controller, labels, search }: Props) {
     [controller],
   );
   useEffect(() => mentions.cancel, [mentions]);
+  useCloseOnSpace(controller, mentions.foundNothing);
   const choose = useCallback(
     (result: MentionResult, range: SuggestionRange) => chooseMention(controller, result, range),
     [controller],

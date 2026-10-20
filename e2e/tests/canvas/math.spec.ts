@@ -79,6 +79,28 @@ test('Backspace selects a formula with a highlight, Enter then edits it, and a s
   await expect.poll(() => markdownOf(page, 'p')).toBe('Area  here');
 });
 
+for (const key of ['Backspace', 'Enter']) {
+  test(`a Shift selection over a formula at the end of a line is the formula, for ${key}`, async ({ page }) => {
+    await openEditor(page, 'math', 'math=1');
+    const host = page.locator('[data-block-id="p"] [data-quoin-host]');
+    await caretAtEnd(page, host);
+    for (let step = 0; step < ' here'.length; step++) await page.keyboard.press('Backspace');
+    await expect.poll(() => markdownOf(page, 'p')).toBe('Area $x^2$');
+    await page.keyboard.press('Shift+ArrowLeft');
+    await expect(page.locator('[data-quoin-selected-atom] > [data-quoin-atom="math"]')).toHaveCount(1);
+    await page.keyboard.press(key);
+    if (key === 'Enter') {
+      await expect(field(page)).toBeFocused();
+      await expect(field(page)).toHaveValue('x^2');
+      expect((await blocks(page)).map((block) => block.id)).toEqual(['p', 'm', 'q']);
+    } else {
+      await expect(host.locator('[data-quoin-atom]')).toHaveCount(0);
+      await expect(host).toHaveText('Area');
+      expect((await blocks(page)).map((block) => block.id)).toEqual(['p', 'm', 'q']);
+    }
+  });
+}
+
 test('a math block opens its editor on a click, stores on Mod+Enter and hands focus back to the block', async ({ page }) => {
   await openEditor(page, 'math', 'math=1');
   await equation(page).click();

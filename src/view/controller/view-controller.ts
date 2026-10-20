@@ -192,10 +192,13 @@ export class ViewController {
     this.announcer.announce(message);
   }
 
+  // A redraw of the decorations alone, such as one that follows a selection the browser made, replaces the nodes that
+  // selection sits in, and nothing else writes it back.
   renderHost(block: string, region: string): void {
     const element = this.registry.get(block, region);
     const host = element && { block, region, element };
-    if (host && !this.isComposing(host)) this.hosts.render(host);
+    if (!host || this.isComposing(host) || !this.hosts.render(host)) return;
+    if (element.contains(this.domSelection()?.focusNode ?? null)) this.syncSelectionToDom();
   }
 
   domSelection(): globalThis.Selection | null {

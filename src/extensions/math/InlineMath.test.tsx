@@ -106,6 +106,19 @@ describe('an inline math formula', () => {
     expect(canvas.markdown('p')).toBe('Area  here');
   });
 
+  it('keeps the selection the browser drew over it at the end of a line once the highlight redraws it', () => {
+    const canvas = mountMath([paragraph('p', 'Area $x^2$')]);
+    const host = canvas.host('p');
+    canvas.caret('p', 6);
+    act(() => {
+      document.getSelection()!.setBaseAndExtent(host, 2, host, 1);
+      canvas.handle().controller.readSelectionFromDom();
+    });
+    expect(host.querySelector('[data-quoin-selected-atom]')).not.toBeNull();
+    const { anchorNode, anchorOffset } = document.getSelection()!;
+    expect([domMapOf(host)?.fromDom(anchorNode!, anchorOffset), drawnCaret(host)]).toEqual([6, 5]);
+  });
+
   it('is removed, as one undo step, when its LaTeX is cleared', async () => {
     const user = userEvent.setup();
     const canvas = lineWithFormula();

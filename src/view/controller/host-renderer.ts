@@ -5,7 +5,8 @@ import type { HostEntry } from './host-registry';
 import { regionInline } from './region-inline';
 
 export type HostRenderer = {
-  render(host: HostEntry): void;
+  /** Draws the host again, and says whether only its decorations changed. */
+  render(host: HostEntry): boolean;
   renderIfChanged(host: HostEntry): void;
 };
 
@@ -19,19 +20,21 @@ export function createHostRenderer(
 ): HostRenderer {
   const rendered = new WeakMap<HTMLElement, Rendered>();
 
-  function paint(host: HostEntry, always: boolean): void {
+  function paint(host: HostEntry, always: boolean): boolean {
     const inline = regionInline(editor.state, host.block, host.region);
-    if (inline === undefined) return;
+    if (inline === undefined) return false;
     const decorations = decorationsOf(host.block, host.region);
     const last = rendered.get(host.element);
-    if (!always && last?.inline === inline && sameDecorations(last.decorations, decorations)) return;
+    const restyled = last?.inline === inline && !sameDecorations(last.decorations, decorations);
+    if (!always && last?.inline === inline && !restyled) return false;
     renderInline(host.element, inline, decorations, options);
     afterRender(host.element);
     rendered.set(host.element, { inline, decorations });
+    return restyled;
   }
 
   return {
     render: (host) => paint(host, true),
-    renderIfChanged: (host) => paint(host, false),
+    renderIfChanged: (host) => void paint(host, false),
   };
 }

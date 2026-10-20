@@ -10,8 +10,8 @@ import type { AnyBlockDefinition } from '../registry';
 const LONGEST = 80;
 
 function firstLine(text: string): string {
-  const line = text.split('\n', 1)[0].trim();
-  return line.length > LONGEST ? `${line.slice(0, LONGEST - 1)}\u2026` : line;
+  const characters = [...text.split('\n', 1)[0].trim()];
+  return characters.length > LONGEST ? `${characters.slice(0, LONGEST - 1).join('')}\u2026` : characters.join('');
 }
 
 /**

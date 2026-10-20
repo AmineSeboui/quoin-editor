@@ -40,6 +40,12 @@ describe('a block the canvas selects as a whole', () => {
     ]);
   });
 
+  it('clips its text by characters, never between the two halves of one', () => {
+    const { nodeSelect, sink } = mountCanvas([bookmarkBlock('b', `${'x'.repeat(78)}\u{1F600}${'y'.repeat(10)}`)]);
+    nodeSelect('b');
+    expect(sink().getAttribute('aria-label')).toBe(`${'x'.repeat(78)}\u{1F600}\u2026`);
+  });
+
   it('is named in the labels the host gave the canvas', () => {
     const { nodeSelect, sink } = mountCanvas([image('j', { storageKey: 'k' }), code('c', '')], {
       labels: { imageNoAlt: 'Image sans description', plainText: 'Texte brut', codeBlockName: (language) => `Code en ${language}` },

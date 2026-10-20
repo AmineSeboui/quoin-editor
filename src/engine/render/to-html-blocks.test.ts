@@ -155,7 +155,9 @@ describe('toHTML media blocks', () => {
     const link = '<p><a href="https://youtu.be/dQw4w9WgXcQ" rel="noopener noreferrer">https://youtu.be/dQw4w9WgXcQ</a></p>';
     expect(html(b('EMBED', { url: 'https://youtu.be/dQw4w9WgXcQ' }))).toBe(link);
     expect(html(b('EMBED', { url: 'https://youtu.be/dQw4w9WgXcQ' }), { embeds: 'iframe' })).toBe(
-      '<iframe src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ" sandbox="allow-scripts allow-same-origin allow-presentation" loading="lazy"></iframe>',
+      '<iframe src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ" ' +
+        'sandbox="allow-scripts allow-same-origin allow-presentation allow-popups" loading="lazy" ' +
+        'referrerpolicy="strict-origin-when-cross-origin"></iframe>',
     );
     expect(html(b('EMBED', { url: 'mailto:a@b.c' }), { embeds: 'iframe' })).toContain('<p><a href="mailto:a@b.c"');
     expect(html(b('EMBED', { url: 'javascript:alert(1)' }), { embeds: 'iframe' })).toBe('');

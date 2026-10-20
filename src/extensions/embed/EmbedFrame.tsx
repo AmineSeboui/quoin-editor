@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useRef } from 'react';
 import type { EditorState } from '../../engine';
+import { EMBED_FRAME } from '../../engine/render/embed-provider';
 import { focusNode } from '../../blocks/void/select-node';
 import { useNodeKeys } from '../../blocks/void/use-node-keys';
 import type { ViewController } from '../../view';
@@ -10,8 +11,6 @@ import type { EmbedLabels } from './embed-labels';
 import { playerHeight } from './embed-player';
 import type { EmbedMatch } from './providers';
 import { useCoverPress } from './use-cover-press';
-
-const SANDBOX = 'allow-scripts allow-same-origin allow-presentation allow-popups';
 
 type EmbedFrameProps = {
   blockId: string;
@@ -49,9 +48,9 @@ export function EmbedFrame({ blockId, controller, match, labels, readOnly }: Emb
         ref={frame}
         src={match.src}
         title={labels.frameTitle(match.provider)}
-        sandbox={SANDBOX}
-        loading="lazy"
-        referrerPolicy="strict-origin-when-cross-origin"
+        sandbox={EMBED_FRAME.sandbox}
+        loading={EMBED_FRAME.loading}
+        referrerPolicy={EMBED_FRAME.referrerpolicy}
         tabIndex={readOnly ? undefined : -1}
       />
       {!readOnly && (!selected || cover.pressing) && (

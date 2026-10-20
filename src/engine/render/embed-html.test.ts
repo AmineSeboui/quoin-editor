@@ -2,10 +2,11 @@ import { describe, expect, it } from 'vitest';
 import type { QuoinBlock } from '../model/quoin-block';
 import { toHTML, type HTMLOptions } from './to-html';
 
-const SANDBOX = 'sandbox="allow-scripts allow-same-origin allow-presentation"';
+const SANDBOX = 'sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"';
+const FRAME_ATTRS = `${SANDBOX} loading="lazy" referrerpolicy="strict-origin-when-cross-origin"`;
 const embed = (url: string, provider = ''): QuoinBlock => ({ id: 'e', type: 'EMBED', data: { url, provider } });
 const framed = (url: string, options: HTMLOptions = {}) => toHTML([embed(url)], { embeds: 'iframe', ...options });
-const frame = (src: string) => `<iframe src="${src}" ${SANDBOX} loading="lazy"></iframe>`;
+const frame = (src: string) => `<iframe src="${src}" ${FRAME_ATTRS}></iframe>`;
 const link = (href: string) => `<p><a href="${href}" rel="noopener noreferrer">${href}</a></p>`;
 
 describe('embed providers', () => {
@@ -94,16 +95,17 @@ describe('embed providers', () => {
     }
   });
 
-  it('writes the sandbox only on a framed provider', () => {
-    expect(framed('https://youtu.be/dQw4w9WgXcQ')).toContain(SANDBOX);
+  it('writes the sandbox and the referrer policy only on a framed provider', () => {
+    expect(framed('https://youtu.be/dQw4w9WgXcQ')).toContain(FRAME_ATTRS);
     expect(framed('https://evil.example/x')).not.toContain('sandbox');
+    expect(framed('https://evil.example/x')).not.toContain('referrerpolicy');
   });
 
   it('indents a framed embed', () => {
     const block: QuoinBlock = { ...embed('https://youtu.be/dQw4w9WgXcQ'), indent: 2 };
     expect(toHTML([block], { embeds: 'iframe' })).toBe(
       '<iframe src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ" ' +
-        `${SANDBOX} loading="lazy" data-indent="2"></iframe>`,
+        `${FRAME_ATTRS} data-indent="2"></iframe>`,
     );
   });
 });

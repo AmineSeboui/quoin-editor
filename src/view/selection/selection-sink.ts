@@ -4,10 +4,14 @@ import { inlinePlainText } from '../../engine/render/block-plain-text';
 import type { ViewController } from '../controller/view-controller';
 import { isCrossSelection } from './selection-decorations';
 
+/** Whether the selection is of whole blocks, a range of them or one selected as a node, which typing never replaces. */
+export const wholeBlocks = (selection: Selection | null): boolean =>
+  selection?.kind === 'blocks' || selection?.kind === 'node';
+
 // Firefox and Safari fire copy and cut only for a selection they can see, so a selection no host holds, across hosts or
 // of whole blocks, is held by the sink as text that is selected natively.
 export function heldBySink(selection: Selection | null): boolean {
-  return selection?.kind === 'blocks' || isCrossSelection(selection);
+  return wholeBlocks(selection) || isCrossSelection(selection);
 }
 
 // Blocks with no text, such as a divider, would leave the sink selecting nothing and so firing no clipboard event.

@@ -109,7 +109,7 @@ test('a divider is node-selected by a click', async ({ page }) => {
   await openEditor(page, 'text');
   await page.getByRole('separator').click();
   await expect(shell(page, 'd')).toHaveAttribute('data-selected', 'true');
-  await expect(shell(page, 'd')).toBeFocused();
+  await expect(page.getByRole('textbox', { name: 'Selected content' })).toBeFocused();
 });
 
 test('the text blocks have no accessibility violations, with a toggle open or closed', async ({ page }) => {

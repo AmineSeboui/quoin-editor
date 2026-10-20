@@ -24,14 +24,14 @@ function mount(blocks: QuoinBlock[]) {
 }
 
 describe('EditorView tab stop', () => {
-  it('keeps one tab stop: the host of the caret, the shell a node selection focuses, or the sink for a block range', () => {
+  it('keeps one tab stop: the host of the caret, or the sink for a node selection or a block range', () => {
     const { container, select, tabStops } = mount([md('a', 'one'), { id: 'd', type: 'DIVIDER', data: {} }, md('c', 'three')]);
     expect(tabStops()).toEqual(['host a']);
     expect(hostOf(container, 'c')).toHaveAttribute('tabindex', '-1');
     select(textSelection({ block: 'c', region: 'text', offset: 1 }));
     expect(tabStops()).toEqual(['host c']);
     select(nodeSelection('d'));
-    expect(tabStops()).toEqual(['d']);
+    expect(tabStops()).toEqual(['sink']);
     select(blockRangeSelection('a', 'c'));
     expect(tabStops()).toEqual(['sink']);
     expect(hostOf(container, 'c')).toHaveAttribute('tabindex', '-1');

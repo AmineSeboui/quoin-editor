@@ -70,12 +70,12 @@ describe('VoidBlock', () => {
   });
 
   it('returns to the preview on Escape and leaves the block node-selected with focus', () => {
-    const { press, selection, shell } = openBookmark();
+    const { press, selection, sink } = openBookmark();
     press('Escape', urlField()!);
     expect(urlField()).toBeNull();
     expect(screen.getByText('Link to quoin.dev')).toBeInTheDocument();
     expect(selection()).toEqual(nodeSelection('b'));
-    expect(document.activeElement).toBe(shell('b'));
+    expect(document.activeElement).toBe(sink());
   });
 
   it('renders the editor of an alwaysEditing block permanently', () => {

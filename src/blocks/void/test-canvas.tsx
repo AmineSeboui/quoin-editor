@@ -89,6 +89,7 @@ export function mountCanvas(initial: QuoinBlock[], props: Props = {}) {
   const { container } = render(<Host />);
   const handle = () => ref.current!;
   const shell = (id: string) => container.querySelector<HTMLElement>(`[data-block-id="${id}"]`)!;
+  const sink = () => container.querySelector<HTMLElement>('[data-quoin-sink]')!;
   const nodeSelect = (id: string) =>
     act(() => {
       const { controller } = handle();
@@ -99,5 +100,5 @@ export function mountCanvas(initial: QuoinBlock[], props: Props = {}) {
     act(() => void fireEvent.keyDown(target, { key }));
   const selection = () => handle().editor.state.selection;
   const last = () => changes[changes.length - 1];
-  return { changes, container, handle, shell, nodeSelect, press, selection, last };
+  return { changes, container, handle, shell, sink, nodeSelect, press, selection, last };
 }

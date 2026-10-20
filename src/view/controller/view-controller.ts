@@ -201,16 +201,16 @@ export class ViewController {
 
   // While an IME composes, the composing host's offset map is stale and moving the DOM selection would cancel the
   // composition, so the selection is left alone in both directions. A selection across hosts or of whole blocks has no
-  // native form in the hosts and is held by the sink, and where no sink is drawn a caret left behind in a host would be
-  // read back on the next key, so a block range empties the native selection.
+  // native form in the hosts and is held by the sink. Where no sink is drawn, a node selection falls back to its shell,
+  // and a caret left behind in a host would be read back on the next key, so a block range empties the native selection.
   syncSelectionToDom(): void {
     const doc = this.ownerDocument();
     const domSelection = doc?.getSelection();
     if (this.composingKey !== null || !doc || !domSelection || !ownsFocus(this, doc)) return;
     const before = selectionPoints(domSelection);
     const { selection } = this.editor.state;
-    if (selection?.kind === 'blocks' && this.sink === null) domSelection.removeAllRanges();
-    else if (heldBySink(selection)) focusSink(this);
+    if (heldBySink(selection) && this.sink !== null) focusSink(this);
+    else if (selection?.kind === 'blocks') domSelection.removeAllRanges();
     else writeSelection(this.registry, selection, domSelection, (id) => this.blockElement(id));
     const after = selectionPoints(domSelection);
     if (!samePoints(before, after)) this.binding?.selectionSync.suppressNext();

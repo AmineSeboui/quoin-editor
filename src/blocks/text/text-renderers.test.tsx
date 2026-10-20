@@ -187,11 +187,11 @@ describe('a divider in the canvas', () => {
     expect(separator.closest('[contenteditable="false"]')).not.toBeNull();
   });
 
-  it('is node-selected and focused by a click', () => {
-    const { selection, shell } = mountCanvas([md('a', 'above'), divider('d'), md('b', 'below')]);
+  it('is node-selected by a click, which focuses the sink holding it', () => {
+    const { selection, sink } = mountCanvas([md('a', 'above'), divider('d'), md('b', 'below')]);
     act(() => screen.getByRole('separator').click());
     expect(selection()).toEqual(nodeSelection('d'));
-    expect(shell('d')).toHaveFocus();
+    expect(sink()).toHaveFocus();
   });
 });
 

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { BlockCanvas, coreBlocks, type QuoinBlock, type UploadFn } from 'quoin-editor';
 import { bookmarkDemo } from './bookmark-demo';
+import { fixtureDataUrl } from './fixture-png';
 import { noteDemo } from './note-demo';
 
 const blockTypes = [...coreBlocks, bookmarkDemo, noteDemo];
@@ -17,6 +18,8 @@ const upload: UploadFn | undefined =
           const stored = { storageKey: `key-${file.name}`, filename: file.name, size: file.size };
           setTimeout(() => resolve(stored), Number(UPLOAD_DELAY));
         });
+
+const resolveAssetUrl = (storageKey: string) => (storageKey === 'fixture.png' ? fixtureDataUrl : storageKey);
 
 const docs: Record<string, QuoinBlock[]> = {
   empty: [],
@@ -69,6 +72,12 @@ const docs: Record<string, QuoinBlock[]> = {
     { id: 'img', type: 'IMAGE', data: { storageKey: '', alt: '' } },
     { id: 'q', type: 'MARKDOWN', data: { markdown: 'Below media' } },
   ],
+  image: [
+    { id: 'p', type: 'MARKDOWN', data: { markdown: 'Above the image' } },
+    { id: 'img', type: 'IMAGE', data: { storageKey: 'fixture.png', alt: 'A red square' } },
+    { id: 'd', type: 'DIVIDER', data: {} },
+    { id: 'q', type: 'MARKDOWN', data: { markdown: 'Below the image' } },
+  ],
   closed: [
     { id: 't', type: 'TOGGLE', data: { markdown: 'Details', open: false } },
     { id: 'tc', type: 'MARKDOWN', data: { markdown: 'Hidden detail' }, indent: 1 },
@@ -105,6 +114,7 @@ export function Harness({ doc }: { doc: string }) {
         blockTypes={blockTypes}
         readOnly={READ_ONLY}
         upload={upload}
+        resolveAssetUrl={resolveAssetUrl}
         onChange={(next) => {
           window.__quoin.changes += 1;
           setBlocks(next);

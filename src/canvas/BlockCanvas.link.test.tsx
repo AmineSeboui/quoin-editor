@@ -65,13 +65,13 @@ describe('a link to a block', () => {
   });
 
   it('follows the hash to another block, node-selecting a block without text', () => {
-    const { selection, shell } = mountCanvas([paragraph('a', 'one'), bookmarkBlock('bm', 'quoin.dev')]);
+    const { selection, sink } = mountCanvas([paragraph('a', 'one'), bookmarkBlock('bm', 'quoin.dev')]);
     act(() => {
       history.replaceState(null, '', '#block-bm');
       window.dispatchEvent(new HashChangeEvent('hashchange'));
     });
     expect(selection()).toEqual(nodeSelection('bm'));
-    expect(shell('bm')).toHaveFocus();
+    expect(sink()).toHaveFocus();
   });
 
   it('ignores a hash naming no block of this canvas', () => {

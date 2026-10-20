@@ -40,12 +40,12 @@ const urlField = () => screen.queryByRole('textbox', { name: 'Bookmark URL' });
 const caretInA = textSelection({ block: 'a', region: 'text', offset: 0 });
 
 describe('VoidBlock under the pointer', () => {
-  it('node-selects the block when its preview is clicked, and focuses its shell', () => {
-    const { handle, selection, shell } = mountCanvas(doc);
+  it('node-selects the block when its preview is clicked, and holds it in the sink with focus', () => {
+    const { handle, selection, sink } = mountCanvas(doc);
     act(() => handle().focus({ block: 'a', region: 'text', offset: 0 }));
     fireEvent.click(screen.getByText('Link to quoin.dev'));
     expect(selection()).toEqual(nodeSelection('b'));
-    expect(document.activeElement).toBe(shell('b'));
+    expect(document.activeElement).toBe(sink());
     expect(urlField()).toBeNull();
   });
 

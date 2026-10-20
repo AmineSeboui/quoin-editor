@@ -77,7 +77,6 @@ describe('a press on a block that holds no caret', () => {
     fire(document, 'pointerup', { button: 0, clientX: 10, clientY: 10 });
     expect(controller.editor.state.selection).toEqual(nodeSelection('d'));
     expect(shell('d')).toHaveAttribute('data-selected', 'true');
-    expect(document.activeElement).toBe(shell('d'));
   });
 
   it('leaves a Shift press, and a press beside the host of a block that holds a caret, to the browser', () => {

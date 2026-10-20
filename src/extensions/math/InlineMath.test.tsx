@@ -78,10 +78,22 @@ describe('an inline math formula', () => {
     expect(canvas.markdown('p')).toBe('Area $x^2$ here');
   });
 
-  it('opens on Enter with the caret right after it, and discards the edit on Escape', async () => {
+  it('leaves Enter with the caret right after it to split the line', () => {
+    const canvas = lineWithFormula();
+    canvas.caret('p', 6);
+    canvas.key('Enter');
+    expect(canvas.popover()).toBeNull();
+    expect(canvas.last().map((block) => block.type)).toEqual(['MARKDOWN', 'MARKDOWN', 'MARKDOWN']);
+    expect(canvas.last()[0].data.markdown).toBe('Area $x^2$');
+  });
+
+  it('opens on Enter while a selection covers it exactly, and discards the edit on Escape', async () => {
     const user = userEvent.setup();
     const canvas = lineWithFormula();
     canvas.caret('p', 6);
+    const { controller } = canvas.handle();
+    const over = textSelection({ block: 'p', region: 'text', offset: 6 }, { block: 'p', region: 'text', offset: 5 });
+    act(() => controller.dispatch(controller.editor.createTransaction().setSelection(over)));
     canvas.key('Enter');
     expect(canvas.field()).toHaveValue('x^2');
     await user.type(canvas.field()!, 'zz{Escape}');
@@ -89,6 +101,13 @@ describe('an inline math formula', () => {
     expect(canvas.changes).toHaveLength(0);
     expect(canvas.selection()).toEqual(caretAt(6));
     expect(canvas.host('p')).toHaveFocus();
+  });
+
+  it('extends the selection on a Shift+click rather than opening', () => {
+    const canvas = lineWithFormula();
+    canvas.caret('p', 2);
+    act(() => void fireEvent.click(canvas.formula(), { shiftKey: true }));
+    expect(canvas.popover()).toBeNull();
   });
 
   it('is selected and highlighted by a first Backspace, opens on Enter then, and goes with a second Backspace', () => {

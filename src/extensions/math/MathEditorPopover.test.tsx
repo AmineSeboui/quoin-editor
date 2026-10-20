@@ -90,9 +90,10 @@ describe('the math editor and its keys', () => {
     expect(changes).toHaveLength(0);
   });
 
-  it('opens nothing on Enter after a formula while an input method composes', () => {
+  it('opens nothing on Enter on a selected formula while an input method composes', () => {
     const canvas = mountMath([paragraph('p', 'Area $x$')]);
     canvas.caret('p', 6);
+    canvas.key('Backspace');
     canvas.key('Enter', { isComposing: true });
     expect(field()).toBeNull();
   });

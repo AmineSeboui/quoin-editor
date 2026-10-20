@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { domMapOf, type KeyInterceptor, type ViewController } from '../../view';
 import { isComposingKey } from '../../view/input/keydown';
-import { atomBeforeCaret, atomPlaceAt, selectedAtom, type AtomPlace } from '../atoms/atom-place';
+import { atomPlaceAt, selectedAtom, type AtomPlace } from '../atoms/atom-place';
 import { MATH_ATOMS } from './math-feature';
 import { atomTarget, openMath } from './math-target';
 
@@ -21,7 +21,7 @@ function clickedFormula(controller: ViewController, target: EventTarget | null):
 
 /**
  * Opens the math editor on a formula in a line of an editable canvas: on a click on it, and on Enter while it is
- * selected or the caret is right after it.
+ * selected. A Shift+click extends the selection instead.
  */
 export function useMathAtomOpening(controller: ViewController, editable: boolean): void {
   useEffect(() => {
@@ -29,15 +29,14 @@ export function useMathAtomOpening(controller: ViewController, editable: boolean
     if (!editable || root === null) return;
     const intercept: KeyInterceptor = (event) => {
       if (!plainEnter(event) || isComposingKey(controller, event)) return false;
-      const { state } = controller.editor;
-      const place = selectedAtom(state, MATH_ATOMS) ?? atomBeforeCaret(state, MATH_ATOMS);
+      const place = selectedAtom(controller.editor.state, MATH_ATOMS);
       if (place === null) return false;
       event.preventDefault();
       openMath(controller, atomTarget(place));
       return true;
     };
     const onClick = (event: MouseEvent) => {
-      const place = clickedFormula(controller, event.target);
+      const place = event.shiftKey ? null : clickedFormula(controller, event.target);
       if (place !== null) openMath(controller, atomTarget(place));
     };
     controller.keyInterceptors.add(intercept);

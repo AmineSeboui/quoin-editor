@@ -44,6 +44,17 @@ test('type inline math and edit it', async ({ page }) => {
   await expect.poll(async () => (await blocks(page))[0].data.markdown).toBe('Area $y^3$!');
 });
 
+test('Enter right after a formula typed at the end of a line goes on in a new line', async ({ page }) => {
+  await openEditor(page, 'empty', 'math=1');
+  await caretIn(page);
+  await page.keyboard.type('Area $x$');
+  await expect(formula(page)).toHaveCount(1);
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('next');
+  await expect(popover(page)).toHaveCount(0);
+  await expect.poll(async () => (await blocks(page)).map((block) => block.data.markdown)).toEqual(['Area $x$', 'next']);
+});
+
 test('a price typed with dollars stays text', async ({ page }) => {
   await openEditor(page, 'empty', 'math=1');
   const host = await caretIn(page);

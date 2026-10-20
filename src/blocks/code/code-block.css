@@ -33,6 +33,13 @@
   line-height: 1.5rem;
   white-space: pre;
   tab-size: 2;
+  letter-spacing: normal;
+  word-spacing: normal;
+  font-variant-ligatures: none;
+  font-feature-settings: normal;
+  text-transform: none;
+  text-indent: 0;
+  text-align: left;
 }
 
 .quoin .quoin-code-input {

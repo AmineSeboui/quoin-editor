@@ -44,6 +44,32 @@ test('the code is drawn exactly under the text area, and a click lands the caret
   await expect.poll(() => codeOf(page)).toBe('Xlet a = 1;\nlet b = 2;');
 });
 
+const SPACING = [
+  'letter-spacing',
+  'word-spacing',
+  'font-variant-ligatures',
+  'font-feature-settings',
+  'text-transform',
+  'tab-size',
+  'text-indent',
+  'text-align',
+];
+
+test('the text area keeps the spacing of the drawn code whatever the host sets on the editor', async ({ page }) => {
+  await openEditor(page, 'code');
+  await page.addStyleTag({
+    content: `.quoin { letter-spacing: .06em; word-spacing: 4px; font-variant-ligatures: none;
+      font-feature-settings: "tnum"; text-transform: uppercase; tab-size: 8; text-indent: 2em; text-align: right; }`,
+  });
+  const layers = page.locator('[data-block-id="k"]').locator('pre, textarea');
+  const spacing = await layers.evaluateAll(
+    (elements, names) => elements.map((element) => names.map((name) => getComputedStyle(element).getPropertyValue(name))),
+    SPACING,
+  );
+  expect(spacing[0]).toEqual(spacing[1]);
+  expect(spacing[0]).toEqual(['normal', '0px', 'none', 'normal', 'none', '2', '0px', 'left']);
+});
+
 test('ArrowDown on the last line goes on in the next block, ArrowUp on the first line in the previous one', async ({ page }) => {
   await openEditor(page, 'code');
   await caretAt(page, 'end');

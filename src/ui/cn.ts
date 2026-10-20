@@ -1,8 +1,8 @@
 import { clsx, type ClassValue } from 'clsx';
 
 const DISPLAY = new Set(['block', 'inline', 'flex', 'inline-flex', 'grid', 'contents', 'hidden']);
-const FONT_SIZE = /^text-(xs|sm|base|lg|\d?xl)$/;
-const TEXT_NOT_COLOR = /^text-(left|center|right|justify|start|end|wrap|nowrap|balance|pretty|ellipsis|clip)$/;
+const FONT_SIZE = /^text-(xs|sm|base|lg|\d?xl)(\/.+)?$/;
+const TEXT_NOT_COLOR = /^text-(left|center|right|justify|start|end|wrap|nowrap|balance|pretty|ellipsis|clip|shadow-.+|opacity-.+|[[(].*)$/;
 const SCALED = /^(p|px|py|ps|pe|pt|pb|pl|pr|w|h|size|min-w|max-w|min-h|max-h|gap-x|gap-y|gap|cursor|overflow-x|overflow-y)-/;
 const PADDING_SIDES: Readonly<Record<string, readonly string[]>> = {
   p: ['px', 'py', 'ps', 'pe', 'pt', 'pr', 'pb', 'pl'],

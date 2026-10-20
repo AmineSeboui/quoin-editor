@@ -20,6 +20,7 @@ describe('cn', () => {
     ['cursor-pointer cursor-grab', 'cursor-grab'],
     ['max-h-(--radix-popper-available-height) overflow-y-auto max-h-64 overflow-y-hidden', 'max-h-64 overflow-y-hidden'],
     ["[&_svg:not([class*='size-'])]:size-4 size-6 [&_svg:not([class*='size-'])]:size-3", "size-6 [&_svg:not([class*='size-'])]:size-3"],
+    ['text-sm text-base/7', 'text-base/7'],
   ])('lets a later utility replace an earlier one setting the same thing: %s', (input, merged) => {
     expect(cn(input)).toBe(merged);
   });
@@ -42,6 +43,9 @@ describe('cn', () => {
     'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-[var(--quoin-ring)]',
     'text-center text-muted-foreground sm:text-left',
     'flex flex-col overflow-x-hidden overflow-y-auto',
+    'text-[15px] text-gray-700',
+    'text-base/7 text-gray-600',
+    'text-primary text-shadow-md',
   ])('keeps utilities that set different things, or the same thing under different variants: %s', (input) => {
     expect(cn(input)).toBe(input);
   });

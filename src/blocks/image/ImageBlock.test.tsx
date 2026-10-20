@@ -78,6 +78,16 @@ describe('the image block', () => {
     expect(selection()).toEqual(textSelection({ block: last()[1].id, region: 'text', offset: 0 }));
   });
 
+  it('leaves Enter to a menu open in its caption, which takes the query out of the caption', () => {
+    const { handle, last } = mountCanvas([image({ caption: 'Cat' })], { resolveAssetUrl });
+    act(() => handle().focus({ block: 'i', region: 'caption', offset: 3 }));
+    type(' /divider');
+    expect(screen.getByRole('listbox', { name: 'Commands' })).toBeInTheDocument();
+    fireEvent.keyDown(document.activeElement!, { key: 'Enter' });
+    expect(last().map((block) => block.type)).toEqual(['IMAGE', 'DIVIDER', 'MARKDOWN']);
+    expect(last()[0].data).toEqual({ storageKey: 'cat.png', alt: 'A cat', caption: 'Cat' });
+  });
+
   it('is selected as a whole by the arrows and by a click on its picture', () => {
     const { handle, press, selection, sink } = mountCanvas([paragraph('a', 'above'), image(), paragraph('b', 'below')], {
       resolveAssetUrl,

@@ -25,6 +25,9 @@ const typed = (event: KeyboardEvent): boolean => !event.ctrlKey && !event.metaKe
 const plainEnter = (event: KeyboardEvent): boolean =>
   event.key === 'Enter' && !event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey;
 
+// A suggestion menu open on a host makes it the combobox of its list, and Enter is the menu's.
+const menuOpenOn = (host: HTMLElement | undefined): boolean => host?.getAttribute('aria-expanded') === 'true';
+
 /**
  * Enter on the selected image, or a menu that inserts one, puts the caret at the end of its caption, or focus on the
  * upload button of an image with no picture yet. A key typed on the selected image goes into its caption rather than
@@ -51,7 +54,10 @@ export function useImageKeys(
     const intercept: KeyInterceptor = (event) => {
       const { selection } = controller.editor.state;
       const selected = selection?.kind === 'node' && selection.block === blockId;
-      const inCaption = selection?.kind === 'text' && selection.head.block === blockId;
+      const inCaption =
+        selection?.kind === 'text' &&
+        selection.head.block === blockId &&
+        !menuOpenOn(controller.registry.get(blockId, 'caption'));
       if (selected && typed(event)) {
         if (picture) typeIntoCaption(controller, blockId, event.key);
       } else if (inCaption && plainEnter(event)) {

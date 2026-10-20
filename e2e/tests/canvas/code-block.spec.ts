@@ -184,6 +184,15 @@ test('a language typed in the picker is kept when the writer clicks back into th
   await expect.poll(async () => (await blocks(page))[1].data.language).toBe('python');
 });
 
+test('a language the pointer only passed over is not stored when the writer clicks back into the code', async ({ page }) => {
+  await openEditor(page, 'code');
+  await page.getByRole('combobox', { name: 'Language' }).click();
+  await page.getByRole('option', { name: 'CSS', exact: true }).hover();
+  await area(page).click();
+  await expect(area(page)).toBeFocused();
+  expect((await blocks(page))[1].data.language).toBe('ts');
+});
+
 test('the copy button puts the code on the clipboard', async ({ page, context, browserName }) => {
   test.skip(browserName !== 'chromium', 'only Chromium lets a page read the clipboard back');
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);

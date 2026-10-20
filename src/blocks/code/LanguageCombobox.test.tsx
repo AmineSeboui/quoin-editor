@@ -82,6 +82,36 @@ describe('the language combobox', () => {
     expect(field()).toHaveValue('cobol');
   });
 
+  it('keeps the language when focus leaves after the pointer only passed over an option', () => {
+    const { changes } = open('ts');
+    fireEvent.pointerMove(options().find((option) => option.textContent === 'CSS')!);
+    expect(field()).toHaveAttribute('aria-activedescendant');
+    act(() => field().blur());
+    expect(changes).toEqual([]);
+  });
+
+  it('stores what was typed, not the option the pointer passed over, when focus leaves', () => {
+    const { last } = open('ts');
+    fireEvent.change(field(), { target: { value: 'c' } });
+    fireEvent.pointerMove(options().find((option) => option.textContent === 'CSS')!);
+    act(() => field().blur());
+    expect(last()[0].data).toEqual({ language: 'c', code: 'x' });
+  });
+
+  it('stores no language for the name of plain text typed in, as picking it does', () => {
+    const { last } = open('ts');
+    fireEvent.change(field(), { target: { value: ' plain TEXT ' } });
+    fireEvent.keyDown(field(), { key: 'Enter' });
+    expect(last()[0].data).toEqual({ language: '', code: 'x' });
+    act(() => field().focus());
+    fireEvent.change(field(), { target: { value: 'go' } });
+    act(() => field().blur());
+    act(() => field().focus());
+    fireEvent.change(field(), { target: { value: 'Plain text' } });
+    act(() => field().blur());
+    expect(last()[0].data).toEqual({ language: '', code: 'x' });
+  });
+
   it('stores a listed name typed in full as its id, on Enter', () => {
     const { last } = open('ts');
     fireEvent.change(field(), { target: { value: 'Go' } });

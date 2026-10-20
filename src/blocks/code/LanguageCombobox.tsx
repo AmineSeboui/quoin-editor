@@ -29,7 +29,8 @@ type LanguageComboboxProps = {
 
 /**
  * The language of a code block: a listed language picked from a list it filters as it is typed in, or any text typed.
- * Enter, a pick or leaving the field stores it, and Escape keeps the language the block had.
+ * Enter or a pick stores the active option or the text, leaving the field stores only the text typed, and Escape keeps
+ * the language the block had.
  */
 export function LanguageCombobox({ blockId, controller, language, field, onDone }: LanguageComboboxProps) {
   const labels = useLabels();
@@ -56,11 +57,14 @@ export function LanguageCombobox({ blockId, controller, language, field, onDone 
     if (value !== language) setBlockAttrs(controller, blockId, { language: value });
     close();
   };
+  const storeTyped = () => {
+    if (draft === null || draft === shown) close();
+    else choose(draft.trim().toLowerCase() === labels.plainText.toLowerCase() ? '' : languageId(draft));
+  };
   const commit = () => {
     const option = options[active];
     if (option !== undefined) choose(option.id);
-    else if (draft !== null && draft !== shown) choose(languageId(draft));
-    else close();
+    else storeTyped();
   };
   // Handing focus back blurs the field, whose handler still holds the draft until the next render.
   const finish = (settle: () => void) => {
@@ -103,7 +107,7 @@ export function LanguageCombobox({ blockId, controller, language, field, onDone 
             event.currentTarget.select();
           }}
           onBlur={() => {
-            if (!settled.current) commit();
+            if (!settled.current) storeTyped();
           }}
           onMouseDown={(event) => {
             focusedByPress.current = event.currentTarget.ownerDocument.activeElement !== event.currentTarget;

@@ -11,12 +11,11 @@ import { chooseMention } from './choose-mention';
 import type { MentionResult, MentionSearch } from './mention-feature';
 import { mentionKey } from './mention-key';
 import type { MentionLabels } from './mention-labels';
+import { resultKey } from './mention-results';
 import { createMentionSource } from './mention-source';
 import { MentionItem } from './MentionItem';
 
 type Props = { controller: ViewController; labels: MentionLabels; search: MentionSearch };
-
-const itemKey = ({ id, kind }: MentionResult) => JSON.stringify([kind ?? null, id]);
 
 const renderItem = (result: MentionResult) => <MentionItem result={result} />;
 
@@ -48,7 +47,7 @@ export function MentionMenu({ controller, labels, search }: Props) {
       controller={controller}
       pluginKey={mentionKey}
       items={mentions.source}
-      itemKey={itemKey}
+      itemKey={resultKey}
       renderItem={renderItem}
       onSelect={choose}
       label={labels.mentionMenu}

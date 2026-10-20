@@ -77,4 +77,37 @@ describe('the mention source', () => {
     await vi.advanceTimersByTimeAsync(120);
     expect(await settled(none)).toEqual([]);
   });
+
+  it('rebuilds each result, keeping its kind, description and avatar only when they are strings', async () => {
+    const junk = sourceWith(async () => [
+      { id: '1', label: 'Ada', kind: 7, description: { text: 'Mathematician' }, avatarUrl: ['https://a.test/x.png'] },
+      { id: '2', label: 'Bob', kind: 'user', description: 'Builder', avatarUrl: 'https://a.test/b.png', extra: true },
+    ]);
+    const answer = junk.source('a');
+    await vi.advanceTimersByTimeAsync(120);
+    expect(await settled(answer)).toEqual([
+      { id: '1', label: 'Ada' },
+      { id: '2', label: 'Bob', kind: 'user', description: 'Builder', avatarUrl: 'https://a.test/b.png' },
+    ]);
+  });
+
+  it('drops a result with a blank label, and a second one of the same kind and id', async () => {
+    const repeated = sourceWith(async () => [
+      { id: '1', label: '  ' },
+      ada,
+      { ...ada, label: 'Ada again' },
+      { ...ada, kind: 'user' },
+    ]);
+    const answer = repeated.source('a');
+    await vi.advanceTimersByTimeAsync(120);
+    expect(await settled(answer)).toEqual([ada, { ...ada, kind: 'user' }]);
+  });
+
+  it('keeps the first 50 results of a long answer', async () => {
+    const many = Array.from({ length: 80 }, (_, index) => ({ id: String(index), label: `Person ${index}` }));
+    const long = sourceWith(async () => many);
+    const answer = long.source('p');
+    await vi.advanceTimersByTimeAsync(120);
+    expect(await settled(answer)).toEqual(many.slice(0, 50));
+  });
 });

@@ -215,6 +215,14 @@ describe('the mention menu', () => {
     expect(third.querySelector('img')).toBeNull();
   });
 
+  it('draws and inserts a result whose kind and description are not text, leaving them out', async () => {
+    const junk = { id: '42', label: 'Ada', kind: 7, description: { text: 'Mathematician' } };
+    const { canvas } = await answered([junk as unknown as MentionResult]);
+    expect(optionTexts()).toEqual(['Ada']);
+    canvas.key('Enter');
+    expect(canvas.markdown('p')).toBe('Ask [@Ada](mention:42)&#32;');
+  });
+
   it('has no accessibility violations while it searches, lists results and finds none', async () => {
     const { canvas, last } = openOn('Ask');
     const scan = async () => {

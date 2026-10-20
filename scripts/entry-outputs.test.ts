@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import tsupConfig from '../tsup.config';
 import { directiveFiles, packageExports, specifier, tsupEntries } from './entry-outputs.mjs';
-import { featureEntries, incrementalBudget, packageEntries } from './package-entries.mjs';
+import { featureEntries, incrementalBudget, lazyChunks, packageEntries } from './package-entries.mjs';
 
 const entries = [
   { name: 'index', source: 'src/index.ts', client: true, total: 1_000 },
@@ -48,8 +48,17 @@ describe('the package entry list', () => {
     expect(manifest.exports).toEqual(packageExports(packageEntries));
   });
 
-  it('drives the entries tsup builds', () => {
-    expect(tsupConfig).toMatchObject({ entry: tsupEntries(packageEntries) });
+  it('drives the entries tsup builds, with the chunks loaded on demand, and the declarations of the entries only', () => {
+    expect(tsupConfig).toMatchObject({
+      entry: tsupEntries([...packageEntries, ...lazyChunks]),
+      dts: { entry: tsupEntries(packageEntries) },
+    });
+  });
+
+  it('exports none of the chunks loaded on demand, which build under names no entry has', () => {
+    const names = new Set(packageEntries.map(({ name }) => name));
+    expect(lazyChunks.filter(({ name }) => names.has(name) || `./${name}` in manifest.exports)).toEqual([]);
+    expect(lazyChunks.every(({ total }) => Number.isInteger(total) && total > 0)).toBe(true);
   });
 
   it('keeps the absolute budgets of the main, headless and engine entries', () => {

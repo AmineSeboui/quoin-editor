@@ -29,6 +29,14 @@ export const featureEntries = [
   { name: 'mention', source: 'src/mention.ts', client: true, added: incrementalBudget(2_837) },
 ];
 
+/**
+ * Chunks an entry loads on demand with a dynamic import, built under a name of their own so they can be held to a
+ * budget, and published with the package but exported from none of its entries. `total` is the gzip budget of the chunk
+ * on its own, which the entry that loads it leaves out of its measure.
+ * @type {{ name: string, source: string, total: number }[]}
+ */
+export const lazyChunks = [];
+
 /** @type {PackageEntry[]} */
 export const packageEntries = [
   { name: MAIN_ENTRY, source: 'src/index.ts', client: true, total: 155_000 },

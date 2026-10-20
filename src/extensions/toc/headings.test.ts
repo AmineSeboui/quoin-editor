@@ -5,7 +5,7 @@ const md = (id: string, markdown: string): QuoinBlock => ({ id, type: 'MARKDOWN'
 
 function headingsOf(blocks: QuoinBlock[]) {
   const { doc, schema } = createEditor({ blocks }).state;
-  return headings(doc, schema);
+  return headings(doc, { schema });
 }
 
 describe('headings', () => {
@@ -31,6 +31,12 @@ describe('headings', () => {
     const markdown = '## A **bold** _move_ by [@Ada](mention:1) with $x^2$ and [a link](https://quoin.dev)';
     const [heading] = headingsOf([md('a', markdown)]);
     expect(heading.text).toBe('A bold move by @Ada with x^2 and a link');
+  });
+
+  it('reads the core blocks and atoms without a schema, as the given schema does', () => {
+    const { doc, schema } = createEditor({ blocks: [md('a', '## By [@Ada](mention:1) with $x^2$')] }).state;
+    expect(headings(doc)).toEqual(headings(doc, { schema }));
+    expect(headings(doc)[0].text).toBe('By @Ada with x^2');
   });
 
   it('leaves out a heading with no text', () => {

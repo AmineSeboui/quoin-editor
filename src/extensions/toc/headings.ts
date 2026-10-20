@@ -1,4 +1,4 @@
-import type { EngineDoc, Schema } from '../../engine';
+import { createSchema, type EngineDoc, type Schema } from '../../engine';
 import { headingId } from '../../engine/render/headings';
 import { collectHeadings } from '../../engine/render/toc-html';
 
@@ -14,10 +14,13 @@ export type TocHeading = {
   readonly text: string;
 };
 
+let defaultSchema: Schema | undefined;
+
 /**
- * The headings of the document in order, read with the schema that knows its atoms, as `toHTML` lists them in its
- * table of contents: a heading with no text is left out.
+ * The headings of the document in order, as `toHTML` lists them in its table of contents: a heading with no text is
+ * left out. Their text is read with `schema`, the core one by default, which has to know any atom of the host's own.
  */
-export function headings(doc: EngineDoc, schema: Schema): TocHeading[] {
+export function headings(doc: EngineDoc, options: { schema?: Schema } = {}): TocHeading[] {
+  const schema = options.schema ?? (defaultSchema ??= createSchema());
   return collectHeadings(doc.blocks, schema).map((heading) => ({ ...heading, anchor: headingId(heading.blockId) }));
 }

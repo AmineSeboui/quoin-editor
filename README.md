@@ -562,13 +562,13 @@ const extensions = [
 
 Each entry links to `#block-<id>`, the fragment a copied link to the block ends with. A click on an entry, or Enter on it, puts the caret at the end of its heading and scrolls the heading into view, smoothly unless the reader prefers reduced motion; Mod+click and a middle click leave the link to the browser, which opens the page at the heading in a new tab. On an editable canvas the arrows, or a press beside the entries, select the block as a whole, Enter then moves focus to its first entry, Tab and Shift+Tab walk the entries and go back to the block past either end, and Escape goes back to the block; the entries stay out of the page's tab order. A read-only canvas keeps them in it, and a click moves focus to the heading without changing the document.
 
-`headings(doc, schema)` lists the headings the block shows, each with its `blockId`, its `anchor` in the HTML of `toHTML` (`h-<blockId>`), its `level` and its plain `text`, for a table of contents of the host's own:
+`headings(doc, { schema })` lists the headings the block shows, each with its `blockId`, its `anchor` in the HTML of `toHTML` (`h-<blockId>`), its `level` and its plain `text`, for a table of contents of the host's own. Without `schema` it reads the core blocks and atoms, as `countDoc` does:
 
 ```tsx
 import type { Editor } from 'quoin-editor';
 import { headings } from 'quoin-editor/toc';
 
-export const outline = (editor: Editor) => headings(editor.state.doc, editor.state.schema).map(({ text }) => text);
+export const outline = ({ state }: Editor) => headings(state.doc, { schema: state.schema }).map(({ text }) => text);
 ```
 
 ## Read-only

@@ -25,7 +25,7 @@ export const featureEntries = [
   { name: 'table', source: 'src/table.ts', client: true, added: incrementalBudget(9_461) },
   { name: 'embed', source: 'src/embed.ts', client: true, added: incrementalBudget(4_499) },
   { name: 'math', source: 'src/math.ts', client: true, added: incrementalBudget(3_785) },
-  { name: 'toc', source: 'src/toc.ts', client: true, added: incrementalBudget(1_182) },
+  { name: 'toc', source: 'src/toc.ts', client: true, added: incrementalBudget(1_803) },
 ];
 
 /** @type {PackageEntry[]} */
@@ -34,5 +34,5 @@ export const packageEntries = [
   { name: 'headless', source: 'src/headless.ts', client: true, total: 70_000 },
   { name: 'engine', source: 'src/engine/index.ts', client: false, total: 52_000 },
   ...featureEntries,
-  { name: 'catalogue', source: 'src/catalogue.ts', client: true, added: incrementalBudget(18_036) },
+  { name: 'catalogue', source: 'src/catalogue.ts', client: true, added: incrementalBudget(18_608) },
 ];

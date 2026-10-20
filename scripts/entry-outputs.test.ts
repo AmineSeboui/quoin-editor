@@ -72,6 +72,6 @@ describe('the package entry list', () => {
     const optIn = packageEntries.slice(3);
     expect(optIn.map(({ name }) => name)).toEqual([...featureEntries.map(({ name }) => name), 'catalogue']);
     expect(optIn.at(-1)).toMatchObject({ source: 'src/catalogue.ts', client: true });
-    expect(optIn.every(({ added }) => Number.isInteger(added) && added > 0)).toBe(true);
+    expect(optIn.every(({ added }) => Number.isInteger(added) && Number(added) > 0)).toBe(true);
   });
 });

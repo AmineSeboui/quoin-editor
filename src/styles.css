@@ -19,6 +19,7 @@
 @import "./blocks/upload/upload-area.css" layer(quoin.components);
 @import "./blocks/image/image-block.css" layer(quoin.components);
 @import "./blocks/file/file-block.css" layer(quoin.components);
+@import "./extensions/table/table-block.css" layer(quoin.components);
 @import "./ui/palette.css" layer(quoin.components);
 
 /* Tailwind's default dark: variant keys on prefers-color-scheme, while the --quoin- variables

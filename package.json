@@ -77,6 +77,16 @@
         "default": "./dist/engine.cjs"
       }
     },
+    "./table": {
+      "import": {
+        "types": "./dist/table.d.ts",
+        "default": "./dist/table.js"
+      },
+      "require": {
+        "types": "./dist/table.d.cts",
+        "default": "./dist/table.cjs"
+      }
+    },
     "./catalogue": {
       "import": {
         "types": "./dist/catalogue.d.ts",

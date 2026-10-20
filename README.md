@@ -490,6 +490,32 @@ A file block holding a file is a card: an icon for its type, chosen from the top
 
 The arrows select a card as a whole, and it is announced as "File" and the file's name. Enter on the selected card goes on in a new line under it, and a key typed on it never replaces it; on an empty file block, Enter focuses the upload button. While the card is selected, a toolbar offers a new upload in its place and Delete: Alt+F10 reaches it, the arrows walk it, Tab goes on to the Download link and Escape goes back to the card. A read-only canvas draws the card with its link in the tab order, and nothing to edit.
 
+## Opt-in features
+
+Features beyond the core blocks ship as their own entries, so a host that leaves one out never downloads it. Add a feature's extension to `extensions`, or `catalogue()` from `quoin-editor/catalogue` for all of them, each taking its options under its own name (`catalogue({ table: { labels } })`, or `false` to leave one out). Every string a feature shows or speaks comes from its own `labels` option, English by default.
+
+A block whose feature is not installed, such as a table on a canvas without `tableExtension()`, is drawn as an unsupported block. Its data is kept as it was, through edits around it, `onChange` and markdown.
+
+```tsx
+import { BlockCanvas, type QuoinBlock } from 'quoin-editor';
+import { tableExtension } from 'quoin-editor/table';
+import 'quoin-editor/styles.css';
+
+const extensions = [tableExtension({ labels: { table: 'Tableau', deleteRow: 'Supprimer la ligne' } })];
+
+export function Editor({ blocks, onChange }: { blocks: QuoinBlock[]; onChange: (next: QuoinBlock[]) => void }) {
+  return <BlockCanvas blocks={blocks} onChange={onChange} extensions={extensions} />;
+}
+```
+
+### Tables
+
+`quoin-editor/table` draws `TABLE` blocks as native tables, with a header row of column headers when the block has one, and every cell typed in place. `/table` inserts a 3 by 3 table. Tab and Shift+Tab move to the next and the previous cell, and Tab in the last cell adds a row. Enter in an empty cell of the last row adds a row, and elsewhere breaks the line. The arrows move between rows from the first and last lines of a cell. A table wider than the line scrolls inside its block, and the cell the caret moves into is brought into view.
+
+The handles of a row and of a column open menus that insert, move and delete rows and columns, align a column and turn the header row on and off. Alt+F10 from a cell reaches them, the arrows move between them, Tab goes on to the border of the column, and Escape goes back to the caret. A + on the edge between two rows or two columns inserts one there; the same inserts are in the menus. A column border is a separator: drag it, or press the arrows on it, to set the width of the column, kept in pixels in `widths`. A drag across cells selects them as a range, which Backspace and Delete empty, a key typed or text pasted replaces, and the formatting shortcuts format whole. A read-only canvas draws the table and nothing to edit.
+
+The engine commands, such as `insertTable`, `addRow` and `setColumnWidth`, and the cell selection plugin are exported from `quoin-editor/table` too.
+
 ## Read-only
 
 ```tsx
@@ -712,7 +738,11 @@ From `quoin-editor/headless`: the editing engine and its editable view, with no 
 
 From `quoin-editor/engine`: the engine alone, with no React and no `'use client'` banner.
 
-From `quoin-editor/styles.css`: the stylesheet.
+From `quoin-editor/table`: `tableExtension`, its `TableLabels` and `englishTableLabels`, and the table commands and cell selection.
+
+From `quoin-editor/catalogue`: `catalogue`, every opt-in feature at once.
+
+From `quoin-editor/styles.css`: the stylesheet, opt-in features included.
 
 ## Accessibility
 

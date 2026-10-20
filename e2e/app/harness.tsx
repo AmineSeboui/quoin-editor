@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { BlockCanvas, coreBlocks, type QuoinBlock, type UploadFn } from 'quoin-editor';
+import { tableExtension } from 'quoin-editor/table';
 import { bookmarkDemo } from './bookmark-demo';
 import { fixtureDataUrl } from './fixture-png';
 import { noteDemo } from './note-demo';
@@ -9,6 +10,7 @@ const blockTypes = [...coreBlocks, bookmarkDemo, noteDemo];
 const params = new URLSearchParams(location.search);
 const READ_ONLY = params.get('readonly') === '1';
 const UPLOAD_DELAY = params.get('upload');
+const extensions = params.get('table') === '1' ? [tableExtension()] : undefined;
 
 // Each upload is kept as an object URL under its key, so the picture of an uploaded image loads.
 const uploads = new Map<string, string>([['fixture.png', fixtureDataUrl]]);
@@ -25,8 +27,20 @@ const upload: UploadFn | undefined =
 
 const resolveAssetUrl = (storageKey: string) => uploads.get(storageKey) ?? storageKey;
 
+const grid = (rows: number, cols: number) =>
+  Array.from({ length: rows }, (_, row) => Array.from({ length: cols }, (_, col) => `r${row}c${col}`));
+
 const docs: Record<string, QuoinBlock[]> = {
   empty: [],
+  table: [
+    { id: 'p', type: 'MARKDOWN', data: { markdown: 'Above the table' } },
+    { id: 't', type: 'TABLE', data: { rows: grid(3, 3), header: true, align: [null, null, null] } },
+    { id: 'q', type: 'MARKDOWN', data: { markdown: 'Below the table' } },
+  ],
+  'wide-table': [
+    { id: 'p', type: 'MARKDOWN', data: { markdown: 'Above the table' } },
+    { id: 't', type: 'TABLE', data: { rows: grid(2, 16), header: true, align: Array(16).fill(null) } },
+  ],
   sample: [
     { id: 'a', type: 'MARKDOWN', data: { markdown: '# Title' } },
     { id: 'b', type: 'MARKDOWN', data: { markdown: 'First paragraph.' } },
@@ -123,6 +137,7 @@ export function Harness({ doc }: { doc: string }) {
         blocks={blocks}
         blockTypes={blockTypes}
         readOnly={READ_ONLY}
+        extensions={extensions}
         upload={upload}
         resolveAssetUrl={resolveAssetUrl}
         onChange={(next) => {

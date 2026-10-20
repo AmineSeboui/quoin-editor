@@ -1,0 +1,119 @@
+.quoin .quoin-table {
+  padding-block: 0.25rem;
+}
+
+/* Wider than the line, a table scrolls inside its block. The room above and before it holds the handles of its
+   columns and rows, which are drawn inside the scroller so that they scroll with it. */
+.quoin .quoin-table-scroll {
+  position: relative;
+  overflow-x: auto;
+  padding: 0.75rem 0.25rem 0.25rem 1rem;
+}
+
+.quoin .quoin-table[data-readonly] .quoin-table-scroll {
+  padding: 0;
+}
+
+.quoin .quoin-table table {
+  border-collapse: collapse;
+}
+
+.quoin .quoin-table :is(th, td) {
+  padding: 0;
+  border: 1px solid var(--quoin-border);
+  text-align: start;
+  vertical-align: top;
+}
+
+.quoin .quoin-table th {
+  background: var(--quoin-muted);
+  font-weight: 600;
+}
+
+.quoin .quoin-table :is(th, td)[data-in-range] {
+  background: var(--quoin-selection);
+}
+
+.quoin .quoin-table-text {
+  min-width: 6rem;
+  padding: 0.375rem 0.5rem;
+}
+
+.quoin .quoin-table-controls {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.quoin .quoin-table-controls :is(button, [role="separator"]) {
+  position: absolute;
+  pointer-events: auto;
+  translate: -50% -50%;
+}
+
+.quoin .quoin-table-handle,
+.quoin .quoin-table-insert {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--quoin-border);
+  border-radius: 0.25rem;
+  background: var(--quoin-background);
+  color: var(--quoin-muted-foreground);
+  cursor: pointer;
+}
+
+.quoin .quoin-table-handle[data-axis="row"] {
+  width: 1rem;
+  height: 1.5rem;
+}
+
+.quoin .quoin-table-handle[data-axis="column"] {
+  width: 1.5rem;
+  height: 1rem;
+}
+
+.quoin .quoin-table-insert {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+}
+
+.quoin .quoin-table-controls svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.quoin .quoin-table-handle:hover,
+.quoin .quoin-table-insert:hover,
+.quoin .quoin-table-handle[data-state="open"] {
+  background: var(--quoin-accent);
+  color: var(--quoin-accent-foreground);
+}
+
+.quoin .quoin-table-controls .quoin-table-resizer {
+  width: 0.5625rem;
+  translate: -50% 0;
+  cursor: col-resize;
+  touch-action: none;
+  user-select: none;
+}
+
+.quoin .quoin-table-resizer::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: calc(50% - 1px);
+  width: 2px;
+  background: var(--quoin-ring);
+  opacity: 0;
+}
+
+.quoin .quoin-table-resizer:is(:hover, :focus-visible, :active)::after {
+  opacity: 1;
+}
+
+.quoin .quoin-table-controls :is(button, [role="separator"]):focus-visible {
+  outline: 2px solid var(--quoin-ring);
+  outline-offset: 2px;
+}

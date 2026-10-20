@@ -1,6 +1,30 @@
 import { packageEntries } from '../scripts/package-entries.mjs';
 
 const PINNED: Readonly<Record<string, { load: () => Promise<object>; exports: readonly string[] }>> = {
+  table: {
+    load: () => import('./table'),
+    exports: [
+      'tableExtension',
+      'englishTableLabels',
+      'insertTable',
+      'addRow',
+      'removeRow',
+      'addColumn',
+      'removeColumn',
+      'moveRow',
+      'moveColumn',
+      'toggleHeaderRow',
+      'setColumnAlign',
+      'setColumnWidth',
+      'cellSelection',
+      'cellSelectionKey',
+      'cellSelectionPlugin',
+      'cellsInRange',
+      'selectCells',
+      'deleteCellContents',
+      'setCellsMark',
+    ],
+  },
   catalogue: { load: () => import('./catalogue'), exports: ['catalogue'] },
 };
 

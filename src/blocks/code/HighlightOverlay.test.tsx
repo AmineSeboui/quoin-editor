@@ -69,6 +69,20 @@ describe('HighlightOverlay', () => {
     warn.mockRestore();
   });
 
+  it.each([
+    ['nothing', () => undefined],
+    ['a string', () => 'let a;'],
+    ['an object', () => ({ value: 'let a;' })],
+    ['a line that is not a list', () => [null]],
+    ['a token that is not an object', () => [[null]]],
+  ])('shows plain text, and warns, when the highlighter returns %s', (_shape, wrong) => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const pre = draw('let a;', wrong as unknown as CodeHighlighter);
+    expect(pre.textContent).toBe('let a;\n');
+    expect(warn).toHaveBeenCalledOnce();
+    warn.mockRestore();
+  });
+
   it('renders the text of a token as text, never as markup', () => {
     const pre = draw('<b>x</b>', (code) => [[{ text: code, color: 'blue' }]]);
     expect(pre.querySelector('b')).toBeNull();

@@ -13,9 +13,12 @@ export type CodeHighlighter = (code: string, language: string) => CodeToken[][];
 const spelled = (lines: readonly CodeToken[][]): string =>
   lines.map((line) => line.map((token) => token.text).join('')).join('\n');
 
+// A highlighter is the host's code, typed or not, so its answer is checked rather than trusted: drawing a malformed one
+// would throw during render and take the canvas down with it.
 function tokensOf(highlight: CodeHighlighter, code: string, language: string): CodeToken[][] | null {
   try {
-    return highlight(code, language);
+    const lines: unknown = highlight(code, language);
+    return Array.isArray(lines) && spelled(lines) === code ? lines : null;
   } catch {
     return null;
   }
@@ -25,7 +28,6 @@ function tokensOf(highlight: CodeHighlighter, code: string, language: string): C
 export function highlightedLines(highlight: CodeHighlighter | undefined, code: string, language: string): CodeToken[][] | null {
   if (highlight === undefined) return null;
   const lines = tokensOf(highlight, code, language);
-  if (lines !== null && spelled(lines) === code) return lines;
-  devWarn('`highlight` failed or its tokens do not spell the code; it is drawn as plain text.');
-  return null;
+  if (lines === null) devWarn('`highlight` failed or its tokens do not spell the code; it is drawn as plain text.');
+  return lines;
 }

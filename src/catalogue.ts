@@ -5,10 +5,17 @@ import { createCatalogue, type CatalogueOptionsOf } from './extensions/create-ca
 // Through each feature's entry, which reaches the whole main entry, for the reason src/table.ts gives.
 import { embedExtension } from './embed';
 import { mathExtension } from './math';
+import { mentionExtension } from './mention';
 import { tableExtension } from './table';
 import { tocExtension } from './toc';
 
-const features = { table: tableExtension, embed: embedExtension, math: mathExtension, toc: tocExtension };
+const features = {
+  table: tableExtension,
+  embed: embedExtension,
+  math: mathExtension,
+  toc: tocExtension,
+  mention: mentionExtension,
+};
 
 export type CatalogueOptions = CatalogueOptionsOf<typeof features>;
 

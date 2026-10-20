@@ -494,7 +494,7 @@ The arrows select a card as a whole, and it is announced as "File" and the file'
 
 Features beyond the core blocks ship as their own entries, so a host that leaves one out never downloads it. Add a feature's extension to `extensions`, or `catalogue()` from `quoin-editor/catalogue` for all of them, each taking its options under its own name (`catalogue({ table: { labels } })`, or `false` to leave one out). Every string a feature shows or speaks comes from its own `labels` option, English by default, the name its blocks go by in their block menu and while one is selected as a whole included.
 
-A block whose feature is not installed, such as a table on a canvas without `tableExtension()`, an embed without `embedExtension()`, a math block without `mathExtension()` or a table of contents without `tocExtension()`, is drawn as an unsupported block. Its data is kept as it was, through edits around it, `onChange` and markdown. A math formula in a line, without `mathExtension()`, shows its LaTeX as plain text.
+A block whose feature is not installed, such as a table on a canvas without `tableExtension()`, an embed without `embedExtension()`, a math block without `mathExtension()` or a table of contents without `tocExtension()`, is drawn as an unsupported block. Its data is kept as it was, through edits around it, `onChange` and markdown. A math formula in a line, without `mathExtension()`, shows its LaTeX as plain text, and a mention, without `mentionExtension()`, shows `@` and its label as plain text.
 
 ```tsx
 import { BlockCanvas, type QuoinBlock } from 'quoin-editor';
@@ -554,7 +554,7 @@ const extensions = [
 ];
 ```
 
-`$$` and a space at the start of a paragraph, or `/` and Block equation, make a math block and open its editor, a popover with the LaTeX and a live preview. A click on a math block, or Enter on one selected as a whole, opens it too: Mod+Enter or Save stores the LaTeX, Enter starts a new line, and Escape keeps what was there, each handing focus back to the block. A formula typed between dollars, such as `$x^2$`, becomes a formula in the line as its closing dollar is typed, wherever the markdown reads one, so `$5 and $10` stays text; Backspace right after gives the dollars back. A dollar in code never opens or closes a formula, and no formula runs across the edge of a link or of other formatting. A formula typed between backticks, such as `` `$x$` ``, stays a formula inside the code, because it converts before the closing backtick makes the code. Backspace right after a formula selects it, and a second Backspace deletes it. A click on a formula, or Enter while it is selected, opens the same editor, where Enter stores and Shift+Enter starts a new line, and Inline equation in the `/` menu opens it at the caret, writing the formula there once a LaTeX is stored and leaving the text as it was otherwise; Enter with the caret after a formula starts a new line as anywhere else, and Shift+click extends the selection. A press outside the editor, or Tab out of it, stores the LaTeX too, and a press leaves focus where it lands. Storing an empty formula removes it, and an empty block shows "Empty equation". Each store is one undo step. A read-only canvas draws blocks and formulas and opens no editor.
+`$$` and a space at the start of a paragraph, or `/` and Block equation, make a math block and open its editor, a popover with the LaTeX and a live preview. A click on a math block, or Enter on one selected as a whole, opens it too: Mod+Enter or Save stores the LaTeX, Enter starts a new line, and Escape keeps what was there, each handing focus back to the block. A formula typed between dollars, such as `$x^2$`, becomes a formula in the line as its closing dollar is typed, wherever the markdown reads one, so `$5 and $10` stays text; Backspace right after gives the dollars back. A dollar in code never opens or closes a formula, and no formula runs across the edge of a link or of other formatting. A formula typed between backticks, such as `` `$x$` ``, stays a formula inside the code, because it converts before the closing backtick makes the code. Backspace right after a formula selects it, and a second Backspace deletes it; Shift with an arrow steps a selection over it whole, and a drag or a Shift+click that ends on it takes it whole. A click on a formula, or Enter while it is selected, opens the same editor, where Enter stores and Shift+Enter starts a new line, and Inline equation in the `/` menu opens it at the caret, writing the formula there once a LaTeX is stored and leaving the text as it was otherwise; Enter with the caret after a formula starts a new line as anywhere else, and Shift+click extends the selection. A press outside the editor, or Tab out of it, stores the LaTeX too, and a press leaves focus where it lands. Storing an empty formula removes it, and an empty block shows "Empty equation". Each store is one undo step. A read-only canvas draws blocks and formulas and opens no editor.
 
 ### Table of contents
 
@@ -570,6 +570,23 @@ import { headings } from 'quoin-editor/toc';
 
 export const outline = ({ state }: Editor) => headings(state.doc, { schema: state.schema }).map(({ text }) => text);
 ```
+
+### Mentions
+
+`quoin-editor/mention` draws the mentions in a line, `[@Ada](mention:42)` in the markdown or `[@Ada](mention:user:42)` with a kind, as chips that read `@` and the label, with the kind in `data-kind`. `@` typed at the start of a line or after a space opens a menu of what the host's `search` finds for the text typed after it, spaces included. It asks once typing has rested for 120 ms, says it is searching until the answer comes, drops an answer to a query typed past, and shows "No matches" when the host finds nothing or when its search throws or rejects, which reaches `onError`. The arrows walk the results, Enter or Tab puts the chosen one in place of the `@` and the query, followed by a space, and one undo brings the query back; Escape closes the menu and keeps the text. A result's label and description are drawn as text, and its avatar only from an http or https address.
+
+```tsx
+import { mentionExtension } from 'quoin-editor/mention';
+
+const extensions = [
+  mentionExtension({
+    search: (query) => fetch(`/api/people?q=${encodeURIComponent(query)}`).then((response) => response.json()),
+    onOpen: (mention) => window.open(`/people/${encodeURIComponent(mention.id)}`),
+  }),
+];
+```
+
+Backspace right after a chip selects it, and a second Backspace deletes it; Shift with an arrow steps a selection over it whole. With `onOpen`, a click on a chip, or Enter while it is selected, hands its mention (`id`, `label` and `kind`) to the host, and the click does on a read-only canvas too. A chip is never a link: without `onOpen` it is text. Without `search`, `@` opens nothing, and a read-only canvas opens no menu.
 
 ## Read-only
 
@@ -800,6 +817,8 @@ From `quoin-editor/embed`: `embedExtension`, its `EmbedOptions`, `EmbedLabels` a
 From `quoin-editor/math`: `mathExtension`, its `MathOptions`, `MathLabels` and `englishMathLabels`, and the `RenderMath` type.
 
 From `quoin-editor/toc`: `tocExtension`, its `TocOptions`, `TocLabels` and `englishTocLabels`, and `headings` with its `TocHeading` type.
+
+From `quoin-editor/mention`: `mentionExtension`, its `MentionOptions`, `MentionLabels` and `englishMentionLabels`, and the `Mention`, `MentionResult` and `MentionSearch` types.
 
 From `quoin-editor/catalogue`: `catalogue`, every opt-in feature at once.
 

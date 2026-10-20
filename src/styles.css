@@ -24,6 +24,7 @@
 @import "./extensions/atoms/selected-atom.css" layer(quoin.components);
 @import "./extensions/math/math-block.css" layer(quoin.components);
 @import "./extensions/toc/toc-block.css" layer(quoin.components);
+@import "./extensions/mention/mention.css" layer(quoin.components);
 @import "./ui/palette.css" layer(quoin.components);
 
 /* Tailwind's default dark: variant keys on prefers-color-scheme, while the --quoin- variables

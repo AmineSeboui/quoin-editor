@@ -126,3 +126,32 @@ describe('a math formula in a line on a canvas without the math extension', () =
     expect(content()).toEqual([text('Area ')]);
   });
 });
+
+describe('a mention in a line on a canvas without the mention extension', () => {
+  const line = paragraph('a', 'Ask [@Ada](mention:user:42) today');
+  const mention = (shell: HTMLElement) => shell.querySelector('[data-quoin-atom="mention"]');
+
+  describe.each([false, true])('read-only %s', (readOnly) => {
+    it('is drawn as @ and its label in plain text, with its kind', () => {
+      const { shell } = mount([line], readOnly);
+      expect(mention(shell('a'))).toHaveTextContent('@Ada');
+      expect(mention(shell('a'))).toHaveAttribute('data-kind', 'user');
+      expect(mention(shell('a'))?.closest('a')).toBeNull();
+    });
+
+    it('round-trips its line unchanged', () => {
+      const { changes, handle } = mount([line], readOnly);
+      expect(changes).toEqual([]);
+      expect(handle().editor.getBlocks()).toEqual([line]);
+      expect(handle().editor.toMarkdown()).toBe('Ask [@Ada](mention:user:42) today\n');
+    });
+  });
+
+  it('opens no menu on @', () => {
+    const { handle } = mount([paragraph('a', 'Ask')]);
+    act(() => handle().focus({ block: 'a', region: 'text', offset: 3 }));
+    for (const char of ' @Ad') act(() => void handle().editor.insertText(char));
+    expect(screen.queryByRole('listbox')).toBeNull();
+    expect(handle().editor.getBlocks()).toEqual([paragraph('a', 'Ask @Ad')]);
+  });
+});

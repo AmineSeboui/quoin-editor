@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { BlockCanvas, coreBlocks, type QuoinBlock, type UploadFn } from 'quoin-editor';
 import { embedExtension, type Unfurl } from 'quoin-editor/embed';
 import { mathExtension, type RenderMath } from 'quoin-editor/math';
+import { mentionExtension, type MentionResult } from 'quoin-editor/mention';
 import { tableExtension } from 'quoin-editor/table';
 import { tocExtension } from 'quoin-editor/toc';
 import { bookmarkDemo } from './bookmark-demo';
@@ -24,11 +25,25 @@ const escapeHtml = (value: string) => value.replace(/&/g, '&amp;').replace(/</g,
 const renderMath: RenderMath = (latex, { displayMode }) =>
   `<span class="harness-math" data-display="${displayMode}">${escapeHtml(latex)}</span>`;
 const MATH = params.get('math');
+// Stands in for a host's directory of people, answering after a delay as a server would.
+const PEOPLE: MentionResult[] = [
+  { id: '1', label: 'Ada Lovelace', kind: 'user', description: 'Mathematician' },
+  { id: '2', label: 'Alan Turing', kind: 'user', description: 'Computer scientist' },
+  { id: '3', label: 'Adele Goldberg', kind: 'user', avatarUrl: 'https://cdn.quoin.test/adele.png' },
+];
+const MENTION_DELAY = Number(params.get('mentiondelay') ?? 0);
+const searchPeople = (query: string) =>
+  new Promise<MentionResult[]>((resolve) =>
+    setTimeout(() => resolve(PEOPLE.filter(({ label }) => label.toLowerCase().includes(query.toLowerCase()))), MENTION_DELAY),
+  );
 const extensions = [
   ...(params.get('table') === '1' ? [tableExtension()] : []),
   ...(params.get('embed') === '1' ? [embedExtension({ unfurl })] : []),
   ...(MATH === null ? [] : [mathExtension({ renderMath: MATH === 'source' ? undefined : renderMath })]),
   ...(params.get('toc') === '1' ? [tocExtension()] : []),
+  ...(params.get('mention') === '1'
+    ? [mentionExtension({ search: searchPeople, onOpen: (mention) => window.__quoin.opened?.push(mention) })]
+    : []),
 ];
 
 // Each upload is kept as an object URL under its key, so the picture of an uploaded image loads.
@@ -90,6 +105,10 @@ const docs: Record<string, QuoinBlock[]> = {
     { id: 'p', type: 'MARKDOWN', data: { markdown: 'Area $x^2$ here' } },
     { id: 'm', type: 'MATH', data: { latex: '\\int_0^1 x\\,dx' } },
     { id: 'q', type: 'MARKDOWN', data: { markdown: 'Below the equation' } },
+  ],
+  mention: [
+    { id: 'p', type: 'MARKDOWN', data: { markdown: 'Ask [@Ada Lovelace](mention:user:1) today' } },
+    { id: 'q', type: 'MARKDOWN', data: { markdown: 'Below the mention' } },
   ],
   toc: [
     { id: 'toc', type: 'TOC', data: {} },
@@ -184,7 +203,12 @@ const docs: Record<string, QuoinBlock[]> = {
 
 export function Harness({ doc }: { doc: string }) {
   const [blocks, setBlocks] = useState<QuoinBlock[]>(docs[doc] ?? []);
-  window.__quoin = { blocks: () => blocks, setBlocks, changes: window.__quoin?.changes ?? 0 };
+  window.__quoin = {
+    blocks: () => blocks,
+    setBlocks,
+    changes: window.__quoin?.changes ?? 0,
+    opened: window.__quoin?.opened ?? [],
+  };
   return (
     <>
       <BlockCanvas

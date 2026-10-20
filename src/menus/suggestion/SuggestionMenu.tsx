@@ -25,6 +25,8 @@ export type SuggestionMenuProps<T> = {
   onSelect(item: T, range: SuggestionRange): void;
   label: string;
   emptyLabel: string;
+  /** What the menu shows while the items it waits for are pending, for a source that answers late. */
+  pendingLabel?: string;
 };
 
 // The listbox scrolls rather than the popover around it, so the scrolling region is the combobox's own popup, whose
@@ -70,7 +72,7 @@ function SuggestionGroup<T>({ section, labelId, activeIndex, optionId, renderIte
 
 /** A listbox of suggestions for the trigger at the caret, which keeps focus in the text as a combobox's popup does. */
 export function SuggestionMenu<T>(props: SuggestionMenuProps<T>) {
-  const { controller, renderItem, label, emptyLabel } = props;
+  const { controller, renderItem, label, emptyLabel, pendingLabel } = props;
   const suggestion = useSuggestion(props);
   const { trigger, sections, activeIndex, listboxId } = suggestion;
   const { anchor, side } = useRangeAnchor(controller, trigger);
@@ -89,7 +91,7 @@ export function SuggestionMenu<T>(props: SuggestionMenuProps<T>) {
     const focusStays = focused === null || focused === focused.ownerDocument.body || inEditor(focused);
     if (inEditor(event.target) && focusStays) event.preventDefault();
   };
-  const empty = sections.length === 0 && !suggestion.pending;
+  const status = suggestion.pending ? pendingLabel : sections.length === 0 ? emptyLabel : undefined;
   return (
     <Popover
       open
@@ -126,7 +128,7 @@ export function SuggestionMenu<T>(props: SuggestionMenuProps<T>) {
             />
           ))}
         </div>
-        {empty && <p className="px-2 py-1.5 text-sm text-muted-foreground">{emptyLabel}</p>}
+        {status && <p className="px-2 py-1.5 text-sm text-muted-foreground">{status}</p>}
       </PopoverContent>
     </Popover>
   );

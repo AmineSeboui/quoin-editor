@@ -117,6 +117,16 @@
         "default": "./dist/toc.cjs"
       }
     },
+    "./mention": {
+      "import": {
+        "types": "./dist/mention.d.ts",
+        "default": "./dist/mention.js"
+      },
+      "require": {
+        "types": "./dist/mention.d.cts",
+        "default": "./dist/mention.cjs"
+      }
+    },
     "./catalogue": {
       "import": {
         "types": "./dist/catalogue.d.ts",

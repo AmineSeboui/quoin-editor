@@ -78,6 +78,24 @@ describe('an inline math formula', () => {
     expect(canvas.markdown('p')).toBe('Area $x^2$ here');
   });
 
+  it('is drawn with its new LaTeX by the time focus is handed back after a store, so the caret lands after it', async () => {
+    const user = userEvent.setup();
+    const canvas = lineWithFormula();
+    const { controller } = canvas.handle();
+    const handedBack: { drawn: Element | null; latex: string | null }[] = [];
+    const focus = controller.focus.bind(controller);
+    vi.spyOn(controller, 'focus').mockImplementation((target) => {
+      const drawn = canvas.formula();
+      handedBack.push({ drawn, latex: drawn?.textContent ?? null });
+      focus(target);
+    });
+    await user.click(canvas.formula());
+    await user.clear(canvas.field()!);
+    await user.type(canvas.field()!, 'x^3{Enter}');
+    expect(handedBack.map(({ latex }) => latex)).toEqual(['x^3']);
+    expect(handedBack[0].drawn?.isConnected).toBe(true);
+  });
+
   it('leaves Enter with the caret right after it to split the line', () => {
     const canvas = lineWithFormula();
     canvas.caret('p', 6);

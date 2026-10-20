@@ -1,58 +1,68 @@
-type DomPoint = readonly [Node, number];
+import { domMapOf, type DomMap, type DomPoint } from '../../view';
+
+type HostOf = (node: Node) => HTMLElement | null;
 
 const ELEMENT_NODE = 1;
 
-function atomAround(node: Node | null, root: Element, types: readonly string[]): Element | null {
-  const element = node === null || node.nodeType === ELEMENT_NODE ? (node as Element | null) : node.parentElement;
+function atomAround(node: Node, types: readonly string[]): Element | null {
+  const element = node.nodeType === ELEMENT_NODE ? (node as Element) : node.parentElement;
   const atom = element?.closest('[data-quoin-atom]') ?? null;
-  return atom !== null && root.contains(atom) && types.includes(atom.getAttribute('data-quoin-atom') ?? '') ? atom : null;
+  return atom !== null && types.includes(atom.getAttribute('data-quoin-atom') ?? '') ? atom : null;
 }
 
-function beside(atom: Element, after: boolean): DomPoint {
-  const parent = atom.parentNode as Node;
-  return [parent, Array.prototype.indexOf.call(parent.childNodes, atom) + (after ? 1 : 0)];
-}
-
-function follows(atom: Element, [node, offset]: DomPoint): boolean {
+function follows(atom: Element, { node, offset }: DomPoint): boolean {
   const range = atom.ownerDocument.createRange();
   range.selectNode(atom);
   return range.comparePoint(node, offset) > 0;
 }
 
-// The editor reads a caret inside an atom as standing after it once half its text or more lies before the caret.
-function pastMiddle(atom: Element, [node, offset]: DomPoint): boolean {
-  const range = atom.ownerDocument.createRange();
-  range.setStart(atom, 0);
-  range.setEnd(node, offset);
-  const before = range.toString().length;
-  return before > 0 && before * 2 >= (atom.textContent ?? '').length;
+function mapOf(atom: Element, hostOf: HostOf): DomMap | undefined {
+  const host = hostOf(atom);
+  return host === null ? undefined : domMapOf(host);
+}
+
+// A range leans into what it holds, as the view writes one.
+function beside(atom: Element, after: boolean, hostOf: HostOf): DomPoint | null {
+  const map = mapOf(atom, hostOf);
+  const from = map?.fromDom(atom, 0);
+  if (map === undefined || from === null || from === undefined) return null;
+  return after ? map.toDom(from + 1, -1) : map.toDom(from, 1);
+}
+
+// A caret goes where the view reads it, leaning on what comes before it.
+function caretOutside(atom: Element, { node, offset }: DomPoint, hostOf: HostOf): DomPoint | null {
+  const map = mapOf(atom, hostOf);
+  const at = map?.fromDom(node, offset);
+  return map === undefined || at === null || at === undefined ? null : map.toDom(at, -1);
 }
 
 /**
  * Moves the ends of the selection that lie inside an atom of one of `types` out of it, where the browser types again:
  * an end of a range to the side away from the other end, so the range holds the atom whole, a range inside one atom to
- * that atom, and a caret to the side the editor reads it at. Returns whether it moved anything.
+ * that atom, and a caret to the side the view reads it at. Each place comes from the map of the atom's line, which
+ * `hostOf` finds. Returns whether it moved anything.
  */
-export function moveSelectionOutOfAtoms(selection: Selection, root: Element, types: readonly string[]): boolean {
+export function moveSelectionOutOfAtoms(selection: Selection, hostOf: HostOf, types: readonly string[]): boolean {
   const { anchorNode, anchorOffset, focusNode, focusOffset } = selection;
   if (anchorNode === null || focusNode === null) return false;
-  const anchorAtom = atomAround(anchorNode, root, types);
-  const focusAtom = atomAround(focusNode, root, types);
-  if (anchorAtom === null && focusAtom === null) return false;
-  const anchor: DomPoint = [anchorNode, anchorOffset];
-  const focus: DomPoint = [focusNode, focusOffset];
-  let ends: readonly [DomPoint, DomPoint];
-  if (selection.isCollapsed) {
-    const caret = beside(focusAtom as Element, pastMiddle(focusAtom as Element, focus));
+  const anchor: DomPoint = { node: anchorNode, offset: anchorOffset };
+  const focus: DomPoint = { node: focusNode, offset: focusOffset };
+  const anchorAtom = atomAround(anchorNode, types);
+  const focusAtom = atomAround(focusNode, types);
+  let ends: readonly (DomPoint | null)[];
+  if (focusAtom !== null && selection.isCollapsed) {
+    const caret = caretOutside(focusAtom, focus, hostOf);
     ends = [caret, caret];
-  } else if (anchorAtom === focusAtom) {
-    ends = [beside(anchorAtom as Element, false), beside(anchorAtom as Element, true)];
+  } else if (focusAtom !== null && anchorAtom === focusAtom) {
+    ends = [beside(focusAtom, false, hostOf), beside(focusAtom, true, hostOf)];
   } else {
     ends = [
-      anchorAtom === null ? anchor : beside(anchorAtom, !follows(anchorAtom, focus)),
-      focusAtom === null ? focus : beside(focusAtom, !follows(focusAtom, anchor)),
+      anchorAtom === null ? anchor : beside(anchorAtom, !follows(anchorAtom, focus), hostOf),
+      focusAtom === null ? focus : beside(focusAtom, !follows(focusAtom, anchor), hostOf),
     ];
   }
-  selection.setBaseAndExtent(ends[0][0], ends[0][1], ends[1][0], ends[1][1]);
+  const [base, extent] = ends;
+  if ((anchorAtom === null && focusAtom === null) || base === null || extent === null) return false;
+  selection.setBaseAndExtent(base.node, base.offset, extent.node, extent.offset);
   return true;
 }

@@ -13,10 +13,11 @@ export function useSelectionOutOfAtoms(controller: ViewController, types: readon
     const root = controller.root;
     const view = root?.ownerDocument.defaultView;
     if (!editable || root === null || !view) return;
+    const hostOf = (node: Node) => controller.registry.locate(node)?.element ?? null;
     const onChange = () => {
       const selection = view.getSelection();
       if (selection === null || controller.composingKey !== null) return;
-      if (root.contains(root.ownerDocument.activeElement)) moveSelectionOutOfAtoms(selection, root, types);
+      if (root.contains(root.ownerDocument.activeElement)) moveSelectionOutOfAtoms(selection, hostOf, types);
     };
     // Captured on the window, it runs before the view's own listener on the document reads the selection.
     view.addEventListener('selectionchange', onChange, true);

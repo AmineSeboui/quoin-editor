@@ -110,6 +110,22 @@ test('on a read-only canvas a chip is a button in the tab order, which Enter and
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
 });
 
+test('a click inside a chip leaves the caret beside it, on the side clicked, where the next key types', async ({ page }) => {
+  await openEditor(page, 'mention', 'mention=1');
+  const host = page.locator('[data-block-id="p"] [data-quoin-host]');
+  const clickInside = async (share: number) => {
+    const box = (await chip(page).boundingBox())!;
+    await page.mouse.click(box.x + box.width * share, box.y + box.height / 2);
+    await caretSettled(page, host);
+  };
+  await clickInside(0.2);
+  await page.keyboard.type('Z');
+  await expect.poll(() => markdownOf(page, 'p')).toBe('Ask Z[@Ada Lovelace](mention:user:1) today');
+  await clickInside(0.8);
+  await page.keyboard.type('Y');
+  await expect.poll(() => markdownOf(page, 'p')).toBe('Ask Z[@Ada Lovelace](mention:user:1)Y today');
+});
+
 test('Backspace selects a chip with a highlight, Enter then opens it, and a second Backspace deletes it', async ({
   page,
 }) => {

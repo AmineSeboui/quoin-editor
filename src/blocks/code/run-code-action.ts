@@ -3,6 +3,7 @@ import { setSelection } from '../../engine/commands/selection-commands';
 import type { ViewController } from '../../view';
 import { textDiff } from '../../view/dom/text-diff';
 import { codeToParagraph, leaveCode } from './code-actions';
+import { applyCodeEdit } from './code-field';
 import type { CodeKeyAction } from './code-keys';
 
 export type CodeActionContext = {
@@ -35,8 +36,7 @@ export function runCodeAction(action: CodeKeyAction, context: CodeActionContext)
   const { controller, blockId, area } = context;
   switch (action.kind) {
     case 'edit':
-      context.write(action.field.value);
-      area.setSelectionRange(action.field.start, action.field.end);
+      applyCodeEdit(area, action.field, context.write);
       return true;
     case 'leave':
       return leaveCode(controller, blockId, action.direction);

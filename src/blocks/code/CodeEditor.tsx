@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, type KeyboardEvent, type RefObject } from 'react';
+import { useCallback, useEffect, useRef, type KeyboardEvent, type RefObject } from 'react';
 import type { EngineBlock } from '../../engine';
 import { useLabels } from '../../i18n/use-labels';
 import type { ViewController } from '../../view';
@@ -9,9 +9,11 @@ import { str } from '../str';
 import { selectNode } from '../void/select-node';
 import { useVoidEditing } from '../void/use-void-editing';
 import { writeCode } from './code-actions';
+import { fieldOf } from './code-field';
 import { codeKeyAction } from './code-keys';
 import { HighlightOverlay } from './HighlightOverlay';
 import { runCodeAction } from './run-code-action';
+import { useTypeIntoCode } from './use-type-into-code';
 
 let sessions = 0;
 
@@ -24,7 +26,8 @@ type CodeEditorProps = {
 
 /**
  * The code of a block typed in place: a transparent text area over the highlighted code. The block is the selected one
- * while its code has focus, and Enter on the selected block, or a menu that inserts it, puts focus in the code.
+ * while its code has focus. Enter on the selected block, a menu that inserts it and a change that turns a block into it
+ * put the caret at the end of the code.
  */
 export function CodeEditor({ block, controller, field, focusControls }: CodeEditorProps) {
   const labels = useLabels();
@@ -33,16 +36,19 @@ export function CodeEditor({ block, controller, field, focusControls }: CodeEdit
   const blockId = block.id;
 
   useEffect(() => {
-    if (!editing) return;
-    field.current?.focus();
+    const area = field.current;
+    if (!editing || area === null) return;
+    area.focus();
+    area.setSelectionRange(area.value.length, area.value.length);
     stop();
   }, [editing, stop, field]);
 
-  const write = (value: string) => writeCode(controller, blockId, value, group.current);
+  const write = useCallback((value: string) => writeCode(controller, blockId, value, group.current), [controller, blockId]);
+  useTypeIntoCode(controller, blockId, field, write);
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     const area = event.currentTarget;
     if (event.nativeEvent.isComposing) return;
-    const action = codeKeyAction(event, { value: area.value, start: area.selectionStart, end: area.selectionEnd }, controller.isMac);
+    const action = codeKeyAction(event, fieldOf(area), controller.isMac);
     if (action !== null && runCodeAction(action, { controller, blockId, area, write, focusControls })) event.preventDefault();
   };
 

@@ -19,8 +19,8 @@ beforeEach(() => {
   vi.mocked(intrinsicSize).mockResolvedValue({ width: 40, height: 30 });
 });
 
-function mount(upload: UploadFn | null = vi.fn(stored)) {
-  const canvas = mountCanvas([paragraph('a', 'above'), empty], { upload: upload ?? undefined, resolveAssetUrl });
+function mount(upload: UploadFn | null = vi.fn(stored), onError = vi.fn()) {
+  const canvas = mountCanvas([paragraph('a', 'above'), empty], { upload: upload ?? undefined, resolveAssetUrl, onError });
   return { ...canvas, upload, imageData: () => canvas.last()?.find((block) => block.id === 'i')?.data };
 }
 
@@ -92,6 +92,31 @@ describe('an image block with no picture yet', () => {
     await act(async () => fail(new Error('That file is too large.')));
     expect(within(area()).getByRole('alert')).toHaveTextContent('That file is too large.');
     expect(within(area()).getByRole('status')).toHaveTextContent('');
+  });
+
+  it('stays busy while the newest of two uploads into it runs', async () => {
+    const pending = new Map<string, () => void>();
+    const upload: UploadFn = (file) =>
+      new Promise((resolve) => pending.set(file.name, () => resolve({ storageKey: `key/${file.name}`, filename: file.name, size: 1 })));
+    mount(upload);
+    const drop = (file: File) => act(() => void area().dispatchEvent(dragEvent('drop', fakeTransfer({}, [file]).transfer)));
+    drop(png);
+    drop(new File(['png'], 'dog.png', { type: 'image/png' }));
+    await act(async () => pending.get('cat.png')!());
+    expect(within(area()).getByRole('status')).toHaveTextContent('Uploading...');
+    await act(async () => pending.get('dog.png')!());
+    expect(screen.getByRole('img')).toHaveAttribute('src', '/cdn/key/dog.png');
+  });
+
+  it('says through onError that uploads are not set up when an image is dropped or pasted with none', () => {
+    const onError = vi.fn();
+    mount(null, onError);
+    act(() => void area().dispatchEvent(dragEvent('drop', fakeTransfer({}, [png]).transfer)));
+    act(() => void area().dispatchEvent(clipboardEvent('paste', fakeTransfer({}, [png]).transfer)));
+    expect(onError.mock.calls).toEqual([
+      [new Error('Uploads are not configured for this editor.')],
+      [new Error('Uploads are not configured for this editor.')],
+    ]);
   });
 
   it('embeds a picture from a link, and refuses an address that is no link', async () => {

@@ -1,5 +1,7 @@
 import { act } from '@testing-library/react';
 import { removeBlocksStep, undo } from '../../engine';
+import { setAttrs } from '../../engine/commands/block-style';
+import { onBlock } from '../../view/react/block-command';
 import type { QuoinBlock, UploadFn, UploadResult } from '../../types';
 import { intrinsicSize, type IntrinsicSize } from '../intrinsic-size';
 import { mountCanvas, paragraph } from '../void/test-canvas';
@@ -45,8 +47,8 @@ const resolveAssetUrl = (key: string) => `/cdn/${key}`;
 const png = (name: string) => new File(['png'], name, { type: 'image/png' });
 const image = (data: Record<string, unknown>): QuoinBlock => ({ id: 'i', type: 'IMAGE', data: { storageKey: '', alt: '', ...data } });
 
-function mountImage(data: Record<string, unknown> = {}) {
-  const canvas = mountCanvas([paragraph('a', 'above'), image(data)], { resolveAssetUrl });
+function mountImage(data: Record<string, unknown> = {}, readOnly = false) {
+  const canvas = mountCanvas([paragraph('a', 'above'), image(data)], { resolveAssetUrl, readOnly });
   const imageData = () => canvas.last()?.[1].data;
   const controller = () => canvas.handle().controller;
   return { ...canvas, imageData, controller };
@@ -113,6 +115,41 @@ describe('an upload into an image block', () => {
     await act(() => done);
     act(() => void controller().run(undo));
     expect(imageData()).toEqual({ storageKey: '', alt: '' });
+  });
+
+  it('drops a measurement that lands once the key it measured is undone', async () => {
+    const { upload, uploaded, measured } = held();
+    const { controller, imageData } = mountImage();
+    const done = uploadImage(controller(), 'i', png('cat.png'), { upload, resolveAssetUrl });
+    await uploaded('cat.png', 'k1');
+    act(() => void controller().run(undo));
+    await measured('/cdn/k1', { width: 40, height: 30 });
+    await act(() => done);
+    expect(imageData()).toEqual({ storageKey: '', alt: '' });
+  });
+
+  it('drops an upload that lands once the block was given a link or another key', async () => {
+    const { upload, uploaded } = held();
+    const { controller, imageData } = mountImage();
+    for (const patch of [{ url: 'https://quoin.dev/a.png' }, { url: undefined, storageKey: 'other' }]) {
+      const done = uploadImage(controller(), 'i', png('cat.png'), { upload, resolveAssetUrl });
+      act(() => void controller().run(onBlock('i', setAttrs(patch))));
+      await uploaded('cat.png', 'k1');
+      await act(() => done);
+    }
+    expect(imageData()).toEqual({ storageKey: 'other', alt: '' });
+  });
+
+  it('writes nothing to a read-only canvas', async () => {
+    const { upload, uploaded, measured } = held();
+    const { controller, changes } = mountImage({ storageKey: 'k0' }, true);
+    const done = uploadImage(controller(), 'i', png('cat.png'), { upload, resolveAssetUrl });
+    await uploaded('cat.png', 'k1');
+    await act(() => done);
+    const measuring = measureImage(controller(), 'i', 'k0', resolveAssetUrl);
+    await measured('/cdn/k0', { width: 8, height: 6 });
+    await act(() => measuring);
+    expect(changes).toEqual([]);
   });
 
   it('rejects with the upload failure and leaves the block as it was', async () => {

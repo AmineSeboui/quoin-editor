@@ -6,11 +6,11 @@ import { embedBlock, mountEmbeds, YOUTUBE, YOUTUBE_FRAME } from './embed-test-ca
 const frame = (title = 'YouTube video') => screen.getByTitle(title);
 const cover = (shell: HTMLElement) => shell.querySelector('.quoin-embed-cover');
 
-function press(target: Element) {
-  const down = Object.assign(new Event('pointerdown', { bubbles: true, cancelable: true }), { pointerType: 'mouse', button: 0 });
+function press(target: Element, button = 0) {
+  const down = Object.assign(new Event('pointerdown', { bubbles: true, cancelable: true }), { pointerType: 'mouse', button });
   act(() => {
     target.dispatchEvent(down);
-    fireEvent.mouseDown(target, { button: 0 });
+    fireEvent.mouseDown(target, { button });
   });
 }
 
@@ -77,6 +77,13 @@ describe('an embed on an editable canvas', () => {
     expect(cover(shell('e'))).toBe(over);
     act(() => void fireEvent.click(over));
     expect(document.activeElement).toBe(sink());
+    expect(cover(shell('e'))).toBeNull();
+  });
+
+  it('takes no note of a press with another button, so the cover still lifts once the block is selected', () => {
+    const { shell, nodeSelect } = mountEmbeds([embedBlock(YOUTUBE)]);
+    press(cover(shell('e'))!, 2);
+    nodeSelect('e');
     expect(cover(shell('e'))).toBeNull();
   });
 

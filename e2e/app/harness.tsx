@@ -3,6 +3,7 @@ import { BlockCanvas, coreBlocks, type QuoinBlock, type UploadFn } from 'quoin-e
 import { embedExtension, type Unfurl } from 'quoin-editor/embed';
 import { mathExtension, type RenderMath } from 'quoin-editor/math';
 import { tableExtension } from 'quoin-editor/table';
+import { tocExtension } from 'quoin-editor/toc';
 import { bookmarkDemo } from './bookmark-demo';
 import { fixtureDataUrl } from './fixture-png';
 import { noteDemo } from './note-demo';
@@ -27,6 +28,7 @@ const extensions = [
   ...(params.get('table') === '1' ? [tableExtension()] : []),
   ...(params.get('embed') === '1' ? [embedExtension({ unfurl })] : []),
   ...(MATH === null ? [] : [mathExtension({ renderMath: MATH === 'source' ? undefined : renderMath })]),
+  ...(params.get('toc') === '1' ? [tocExtension()] : []),
 ];
 
 // Each upload is kept as an object URL under its key, so the picture of an uploaded image loads.
@@ -46,6 +48,16 @@ const resolveAssetUrl = (storageKey: string) => uploads.get(storageKey) ?? stora
 
 const grid = (rows: number, cols: number) =>
   Array.from({ length: rows }, (_, row) => Array.from({ length: cols }, (_, col) => `r${row}c${col}`));
+
+// Enough lines under each heading that the next one starts below the fold.
+const section = (id: string, level: number, title: string): QuoinBlock[] => [
+  { id, type: 'MARKDOWN', data: { markdown: `${'#'.repeat(level)} ${title}` } },
+  ...Array.from({ length: 30 }, (_, line) => ({
+    id: `${id}-${line}`,
+    type: 'MARKDOWN',
+    data: { markdown: `Line ${line + 1} of ${title}` },
+  })),
+];
 
 const docs: Record<string, QuoinBlock[]> = {
   empty: [],
@@ -78,6 +90,12 @@ const docs: Record<string, QuoinBlock[]> = {
     { id: 'p', type: 'MARKDOWN', data: { markdown: 'Area $x^2$ here' } },
     { id: 'm', type: 'MATH', data: { latex: '\\int_0^1 x\\,dx' } },
     { id: 'q', type: 'MARKDOWN', data: { markdown: 'Below the equation' } },
+  ],
+  toc: [
+    { id: 'toc', type: 'TOC', data: {} },
+    ...section('intro', 1, 'Introduction'),
+    ...section('setup', 2, 'Setting up'),
+    ...section('usage', 3, 'Using it'),
   ],
   sample: [
     { id: 'a', type: 'MARKDOWN', data: { markdown: '# Title' } },

@@ -494,7 +494,7 @@ The arrows select a card as a whole, and it is announced as "File" and the file'
 
 Features beyond the core blocks ship as their own entries, so a host that leaves one out never downloads it. Add a feature's extension to `extensions`, or `catalogue()` from `quoin-editor/catalogue` for all of them, each taking its options under its own name (`catalogue({ table: { labels } })`, or `false` to leave one out). Every string a feature shows or speaks comes from its own `labels` option, English by default.
 
-A block whose feature is not installed, such as a table on a canvas without `tableExtension()`, an embed without `embedExtension()` or a math block without `mathExtension()`, is drawn as an unsupported block. Its data is kept as it was, through edits around it, `onChange` and markdown. A math formula in a line, without `mathExtension()`, shows its LaTeX as plain text.
+A block whose feature is not installed, such as a table on a canvas without `tableExtension()`, an embed without `embedExtension()`, a math block without `mathExtension()` or a table of contents without `tocExtension()`, is drawn as an unsupported block. Its data is kept as it was, through edits around it, `onChange` and markdown. A math formula in a line, without `mathExtension()`, shows its LaTeX as plain text.
 
 ```tsx
 import { BlockCanvas, type QuoinBlock } from 'quoin-editor';
@@ -555,6 +555,21 @@ const extensions = [
 ```
 
 `$$` and a space at the start of a paragraph, or `/` and Block equation, make a math block and open its editor, a popover with the LaTeX and a live preview. A click on a math block, or Enter on one selected as a whole, opens it too: Mod+Enter or Save stores the LaTeX, Enter starts a new line, and Escape keeps what was there, each handing focus back to the block. A formula typed between dollars, such as `$x^2$`, becomes a formula in the line as its closing dollar is typed, wherever the markdown reads one, so `$5 and $10` stays text; Backspace right after gives the dollars back. A dollar in code never opens or closes a formula, and no formula runs across the edge of a link or of other formatting. A formula typed between backticks, such as `` `$x$` ``, stays a formula inside the code, because it converts before the closing backtick makes the code. Backspace right after a formula selects it, and a second Backspace deletes it. A click on a formula, or Enter while it is selected, opens the same editor, where Enter stores and Shift+Enter starts a new line, and Inline equation in the `/` menu opens it at the caret, writing the formula there once a LaTeX is stored and leaving the text as it was otherwise; Enter with the caret after a formula starts a new line as anywhere else, and Shift+click extends the selection. A press outside the editor, or Tab out of it, stores the LaTeX too, and a press leaves focus where it lands. Storing an empty formula removes it, and an empty block shows "Empty equation". Each store is one undo step. A read-only canvas draws blocks and formulas and opens no editor.
+
+### Table of contents
+
+`quoin-editor/toc` draws `TOC` blocks as a navigation named "Table of contents" that lists the headings of the document as links, nested by level, and follows them as they are written. A heading with no text is left out, and a skipped level nests one deep, as in the table of contents `toHTML` writes. `/` and Table of contents inserts one; with no headings it shows "Add headings to build the table of contents".
+
+Each entry links to `#block-<id>`, the fragment a copied link to the block ends with. A click on an entry, or Enter on it, puts the caret at the end of its heading and scrolls the heading into view, smoothly unless the reader prefers reduced motion; Mod+click and a middle click leave the link to the browser, which opens the page at the heading in a new tab. On an editable canvas the arrows, or a press beside the entries, select the block as a whole, Enter then moves focus to its first entry, Tab and Shift+Tab walk the entries and go back to the block past either end, and Escape goes back to the block; the entries stay out of the page's tab order. A read-only canvas keeps them in it, and a click moves focus to the heading without changing the document.
+
+`headings(doc, schema)` lists the headings the block shows, each with its `blockId`, its `anchor` in the HTML of `toHTML` (`h-<blockId>`), its `level` and its plain `text`, for a table of contents of the host's own:
+
+```tsx
+import type { Editor } from 'quoin-editor';
+import { headings } from 'quoin-editor/toc';
+
+export const outline = (editor: Editor) => headings(editor.state.doc, editor.state.schema).map(({ text }) => text);
+```
 
 ## Read-only
 
@@ -783,6 +798,8 @@ From `quoin-editor/table`: `tableExtension`, its `TableLabels` and `englishTable
 From `quoin-editor/embed`: `embedExtension`, its `EmbedOptions`, `EmbedLabels` and `englishEmbedLabels`, and the `Unfurl` and `UnfurledLink` types.
 
 From `quoin-editor/math`: `mathExtension`, its `MathOptions`, `MathLabels` and `englishMathLabels`, and the `RenderMath` type.
+
+From `quoin-editor/toc`: `tocExtension`, its `TocOptions`, `TocLabels` and `englishTocLabels`, and `headings` with its `TocHeading` type.
 
 From `quoin-editor/catalogue`: `catalogue`, every opt-in feature at once.
 

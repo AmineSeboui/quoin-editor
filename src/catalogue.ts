@@ -6,8 +6,9 @@ import { createCatalogue, type CatalogueOptionsOf } from './extensions/create-ca
 import { embedExtension } from './embed';
 import { mathExtension } from './math';
 import { tableExtension } from './table';
+import { tocExtension } from './toc';
 
-const features = { table: tableExtension, embed: embedExtension, math: mathExtension };
+const features = { table: tableExtension, embed: embedExtension, math: mathExtension, toc: tocExtension };
 
 export type CatalogueOptions = CatalogueOptionsOf<typeof features>;
 

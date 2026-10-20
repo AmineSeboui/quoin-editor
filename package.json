@@ -107,6 +107,16 @@
         "default": "./dist/math.cjs"
       }
     },
+    "./toc": {
+      "import": {
+        "types": "./dist/toc.d.ts",
+        "default": "./dist/toc.js"
+      },
+      "require": {
+        "types": "./dist/toc.d.cts",
+        "default": "./dist/toc.cjs"
+      }
+    },
     "./catalogue": {
       "import": {
         "types": "./dist/catalogue.d.ts",

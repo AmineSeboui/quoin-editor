@@ -1,9 +1,12 @@
 const FRAGMENT = '#block-';
 
+/** The fragment of a link to the block, which the canvas follows to it. */
+export const blockFragment = (blockId: string): string => `${FRAGMENT}${encodeURIComponent(blockId)}`;
+
 /** A link to the block on the current page, read when the link is made so it follows client-side navigation. */
 export function defaultBlockLink(blockId: string): string {
   const { origin, pathname, search } = window.location;
-  return `${origin}${pathname}${search}${FRAGMENT}${encodeURIComponent(blockId)}`;
+  return origin + pathname + search + blockFragment(blockId);
 }
 
 export function linkedBlockId(hash: string): string | null {

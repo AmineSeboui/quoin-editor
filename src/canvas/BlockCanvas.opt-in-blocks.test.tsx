@@ -23,6 +23,7 @@ const bookmark: QuoinBlock = {
   data: { url: 'https://quoin.dev/docs', title: 'Docs', description: 'Read me', image: 'https://cdn.quoin.dev/a.png' },
 };
 const math: QuoinBlock = { id: 't', type: 'MATH', data: { latex: '\\frac{a}{b} + c' } };
+const toc: QuoinBlock = { id: 't', type: 'TOC', data: {} };
 const { widths: _widths, ...gfmTable } = table.data;
 
 const cases: Record<string, OptInCase> = {
@@ -30,9 +31,10 @@ const cases: Record<string, OptInCase> = {
   EMBED: { block: embed, content: 'youtu.be', plain: { type: 'MARKDOWN', data: { markdown: '<https://youtu.be/dQw4w9WgXcQ>' } } },
   BOOKMARK: { block: bookmark, content: 'Docs', plain: { type: 'MARKDOWN', data: { markdown: '[Docs](https://quoin.dev/docs)' } } },
   MATH: { block: math, content: 'frac', plain: { type: 'MATH', data: math.data } },
+  TOC: { block: toc, content: 'Above', plain: { type: 'TOC', data: {} } },
 };
 
-const doc = (block: QuoinBlock, above = 'Above', below = 'Below') => [
+const doc = (block: QuoinBlock, above = '# Above', below = 'Below') => [
   paragraph('a', above),
   structuredClone(block),
   paragraph('b', below),

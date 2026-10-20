@@ -1,3 +1,4 @@
+import type { AtomNode } from '../../engine';
 import type { MentionLabels } from './mention-labels';
 
 /** The atom types the feature draws, opens and selects whole. */
@@ -5,6 +6,11 @@ export const MENTION_ATOMS: readonly string[] = ['mention'];
 
 /** A mention as the document keeps it, and as `onOpen` receives it. */
 export type Mention = { id: string; label: string; kind?: string };
+
+/** The mention a mention atom holds. */
+export function mentionOf({ attrs: { id = '', label = '', kind } }: AtomNode): Mention {
+  return kind === undefined ? { id, label } : { id, label, kind };
+}
 
 /** What the host's search finds: a mention, with what the menu shows of it besides its label. */
 export type MentionResult = Mention & {

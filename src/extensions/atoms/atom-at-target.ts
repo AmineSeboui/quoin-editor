@@ -1,8 +1,8 @@
 import { domMapOf, type ViewController } from '../../view';
 import { atomPlaceAt, type AtomPlace } from './atom-place';
 
-/** The atom of one of `types` an event landed on, found in the document through its line's map. */
-export function clickedAtom(controller: ViewController, target: EventTarget | null, types: readonly string[]): AtomPlace | null {
+/** The atom of one of `types` an event's target lies in, found in the document through its line's map. */
+export function atomAtTarget(controller: ViewController, target: EventTarget | null, types: readonly string[]): AtomPlace | null {
   const element = (target as Element | null)?.closest?.('[data-quoin-atom]');
   if (!element) return null;
   const host = controller.registry.locate(element);

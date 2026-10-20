@@ -91,9 +91,23 @@ test('a click on a chip opens its mention, on an editable or a read-only canvas'
   await openEditor(page, 'mention', 'mention=1');
   await chip(page).click();
   await expect.poll(() => opened(page)).toEqual([ada]);
+  await chip(page).dblclick();
+  await expect.poll(() => opened(page)).toEqual([ada, ada]);
   await openEditor(page, 'mention', 'mention=1&readonly=1');
   await chip(page).click();
   await expect.poll(() => opened(page)).toEqual([ada]);
+});
+
+test('on a read-only canvas a chip is a button in the tab order, which Enter and Space open', async ({ page }) => {
+  await openEditor(page, 'mention', 'mention=1&readonly=1');
+  await expect(chip(page)).toHaveAttribute('role', 'button');
+  await page.getByRole('button', { name: '@Ada Lovelace' }).focus();
+  await expect(chip(page)).toBeFocused();
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('Space');
+  await expect.poll(() => opened(page)).toEqual([ada, ada]);
+  await expect(chip(page)).toBeFocused();
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
 });
 
 test('Backspace selects a chip with a highlight, Enter then opens it, and a second Backspace deletes it', async ({

@@ -1,21 +1,16 @@
 'use client';
 
 import { useEffect } from 'react';
-import type { AtomNode } from '../../engine';
 import type { KeyInterceptor, ViewController } from '../../view';
 import { isComposingKey } from '../../view/input/keydown';
 import { selectedAtom } from '../atoms/atom-place';
-import { clickedAtom } from '../atoms/clicked-atom';
+import { atomAtTarget } from '../atoms/atom-at-target';
 import { plainEnter } from '../atoms/plain-enter';
-import { MENTION_ATOMS, type Mention } from './mention-feature';
-
-function mentionOf({ attrs: { id = '', label = '', kind } }: AtomNode): Mention {
-  return kind === undefined ? { id, label } : { id, label, kind };
-}
+import { MENTION_ATOMS, mentionOf, type Mention } from './mention-feature';
 
 /**
  * Hands a mention to the host's `onOpen` on a click on its chip, on an editable or a read-only canvas, and on Enter
- * while it is selected on an editable one. A Shift+click extends the selection instead.
+ * while it is selected on an editable one. A Shift+click extends the selection instead, and a double click opens once.
  */
 export function useMentionOpening(
   controller: ViewController,
@@ -26,7 +21,8 @@ export function useMentionOpening(
     const root = controller.root;
     if (onOpen === undefined || root === null) return;
     const onClick = (event: MouseEvent) => {
-      const place = event.shiftKey ? null : clickedAtom(controller, event.target, MENTION_ATOMS);
+      const once = !event.shiftKey && event.detail <= 1;
+      const place = once ? atomAtTarget(controller, event.target, MENTION_ATOMS) : null;
       if (place !== null) onOpen(mentionOf(place.node));
     };
     const intercept: KeyInterceptor = (event) => {

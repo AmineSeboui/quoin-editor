@@ -8,3 +8,8 @@
 .quoin .quoin-mention[data-opens] {
   cursor: pointer;
 }
+
+.quoin .quoin-mention[role="button"]:focus-visible {
+  outline: 2px solid var(--quoin-ring);
+  outline-offset: 1px;
+}

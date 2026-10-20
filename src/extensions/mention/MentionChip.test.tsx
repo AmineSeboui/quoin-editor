@@ -1,7 +1,10 @@
-import { act, fireEvent } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, waitFor } from '@testing-library/react';
 import { axe } from 'vitest-axe';
+import { coreBlocks } from '../../blocks/core';
 import { paragraph } from '../../blocks/void/test-canvas';
+import { BlockCanvas } from '../../canvas/BlockCanvas';
 import { textSelection } from '../../engine';
+import { mentionExtension } from './mention-extension';
 import { mountMentions } from './mention-test-canvas';
 
 const LINE = 'Ask [@Ada](mention:user:42) today';
@@ -71,6 +74,62 @@ describe('a mention chip', () => {
     canvas.key('Enter');
     expect(onOpen).toHaveBeenCalledTimes(2);
     expect(canvas.markdown('p')).toBe(LINE);
+  });
+
+  it('calls onOpen once for a double click', () => {
+    const onOpen = vi.fn();
+    const { theChip } = lineWithChip({ onOpen });
+    fireEvent.click(theChip(), { detail: 1 });
+    fireEvent.click(theChip(), { detail: 2 });
+    expect(onOpen).toHaveBeenCalledTimes(1);
+  });
+
+  it('is a button in the tab order on a read-only canvas with onOpen, which Enter and Space open', () => {
+    const onOpen = vi.fn();
+    const { theChip, changes } = lineWithChip({ onOpen }, { readOnly: true });
+    expect(theChip()).toHaveAttribute('role', 'button');
+    expect(theChip()).toHaveAttribute('tabindex', '0');
+    expect(theChip()).toHaveAccessibleName('@Ada');
+    expect(theChip()).toHaveAccessibleDescription('Mention, user');
+    expect(theChip().closest('a')).toBeNull();
+    act(() => theChip().focus());
+    expect(fireEvent.keyDown(theChip(), { key: 'Enter' })).toBe(false);
+    expect(fireEvent.keyDown(theChip(), { key: ' ' })).toBe(false);
+    fireEvent.keyDown(theChip(), { key: 'Enter', ctrlKey: true });
+    expect(onOpen.mock.calls).toEqual([[{ id: '42', label: 'Ada', kind: 'user' }], [{ id: '42', label: 'Ada', kind: 'user' }]]);
+    expect(changes).toEqual([]);
+  });
+
+  it('is no button on an editable canvas, nor on a read-only one without onOpen', () => {
+    const editable = lineWithChip({ onOpen: vi.fn() });
+    expect(editable.theChip()).not.toHaveAttribute('role');
+    expect(editable.theChip()).not.toHaveAttribute('tabindex');
+    cleanup();
+    const plain = lineWithChip({}, { readOnly: true });
+    expect(plain.theChip()).not.toHaveAttribute('role');
+    expect(plain.theChip()).not.toHaveAttribute('tabindex');
+  });
+
+  it('becomes a button as the canvas turns read-only, for chips drawn later too, and stops being one as it turns editable', async () => {
+    const onOpen = vi.fn();
+    const extensions = [mentionExtension({ onOpen })];
+    function Host({ readOnly, markdown }: { readOnly: boolean; markdown: string }) {
+      return (
+        <BlockCanvas blocks={[paragraph('p', markdown)]} onChange={() => {}} blockTypes={coreBlocks} extensions={extensions} readOnly={readOnly} />
+      );
+    }
+    const chips = () => Array.from(document.querySelectorAll('[data-quoin-atom="mention"]'));
+    const { rerender } = render(<Host readOnly={false} markdown={LINE} />);
+    expect(chips().map((chip) => chip.getAttribute('role'))).toEqual([null]);
+    rerender(<Host readOnly markdown={LINE} />);
+    expect(chips().map((chip) => chip.getAttribute('role'))).toEqual(['button']);
+    rerender(<Host readOnly markdown={`${LINE} and [@Bob](mention:7)`} />);
+    await waitFor(() => expect(chips().map((chip) => chip.getAttribute('role'))).toEqual(['button', 'button']));
+    rerender(<Host readOnly={false} markdown={`${LINE} and [@Bob](mention:7)`} />);
+    expect(chips().map((chip) => [chip.getAttribute('role'), chip.getAttribute('tabindex')])).toEqual([
+      [null, null],
+      [null, null],
+    ]);
   });
 
   it('is not interactive without onOpen', () => {

@@ -26,7 +26,7 @@ export const featureEntries = [
   { name: 'embed', source: 'src/embed.ts', client: true, added: incrementalBudget(4_499) },
   { name: 'math', source: 'src/math.ts', client: true, added: incrementalBudget(4_433) },
   { name: 'toc', source: 'src/toc.ts', client: true, added: incrementalBudget(1_803) },
-  { name: 'mention', source: 'src/mention.ts', client: true, added: incrementalBudget(2_372) },
+  { name: 'mention', source: 'src/mention.ts', client: true, added: incrementalBudget(2_827) },
 ];
 
 /** @type {PackageEntry[]} */

@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import type { KeyInterceptor, ViewController } from '../../view';
 import { isComposingKey } from '../../view/input/keydown';
 import { selectedAtom } from '../atoms/atom-place';
-import { clickedAtom } from '../atoms/clicked-atom';
+import { atomAtTarget } from '../atoms/atom-at-target';
 import { plainEnter } from '../atoms/plain-enter';
 import { MATH_ATOMS } from './math-feature';
 import { atomTarget, openMath } from './math-target';
@@ -26,7 +26,7 @@ export function useMathAtomOpening(controller: ViewController, editable: boolean
       return true;
     };
     const onClick = (event: MouseEvent) => {
-      const place = event.shiftKey ? null : clickedAtom(controller, event.target, MATH_ATOMS);
+      const place = event.shiftKey ? null : atomAtTarget(controller, event.target, MATH_ATOMS);
       if (place !== null) openMath(controller, atomTarget(place));
     };
     controller.keyInterceptors.add(intercept);

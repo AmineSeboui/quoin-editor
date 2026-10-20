@@ -11,6 +11,7 @@ import { MathEditorOverlay } from './MathEditorOverlay';
 import { MATH_ATOMS, type MathFeature, type RenderMath } from './math-feature';
 import { resolveMathLabels, type MathLabels } from './math-labels';
 import { inlineMathRule } from './math-rules';
+import { mathSlashItems } from './math-slash-items';
 
 export type MathOptions = {
   /**
@@ -27,7 +28,7 @@ const ABOVE_CORE_KEYS = 200;
 
 /**
  * Math: MATH blocks and math formulas in a line drawn by the host's `renderMath` or as their LaTeX, edited in a popover
- * with a live preview, and formulas typed between dollars as the markdown reads them.
+ * with a live preview, formulas typed between dollars as the markdown reads them, and slash commands for both.
  */
 export function mathExtension(options: MathOptions = {}): Extension {
   const feature: MathFeature = { labels: resolveMathLabels(options.labels), renderMath: options.renderMath };
@@ -36,6 +37,7 @@ export function mathExtension(options: MathOptions = {}): Extension {
     <MathEditorOverlay controller={controller} feature={feature} />
   );
   const ui: ExtensionUI = {
+    slashItems: mathSlashItems(feature.labels),
     renderers: { MATH: MathRenderer },
     render: { atoms: { math: inlineMathRenderer(feature) } },
     overlays: [EditorOverlay],

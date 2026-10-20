@@ -55,6 +55,33 @@ test('Enter right after a formula typed at the end of a line goes on in a new li
   await expect.poll(async () => (await blocks(page)).map((block) => block.data.markdown)).toEqual(['Area $x$', 'next']);
 });
 
+test('the / menu inserts a block equation, and writes an inline one at the caret once its LaTeX is stored', async ({
+  page,
+}) => {
+  await openEditor(page, 'empty', 'math=1');
+  await caretIn(page);
+  await page.keyboard.type('Area /inlineeq');
+  await page.keyboard.press('Enter');
+  await expect(field(page)).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect.poll(async () => (await blocks(page))[0].data.markdown).toBe('Area&#32;');
+  await page.keyboard.type('/inlineeq');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('x^2');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type(' m');
+  await expect.poll(async () => (await blocks(page))[0].data.markdown).toBe('Area $x^2$ m');
+  expect(await axeViolations(page)).toEqual([]);
+
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('/blockeq');
+  await page.keyboard.press('Enter');
+  await expect(field(page)).toBeFocused();
+  await page.keyboard.type('\\int');
+  await page.keyboard.press('ControlOrMeta+Enter');
+  await expect(equation(page).locator('.harness-math')).toHaveText('\\int');
+});
+
 test('a price typed with dollars stays text', async ({ page }) => {
   await openEditor(page, 'empty', 'math=1');
   const host = await caretIn(page);

@@ -1,11 +1,13 @@
-import { atom, setAttrsStep, Transaction, type AtomNode, type EditorState } from '../../engine';
 import { str } from '../../blocks/str';
+import { atom, setAttrsStep, Transaction, type AtomNode, type EditorState } from '../../engine';
+import { caretMarks } from '../../engine/commands/caret-marks';
 import { blockById } from '../../engine/model/doc';
+import { inlineText } from '../../engine/model/inline';
 import { replaceInlineStep } from '../../engine/transform/replace-inline-step';
 import type { ViewController } from '../../view';
 import { atomAt } from '../atoms/atom-place';
 import { MATH_ATOMS } from './math-feature';
-import type { AtomTarget, BlockTarget } from './math-target';
+import type { AtomTarget, BlockTarget, InsertTarget } from './math-target';
 
 // Only while the canvas is editable and drawn: a canvas being taken down has let go of its root first. A write that
 // hands focus back goes through the view, which draws it at once, so the caret is put back into the line as drawn after
@@ -28,7 +30,18 @@ export function targetBlockThere(state: EditorState, target: BlockTarget): boole
   return block?.type === 'MATH' && str(block.attrs.latex) === target.latex;
 }
 
-export function storeBlockLatex(controller: ViewController, target: BlockTarget, latex: string, refocus: boolean): void {
+/** Whether the line `target` writes a formula into still holds the text it held when the editor opened. */
+export function targetLineThere(state: EditorState, target: InsertTarget): boolean {
+  const inline = blockById(state.doc, target.block)?.regions[target.region];
+  return inline !== undefined && inlineText(inline) === target.text;
+}
+
+export function storeBlockLatex(
+  controller: ViewController,
+  target: BlockTarget,
+  latex: string,
+  refocus: boolean,
+): void {
   const { state } = controller.editor;
   if (!targetBlockThere(state, target)) return;
   write(controller, new Transaction(state).step(setAttrsStep(target.block, { latex })), refocus);
@@ -43,4 +56,13 @@ export function storeAtomLatex(controller: ViewController, target: AtomTarget, l
   const formula = latex === '' ? [] : [atom('math', { ...node.attrs, latex }, node.marks)];
   const tr = new Transaction(state).step(replaceInlineStep(block, region, offset, offset + 1, formula));
   write(controller, tr, refocus);
+}
+
+/** Writes a new formula at the caret, with the marks typed text would take there, in one step. */
+export function insertFormula(controller: ViewController, target: InsertTarget, latex: string, refocus: boolean): void {
+  const { state } = controller.editor;
+  if (latex === '' || !targetLineThere(state, target)) return;
+  const { block, region, offset } = target;
+  const formula = atom('math', { latex }, caretMarks(state.doc, state.schema, state.storedMarks, target));
+  write(controller, new Transaction(state).step(replaceInlineStep(block, region, offset, offset, [formula])), refocus);
 }

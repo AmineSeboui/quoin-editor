@@ -11,6 +11,10 @@ describe('the math labels', () => {
       latex: 'LaTeX',
       preview: 'Preview',
       save: 'Save',
+      blockEquation: 'Block equation',
+      blockEquationDescription: 'A formula on a line of its own',
+      inlineEquation: 'Inline equation',
+      inlineEquationDescription: 'A formula in the line of text',
     });
   });
 

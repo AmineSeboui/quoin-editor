@@ -19,11 +19,20 @@ export const atomTarget = ({ block, region, offset, node }: AtomPlace): AtomTarg
   latex: node.attrs.latex ?? '',
 });
 
+/** A formula to write at a caret, kept with the text of its line then, so a write can tell the line is unchanged. */
+export type InsertTarget = {
+  readonly kind: 'insert';
+  readonly block: string;
+  readonly region: string;
+  readonly offset: number;
+  readonly text: string;
+};
+
 /** A math block, kept with the LaTeX it held when its editor opened. */
 export type BlockTarget = { readonly kind: 'block'; readonly block: string; readonly latex: string };
 
 /** What the math editor of a canvas is open on: a math block or a formula in a line. */
-export type MathTarget = BlockTarget | AtomTarget;
+export type MathTarget = BlockTarget | AtomTarget | InsertTarget;
 
 type Store = { target: MathTarget | null; readonly listeners: Set<() => void> };
 

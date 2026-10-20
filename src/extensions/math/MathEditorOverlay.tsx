@@ -9,19 +9,29 @@ import type { ViewController } from '../../view';
 import { useEditorState } from '../../view/react/use-editor-state';
 import { useReadOnly } from '../../view/react/use-read-only';
 import type { MathFeature } from './math-feature';
-import { openMath, useMathTarget, type AtomTarget, type BlockTarget, type MathTarget } from './math-target';
+import { openMath, useMathTarget } from './math-target';
+import type { AtomTarget, BlockTarget, InsertTarget, MathTarget } from './math-target';
 import { MathEditorPopover } from './MathEditorPopover';
-import { storeAtomLatex, storeBlockLatex, targetAtom, targetBlockThere } from './store-latex';
+import {
+  insertFormula,
+  storeAtomLatex,
+  storeBlockLatex,
+  targetAtom,
+  targetBlockThere,
+  targetLineThere,
+} from './store-latex';
 import { useMathAtomOpening } from './use-math-atom-opening';
 
 type Props = { controller: ViewController; feature: MathFeature };
 
-const isThere = (state: EditorState, target: MathTarget): boolean =>
-  target.kind === 'block' ? targetBlockThere(state, target) : targetAtom(state, target) !== null;
+function isThere(state: EditorState, target: MathTarget): boolean {
+  if (target.kind === 'block') return targetBlockThere(state, target);
+  return target.kind === 'atom' ? targetAtom(state, target) !== null : targetLineThere(state, target);
+}
 
 /**
- * The editor of the math block or the formula in a line that a click or Enter opened, while it is still there and the
- * canvas is editable.
+ * The editor of the math block or the formula in a line that a click, Enter or the `/` menu opened, while what it edits
+ * is still there and the canvas is editable.
  */
 export function MathEditorOverlay({ controller, feature }: Props) {
   const readOnly = useReadOnly(controller);
@@ -40,7 +50,7 @@ export function MathEditorOverlay({ controller, feature }: Props) {
   return target.kind === 'block' ? (
     <BlockMathEditor key={JSON.stringify(target)} controller={controller} feature={feature} target={target} />
   ) : (
-    <AtomMathEditor key={JSON.stringify(target)} controller={controller} feature={feature} target={target} />
+    <InlineMathEditor key={JSON.stringify(target)} controller={controller} feature={feature} target={target} />
   );
 }
 
@@ -61,14 +71,21 @@ function BlockMathEditor({ controller, feature, target }: Props & { target: Bloc
   );
 }
 
-function AtomMathEditor({ controller, feature, target }: Props & { target: AtomTarget }) {
+// A formula in the line to edit, or one to write at the caret.
+function InlineMathEditor({ controller, feature, target }: Props & { target: AtomTarget | InsertTarget }) {
   const { block, region, offset } = target;
-  const range = useMemo(() => ({ block, region, from: offset, to: offset + 1 }), [block, region, offset]);
+  const editing = target.kind === 'atom';
+  const range = useMemo(
+    () => ({ block, region, from: offset, to: editing ? offset + 1 : offset }),
+    [block, region, offset, editing],
+  );
   const { anchor, side } = useRangeAnchor(controller, range);
-  const removed = useRef(false);
+  // Whether a formula stands at the offset once the editor closes, which the caret goes back after.
+  const kept = useRef(editing);
   const onStore = (latex: string, refocus: boolean) => {
-    removed.current = latex === '';
-    storeAtomLatex(controller, target, latex, refocus);
+    kept.current = latex !== '';
+    if (target.kind === 'atom') storeAtomLatex(controller, target, latex, refocus);
+    else insertFormula(controller, target, latex, refocus);
   };
   return (
     <MathEditorPopover
@@ -76,11 +93,11 @@ function AtomMathEditor({ controller, feature, target }: Props & { target: AtomT
       feature={feature}
       anchor={anchor}
       side={side}
-      latex={target.latex}
+      latex={editing ? target.latex : ''}
       displayMode={false}
       onStore={onStore}
       onClose={() => openMath(controller, null)}
-      onReturn={() => controller.focus({ block, region, offset: removed.current ? offset : offset + 1 })}
+      onReturn={() => controller.focus({ block, region, offset: kept.current ? offset + 1 : offset })}
     />
   );
 }

@@ -11,6 +11,12 @@ export type MathLabels = {
   /** The live preview of the formula being edited. */
   preview: string;
   save: string;
+  /** The slash command that inserts a math block. */
+  blockEquation: string;
+  blockEquationDescription: string;
+  /** The slash command that writes a formula at the caret. */
+  inlineEquation: string;
+  inlineEquationDescription: string;
 };
 
 export const englishMathLabels: MathLabels = {
@@ -20,6 +26,10 @@ export const englishMathLabels: MathLabels = {
   latex: 'LaTeX',
   preview: 'Preview',
   save: 'Save',
+  blockEquation: 'Block equation',
+  blockEquationDescription: 'A formula on a line of its own',
+  inlineEquation: 'Inline equation',
+  inlineEquationDescription: 'A formula in the line of text',
 };
 
 /** The English labels with the host's overrides on top. A key left out, or passed as undefined, stays English. */

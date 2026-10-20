@@ -8,10 +8,11 @@ describe('the catalogue entry', () => {
     const [table, embed, math] = catalogue({
       table: { labels: { table: 'Tableau' } },
       embed: { labels: { embed: 'Int\u00e9grer' } },
-      math: { renderMath: () => '<b>drawn</b>' },
+      math: { renderMath: () => '<b>drawn</b>', labels: { inlineEquation: 'Formule' } },
     });
     expect((table.ui as ExtensionUI).slashItems?.map((item) => item.title)).toEqual(['Tableau']);
     expect((embed.ui as ExtensionUI).slashItems?.map((item) => item.title)).toEqual(['Int\u00e9grer', 'Bookmark']);
+    expect((math.ui as ExtensionUI).slashItems?.map((item) => item.title)).toEqual(['Block equation', 'Formule']);
     const drawn = (math.ui as ExtensionUI).render?.atoms?.math(atom('math', { latex: 'x' }), document);
     expect(drawn?.innerHTML).toBe('<b>drawn</b>');
   });

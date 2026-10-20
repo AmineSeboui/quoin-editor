@@ -2,6 +2,8 @@
 export type TocLabels = {
   /** The slash command, and the name of a table of contents and of its navigation. */
   tableOfContents: string;
+  /** The name of the navigation of the second table of contents in a document, and of those after it. */
+  tableOfContentsNumbered(n: number): string;
   tableOfContentsDescription: string;
   /** What a table of contents shows while the document has no headings. */
   noHeadings: string;
@@ -9,6 +11,7 @@ export type TocLabels = {
 
 export const englishTocLabels: TocLabels = {
   tableOfContents: 'Table of contents',
+  tableOfContentsNumbered: (n) => `Table of contents ${n}`,
   tableOfContentsDescription: 'Links to the headings of the page',
   noHeadings: 'Add headings to build the table of contents',
 };

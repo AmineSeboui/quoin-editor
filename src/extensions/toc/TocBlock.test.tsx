@@ -59,9 +59,32 @@ describe('a table of contents', () => {
     expect(nav().querySelector('ul, ol, a')).toBeNull();
   });
 
+  it('is called by its label when selected as a whole, and in the title of its block menu', () => {
+    const { nodeSelect, sink, openBlockMenu } = mountToc(outline(), { labels: { tableOfContents: 'Sommaire' } });
+    nodeSelect('toc');
+    expect(sink()).toHaveAccessibleName('Sommaire');
+    expect(openBlockMenu()).toHaveAccessibleName('Sommaire block menu');
+  });
+
+  it('numbers the second table of contents and those after it, as they come and go', async () => {
+    const tocs = [tocBlock('t1'), heading('a', 1, 'Intro'), tocBlock('t2'), tocBlock('t3')];
+    const { container, handle } = mountToc(tocs);
+    const names = () => screen.getAllByRole('navigation').map((nav) => nav.getAttribute('aria-label'));
+    expect(names()).toEqual(['Table of contents', 'Table of contents 2', 'Table of contents 3']);
+    expect(await axe(container)).toHaveNoViolations();
+    act(() => void handle().editor.setBlocks(tocs.slice(1)));
+    expect(names()).toEqual(['Table of contents', 'Table of contents 2']);
+  });
+
   it('takes its name and its message from the labels', () => {
-    mountToc([tocBlock()], { labels: { tableOfContents: 'Sommaire', noHeadings: 'Aucun titre' } });
+    const labels = {
+      tableOfContents: 'Sommaire',
+      tableOfContentsNumbered: (n: number) => `Sommaire ${n}`,
+      noHeadings: 'Aucun titre',
+    };
+    mountToc([tocBlock('t1'), tocBlock('t2')], { labels });
     expect(screen.getByRole('navigation', { name: 'Sommaire' })).toHaveTextContent('Aucun titre');
+    expect(screen.getByRole('navigation', { name: 'Sommaire 2' })).toHaveTextContent('Aucun titre');
   });
 
   it('follows the headings as they are typed, renamed and removed', () => {

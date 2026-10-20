@@ -19,6 +19,10 @@ export type TocOptions = {
 export function tocExtension(options: TocOptions = {}): Extension {
   const labels = resolveTocLabels(options.labels);
   const TocRenderer = (props: BlockRenderProps) => <TocBlock {...props} labels={labels} />;
-  const ui: ExtensionUI = { slashItems: [tocSlashItem(labels)], renderers: { TOC: TocRenderer } };
+  const ui: ExtensionUI = {
+    slashItems: [tocSlashItem(labels)],
+    renderers: { TOC: TocRenderer },
+    blockNames: { TOC: labels.tableOfContents },
+  };
   return defineExtension({ name: 'toc', ui });
 }

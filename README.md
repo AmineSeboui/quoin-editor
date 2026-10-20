@@ -492,7 +492,7 @@ The arrows select a card as a whole, and it is announced as "File" and the file'
 
 ## Opt-in features
 
-Features beyond the core blocks ship as their own entries, so a host that leaves one out never downloads it. Add a feature's extension to `extensions`, or `catalogue()` from `quoin-editor/catalogue` for all of them, each taking its options under its own name (`catalogue({ table: { labels } })`, or `false` to leave one out). Every string a feature shows or speaks comes from its own `labels` option, English by default.
+Features beyond the core blocks ship as their own entries, so a host that leaves one out never downloads it. Add a feature's extension to `extensions`, or `catalogue()` from `quoin-editor/catalogue` for all of them, each taking its options under its own name (`catalogue({ table: { labels } })`, or `false` to leave one out). Every string a feature shows or speaks comes from its own `labels` option, English by default, the name its blocks go by in their block menu and while one is selected as a whole included.
 
 A block whose feature is not installed, such as a table on a canvas without `tableExtension()`, an embed without `embedExtension()`, a math block without `mathExtension()` or a table of contents without `tocExtension()`, is drawn as an unsupported block. Its data is kept as it was, through edits around it, `onChange` and markdown. A math formula in a line, without `mathExtension()`, shows its LaTeX as plain text.
 
@@ -558,7 +558,7 @@ const extensions = [
 
 ### Table of contents
 
-`quoin-editor/toc` draws `TOC` blocks as a navigation named "Table of contents" that lists the headings of the document as links, nested by level, and follows them as they are written. A heading with no text is left out, and a skipped level nests one deep, as in the table of contents `toHTML` writes. `/` and Table of contents inserts one; with no headings it shows "Add headings to build the table of contents".
+`quoin-editor/toc` draws `TOC` blocks as a navigation named "Table of contents" that lists the headings of the document as links, nested by level, and follows them as they are written. A heading with no text is left out, and a skipped level nests one deep, as in the table of contents `toHTML` writes. `/` and Table of contents inserts one; with no headings it shows "Add headings to build the table of contents". A second table of contents in the same document, and any after it, is named with its number, "Table of contents 2", so that each navigation has a name of its own.
 
 Each entry links to `#block-<id>`, the fragment a copied link to the block ends with. A click on an entry, or Enter on it, puts the caret at the end of its heading and scrolls the heading into view, smoothly unless the reader prefers reduced motion; Mod+click and a middle click leave the link to the browser, which opens the page at the heading in a new tab. On an editable canvas the arrows, or a press beside the entries, select the block as a whole, Enter then moves focus to its first entry, Tab and Shift+Tab walk the entries and go back to the block past either end, and Escape goes back to the block; the entries stay out of the page's tab order. A read-only canvas keeps them in it, and a click moves focus to the heading without changing the document.
 

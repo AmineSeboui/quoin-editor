@@ -104,14 +104,24 @@ describe('focus in a table of contents', () => {
     expect(entry('Setup')).toHaveFocus();
   });
 
-  it('is not taken back once a press elsewhere has moved it to the page', () => {
+  it('is not taken back once a press elsewhere has moved it to the page', async () => {
     const { nodeSelect, key, entry, handle, sink } = mountToc(outline());
     nodeSelect('toc');
     key('Enter');
-    act(() => {
+    await act(async () => {
       document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }));
       entry('Intro').blur();
     });
+    act(() => void handle().editor.setBlocks(outline().filter((block) => block.id !== 'a')));
+    expect(document.body).toHaveFocus();
+    expect(sink()).not.toHaveFocus();
+  });
+
+  it('is not taken back once it has left the entry for the page without a press', async () => {
+    const { nodeSelect, key, entry, handle, sink } = mountToc(outline());
+    nodeSelect('toc');
+    key('Enter');
+    await act(async () => entry('Intro').blur());
     act(() => void handle().editor.setBlocks(outline().filter((block) => block.id !== 'a')));
     expect(document.body).toHaveFocus();
     expect(sink()).not.toHaveFocus();

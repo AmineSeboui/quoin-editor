@@ -118,7 +118,9 @@ test('on a read-only canvas the entries are in the tab order, and go to their he
   expect(await markdownOf(page, 'usage')).toBe('### Using it');
 });
 
-test('focus stays in the block when the host takes away or moves the heading of the focused entry', async ({ page }) => {
+test('focus stays in the block when the host takes away or moves the heading of the focused entry', async ({
+  page,
+}) => {
   await openEditor(page, 'toc', 'toc=1');
   await host(page, 'intro').click();
   await page.keyboard.press('Home');
@@ -139,4 +141,39 @@ test('focus stays in the block when the host takes away or moves the heading of 
   await expect(entry(page, 'Setting up')).toHaveCount(0);
   await expect(sink(page)).toBeFocused();
   await expect(tocShell(page)).toHaveAttribute('data-selected', 'true');
+});
+
+const removeIntro = (page: Page) =>
+  page.evaluate(() => window.__quoin.setBlocks!((blocks) => blocks.filter((block) => block.id !== 'intro')));
+const bodyFocused = (page: Page) => page.evaluate(() => document.activeElement === document.body);
+
+for (const [canvas, query] of [
+  ['an editable', 'toc=1'],
+  ['a read-only', 'toc=1&readonly=1'],
+]) {
+  test(`on ${canvas} canvas, focus a script takes off an entry stays off when the host removes its heading`, async ({
+    page,
+  }) => {
+    await openEditor(page, 'toc', query);
+    await entry(page, 'Introduction').focus();
+    await entry(page, 'Introduction').evaluate((link: HTMLElement) => link.blur());
+    await removeIntro(page);
+    await expect(entry(page, 'Introduction')).toHaveCount(0);
+    await expect(sink(page)).not.toBeFocused();
+    expect(await bodyFocused(page)).toBe(true);
+  });
+}
+
+test('focus Shift+Tab takes out of the page from the first entry stays out when the host removes its heading', async ({
+  page,
+  browserName,
+}) => {
+  test.skip(browserName === 'firefox', 'Firefox under Playwright keeps focus on the first entry on Shift+Tab');
+  await openEditor(page, 'toc', 'toc=1&readonly=1');
+  await entry(page, 'Introduction').focus();
+  await page.keyboard.press('Shift+Tab');
+  expect(await bodyFocused(page)).toBe(true);
+  await removeIntro(page);
+  await expect(entry(page, 'Introduction')).toHaveCount(0);
+  expect(await bodyFocused(page)).toBe(true);
 });

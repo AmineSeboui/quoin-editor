@@ -1,4 +1,4 @@
-import { useEffect, useRef, type FocusEvent, type RefObject } from 'react';
+import { useRef, type FocusEvent, type RefObject } from 'react';
 import { nodeSelection } from '../../engine';
 import type { ViewController } from '../../view';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
@@ -19,9 +19,9 @@ function refocus(controller: ViewController, blockId: string, nav: HTMLElement, 
 /**
  * Keeps focus in the block when a change from elsewhere redraws or takes away the entry that holds it: on the entry
  * drawn again for the same heading, or else on the block selected as a whole. Chromium blurs a removed element as it
- * blurs one a press on the page leaves, so the entry is let go of only when focus moves to another element or on a
- * press. The selection is dispatched to the editor rather than through the controller, whose synchronous flush React
- * refuses from inside an effect.
+ * blurs one that focus leaves for the page, so a blur to nowhere lets go of the entry only if it is still in the page
+ * once the redraw that may have removed it is over. The selection is dispatched to the editor rather than through the
+ * controller, whose synchronous flush React refuses from inside an effect.
  */
 export function useEntryFocus(
   controller: ViewController,
@@ -30,13 +30,6 @@ export function useEntryFocus(
   drawn: unknown,
 ) {
   const held = useRef<HTMLElement | null>(null);
-
-  useEffect(() => {
-    const page = root.current?.ownerDocument;
-    const letGo = () => void (held.current = null);
-    page?.addEventListener('pointerdown', letGo, true);
-    return () => page?.removeEventListener('pointerdown', letGo, true);
-  }, [root]);
 
   useIsomorphicLayoutEffect(() => {
     const entry = held.current;
@@ -52,7 +45,14 @@ export function useEntryFocus(
       held.current = (event.target as Element).closest<HTMLElement>('a[href]');
     },
     onBlur(event: FocusEvent) {
-      if (event.relatedTarget !== null) held.current = null;
+      const entry = held.current;
+      if (event.relatedTarget !== null) {
+        held.current = null;
+        return;
+      }
+      queueMicrotask(() => {
+        if (entry?.isConnected && held.current === entry) held.current = null;
+      });
     },
   };
 }

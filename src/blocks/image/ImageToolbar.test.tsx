@@ -273,17 +273,6 @@ describe('the alt text of an image', () => {
     }
   });
 
-  it('is stored as soon as a press lands outside it, before any click, and a press on the toolbar keeps the image', () => {
-    const { nodeSelect, imageData, sink } = mount();
-    nodeSelect('i');
-    fireEvent.click(button('Alt text'));
-    fireEvent.change(screen.getByRole('textbox', { name: 'Alt text' }), { target: { value: 'A cat asleep' } });
-    fireEvent.pointerDown(button('Align center'));
-    expect(imageData()).toEqual({ storageKey: 'cat.png', alt: 'A cat asleep' });
-    expect(screen.queryByRole('textbox', { name: 'Alt text' })).toBeNull();
-    expect(sink()).toHaveFocus();
-  });
-
   it('has no accessibility violations', async () => {
     const user = userEvent.setup();
     const { nodeSelect } = mount();

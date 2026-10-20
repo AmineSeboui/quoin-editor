@@ -46,11 +46,12 @@ function tableState(data: Record<string, unknown> = {}, selection: SelectionSpec
   return buildState(['Above', table(data), 'Below'], selection, { plugins: [historyPlugin()] });
 }
 
-const dataOf = (state: EditorState) => blocksOf(state)[1].data;
 const tableOf = (blocks: QuoinBlock[]) => blocks.find((block) => block.type === 'TABLE')?.data;
+const dataOf = (state: EditorState) => tableOf(blocksOf(state))!;
+const tableBlockOf = (state: EditorState) => state.doc.blocks.find((block) => block.type === 'TABLE')!;
 
 function cellKeys(state: EditorState): string[] {
-  const { attrs } = state.doc.blocks[1];
+  const { attrs } = tableBlockOf(state);
   const rows = Number(attrs.rows);
   const cols = Number(attrs.cols);
   return Array.from({ length: rows * cols }, (_, i) => cellKey(Math.floor(i / cols), i % cols));
@@ -61,7 +62,7 @@ function applied(state: EditorState, command: Command): EditorState {
   expect(result.ok).toBe(true);
   expect(result.tr?.steps).toHaveLength(1);
   const next = result.state;
-  expect(Object.keys(next.doc.blocks[1].regions).sort()).toEqual(cellKeys(next).sort());
+  expect(Object.keys(tableBlockOf(next).regions).sort()).toEqual(cellKeys(next).sort());
   const blocks = blocksOf(next);
   expect(tableOf(fromMarkdown(toMarkdown(blocks, { lossless: true })))).toEqual(dataOf(next));
   const data = dataOf(next);
@@ -164,10 +165,11 @@ describe('column commands', () => {
     expect(headOf(left)).toEqual(cell(1, 1, 1));
   });
 
-  it('set the width of a column, starting the others from the widths they are drawn at', () => {
+  it('set the width of a column, starting the others from the widths they are drawn at, else from 120 pixels', () => {
     expect(dataOf(applied(tableState({ widths: [120, 80] }), setColumnWidth('b1', 1, 99.6))).widths).toEqual([120, 100]);
     expect(dataOf(applied(tableState(), setColumnWidth('b1', 0, 200, [150.4, 90]))).widths).toEqual([200, 90]);
-    expect(dataOf(applied(tableState(), setColumnWidth('b1', 1, 200))).widths).toEqual([200, 200]);
+    expect(dataOf(applied(tableState(), setColumnWidth('b1', 1, 200))).widths).toEqual([120, 200]);
+    expect(dataOf(applied(tableState(), setColumnWidth('b1', 0, 200, [150]))).widths).toEqual([200, 120]);
   });
 
   it('refuse columns that are not there, the last column, changes that change nothing and widths that are no width', () => {
@@ -194,23 +196,19 @@ describe('column commands', () => {
 describe('insertTable', () => {
   it('takes the place of an empty paragraph, keeping its id, with the caret in the first cell', () => {
     const state = buildState(['Above', ''], { block: 1, offset: 0 }, { plugins: [historyPlugin()] });
-    const { ok, state: next } = run(state, insertTable(2, 3));
-    expect(ok).toBe(true);
+    const next = applied(state, insertTable(2, 3));
     expect(blocksOf(next)[1]).toEqual({
       id: 'b1',
       type: 'TABLE',
       data: { rows: [['', '', ''], ['', '', '']], header: true, align: [null, null, null] },
     });
     expect(next.selection).toEqual(textSelection({ block: 'b1', region: cellKey(0, 0), offset: 0 }));
-    expect(run(next, undo).state.doc).toEqual(state.doc);
   });
 
   it('goes after a block with content and the blocks nested under it', () => {
-    const state = buildState(['- item', { id: 'x', type: 'MARKDOWN', data: { markdown: '- nested' }, indent: 1 }, 'After'], {
-      block: 0,
-      offset: 2,
-    });
-    const next = run(state, insertTable(1, 1, { newId: () => 'new' })).state;
+    const nested: QuoinBlock = { id: 'x', type: 'MARKDOWN', data: { markdown: '- nested' }, indent: 1 };
+    const state = buildState(['- item', nested, 'After'], { block: 0, offset: 2 }, { plugins: [historyPlugin()] });
+    const next = applied(state, insertTable(1, 1, { newId: () => 'new' }));
     expect(blocksOf(next).map((block) => block.id)).toEqual(['b0', 'b1', 'new', 'b2']);
     expect(next.selection).toEqual(textSelection({ block: 'new', region: cellKey(0, 0), offset: 0 }));
   });

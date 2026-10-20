@@ -154,9 +154,12 @@ export const setColumnAlign = (blockId: string, col: number, align: ColumnAlign 
     return withAttrs(block, { align: spliced(aligns, col, 1, align) });
   });
 
+/** The width a column takes when a table starts keeping widths and nothing says how wide it is drawn. */
+export const DEFAULT_COLUMN_WIDTH = 120;
+
 /**
  * Sets the column's width in pixels. A table that keeps no widths yet takes the others from `drawn`, the widths its
- * columns are drawn at, so that they stay as they are.
+ * columns are drawn at, so that they stay as they are, or without them sets the others to `DEFAULT_COLUMN_WIDTH`.
  */
 export const setColumnWidth = (blockId: string, col: number, px: number, drawn?: readonly number[]): Command =>
   changeTable(blockId, (block) => {
@@ -165,7 +168,8 @@ export const setColumnWidth = (blockId: string, col: number, px: number, drawn?:
     if (!isIndex(col, cols) || !(width > 0)) return null;
     const stored = storedWidths(block, cols);
     if (stored?.[col] === width) return null;
-    const widths = stored ?? (drawn && validWidths(drawn.map(Math.round), cols)) ?? Array(cols).fill(width);
+    const measured = drawn && validWidths(drawn.map(Math.round), cols);
+    const widths = stored ?? measured ?? Array(cols).fill(DEFAULT_COLUMN_WIDTH);
     return withAttrs(block, { widths: spliced(widths, col, 1, width) });
   });
 

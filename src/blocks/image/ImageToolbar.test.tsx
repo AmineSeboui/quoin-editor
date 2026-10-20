@@ -125,7 +125,7 @@ describe('the toolbar of an image', () => {
   it('has no accessibility violations', async () => {
     const { nodeSelect } = mount();
     nodeSelect('i');
-    expect(await axe(toolbar()!)).toHaveNoViolations();
+    expect(await act(() => axe(toolbar()!))).toHaveNoViolations();
   });
 });
 

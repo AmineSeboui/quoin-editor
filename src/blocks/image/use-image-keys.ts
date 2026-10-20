@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, type RefObject } from 'react';
-import type { Pos } from '../../engine';
+import { textSelection, type Pos } from '../../engine';
 import { blockById } from '../../engine/model/doc';
 import { inlineLength } from '../../engine/model/inline';
 import type { KeyInterceptor, ViewController } from '../../view';
@@ -42,11 +42,17 @@ export function useImageKeys(
 ): void {
   const { editing, stop } = useVoidEditing(controller, blockId, editable);
 
+  // The canvas's own flush is refused inside an effect, so the caret goes to the editor, which the view then follows.
   useEffect(() => {
     if (!editing) return;
     stop();
-    if (picture) controller.focus(captionEnd(controller, blockId));
-    else root.current?.querySelector<HTMLElement>(CONTROL)?.focus();
+    if (!picture) {
+      root.current?.querySelector<HTMLElement>(CONTROL)?.focus();
+      return;
+    }
+    const { editor } = controller;
+    editor.dispatch(editor.createTransaction().setSelection(textSelection(captionEnd(controller, blockId))));
+    controller.focus();
   }, [editing, stop, picture, controller, blockId, root]);
 
   useEffect(() => {

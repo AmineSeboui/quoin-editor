@@ -41,9 +41,15 @@ export function assetOf(controller: ViewController, blockId: string, type: strin
 export const sameAsset = (a: Asset | null, b: Asset | null): boolean =>
   a !== null && b !== null && a.url === b.url && a.storageKey === b.storageKey;
 
+/**
+ * Writes what an upload or a measurement found, through the editor itself, so the view follows the change only where
+ * focus already is: written through the controller while focus is on the page, the selection would be drawn into the
+ * editor and take focus there.
+ */
 export function writeAttrs(controller: ViewController, blockId: string, patch: Record<string, unknown>, recorded: boolean) {
-  const tr = controller.editor.createTransaction().step(setAttrsStep(blockId, patch));
-  controller.dispatch(recorded ? tr : tr.setMeta('addToHistory', false));
+  const { editor } = controller;
+  const tr = editor.createTransaction().step(setAttrsStep(blockId, patch));
+  editor.dispatch(recorded ? tr : tr.setMeta('addToHistory', false));
 }
 
 /**

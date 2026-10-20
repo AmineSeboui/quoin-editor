@@ -46,7 +46,7 @@ function movedOn(controller: ViewController, before: Writer): boolean {
  * Uploads the files and inserts an image block for each image and a file block for anything else, in their order,
  * then measures the images. An upload that fails, or resolves to no stored key, is reported to `onError` and left out.
  * A writer still where the paste or drop left them goes on in an empty line after the blocks; one who moved on while
- * the files uploaded keeps their caret and focus.
+ * the files uploaded keeps their caret and focus. The blocks go in through the editor itself, as `writeAttrs` explains.
  */
 export async function insertUploads(
   controller: ViewController,
@@ -65,7 +65,8 @@ export async function insertUploads(
   });
   if (blocks.length === 0 || controller.root === null || controller.readOnly) return;
   const landing = movedOn(controller, writer) ? 'stay' : 'line';
-  if (!controller.run(insertBlocks(blocks, landing, anchorBlock(controller, at)))) return;
+  const { editor } = controller;
+  if (!insertBlocks(blocks, landing, anchorBlock(controller, at))(editor.state, (tr) => editor.dispatch(tr))) return;
   for (const { id, attrs } of blocks) {
     if (id !== undefined) void measureImage(controller, id, String(attrs?.storageKey), resolveAssetUrl);
   }

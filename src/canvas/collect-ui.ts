@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react';
 import { drawnAsText, drawnInPlace } from '../blocks/block-drawing';
-import { inPlaceRenderers } from '../blocks/in-place-renderers';
+import { inPlaceOverlays, inPlaceRenderers } from '../blocks/in-place-renderers';
 import { textRenderers } from '../blocks/text/text-renderers';
 import { voidRenderers } from '../blocks/void/void-renderers';
 import type { Extension } from '../engine';
@@ -64,6 +64,9 @@ export function collectUi(
     blockMenuItems: uis.flatMap((ui) => ui.blockMenuItems ?? []),
     renderers: Object.assign({}, canvasRenderers(definitions, readOnly), ...uis.map((ui) => ui.renderers)),
     render: mergeRender(uis),
-    overlays: uis.flatMap((ui) => ui.overlays ?? []),
+    overlays: [
+      ...uis.flatMap((ui) => ui.overlays ?? []),
+      ...Object.entries(inPlaceOverlays).flatMap(([type, overlay]) => (drawnInPlace(definitions, type) ? [overlay] : [])),
+    ],
   };
 }

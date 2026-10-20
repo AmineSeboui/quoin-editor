@@ -1,19 +1,10 @@
-import { Image, Paperclip } from 'lucide-react';
+import { Paperclip } from 'lucide-react';
 import { defineBlock, type AnyBlockDefinition } from '../../registry';
 import { FileBlockEditor } from '../FileBlockEditor';
-import { ImageBlockEditor } from '../ImageBlockEditor';
-import { FilePreview, ImagePreview } from '../previews';
+import { FilePreview } from '../previews';
 
-/** The 0.4 IMAGE and FILE editors and previews, drawn as void blocks until their 1.0 blocks replace them. */
+/** The 0.4 FILE editor and preview, drawn as a void block until the 1.0 file block replaces it. */
 export const legacyDefinitions: AnyBlockDefinition[] = [
-  defineBlock({
-    type: 'IMAGE',
-    label: 'Image',
-    icon: Image,
-    editor: ImageBlockEditor,
-    preview: ImagePreview,
-    initialData: () => ({ storageKey: '', alt: '' }),
-  }),
   defineBlock({
     type: 'FILE',
     label: 'File',

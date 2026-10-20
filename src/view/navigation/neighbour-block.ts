@@ -2,6 +2,7 @@ import type { EngineBlock, EngineDoc, Pos, Selection } from '../../engine';
 import { isTextFlow } from '../../engine/commands/block-helpers';
 import { endOf, nodeSelection, startOf } from '../../engine/state/selection';
 import type { ViewController } from '../controller/view-controller';
+import { entersAsNode } from './node-entry';
 import { visibleBlockIndexes } from './visible-blocks';
 
 const anyBlock = () => true;
@@ -22,11 +23,17 @@ export function neighbourBlock(
 
 // A block whose entry region is drawn without a host, such as an image or a table under the void fallback, can hold
 // no caret, so it is node-selected like a void block.
-export function entryEdge({ editor, registry }: ViewController, block: string, direction: -1 | 1): Selection {
-  const { doc, schema } = editor.state;
+export function entryEdge(controller: ViewController, block: string, direction: -1 | 1): Selection {
+  const { doc, schema } = controller.editor.state;
   const edge = direction < 0 ? endOf(doc, schema, block) : startOf(doc, schema, block);
-  return edge.kind === 'text' && !registry.get(edge.head.block, edge.head.region) ? nodeSelection(block) : edge;
+  if (edge.kind !== 'text') return edge;
+  const drawn = controller.registry.get(edge.head.block, edge.head.region) !== undefined;
+  return drawn && !entersAsNode(controller, block) ? edge : nodeSelection(block);
 }
+
+/** The block itself, for a caret leaving its text towards the start of a block drawn as more than its text. */
+export const ownNode = (controller: ViewController, block: string, direction: -1 | 1): Selection | null =>
+  direction < 0 && entersAsNode(controller, block) ? nodeSelection(block) : null;
 
 export const holdsTextHead = (controller: ViewController) => (block: EngineBlock): boolean =>
   isTextFlow(controller.editor.state.schema, block) && entryEdge(controller, block.id, 1).kind === 'text';

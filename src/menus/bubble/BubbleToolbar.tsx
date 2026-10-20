@@ -8,8 +8,8 @@ import type { QuoinLabels } from '../../i18n/labels';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
 import type { ViewController } from '../../view';
 import { useEditorState } from '../../view/react/use-editor-state';
-import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
 import { keepFocus } from '../floating/keep-focus';
+import { useFocusKey } from '../floating/use-focus-key';
 import { useSelectionAnchor } from '../floating/use-selection-anchor';
 import { AlignDropdown } from './AlignDropdown';
 import { bubbleItems, ToolbarButton } from './bubble-items';
@@ -23,22 +23,6 @@ const DIVIDER = 'mx-0.5 h-5 w-px shrink-0 bg-border';
 
 const wholeState = (state: EditorState) => state;
 const preventDefault = (event: Event) => event.preventDefault();
-
-const isFocusKey = (event: globalThis.KeyboardEvent) =>
-  event.key === 'F10' && event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey;
-
-function useFocusKey(controller: ViewController, focus: () => void): void {
-  useIsomorphicLayoutEffect(() => {
-    const intercept = (event: globalThis.KeyboardEvent) => {
-      if (!isFocusKey(event)) return false;
-      event.preventDefault();
-      focus();
-      return true;
-    };
-    controller.keyInterceptors.add(intercept);
-    return () => void controller.keyInterceptors.delete(intercept);
-  }, [controller, focus]);
-}
 
 type BubbleToolbarProps = {
   controller: ViewController;

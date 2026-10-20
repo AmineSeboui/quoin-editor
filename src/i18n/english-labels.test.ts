@@ -164,12 +164,22 @@ describe('englishLabels', () => {
     expect(englishLabels.uploadsUnavailable).toBe('Uploads are not configured for this editor.');
   });
 
-  it('names the fields of the image and file editors and says what an empty preview lacks', () => {
-    expect(englishLabels.uploadImage).toBe('Upload image');
-    expect([englishLabels.altText, englishLabels.imageAltText]).toEqual(['Alt text', 'Image alt text']);
-    expect(englishLabels.captionOptional).toBe('Caption (optional)');
-    expect(englishLabels.imageCaption).toBe('Image caption');
-    expect(englishLabels.imageAttached).toBe('Image attached');
+  it('names the parts of an image block, says an image needs alt text and names one without it', () => {
+    expect([englishLabels.uploadImage, englishLabels.embedLink, englishLabels.imageLink]).toEqual([
+      'Upload image',
+      'Embed link',
+      'Image link',
+    ]);
+    expect(englishLabels.dropImage).toBe('Or drop or paste an image here.');
+    expect([englishLabels.imageCaption, englishLabels.addCaption]).toEqual(['Image caption', 'Add a caption']);
+    expect([englishLabels.imageTools, englishLabels.imageWidth]).toEqual(['Image tools', 'Image width']);
+    expect([englishLabels.replaceImage, englishLabels.download]).toEqual(['Replace image', 'Download']);
+    expect([englishLabels.altText, englishLabels.save]).toEqual(['Alt text', 'Save']);
+    expect(englishLabels.altTextHint).toBe('Required. Describe what the image shows for anyone who cannot see it.');
+    expect(englishLabels.imageNoAlt).toBe('Image, no description');
+  });
+
+  it('names the field of the file editor and says what an empty preview lacks', () => {
     expect(englishLabels.uploadFile).toBe('Upload file');
     expect([englishLabels.emptyImage, englishLabels.emptyFile]).toEqual(['No image chosen', 'No file chosen']);
     expect(englishLabels.emptyMarkdown).toBe('Empty markdown block');

@@ -10,16 +10,20 @@ const params = new URLSearchParams(location.search);
 const READ_ONLY = params.get('readonly') === '1';
 const UPLOAD_DELAY = params.get('upload');
 
+// Each upload is kept as an object URL under its key, so the picture of an uploaded image loads.
+const uploads = new Map<string, string>([['fixture.png', fixtureDataUrl]]);
+
 const upload: UploadFn | undefined =
   UPLOAD_DELAY === null
     ? undefined
     : (file) =>
         new Promise((resolve) => {
           const stored = { storageKey: `key-${file.name}`, filename: file.name, size: file.size };
+          uploads.set(stored.storageKey, URL.createObjectURL(file));
           setTimeout(() => resolve(stored), Number(UPLOAD_DELAY));
         });
 
-const resolveAssetUrl = (storageKey: string) => (storageKey === 'fixture.png' ? fixtureDataUrl : storageKey);
+const resolveAssetUrl = (storageKey: string) => uploads.get(storageKey) ?? storageKey;
 
 const docs: Record<string, QuoinBlock[]> = {
   empty: [],
@@ -74,7 +78,7 @@ const docs: Record<string, QuoinBlock[]> = {
   ],
   image: [
     { id: 'p', type: 'MARKDOWN', data: { markdown: 'Above the image' } },
-    { id: 'img', type: 'IMAGE', data: { storageKey: 'fixture.png', alt: 'A red square' } },
+    { id: 'img', type: 'IMAGE', data: { storageKey: 'fixture.png', alt: 'A red square', widthPercent: 50 } },
     { id: 'd', type: 'DIVIDER', data: {} },
     { id: 'q', type: 'MARKDOWN', data: { markdown: 'Below the image' } },
   ],

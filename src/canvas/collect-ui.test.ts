@@ -1,6 +1,6 @@
 import { Star } from 'lucide-react';
 import { coreBlocks } from '../blocks/core';
-import { inPlaceRenderers } from '../blocks/in-place-renderers';
+import { inPlaceOverlays, inPlaceRenderers } from '../blocks/in-place-renderers';
 import { textRenderers } from '../blocks/text/text-renderers';
 import { defineExtension } from '../engine';
 import type { ExtensionUI, SlashItem } from '../extensions/ui-types';
@@ -66,6 +66,17 @@ describe('collectUi', () => {
     expect(renderers.CODE).toBe(collectUi([], [snippet]).renderers.CODE);
     expect(renderers.CODE).not.toBe(inPlaceRenderers.CODE);
     expect(collectUi([], [chart]).renderers.CODE).toBeUndefined();
+  });
+
+  it("draws Quoin's image block in place, with the toolbar of a selected image after the extensions' overlays", () => {
+    const ui = collectUi([withUi('a', { overlays: [Drawn] })], coreBlocks);
+    expect(ui.renderers.IMAGE).toBe(inPlaceRenderers.IMAGE);
+    expect(ui.overlays).toEqual([Drawn, inPlaceOverlays.IMAGE]);
+    const photo = defineBlock({ type: 'IMAGE', label: 'Photo', icon: Star, preview: () => null });
+    const hosted = collectUi([], [...coreBlocks, photo]);
+    expect(hosted.renderers.IMAGE).not.toBe(inPlaceRenderers.IMAGE);
+    expect(hosted.overlays).toEqual([]);
+    expect(collectUi([], [chart]).overlays).toEqual([]);
   });
 
   it('merges the render options, a later extension winning an atom both draw', () => {

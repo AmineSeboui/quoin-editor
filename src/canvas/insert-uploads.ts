@@ -1,12 +1,15 @@
+import { measureImage } from '../blocks/image/image-upload';
 import { insertBlocks, type NewBlock } from '../blocks/insert-blocks';
 import type { Pos, Selection } from '../engine';
 import { headBlockId } from '../engine/commands/block-helpers';
+import { newId } from '../engine/model/new-id';
 import { sameSelection } from '../engine/state/selection';
 import type { UploadFn, UploadResult } from '../types';
 import type { ViewController } from '../view';
 
 export type InsertUploadsOptions = {
   upload?: UploadFn;
+  resolveAssetUrl: (storageKey: string) => string;
   onError: (error: Error) => void;
   /** What onError hears when the canvas was given no upload function. */
   unavailable: string;
@@ -19,7 +22,7 @@ const isImage = (file: File) => file.type.startsWith('image/');
 const asError = (cause: unknown) => (cause instanceof Error ? cause : new Error(String(cause)));
 
 function fileBlock(file: File, { storageKey, filename, size }: UploadResult): NewBlock {
-  if (isImage(file)) return { type: 'IMAGE', attrs: { storageKey, alt: '' } };
+  if (isImage(file)) return { id: newId(), type: 'IMAGE', attrs: { storageKey, alt: '' } };
   return { type: 'FILE', attrs: { storageKey, filename, size } };
 }
 
@@ -40,15 +43,15 @@ function movedOn(controller: ViewController, before: Writer): boolean {
 }
 
 /**
- * Uploads the files and inserts an image block for each image and a file block for anything else, in their order.
- * A writer still where the paste or drop left them goes on in an empty line after the blocks; one who moved on while
- * the files uploaded keeps their caret and focus.
+ * Uploads the files and inserts an image block for each image and a file block for anything else, in their order,
+ * then measures the images. A writer still where the paste or drop left them goes on in an empty line after the blocks;
+ * one who moved on while the files uploaded keeps their caret and focus.
  */
 export async function insertUploads(
   controller: ViewController,
   files: readonly File[],
   at: Pos | null,
-  { upload, onError, unavailable }: InsertUploadsOptions,
+  { upload, resolveAssetUrl, onError, unavailable }: InsertUploadsOptions,
 ): Promise<void> {
   if (!upload) return onError(new Error(unavailable));
   const writer = writerOf(controller);
@@ -60,5 +63,8 @@ export async function insertUploads(
   });
   if (blocks.length === 0 || controller.root === null || controller.readOnly) return;
   const landing = movedOn(controller, writer) ? 'stay' : 'line';
-  controller.run(insertBlocks(blocks, landing, anchorBlock(controller, at)));
+  if (!controller.run(insertBlocks(blocks, landing, anchorBlock(controller, at)))) return;
+  for (const { id, attrs } of blocks) {
+    if (id !== undefined) void measureImage(controller, id, String(attrs?.storageKey), resolveAssetUrl);
+  }
 }

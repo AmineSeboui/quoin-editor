@@ -1,8 +1,5 @@
-import { parseInline, serializeInline } from '../engine';
-import { inlineText, text } from '../engine/model/inline';
+import { parseInline } from '../engine';
+import { inlineText } from '../engine/model/inline';
 
-/** The text an image caption reads as. The caption is stored as inline markdown, and the image editor's field is plain. */
+/** The text an image caption reads as, from the inline markdown the block stores. */
 export const captionText = (markdown: string): string => inlineText(parseInline(markdown), () => '');
-
-/** The inline markdown that reads as exactly the text typed into the caption field. */
-export const captionMarkdown = (plain: string): string => serializeInline(plain === '' ? [] : [text(plain)]);

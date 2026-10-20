@@ -1,4 +1,3 @@
-import imageSrc from './ImageBlockEditor.tsx?raw';
 import fileSrc from './FileBlockEditor.tsx?raw';
 import { blockByType } from '../registry';
 import { coreBlocks } from './core';
@@ -23,7 +22,7 @@ const KEYS = {
   MARKDOWN: ['markdown'],
   CALLOUT: ['tone', 'body'],
   CODE: ['language', 'code'],
-  IMAGE: ['storageKey', 'alt', 'caption', 'width', 'height'],
+  IMAGE: ['storageKey', 'alt', 'caption', 'width', 'height', 'url', 'align', 'widthPercent'],
   FILE: ['storageKey', 'filename', 'size'],
 } as const;
 
@@ -34,22 +33,18 @@ type _I = Exact<keyof ImageBlockData, (typeof KEYS.IMAGE)[number]>;
 type _F = Exact<keyof FileBlockData, (typeof KEYS.FILE)[number]>;
 const _assert: [_M, _C, _O, _I, _F] = [true, true, true, true, true];
 
-/** The image editor spreads a measured size onto the block, so those names are part of
- *  the shape without appearing as literal keys in the source scan below. */
+/** The image block writes a measured size onto the block, so those names are part of the shape. */
 type _S = keyof IntrinsicSize extends keyof ImageBlockData ? true : never;
 const _spread: _S = true;
 
 const EDITOR_SOURCE = {
-  IMAGE: imageSrc,
   FILE: fileSrc,
 } satisfies Partial<Record<keyof typeof KEYS, string>>;
 
-/** The object spreads an editor may use when it writes. `...data`, `...latest.current` and
- *  `...patch` are the `set` helper's own plumbing and carry no new names; `...size` is the
- *  measured image size, held to `ImageBlockData` by the type assertion above; `...unsized` is
- *  the image block less a stale size. Anything else is a key this scan cannot see, so the test
- *  fails rather than quietly passing it. */
-const KNOWN_SPREADS = ['...data', '...latest.current', '...patch', '...size', '...unsized'];
+/** The object spreads an editor may use when it writes. `...data` and `...patch` are the `set`
+ *  helper's own plumbing and carry no new names. Anything else is a key this scan cannot see, so
+ *  the test fails rather than quietly passing it. */
+const KNOWN_SPREADS = ['...data', '...patch'];
 
 /** Every top-level key an editor writes, read off the source rather than by driving the
  *  component: an upload path and a Radix select are awkward to fire, and a key written

@@ -305,7 +305,7 @@ Each core block keeps its content under its own keys. A host that persists block
 | `MARKDOWN` | `markdown: string` | `MarkdownBlockData` |
 | `CALLOUT` | `tone: string`, `body: string` | `CalloutBlockData` |
 | `CODE` | `language: string`, `code: string` | `CodeBlockData` |
-| `IMAGE` | `storageKey: string`, `alt: string`, `caption?: string`, `width?: number`, `height?: number` | `ImageBlockData` |
+| `IMAGE` | `storageKey: string`, `alt: string`, `caption?: string`, `width?: number`, `height?: number`, `url?: string`, `align?: 'left' \| 'center' \| 'right'`, `widthPercent?: number` | `ImageBlockData` |
 | `FILE` | `storageKey: string`, `filename: string`, `size?: number` | `FileBlockData` |
 
 `CoreBlockData` maps each `type` string to its shape, for a host writing one function over all five.
@@ -315,13 +315,13 @@ Two of these are worth saying out loud, because both have been guessed wrong:
 - **The callout's prose is `body`, not `text`.** The label over the field reads "Callout text", which is what the author sees; `body` is what the block stores. `tone` is one of `info`, `tip`, `warning`, `success` or `danger`, each drawn in its own colour; anything else falls back to the neutral border and fill.
 - **Markdown blocks store markdown source, not rendered HTML.** Quoin edits and stores the source and renders it as plain text; supply a `preview` if you want it rendered.
 
-The optional fields are written after a block's first save: an image's `caption` when the author types one, its `width` and `height` once the uploaded bytes have been measured, a file's `size` when the upload reports it. `src/blocks/data.test.ts` reads the keys back out of each editor's source and fails if one drifts from the table above.
+The optional fields are written after a block's first save, and only once set: an image's `caption` when the author types one, its `width` and `height` once the uploaded bytes have been measured, its `url`, `align` and `widthPercent` when the author links, aligns or resizes it, a file's `size` when the upload reports it. `src/blocks/data.test.ts` holds the table above to the declared types and to the keys the file editor writes, and the image block's tests check the exact data each of its controls writes.
 
 ### Reaching uploads from a custom block
 
 A block editor receives only `data` and `onChange`, but the canvas configuration reaches it through context, so an upload control inside a custom block needs no wiring from you.
 
-`UploadField` is the control the image and file blocks use, and it is exported for yours. It reads `upload` from the canvas it is rendered in, disables itself while a file is in flight, announces the progress to assistive technology, renders a rejection's message beside the button, and says that uploads are not configured when the host wired none.
+`UploadField` is the control the file block uses, and it is exported for yours. It reads `upload` from the canvas it is rendered in, disables itself while a file is in flight, announces the progress to assistive technology, renders a rejection's message beside the button, and says that uploads are not configured when the host wired none.
 
 ```tsx
 import { UploadField, type BlockEditorProps } from 'quoin-editor';
@@ -472,6 +472,14 @@ export function Editor({ blocks, onChange }: { blocks: QuoinBlock[]; onChange: (
   return <BlockCanvas blocks={blocks} onChange={onChange} highlight={highlight} />;
 }
 ```
+
+## Image blocks
+
+An image block with no picture yet offers an upload button, a link to embed instead, and room to drop or paste an image file. An image file pasted or dropped anywhere else in the canvas becomes an image block of its own. The upload's `storageKey` is written as soon as `upload` resolves, then the picture's `width` and `height` once it has been measured from `resolveAssetUrl(storageKey)`. Of two uploads into one block, the one started last wins, and its measurement is the only one written.
+
+The picture is drawn from `url` when the block has one, otherwise from `resolveAssetUrl(storageKey)`. A picture that cannot be resolved or loaded is drawn as missing, with its alt text. An image without alt text is announced as "Image, no description".
+
+The arrows select an image as a whole. Enter on the selected image, or a key typed on it, takes the caret into its caption, which is inline markdown like any text. While the image is selected, a toolbar offers left, centre and right alignment, a new upload in its place, its alt text, a download and Delete: Alt+F10 reaches it, the arrows walk it, Tab goes on to the width handles and Escape goes back to the image. The handles on either side of the picture are sliders: drag one, or press the arrows, Home and End on a focused one, to set the width in steps of 5 percent, from 10 to 100 percent of the line. A read-only canvas draws the picture and a caption it has, and nothing to edit.
 
 ## Read-only
 

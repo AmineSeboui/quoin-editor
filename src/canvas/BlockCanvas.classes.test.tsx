@@ -17,6 +17,7 @@ const DOCUMENT: QuoinBlock[] = [
   { id: 'k', type: 'CODE', data: { language: 'ts', code: 'x' } },
   bookmarkBlock('b', 'quoin.dev'),
   { id: 'i', type: 'IMAGE', data: { storageKey: 'photo', alt: 'A photo' } },
+  { id: 'e', type: 'IMAGE', data: { storageKey: '', alt: '' } },
 ];
 
 const mount = (props = {}) => mountCanvas(DOCUMENT, { upload: vi.fn(), ...props });
@@ -80,11 +81,18 @@ describe('the classes Quoin gives its own canvas', () => {
     expect(lists).toMatchSnapshot();
   });
 
-  it('in the editor of an image block', () => {
+  it('in a selected image block and its toolbar, and in an image block with no picture', async () => {
+    const user = userEvent.setup();
     const canvas = mount();
     canvas.nodeSelect('i');
-    canvas.press('Enter');
-    expect(classLists(canvas.shell('i'))).toMatchSnapshot();
+    const toolbar = screen.getByRole('toolbar', { name: 'Image tools' });
+    const lists = [classLists(canvas.shell('i'), toolbar)];
+    await user.click(screen.getByRole('button', { name: 'Alt text' }));
+    lists.push(classLists(screen.getByRole('dialog', { name: 'Alt text' })));
+    await user.keyboard('{Escape}');
+    await user.click(screen.getByRole('button', { name: 'Embed link' }));
+    lists.push(classLists(canvas.shell('e')));
+    expect(lists).toMatchSnapshot();
   });
 
   it('in the keyboard shortcuts dialog', () => {

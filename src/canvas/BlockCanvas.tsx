@@ -79,6 +79,7 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
     onFiles: (files, at) =>
       void insertUploads(controller, files, at, {
         upload,
+        resolveAssetUrl: resolveAssetUrl ?? String,
         onError: onError ?? console.error,
         unavailable: labels.uploadsUnavailable,
       }),

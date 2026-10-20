@@ -30,6 +30,12 @@ describe('previews', () => {
     expect(screen.getByAltText('A cat')).toHaveAttribute('src', '/cdn/a.png');
   });
 
+  it('draws a linked picture, and the text its caption reads as', () => {
+    wrap(<ImagePreview data={{ storageKey: '', alt: 'A cat', url: 'https://quoin.dev/cat.png', caption: 'A \\*sleepy\\* cat' }} />);
+    expect(screen.getByAltText('A cat')).toHaveAttribute('src', 'https://quoin.dev/cat.png');
+    expect(screen.getByText('A *sleepy* cat')).toBeInTheDocument();
+  });
+
   it('shows a hint instead of a broken image when no key is set', () => {
     wrap(<ImagePreview data={{ storageKey: '', alt: '' }} />);
     expect(screen.queryByRole('img')).not.toBeInTheDocument();

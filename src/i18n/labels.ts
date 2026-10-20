@@ -152,13 +152,23 @@ export type QuoinLabels = {
   uploadFailed: string;
   /** What an upload field shows in place of working when the canvas was given no upload function. */
   uploadsUnavailable: string;
-  /** The image editor: its upload control, the visible names of its fields and their accessible names. */
+  /** An empty image block: its upload button, the link it can embed instead and what can be dropped or pasted on it. */
   uploadImage: string;
-  altText: string;
-  imageAltText: string;
-  captionOptional: string;
+  embedLink: string;
+  imageLink: string;
+  dropImage: string;
+  /** An image block: its caption, its toolbar, the handles of its width and the toolbar's own buttons. */
   imageCaption: string;
-  imageAttached: string;
+  addCaption: string;
+  imageTools: string;
+  imageWidth: string;
+  replaceImage: string;
+  download: string;
+  /** The alt text of an image: its field, what the field asks for, its button, and the name of an image without one. */
+  altText: string;
+  altTextHint: string;
+  save: string;
+  imageNoAlt: string;
   uploadFile: string;
   /** A code block: its code, its language, the name of a code in no language, and its copy button. */
   codeText: string;

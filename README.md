@@ -446,7 +446,7 @@ export function Editor({ blocks, onChange }: { blocks: QuoinBlock[]; onChange: (
 
 - `UploadResult` is `{ storageKey, filename, size, assetId? }`. `storageKey` is an opaque key your storage can find the file by. It is what Quoin stores in the document.
 - `resolveAssetUrl` turns a `storageKey` back into a URL for display. It defaults to returning the key unchanged. The image and file blocks, and `toHTML`, use only an http, https, blob, data or relative URL it returns.
-- An `upload` that resolves to anything without a string `storageKey` has failed: the image and file blocks show "Upload failed." and write nothing.
+- An `upload` that resolves to anything without a string `storageKey` has failed: the image and file blocks show "Upload failed." and write nothing, and a file dropped or pasted on the canvas is left out and reported to `onError` in the same words.
 - **Reject with an `Error` whose `message` is safe to show.** It is rendered verbatim beside the upload button. A rejection that is not an `Error`, or an `Error` with an empty message, shows a generic "Upload failed." instead.
 - **Catch network failures and rethrow with your own wording.** A raw `fetch` rejection such as "Failed to fetch" would otherwise be shown to the user verbatim.
 - The upload control is disabled while an upload is in flight.

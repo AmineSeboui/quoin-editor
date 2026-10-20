@@ -83,6 +83,7 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
         resolveAssetUrl: resolveAssetUrl ?? String,
         onError: onError ?? console.error,
         unavailable: labels.uploadsUnavailable,
+        failed: labels.uploadFailed,
       }),
   });
   useDeleteReporter(controller, onDelete);

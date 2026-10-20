@@ -12,8 +12,9 @@ export type InsertUploadsOptions = {
   upload?: UploadFn;
   resolveAssetUrl: (storageKey: string) => string;
   onError: (error: Error) => void;
-  /** What onError hears when the canvas was given no upload function. */
+  /** What onError hears when the canvas was given no upload function, and when an upload resolves to no stored key. */
   unavailable: string;
+  failed: string;
 };
 
 type Writer = { selection: Selection | null; focus: Element | null };
@@ -43,22 +44,24 @@ function movedOn(controller: ViewController, before: Writer): boolean {
 
 /**
  * Uploads the files and inserts an image block for each image and a file block for anything else, in their order,
- * then measures the images. A writer still where the paste or drop left them goes on in an empty line after the blocks;
- * one who moved on while the files uploaded keeps their caret and focus.
+ * then measures the images. An upload that fails, or resolves to no stored key, is reported to `onError` and left out.
+ * A writer still where the paste or drop left them goes on in an empty line after the blocks; one who moved on while
+ * the files uploaded keeps their caret and focus.
  */
 export async function insertUploads(
   controller: ViewController,
   files: readonly File[],
   at: Pos | null,
-  { upload, resolveAssetUrl, onError, unavailable }: InsertUploadsOptions,
+  { upload, resolveAssetUrl, onError, unavailable, failed }: InsertUploadsOptions,
 ): Promise<void> {
   if (!upload) return onError(new Error(unavailable));
   const writer = writerOf(controller);
   const outcomes = await Promise.allSettled(files.map(async (file) => upload(file, isImageFile(file) ? 'image' : 'file')));
   const blocks: NewBlock[] = [];
   outcomes.forEach((outcome, index) => {
-    if (outcome.status === 'fulfilled') blocks.push(fileBlock(files[index], outcome.value));
-    else onError(asError(outcome.reason));
+    if (outcome.status === 'rejected') onError(asError(outcome.reason));
+    else if (typeof outcome.value?.storageKey === 'string') blocks.push(fileBlock(files[index], outcome.value));
+    else onError(new Error(failed));
   });
   if (blocks.length === 0 || controller.root === null || controller.readOnly) return;
   const landing = movedOn(controller, writer) ? 'stay' : 'line';

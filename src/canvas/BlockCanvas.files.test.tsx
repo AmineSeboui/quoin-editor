@@ -141,4 +141,16 @@ describe('files dropped or pasted on the canvas', () => {
     await waitFor(() => expect(last()?.map((block) => block.type)).toEqual(['MARKDOWN', 'FILE', 'MARKDOWN']));
     expect(onError).toHaveBeenCalledWith(failure);
   });
+
+  it.each([undefined, {}, { storageKey: 7 }])(
+    'report an upload that resolves to %o as failed, in the words of the labels, and still insert the others',
+    async (junk) => {
+      const onError = vi.fn();
+      const upload: UploadFn = (file) => (file === png ? Promise.resolve(junk as unknown as UploadResult) : stored(file, 'file'));
+      const { handle, last } = mountCanvas([paragraph('a', 'one')], { upload, onError });
+      act(() => handle().controller.onFiles?.([png, pdf], caretIn('a')));
+      await waitFor(() => expect(last()?.map((block) => block.type)).toEqual(['MARKDOWN', 'FILE', 'MARKDOWN']));
+      expect(onError.mock.calls).toEqual([[new Error('Upload failed.')]]);
+    },
+  );
 });

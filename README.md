@@ -573,7 +573,7 @@ export const outline = ({ state }: Editor) => headings(state.doc, { schema: stat
 
 ### Mentions
 
-`quoin-editor/mention` draws the mentions in a line, `[@Ada](mention:42)` in the markdown or `[@Ada](mention:user:42)` with a kind, as chips that read `@` and the label, with the kind in `data-kind`. `@` typed at the start of a line or after a space opens a menu of what the host's `search` finds for the text typed after it, spaces included. It asks once typing has rested for 120 ms, says it is searching until the answer comes, drops an answer to a query typed past, and shows "No matches" when the host finds nothing or when its search throws or rejects, which reaches `onError`. The arrows walk the results, Enter or Tab puts the chosen one in place of the `@` and the query, followed by a space, and one undo brings the query back; Escape closes the menu and keeps the text. A result's label and description are drawn as text, and its avatar only from an http or https address.
+`quoin-editor/mention` draws the mentions in a line, `[@Ada](mention:42)` in the markdown or `[@Ada](mention:user:42)` with a kind, as chips that read `@` and the label, with the kind in `data-kind`. `@` typed at the start of a line or after a space opens a menu of what the host's `search` finds for the text typed after it, spaces included. It asks once typing has rested for 120 ms, says it is searching until the answer comes, drops an answer to a query typed past, and shows "No matches" when the host finds nothing or when its search throws or rejects, which reaches `onError`. The arrows walk the results, Enter or Tab puts the chosen one in place of the `@` and the query, followed by a space, and one undo brings the query back; Escape closes the menu and keeps the text, and so does a space typed right after the `@` or once nothing matches. The menu shows the first 50 results, leaving out those with no label and repeats of a kind and id. A result's label and description are drawn as text, its avatar only from an http or https address, and a field that is not a string is left out. Where a `/` or another trigger opens after the `@`, its menu takes over until it goes.
 
 ```tsx
 import { mentionExtension } from 'quoin-editor/mention';
@@ -586,7 +586,7 @@ const extensions = [
 ];
 ```
 
-Backspace right after a chip selects it, and a second Backspace deletes it; Shift with an arrow steps a selection over it whole. With `onOpen`, a click on a chip, or Enter while it is selected, hands its mention (`id`, `label` and `kind`) to the host, and the click does on a read-only canvas too. A chip is never a link: without `onOpen` it is text. Without `search`, `@` opens nothing, and a read-only canvas opens no menu.
+Backspace right after a chip selects it, and a second Backspace deletes it; Shift with an arrow steps a selection over it whole. With `onOpen`, a click on a chip, or Enter while it is selected, hands its mention (`id`, `label` and `kind`) to the host, once for a double click. On a read-only canvas the click does too, and each chip is a button in the tab order that Enter and Space open. A chip is never a link: without `onOpen` it is text. Without `search`, `@` opens nothing, and a read-only canvas opens no menu.
 
 ## Read-only
 

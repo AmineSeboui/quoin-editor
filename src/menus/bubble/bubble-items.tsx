@@ -1,5 +1,6 @@
 'use client';
 
+import type { Ref } from 'react';
 import { Bold, Code, Italic, Link, Strikethrough, Subscript, Superscript, Underline } from 'lucide-react';
 import { toggleMark, type EditorState } from '../../engine';
 import { isActive } from '../../engine/commands/is-active';
@@ -44,13 +45,19 @@ export function bubbleItems(labels: QuoinLabels, openLink: () => void): BubbleIt
   };
 }
 
-type ToolbarButtonProps = { item: ToolbarItem; state: EditorState; controller: ViewController };
+type ToolbarButtonProps = {
+  item: ToolbarItem;
+  state: EditorState;
+  controller: ViewController;
+  buttonRef?: Ref<HTMLButtonElement>;
+};
 
-export function ToolbarButton({ item, state, controller }: ToolbarButtonProps) {
+export function ToolbarButton({ item, state, controller, buttonRef }: ToolbarButtonProps) {
   if (item.available?.(state) === false) return null;
   const Icon = item.icon;
   return (
     <Button
+      ref={buttonRef}
       type="button"
       variant="ghost"
       size="icon-sm"

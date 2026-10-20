@@ -79,6 +79,7 @@ function ImageToolbar({ blockId, controller, editingAlt, onEditAlt }: ImageToolb
   const state = useEditorState(controller, wholeState);
   const roving = useRovingFocus();
   const picker = useRef<HTMLInputElement>(null);
+  const altButton = useRef<HTMLButtonElement>(null);
   const anchor = useMemo(() => {
     const picture = () => part(controller, blockId, '.quoin-image-frame');
     return { current: virtualAnchor(() => picture()?.getBoundingClientRect() ?? null, picture) };
@@ -88,7 +89,10 @@ function ImageToolbar({ blockId, controller, editingAlt, onEditAlt }: ImageToolb
   const attrs = blockById(state.doc, blockId)?.attrs ?? {};
   const items = imageToolbarItems(blockId, labels, {
     replace: upload && (() => picker.current?.click()),
-    editAlt: () => onEditAlt(blockId),
+    editAlt: () => {
+      onEditAlt(editingAlt ? null : blockId);
+      if (editingAlt) controller.focus();
+    },
     download: () => download(imageSource(attrs, resolveAssetUrl), picker.current?.ownerDocument ?? document),
   });
 
@@ -128,7 +132,13 @@ function ImageToolbar({ blockId, controller, editingAlt, onEditAlt }: ImageToolb
         {...bubblePart(controller)}
       >
         {items.map((item) => (
-          <ToolbarButton key={item.id} item={item} state={state} controller={controller} />
+          <ToolbarButton
+            key={item.id}
+            item={item}
+            state={state}
+            controller={controller}
+            buttonRef={item.id === 'alt' ? altButton : undefined}
+          />
         ))}
         <input ref={picker} type="file" accept="image/*" hidden tabIndex={-1} onChange={replace} />
       </PopoverContent>
@@ -137,6 +147,7 @@ function ImageToolbar({ blockId, controller, editingAlt, onEditAlt }: ImageToolb
           blockId={blockId}
           controller={controller}
           anchor={anchor}
+          opener={altButton}
           alt={str(attrs.alt)}
           onClose={() => onEditAlt(null)}
         />

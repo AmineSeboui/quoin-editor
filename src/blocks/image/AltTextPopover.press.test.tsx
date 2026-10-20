@@ -59,4 +59,23 @@ describe('the alt text of an image, when something outside it is pressed', () =>
     expect(alt()).toBe('A cat asleep');
     expect(field()).toBeNull();
   });
+
+  it('is closed by its Alt text button, which stores it once and hands focus back to the image', async () => {
+    const { alt, user, sink, changes } = await editAlt(' asleep');
+    await user.click(button('Alt text'));
+    expect(field()).toBeNull();
+    expect(alt()).toBe('A cat asleep');
+    expect(changes).toHaveLength(1);
+    expect(sink()).toHaveFocus();
+    await user.click(button('Alt text'));
+    expect(field()).toHaveValue('A cat asleep');
+  });
+
+  it('is closed by a tap on its Alt text button, which stores it', async () => {
+    const { alt, user, sink } = await editAlt(' asleep');
+    await user.pointer({ keys: '[TouchA]', target: button('Alt text') });
+    expect(field()).toBeNull();
+    expect(alt()).toBe('A cat asleep');
+    expect(sink()).toHaveFocus();
+  });
 });

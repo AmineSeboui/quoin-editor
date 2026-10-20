@@ -18,13 +18,14 @@ type AltTextPopoverProps = {
   blockId: string;
   controller: ViewController;
   anchor: RefObject<VirtualAnchor | null>;
+  opener: RefObject<HTMLElement | null>;
   alt: string;
   onClose(): void;
 };
 
-// A press in the text moves the selection off the image, which takes the toolbar and the popover down before the
-// popover hears of the press, so the text is also stored as the popover goes: on the editor itself, since the canvas's
-// flush is refused in an effect. A canvas being taken down has let go of its root first, and takes no more writes.
+// The text is also stored as the popover goes, whatever takes it down, such as its button or a host moving the
+// selection off the image: on the editor itself, since the canvas's flush is refused in an effect. A canvas being taken
+// down has let go of its root first, and takes no more writes.
 function storeAlt(controller: ViewController, blockId: string, alt: string): void {
   const { editor } = controller;
   if (controller.readOnly || controller.root === null) return;
@@ -35,9 +36,9 @@ function storeAlt(controller: ViewController, blockId: string, alt: string): voi
  * The alt text of an image, asked for as required. Enter, Save, and Tab or Shift+Tab out of it store it and hand focus
  * back to the image, and Escape hands focus back keeping the alt text the image had. A press elsewhere, or a script
  * moving focus elsewhere, stores it and leaves focus where that puts it; a press on the image's toolbar or handles
- * hands focus back to the image.
+ * hands focus back to the image. A press on the button that opened it is left to that button.
  */
-export function AltTextPopover({ blockId, controller, anchor, alt, onClose }: AltTextPopoverProps) {
+export function AltTextPopover({ blockId, controller, anchor, opener, alt, onClose }: AltTextPopoverProps) {
   const labels = useLabels();
   const [draft, setDraft] = useState(alt);
   const fieldId = useId();
@@ -65,7 +66,9 @@ export function AltTextPopover({ blockId, controller, anchor, alt, onClose }: Al
   };
   const content = useRef<HTMLDivElement>(null);
   const ownerDocument = useCallback(() => controller.root?.ownerDocument ?? document, [controller]);
-  useOutsidePress(content, ownerDocument, (target) => close(true, isBubblePart(target, controller)));
+  useOutsidePress(content, ownerDocument, (target) => {
+    if (!opener.current?.contains(target)) close(true, isBubblePart(target, controller));
+  });
   const save = (event: FormEvent) => {
     event.preventDefault();
     close(true);

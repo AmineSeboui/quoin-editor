@@ -4,6 +4,25 @@ import { blocks, openEditor } from '../../support/editor';
 const alt = async (page: Page) => (await blocks(page)).find((block) => block.id === 'img')?.data.alt;
 const toolbar = (page: Page) => page.getByRole('toolbar', { name: 'Image tools' });
 const field = (page: Page) => page.getByRole('textbox', { name: 'Alt text' });
+const changes = (page: Page) => page.evaluate(() => window.__quoin.changes);
+
+test('the Alt text button closes its open popover, storing the text and going back to the image', async ({ page }) => {
+  await page.setViewportSize({ width: 700, height: 800 });
+  await openEditor(page, 'image');
+  await page.addStyleTag({ content: 'body { padding-top: 120px }' });
+  await page.getByRole('img', { name: 'A red square' }).click();
+  await toolbar(page).getByRole('button', { name: 'Alt text' }).click();
+  await field(page).fill('Closed by its button');
+  const before = await changes(page);
+  await toolbar(page).getByRole('button', { name: 'Alt text' }).click();
+  await expect.poll(() => alt(page)).toBe('Closed by its button');
+  await expect(field(page)).toHaveCount(0);
+  await expect(page.locator('[data-quoin-sink]')).toBeFocused();
+  await expect(page.locator('[data-block-id="img"]')).toHaveAttribute('data-selected', 'true');
+  await page.waitForTimeout(200);
+  await expect(field(page)).toHaveCount(0);
+  expect(await changes(page)).toBe(before + 1);
+});
 
 test.describe('on a touch screen', () => {
   test.skip(({ browserName }) => browserName === 'firefox', 'Firefox cannot emulate a mobile device');

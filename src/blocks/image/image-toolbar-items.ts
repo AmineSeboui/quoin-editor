@@ -1,11 +1,10 @@
-import { AlignCenter, AlignLeft, AlignRight, Download, Pencil, Trash, Upload } from 'lucide-react';
+import { AlignCenter, AlignLeft, AlignRight, Download, Pencil } from 'lucide-react';
 import { alignOrUndefined } from '../../engine/blocks/data-fields';
-import { deleteBlocks } from '../../engine/commands/block-structure';
 import { blockById } from '../../engine/model/doc';
 import type { ToolbarItem } from '../../extensions/ui-types';
-import { runOnBlocks } from '../../gutter/run-on-blocks';
 import type { QuoinLabels } from '../../i18n/labels';
 import { setBlockAttrs } from '../text/set-block-attrs';
+import { deleteItem, replaceItem } from '../void/node-toolbar-items';
 
 export type ImageActions = { replace?: () => void; editAlt(): void; download(): void };
 
@@ -29,17 +28,9 @@ export function imageToolbarItems(blockId: string, labels: QuoinLabels, actions:
   const { replace, editAlt, download } = actions;
   return [
     ...aligns,
-    ...(replace ? [{ id: 'replace', title: labels.replaceImage, icon: Upload, run: replace }] : []),
+    ...replaceItem(labels.replaceImage, replace),
     { id: 'alt', title: labels.altText, icon: Pencil, run: editAlt },
     { id: 'download', title: labels.download, icon: Download, run: download },
-    {
-      id: 'delete',
-      title: labels.delete,
-      icon: Trash,
-      run: (controller) => {
-        runOnBlocks(controller, [blockId], deleteBlocks);
-        controller.focus();
-      },
-    },
+    deleteItem(blockId, labels.delete),
   ];
 }

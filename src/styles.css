@@ -16,6 +16,7 @@
 @import "./ui/tokens.css" layer(quoin.base);
 @import "./view/view.css" layer(quoin.components);
 @import "./blocks/code/code-block.css" layer(quoin.components);
+@import "./blocks/upload/upload-area.css" layer(quoin.components);
 @import "./blocks/image/image-block.css" layer(quoin.components);
 @import "./ui/palette.css" layer(quoin.components);
 

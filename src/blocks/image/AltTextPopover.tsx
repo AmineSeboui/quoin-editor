@@ -121,7 +121,7 @@ export function AltTextPopover({ blockId, controller, anchor, opener, alt, onClo
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
           />
-          <p id={hintId} className="quoin-image-message">
+          <p id={hintId} className="quoin-block-message">
             {labels.altTextHint}
           </p>
           <Button type="submit" size="sm">

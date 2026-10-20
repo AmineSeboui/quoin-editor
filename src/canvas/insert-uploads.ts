@@ -1,4 +1,4 @@
-import { measureImage } from '../blocks/image/image-upload';
+import { isImageFile, measureImage } from '../blocks/image/image-upload';
 import { insertBlocks, type NewBlock } from '../blocks/insert-blocks';
 import type { Pos, Selection } from '../engine';
 import { headBlockId } from '../engine/commands/block-helpers';
@@ -17,12 +17,10 @@ export type InsertUploadsOptions = {
 
 type Writer = { selection: Selection | null; focus: Element | null };
 
-const isImage = (file: File) => file.type.startsWith('image/');
-
 const asError = (cause: unknown) => (cause instanceof Error ? cause : new Error(String(cause)));
 
 function fileBlock(file: File, { storageKey, filename, size }: UploadResult): NewBlock {
-  if (isImage(file)) return { id: newId(), type: 'IMAGE', attrs: { storageKey, alt: '' } };
+  if (isImageFile(file)) return { id: newId(), type: 'IMAGE', attrs: { storageKey, alt: '' } };
   return { type: 'FILE', attrs: { storageKey, filename, size } };
 }
 
@@ -55,7 +53,7 @@ export async function insertUploads(
 ): Promise<void> {
   if (!upload) return onError(new Error(unavailable));
   const writer = writerOf(controller);
-  const outcomes = await Promise.allSettled(files.map(async (file) => upload(file, isImage(file) ? 'image' : 'file')));
+  const outcomes = await Promise.allSettled(files.map(async (file) => upload(file, isImageFile(file) ? 'image' : 'file')));
   const blocks: NewBlock[] = [];
   outcomes.forEach((outcome, index) => {
     if (outcome.status === 'fulfilled') blocks.push(fileBlock(files[index], outcome.value));

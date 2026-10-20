@@ -1,24 +1,16 @@
 'use client';
 
-import { useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react';
+import { useRef, useState } from 'react';
 import { useQuoin } from '../../context';
 import type { EditorState } from '../../engine';
 import { blockById } from '../../engine/model/doc';
-import { ToolbarButton } from '../../menus/bubble/bubble-items';
-import { bubblePart } from '../../menus/bubble/bubble-part';
-import { useRovingFocus } from '../../menus/bubble/use-roving-focus';
-import { useSelectionSettled } from '../../menus/bubble/use-selection-settled';
-import { keepFocus } from '../../menus/floating/keep-focus';
-import { useFocusKey } from '../../menus/floating/use-focus-key';
-import { virtualAnchor } from '../../menus/floating/virtual-anchor';
-import { FLOATING_TOOLBAR } from '../../ui/menu-styles';
-import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
-import { preventDefault } from '../../ui/prevent-default';
 import type { ViewController } from '../../view';
-import { isComposingKey } from '../../view/input/keydown';
 import { useEditorState } from '../../view/react/use-editor-state';
-import { useReadOnly } from '../../view/react/use-read-only';
 import { str } from '../str';
+import { useReplacePicker } from '../upload/use-replace-picker';
+import { usePartAnchor } from '../void/block-part';
+import { NodeToolbar } from '../void/NodeToolbar';
+import { selectedBlock, useToolbarBlock } from '../void/use-toolbar-block';
 import { AltTextPopover } from './AltTextPopover';
 import { hasPicture, imageSource } from './image-source';
 import { imageToolbarItems } from './image-toolbar-items';
@@ -26,13 +18,7 @@ import { uploadImage } from './image-upload';
 
 const wholeState = (state: EditorState) => state;
 
-function selectedImage({ doc, selection }: EditorState): string | null {
-  const block = selection?.kind === 'node' ? blockById(doc, selection.block) : undefined;
-  return block?.type === 'IMAGE' && hasPicture(block.attrs) ? block.id : null;
-}
-
-const part = (controller: ViewController, blockId: string, selector: string) =>
-  controller.blockElement(blockId)?.querySelector<HTMLElement>(selector) ?? undefined;
+const selectedImage = selectedBlock('IMAGE', hasPicture);
 
 function download(src: string | null, doc: Document): void {
   if (src === null) return;
@@ -49,12 +35,10 @@ function download(src: string | null, doc: Document): void {
  * its alt text popover is open: focus moving between the popover's controls passes through the page for a moment.
  */
 export function ImageToolbarOverlay({ controller }: { controller: ViewController }) {
-  const blockId = useEditorState(controller, selectedImage);
-  const readOnly = useReadOnly(controller);
-  const settled = useSelectionSettled(controller);
   const [altFor, setAltFor] = useState<string | null>(null);
-  if (altFor !== null && (altFor !== blockId || readOnly)) setAltFor(null);
-  if (blockId === null || readOnly || !(settled || altFor === blockId)) return null;
+  const blockId = useToolbarBlock(controller, selectedImage, altFor);
+  if (altFor !== null && altFor !== blockId) setAltFor(null);
+  if (blockId === null) return null;
   return (
     <ImageToolbar
       key={blockId}
@@ -73,85 +57,47 @@ type ImageToolbarProps = {
   onEditAlt(blockId: string | null): void;
 };
 
-/** Alt+F10 moves into the toolbar, Tab goes on to the width of the image, and Escape goes back to the image. */
+/** Tab goes on from the toolbar to the width of the image. */
 function ImageToolbar({ blockId, controller, editingAlt, onEditAlt }: ImageToolbarProps) {
-  const { labels, upload, resolveAssetUrl, onError } = useQuoin();
+  const { labels, resolveAssetUrl } = useQuoin();
   const state = useEditorState(controller, wholeState);
-  const roving = useRovingFocus();
-  const picker = useRef<HTMLInputElement>(null);
+  const picker = useReplacePicker(controller, blockId, uploadImage, 'image/*');
   const altButton = useRef<HTMLButtonElement>(null);
-  const anchor = useMemo(() => {
-    const picture = () => part(controller, blockId, '.quoin-image-frame');
-    return { current: virtualAnchor(() => picture()?.getBoundingClientRect() ?? null, picture) };
-  }, [controller, blockId]);
-  useFocusKey(controller, roving.focusCurrent);
+  const anchor = usePartAnchor(controller, blockId, '.quoin-image-frame');
 
   const attrs = blockById(state.doc, blockId)?.attrs ?? {};
   const items = imageToolbarItems(blockId, labels, {
-    replace: upload && (() => picker.current?.click()),
+    replace: picker.open,
     editAlt: () => {
       onEditAlt(editingAlt ? null : blockId);
       if (editingAlt) controller.focus();
     },
-    download: () => download(imageSource(attrs, resolveAssetUrl), picker.current?.ownerDocument ?? document),
+    download: () => download(imageSource(attrs, resolveAssetUrl), controller.root?.ownerDocument ?? document),
   });
 
-  const replace = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (file === undefined || !upload) return;
-    controller.announce(labels.uploading);
-    uploadImage(controller, blockId, file, { upload, resolveAssetUrl }).catch((cause: unknown) =>
-      onError(cause instanceof Error ? cause : new Error(String(cause))),
-    );
-  };
-  const onKeyDown = (event: KeyboardEvent) => {
-    if (!roving.owns(event.target) || isComposingKey(controller, event.nativeEvent)) return;
-    const tab = event.key === 'Tab' && !event.altKey && !event.ctrlKey && !event.metaKey;
-    if (tab && !event.shiftKey) part(controller, blockId, '[role="slider"][data-side="1"]')?.focus();
-    else if (tab || event.key === 'Escape') controller.focus();
-    else return roving.onKeyDown(event);
-    event.preventDefault();
-  };
-
   return (
-    <Popover open modal={false}>
-      <PopoverAnchor virtualRef={anchor} />
-      <PopoverContent
-        ref={roving.ref}
-        role="toolbar"
-        aria-label={labels.imageTools}
-        side="top"
-        className={FLOATING_TOOLBAR}
-        onOpenAutoFocus={preventDefault}
-        onCloseAutoFocus={preventDefault}
-        onPointerDown={keepFocus}
-        onMouseDown={keepFocus}
-        onFocus={roving.onFocus}
-        onKeyDown={onKeyDown}
-        {...bubblePart(controller)}
-      >
-        {items.map((item) => (
-          <ToolbarButton
-            key={item.id}
-            item={item}
-            state={state}
+    <NodeToolbar
+      blockId={blockId}
+      controller={controller}
+      label={labels.imageTools}
+      anchor={anchor}
+      items={items}
+      next='[role="slider"][data-side="1"]'
+      buttonRefs={{ alt: altButton }}
+      popover={
+        editingAlt && (
+          <AltTextPopover
+            blockId={blockId}
             controller={controller}
-            buttonRef={item.id === 'alt' ? altButton : undefined}
+            anchor={anchor}
+            opener={altButton}
+            alt={str(attrs.alt)}
+            onClose={() => onEditAlt(null)}
           />
-        ))}
-        <input ref={picker} type="file" accept="image/*" hidden tabIndex={-1} onChange={replace} />
-      </PopoverContent>
-      {editingAlt && (
-        <AltTextPopover
-          blockId={blockId}
-          controller={controller}
-          anchor={anchor}
-          opener={altButton}
-          alt={str(attrs.alt)}
-          onClose={() => onEditAlt(null)}
-        />
-      )}
-    </Popover>
+        )
+      }
+    >
+      {picker.input}
+    </NodeToolbar>
   );
 }

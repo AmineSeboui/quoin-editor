@@ -47,7 +47,7 @@ export function EmbedLinkForm({ blockId, controller }: { blockId: string; contro
         <Check />
       </Button>
       {invalid && (
-        <p id={messageId} role="alert" className="quoin-image-message">
+        <p id={messageId} role="alert" className="quoin-block-message">
           {labels.invalidLink}
         </p>
       )}

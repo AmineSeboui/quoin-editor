@@ -18,7 +18,7 @@ export const ImageBlock: BlockRenderer = ({ block, controller }) => {
   useImageKeys(controller, block.id, picture, !readOnly, root);
 
   const empty = readOnly ? (
-    <p className="quoin-image-message">{labels.emptyImage}</p>
+    <p className="quoin-block-message">{labels.emptyImage}</p>
   ) : (
     <ImageUploadArea blockId={block.id} controller={controller} />
   );

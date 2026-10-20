@@ -1,26 +1,17 @@
 'use client';
 
-import { useEffect, type RefObject } from 'react';
+import { useEffect, useMemo, type RefObject } from 'react';
 import { textSelection, type Pos } from '../../engine';
 import { blockById } from '../../engine/model/doc';
 import { inlineLength } from '../../engine/model/inline';
 import type { KeyInterceptor, ViewController } from '../../view';
 import { insertBlocks } from '../insert-blocks';
-import { useVoidEditing } from '../void/use-void-editing';
-
-const CONTROL = 'input:not([disabled]), button:not([disabled])';
+import { useNodeKeys, type NodeKeys } from '../void/use-node-keys';
 
 function captionEnd(controller: ViewController, blockId: string): Pos {
   const caption = blockById(controller.editor.state.doc, blockId)?.regions.caption ?? [];
   return { block: blockId, region: 'caption', offset: inlineLength(caption) };
 }
-
-function typeIntoCaption(controller: ViewController, blockId: string, text: string): void {
-  controller.focus(captionEnd(controller, blockId));
-  controller.edit(() => controller.editor.insertText(text));
-}
-
-const typed = (event: KeyboardEvent): boolean => !event.ctrlKey && !event.metaKey && [...event.key].length === 1;
 
 const plainEnter = (event: KeyboardEvent): boolean =>
   event.key === 'Enter' && !event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey;
@@ -40,41 +31,38 @@ export function useImageKeys(
   editable: boolean,
   root: RefObject<HTMLElement | null>,
 ): void {
-  const { editing, stop } = useVoidEditing(controller, blockId, editable);
-
-  // The canvas's own flush is refused inside an effect, so the caret goes to the editor, which the view then follows.
-  useEffect(() => {
-    if (!editing) return;
-    stop();
-    if (!picture) {
-      root.current?.querySelector<HTMLElement>(CONTROL)?.focus();
-      return;
-    }
-    const { editor } = controller;
-    editor.dispatch(editor.createTransaction().setSelection(textSelection(captionEnd(controller, blockId))));
-    controller.focus();
-  }, [editing, stop, picture, controller, blockId, root]);
+  const caption = useMemo<NodeKeys>(() => {
+    if (!picture) return {};
+    return {
+      // Called from an effect, where the canvas's own flush is refused, so the caret goes to the editor, which the view
+      // then follows.
+      enter() {
+        const { editor } = controller;
+        editor.dispatch(editor.createTransaction().setSelection(textSelection(captionEnd(controller, blockId))));
+        controller.focus();
+      },
+      type(key) {
+        controller.focus(captionEnd(controller, blockId));
+        controller.edit(() => controller.editor.insertText(key));
+      },
+    };
+  }, [controller, blockId, picture]);
+  useNodeKeys(controller, blockId, editable, true, root, caption);
 
   useEffect(() => {
     if (!editable) return;
     const intercept: KeyInterceptor = (event) => {
       const { selection } = controller.editor.state;
-      const selected = selection?.kind === 'node' && selection.block === blockId;
       const inCaption =
         selection?.kind === 'text' &&
         selection.head.block === blockId &&
         !menuOpenOn(controller.registry.get(blockId, 'caption'));
-      if (selected && typed(event)) {
-        if (picture) typeIntoCaption(controller, blockId, event.key);
-      } else if (inCaption && plainEnter(event)) {
-        controller.run(insertBlocks([{ type: 'MARKDOWN' }], 'text', blockId));
-      } else {
-        return false;
-      }
+      if (!inCaption || !plainEnter(event)) return false;
+      controller.run(insertBlocks([{ type: 'MARKDOWN' }], 'text', blockId));
       event.preventDefault();
       return true;
     };
     controller.keyInterceptors.add(intercept);
     return () => void controller.keyInterceptors.delete(intercept);
-  }, [controller, blockId, picture, editable]);
+  }, [controller, blockId, editable]);
 }

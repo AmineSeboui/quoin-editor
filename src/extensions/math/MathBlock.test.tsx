@@ -28,6 +28,13 @@ describe('a math block', () => {
     expect(source?.querySelector('*')).toBeNull();
   });
 
+  it('is called by its label when selected as a whole with no LaTeX, and in the title of its block menu', () => {
+    const { nodeSelect, sink, openBlockMenu } = mountMath(around(''), { labels: { equation: 'Formula' } });
+    nodeSelect('m');
+    expect(sink()).toHaveAccessibleName('Formula');
+    expect(openBlockMenu()).toHaveAccessibleName('Formula block menu');
+  });
+
   it('shows that an equation with no LaTeX is empty', () => {
     mountMath(around(''), { renderMath: fakeRenderMath, labels: { emptyEquation: '\u00c9quation vide' } });
     expect(equation()).toHaveTextContent('\u00c9quation vide');

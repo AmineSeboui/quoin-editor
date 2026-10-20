@@ -39,6 +39,7 @@ export function mathExtension(options: MathOptions = {}): Extension {
   const ui: ExtensionUI = {
     slashItems: mathSlashItems(feature.labels),
     renderers: { MATH: MathRenderer },
+    blockNames: { MATH: feature.labels.equation },
     render: { atoms: { math: inlineMathRenderer(feature) } },
     overlays: [EditorOverlay],
   };

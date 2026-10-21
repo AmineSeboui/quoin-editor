@@ -8,6 +8,8 @@ export type CatalogueBlock = {
   inserted?: Pick<QuoinBlock, 'type' | 'data'>;
   link?: string;
   undone?: string;
+  /** The key that hands focus back to the editor from what the block opens as it goes in. */
+  leave?: string;
   /** The arrow presses from inside the block to the line past it. */
   rows?: number;
   /** The arrows select the block as a whole, where a block with text takes the caret and Escape selects it. */
@@ -164,6 +166,8 @@ export const CATALOGUE_BLOCKS: readonly CatalogueBlock[] = [
     id: 'blockEquation',
     option: 'Block equation',
     query: 'blockeq',
+    inserted: { type: 'MATH', data: { latex: '' } },
+    leave: 'Escape',
     wholeByArrow: true,
   },
   {

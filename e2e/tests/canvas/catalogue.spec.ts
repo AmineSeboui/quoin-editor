@@ -29,7 +29,7 @@ const GAPS: Record<Requirement, readonly string[]> = {
     'blockEquation',
     'tableOfContents',
   ],
-  undo: CATALOGUE_BLOCKS.map(({ id }) => id).filter((id) => id !== 'blockEquation'),
+  undo: CATALOGUE_BLOCKS.map(({ id }) => id),
   readOnly: ['heading2', 'heading3', 'quote', 'bulletedList', 'numberedList', 'image'],
   axeWhole: CATALOGUE_BLOCKS.map(({ id }) => id).filter((id) => id !== 'image' && id !== 'file'),
   axeEditing: [
@@ -130,6 +130,7 @@ for (const { id, option, rows = 1 } of gaps('arrows')) {
 for (const block of gaps('undo')) {
   test(`undo takes ${block.option} back out, to the line as it was before the command`, async ({ page }) => {
     await insert(page, block, '&upload=0');
+    if (block.leave !== undefined) await page.keyboard.press(block.leave);
     await page.keyboard.press('ControlOrMeta+z');
     await expect
       .poll(async () => (await blocks(page)).map(({ type, data }) => ({ type, data })))

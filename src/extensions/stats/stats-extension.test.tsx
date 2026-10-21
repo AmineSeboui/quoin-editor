@@ -1,7 +1,13 @@
 import { act, cleanup, fireEvent, screen } from '@testing-library/react';
 import type { QuoinBlock } from '../../engine';
 import { mountTypingCanvas } from '../typing-test-canvas';
+import { countWriting } from './count-writing';
 import { statsExtension, type StatsOptions } from './stats-extension';
+
+vi.mock('./count-writing', async (original) => {
+  const actual = await original<{ countWriting: typeof countWriting }>();
+  return { countWriting: vi.fn(actual.countWriting) };
+});
 
 const md = (id: string, markdown: string): QuoinBlock => ({ id, type: 'MARKDOWN', data: { markdown } });
 
@@ -34,9 +40,10 @@ afterEach(() => vi.restoreAllMocks());
 describe('the stats footer', () => {
   it('shows the counts, and updates them once a frame however many edits it holds', () => {
     const { run } = frames();
-    const { parts, caret, type, handle } = mountStats([md('a', 'One two'), md('b', 'three')]);
+    const { parts, caret, type } = mountStats([md('a', 'One two'), md('b', 'three')]);
     expect(parts()).toEqual(['3 words', '12 characters', '2 blocks']);
-    const counted = vi.spyOn(handle().editor, 'stats');
+    const counted = vi.mocked(countWriting);
+    counted.mockClear();
     caret('b', 5);
     type(' four');
     expect(counted).not.toHaveBeenCalled();
@@ -48,8 +55,9 @@ describe('the stats footer', () => {
 
   it('cancels a pending count when the canvas goes away', () => {
     const { run } = frames();
-    const { caret, type, handle } = mountStats([md('a', 'One')]);
-    const counted = vi.spyOn(handle().editor, 'stats');
+    const { caret, type } = mountStats([md('a', 'One')]);
+    const counted = vi.mocked(countWriting);
+    counted.mockClear();
     caret('a', 3);
     type('!');
     cleanup();

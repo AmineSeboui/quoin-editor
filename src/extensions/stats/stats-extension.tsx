@@ -12,8 +12,9 @@ export type StatsOptions = {
   /** Shows the counts under the document. On by default. */
   footer?: boolean;
   /**
-   * The most characters the document may hold, counted as `countText` counts them. Anything but a finite number of zero
-   * or more is no limit.
+   * The most characters the document may hold, counted as the footer counts them: the cells of a table without the
+   * separators between them, and nothing for an image, a file, an embed or a bookmark, so attaching one never counts.
+   * Anything but a finite number of zero or more is no limit.
    */
   limit?: number;
   /** Dims every block but those the selection touches, while the canvas is editable and holds focus. */

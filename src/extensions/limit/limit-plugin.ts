@@ -1,4 +1,5 @@
-import { countDoc, type EditorState, type Transaction } from '../../engine';
+import type { EditorState, Transaction } from '../../engine';
+import { countWriting } from '../stats/count-writing';
 
 type Refused = (state: EditorState, tr: Transaction) => void;
 
@@ -8,11 +9,11 @@ export type Limit = {
   onRefused(listener: Refused): () => void;
 };
 
-const characters = (state: EditorState, doc = state.doc) => countDoc(doc, { schema: state.schema }).characters;
+const characters = (state: EditorState, doc = state.doc) => countWriting(doc, state.schema).characters;
 
 /**
- * Refuses an edit that leaves the document with more than `limit` characters and more than it had, so a deletion always
- * goes through and a document loaded over the limit can still be edited down.
+ * Refuses an edit that leaves the document with more than `limit` characters, as `countWriting` counts them, and more
+ * than it had, so a deletion always goes through and a document loaded over the limit can still be edited down.
  */
 export function createLimit(limit: number): Limit {
   const listeners = new Set<Refused>();

@@ -1,4 +1,4 @@
-import { coreExtensions, defineExtension, typographyRules, type EditorState } from '../../engine';
+import { coreExtensions, defineExtension, setAttrsStep, typographyRules, type EditorState, type QuoinBlock } from '../../engine';
 import { caret, key, md, range, startEditor } from '../../engine/test-support/editor-fixtures';
 import { createLimit } from './limit-plugin';
 
@@ -102,4 +102,16 @@ describe('a character limit', () => {
     editor.handleKey(key('Backspace'));
     expect(editor.stats().characters).toBe(4);
   });
+
+  it.each<[string, QuoinBlock, Record<string, unknown>]>([
+    ['an upload', { id: 'x', type: 'FILE', data: { storageKey: '', filename: '' } }, { storageKey: 'k', filename: 'report.zip', size: 4 }],
+    ['an unfurl', { id: 'x', type: 'BOOKMARK', data: { url: 'https://a.io' } }, { title: 'Unfurled a.io', description: 'Found' }],
+  ])('lets through what %s writes into an attachment at the limit', (_, attachment, patch) => {
+    const guard = createLimit(5);
+    const extension = defineExtension({ name: 'limit', filterTransaction: guard.filterTransaction });
+    const { editor } = startEditor([md('a', 'abcde'), attachment], { extensions: [...coreExtensions(), extension] });
+    editor.dispatch(editor.createTransaction().step(setAttrsStep('x', patch)));
+    expect(editor.getBlocks()[1].data).toMatchObject(patch);
+  });
 });
+

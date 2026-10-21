@@ -11,12 +11,14 @@ const widget = (side: -1 | 1, attrs = {}): Decoration =>
   ({ kind: 'widget', block: 'a', region: 'text', offset: 1, key: 'k', widget: 'w', attrs, side });
 
 describe('host decorations', () => {
-  it('groups inline and widget decorations by host and leaves block decorations out', () => {
+  it('groups inline and widget decorations by host, and block decorations under their block with no region', () => {
     const other: Decoration = { kind: 'inline', block: 'a', region: 'caption', from: 0, to: 1, attrs: {} };
-    const groups = decorationsByHost([inline(0, 1), { kind: 'block', block: 'a', attrs: {} }, widget(1), other]);
+    const block: Decoration = { kind: 'block', block: 'a', attrs: {} };
+    const groups = decorationsByHost([inline(0, 1), block, widget(1), other]);
     expect(groups.get(hostKey('a', 'text'))).toEqual([inline(0, 1), widget(1)]);
     expect(groups.get(hostKey('a', 'caption'))).toEqual([other]);
-    expect(groups.size).toBe(2);
+    expect(groups.get(hostKey('a', ''))).toEqual([block]);
+    expect(groups.size).toBe(3);
   });
 
   it('compares decorations by content rather than identity', () => {
@@ -56,12 +58,14 @@ describe('hostDecorations', () => {
       { kind: 'inline', block: 'a', region: 'text', from: 0, to: 1, attrs: { class: 'x' } },
     ]);
     expect(hostDecorations(editor, 'b', 'text')).toBe(NO_DECORATIONS);
+    expect(hostDecorations(editor, 'b', '')).toEqual([{ kind: 'block', block: 'b', attrs: {} }]);
     expect(hostDecorations(editor, 'missing', 'text')).toBe(NO_DECORATIONS);
   });
 
   it('asks the editor for its decorations once per state however many hosts ask', () => {
     const { editor, calls } = setup();
     for (const id of ['a', 'b', 'a', 'b']) hostDecorations(editor, id, 'text');
+    hostDecorations(editor, 'b', '');
     expect(calls).toHaveBeenCalledTimes(1);
     editor.insertText('x');
     hostDecorations(editor, 'a', 'text');

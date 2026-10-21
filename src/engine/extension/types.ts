@@ -26,6 +26,7 @@ export type Decoration =
       readonly attrs: Attrs;
       readonly side?: -1 | 1;
     }
+  /** Attributes written on the element of a whole block: `data-*` and `aria-*` names only. */
   | { readonly kind: 'block'; readonly block: string; readonly attrs: Attrs };
 
 export type PasteRule = { readonly name: string; match(text: string, state: EditorState): Command | null };
@@ -44,8 +45,8 @@ export type Extension = {
   readonly decorations?: (state: EditorState) => readonly Decoration[];
   readonly onTransaction?: (tr: Transaction, state: EditorState) => void;
   /**
-   * Refuses a transaction before it applies by returning false: the editor drops it whole. Undo and redo, the blocks the
-   * host supplies and remote transactions are never filtered.
+   * Refuses a transaction before it applies by returning false: the editor drops it whole. Undo and redo, the undo of an
+   * input rule, the blocks the host supplies and remote transactions are never filtered.
    */
   readonly filterTransaction?: (tr: Transaction, state: EditorState) => boolean;
   readonly ui?: unknown;

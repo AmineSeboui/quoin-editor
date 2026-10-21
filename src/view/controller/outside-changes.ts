@@ -13,7 +13,8 @@ export type OutsideChanges = {
 // The browser's own caret moves reach the model on the selection change they queue, a task later. A change from
 // outside that commits first would have the render write the older model selection over the newer caret, so the DOM
 // selection, still drawn for the document before that change, is read where it differs from the model's and carried
-// through every change until it is taken. A change that sets the selection itself means to move it, and drops it.
+// through every change until it is taken. A change from outside that sets the selection itself means to move it: it
+// drops that selection, and the DOM, which still shows the caret before it, is not read again until the next take.
 export function createOutsideChanges(
   editorHasFocus: () => boolean,
   movedFrom: (model: Selection | null) => Selection | null,
@@ -21,6 +22,7 @@ export function createOutsideChanges(
   let depth = 0;
   let focused = false;
   let moved: Selection | null = null;
+  let settled = false;
   return {
     inside(change) {
       depth += 1;
@@ -35,9 +37,10 @@ export function createOutsideChanges(
       focused ||= outside;
       if (tr?.selectionSet !== false) {
         moved = null;
+        settled ||= depth === 0;
         return;
       }
-      const from = moved ?? (outside ? movedFrom(tr.before.selection) : null);
+      const from = moved ?? (outside && !settled ? movedFrom(tr.before.selection) : null);
       moved = from && mapSelection(from, (pos, assoc) => tr.mapPos(pos, assoc), tr.before.doc);
     },
     takeFocused() {
@@ -48,6 +51,7 @@ export function createOutsideChanges(
     takeMoved() {
       const value = moved;
       moved = null;
+      settled = false;
       return value;
     },
   };

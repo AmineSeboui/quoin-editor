@@ -156,4 +156,16 @@ describe('changes the controller did not make', () => {
     controller.dragging = false;
     expect(controller.editor.state.selection).toEqual(textSelection(at('b', 8)));
   });
+
+  it('keeps a selection set from outside when another change from outside follows it before the hosts are drawn', () => {
+    const { controller, domSelection } = mount();
+    const { editor } = controller;
+    act(() => controller.focus(at('b', 8)));
+    act(() => {
+      editor.commands.setSelection(textSelection(at('c', 2)));
+      editor.dispatch(editor.createTransaction().setOrigin('remote').step(replaceInlineStep('a', 'text', 0, 0, [text('X')])));
+    });
+    expect(editor.state.selection).toEqual(textSelection(at('c', 2)));
+    expect(domSelection()).toEqual(textSelection(at('c', 2)));
+  });
 });

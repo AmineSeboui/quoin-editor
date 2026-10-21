@@ -65,4 +65,13 @@ describe('outside changes', () => {
     outside.committed(insertion());
     expect(outside.takeMoved()).toBeNull();
   });
+
+  it('reads no selection the browser moved after a change from outside set the selection, until it is taken', () => {
+    const outside = createOutsideChanges(() => true, () => caret(1));
+    outside.committed(new Transaction(state).setSelection(caret(2)));
+    outside.committed(insertion());
+    expect(outside.takeMoved()).toBeNull();
+    outside.committed(insertion());
+    expect(outside.takeMoved()).toEqual(caret(3));
+  });
 });

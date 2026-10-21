@@ -49,8 +49,8 @@ export function createDrawnElements(hosts: HostRegistry, state: () => EditorStat
     registerBlock: (id, element) => blocks.register(id, '', element),
     block: rendered.block,
     blockAt: (node) => blocks.locate(node)?.block,
-    registerSink: (element) => sink.register(element),
-    registerEmptyHost: (element) => empty.register(element),
+    registerSink: sink.register,
+    registerEmptyHost: empty.register,
     isEditorElement: (element) =>
       element === sink.element ||
       element === empty.element ||

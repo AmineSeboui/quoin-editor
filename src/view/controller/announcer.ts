@@ -1,6 +1,11 @@
 import type { EditorState } from '../../engine';
 
-export type Spoken = { readonly message: string; readonly state: EditorState | undefined; readonly serial: number };
+export type Spoken = {
+  readonly message: string;
+  readonly state: EditorState | undefined;
+  readonly serial: number;
+  readonly at: number;
+};
 
 export type Announcer = {
   announce(message: string): void;
@@ -16,15 +21,13 @@ const THROTTLE_MS = 500;
 // are one.
 export function createAnnouncer(stateOf: () => EditorState | undefined, throttleMs = THROTTLE_MS): Announcer {
   let spoken: Spoken | null = null;
-  let spokenAt = 0;
   const listeners = new Set<() => void>();
   return {
     announce(message) {
       const state = stateOf();
       const now = Date.now();
-      if (spoken?.message === message && spoken.state === state && now - spokenAt < throttleMs) return;
-      spoken = { message, state, serial: (spoken?.serial ?? 0) + 1 };
-      spokenAt = now;
+      if (spoken?.message === message && spoken.state === state && now - spoken.at < throttleMs) return;
+      spoken = { message, state, serial: (spoken?.serial ?? 0) + 1, at: now };
       for (const listener of [...listeners]) listener();
     },
     current: () => (spoken?.state === stateOf() ? spoken : null),

@@ -62,7 +62,10 @@ function reader() {
       markers.set(entry, fields!);
     } else {
       clean = false;
-      if (fields !== null) entries.get(fields.id)!.copies.push(span);
+      if (fields !== null) {
+        span.copyOf = entries.get(fields.id)!;
+        span.copyOf.copies.push(span);
+      }
     }
   }
 
@@ -110,7 +113,8 @@ function reader() {
         const regions = kept.regions.map(({ name, segs }) => [name, inline(segs)]);
         return { id: kept.id, type, indent, attrs: attrs?.toJSON() ?? {}, regions: Object.fromEntries(regions) };
       });
-      return { doc: createDoc(blocks), layout: createLayout(spans, entries, clean) };
+      const outside = [...held.keys()].filter((seg) => seg.host !== seg.region.entry.span);
+      return { doc: createDoc(blocks), layout: createLayout(spans, entries, clean, outside) };
     },
   };
 }

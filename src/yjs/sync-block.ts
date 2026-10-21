@@ -5,7 +5,8 @@ import type { BlockAttrs, EngineBlock, Inline } from '../engine/model/types';
 import { definedEntries, deleteText, regionStart } from './doc-shape';
 import { insertInline } from './inline-codec';
 import { changedSpan } from './inline-span';
-import { cleanEntry, indexOf, placeEntries, spanStart, type Entry } from './layout';
+import { indexOf, placeEntries, spanStart, type Entry } from './layout';
+import { isPlain, rewritten } from './plain';
 import { deleteContent, insertContent, type Shared } from './shared';
 import { insertBlocks, removeBlock } from './write-blocks';
 
@@ -58,17 +59,18 @@ function syncRegions(shared: Shared, entry: Entry, before: EngineBlock, after: E
     at += 1 + inlineLength(inline);
   }
   dropGone();
-  placeEntries(layout, indexOf(layout, entry.span), 1, [cleanEntry(after, entry.map)]);
+  placeEntries(layout, indexOf(layout, entry.span), 1, [rewritten(entry, after)]);
 }
 
 /**
  * Writes the difference between two versions of one block in place, keeping its marker; `next` is the block after it.
- * Over a layout that is not clean, a block whose regions change is written again whole.
+ * A block the text does not hold plainly is written again whole when its regions change.
  */
 export function syncBlock(shared: Shared, before: EngineBlock, after: EngineBlock, next: string | null): void {
   if (before === after) return;
   const entry = shared.layout.entries.get(before.id)!;
-  if (!shared.layout.clean && !sameValue(Object.keys(before.regions), Object.keys(after.regions))) {
+  const plain = isPlain(entry);
+  if (!plain && !sameValue(Object.keys(before.regions), Object.keys(after.regions))) {
     removeBlock(shared, before.id);
     insertBlocks(shared, next, [after]);
     return;
@@ -76,7 +78,7 @@ export function syncBlock(shared: Shared, before: EngineBlock, after: EngineBloc
   if (before.type !== after.type) entry.map.set('type', after.type);
   if (before.indent !== after.indent) entry.map.set('indent', after.indent);
   syncAttrs(entry.map, before.attrs, after.attrs);
-  if (shared.layout.clean) return syncRegions(shared, entry, before, after);
+  if (plain) return syncRegions(shared, entry, before, after);
   for (const region of entry.regions) {
     const was = before.regions[region.name];
     const now = after.regions[region.name];

@@ -6,7 +6,7 @@ import type { EngineBlock } from '../engine/model/types';
 export type Seg = { readonly host: Span; readonly region: Region; at: number; length: number };
 export type Region = { readonly name: string; readonly entry: Entry; readonly segs: Seg[] };
 /** The text from one block marker up to the next, or before the first marker. */
-export type Span = { length: number; entry: Entry | null; readonly segs: Seg[]; index: number };
+export type Span = { length: number; entry: Entry | null; readonly segs: Seg[]; index: number; copyOf?: Entry };
 /** A block of the document and where the text holds it; `copies` are later spans of its id, which nobody reads. */
 export type Entry = {
   readonly id: string;
@@ -24,16 +24,24 @@ export type Layout = {
   readonly spans: Span[];
   readonly entries: Map<string, Entry>;
   clean: boolean;
+  /** The segs of characters read into a region of another span than the one holding them. */
+  readonly strays: readonly Seg[];
   readonly starts: number[];
   valid: number;
 };
 
 export const emptySpan = (): Span => ({ length: 0, entry: null, segs: [], index: 0 });
 
-export const createLayout = (spans: Span[], entries: Map<string, Entry>, clean: boolean): Layout => ({
+export const createLayout = (
+  spans: Span[],
+  entries: Map<string, Entry>,
+  clean: boolean,
+  strays: readonly Seg[] = [],
+): Layout => ({
   spans,
   entries,
   clean,
+  strays,
   starts: [],
   valid: 0,
 });
@@ -144,6 +152,8 @@ export function cleanEntry(block: EngineBlock, map: Y.Map<unknown>): Entry {
 export function placeEntries(layout: Layout, at: number, count: number, entries: readonly Entry[]): void {
   for (const span of layout.spans.splice(at, count, ...entries.map((entry) => entry.span))) {
     if (span.entry !== null && layout.entries.get(span.entry.id) === span.entry) layout.entries.delete(span.entry.id);
+    const copies = span.copyOf?.copies;
+    if (copies?.includes(span)) copies.splice(copies.indexOf(span), 1);
   }
   for (const entry of entries) layout.entries.set(entry.id, entry);
   invalidate(layout, at);

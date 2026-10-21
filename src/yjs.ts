@@ -11,7 +11,6 @@ export {
   type YjsCollaborationOptions,
 } from './yjs/index';
 export type { Seed } from './yjs/seed';
-export type { YBlock, YBlocks } from './yjs/doc-shape';
 export type { CollaborationAdapter, CollaborationHistory } from './engine/collab/adapter';
 export { applyRemote } from './engine/collab/apply-remote';
 export { collaborationExtension } from './engine/collab/collaboration-extension';

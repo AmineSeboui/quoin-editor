@@ -16,7 +16,7 @@ function clients(blocks: QuoinBlock[]) {
 const texts = ({ editor }: Peer) => editor.state.doc.blocks.map((block) => inlineText(block.regions.text));
 
 describe('a split or a join while another client edits the same block', () => {
-  it('moves what the other client typed in the moved tail along with it', () => {
+  it('leaves what the other client typed in the tail where it was typed', () => {
     const { one, two, flush } = clients([md('p', 'hello world')]);
     one.editor.commands.setSelection(caret('p', 5));
     one.editor.commands.splitBlock();
@@ -27,7 +27,7 @@ describe('a split or a join while another client edits the same block', () => {
     expect(two.editor.getBlocks()).toEqual(one.editor.getBlocks());
   });
 
-  it('moves what the other client typed at the end of the moved tail', () => {
+  it('leaves what the other client typed at the end of the tail at its end', () => {
     const { one, two, flush } = clients([md('p', 'hello world')]);
     one.editor.commands.setSelection(caret('p', 5));
     one.editor.commands.splitBlock();
@@ -38,7 +38,7 @@ describe('a split or a join while another client edits the same block', () => {
     expect(two.editor.getBlocks()).toEqual(one.editor.getBlocks());
   });
 
-  it('keeps a mark the other client set on the moved tail', () => {
+  it('keeps a mark the other client set on the tail', () => {
     const { one, two, flush } = clients([md('p', 'hello world')]);
     one.editor.commands.setSelection(caret('p', 5));
     one.editor.commands.splitBlock();
@@ -74,14 +74,52 @@ describe('a split or a join while another client edits the same block', () => {
     expect(two.editor.getBlocks()).toEqual(one.editor.getBlocks());
   });
 
-  it('leaves what the other client typed at the end of a line split at its end', () => {
+  it('keeps what the other client typed at the start of a block joined to the one above at the join', () => {
+    const { one, two, flush } = clients([md('p', 'first'), md('q', 'second')]);
+    one.editor.commands.setSelection(caret('q', 0));
+    one.editor.commands.deleteBackward();
+    two.editor.commands.setSelection(caret('q', 0));
+    two.editor.insertText('NEW ');
+    flush();
+    expect(texts(one)).toEqual(['firstNEW second']);
+    expect(two.editor.getBlocks()).toEqual(one.editor.getBlocks());
+  });
+
+  it.each([
+    ['the client that splits comes first', 'one', ['hello', ' more']],
+    ['the client that types comes first', 'two', ['hello more', '']],
+  ] as const)('orders a split and typing at the same end of a line by client, %s', (_, splitter, expected) => {
     const { one, two, flush } = clients([md('p', 'hello')]);
+    const [splits, types] = splitter === 'one' ? [one, two] : [two, one];
+    splits.editor.commands.setSelection(caret('p', 5));
+    splits.editor.commands.splitBlock();
+    types.editor.commands.setSelection(caret('p', 5));
+    types.editor.insertText(' more');
+    flush();
+    expect(texts(one)).toEqual(expected);
+    expect(two.editor.getBlocks()).toEqual(one.editor.getBlocks());
+  });
+
+  it('moves the caret of the other client into the tail when its text goes there', () => {
+    const { one, two, flush } = clients([md('p', 'hello world')]);
+    two.editor.commands.setSelection(caret('p', 8));
     one.editor.commands.setSelection(caret('p', 5));
     one.editor.commands.splitBlock();
-    two.editor.commands.setSelection(caret('p', 5));
-    two.editor.insertText(' more');
     flush();
-    expect(texts(one)).toEqual(['hello more', '']);
-    expect(two.editor.getBlocks()).toEqual(one.editor.getBlocks());
+    const tail = one.editor.state.doc.blocks[1].id;
+    expect(two.editor.state.selection).toEqual(caret(tail, 3));
+    two.editor.insertText('!');
+    flush();
+    expect(texts(one)).toEqual(['hello', ' wo!rld']);
+  });
+
+  it('writes Enter in a long paragraph as one small update', () => {
+    const { docs, one } = clients([md('p', 'x'.repeat(5000))]);
+    const updates: Uint8Array[] = [];
+    docs[0].on('update', (update: Uint8Array) => updates.push(update));
+    one.editor.commands.setSelection(caret('p', 10));
+    one.editor.commands.splitBlock();
+    expect(updates).toHaveLength(1);
+    expect(updates[0].byteLength).toBeLessThan(160);
   });
 });

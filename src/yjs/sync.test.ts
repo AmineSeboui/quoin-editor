@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import type * as Y from 'yjs';
 import type { QuoinBlock } from '../engine/model/quoin-block';
 import type { Transaction } from '../engine/state/transaction';
-import { caret, md } from '../engine/test-support/editor-fixtures';
+import { sameDoc } from '../engine/model/same-doc';
+import { caret, md, range } from '../engine/test-support/editor-fixtures';
+import { readShared } from './read-shared';
 import { linkedDocs, peer } from './test-support/peers';
 
 const paragraphs = (count: number) => Array.from({ length: count }, (_, i) => md(`p${i}`, `Paragraph ${i}`));
@@ -16,17 +17,17 @@ function twoPeers(blocks: QuoinBlock[]) {
 }
 
 describe('an editor synced through a shared document', () => {
-  it('writes a keystroke as one small transaction on the text of its block alone', () => {
+  it('writes a keystroke as one small transaction on the shared text alone', () => {
     const { docs, one, flush } = twoPeers(paragraphs(1000));
     const changed: unknown[] = [];
     const updates: Uint8Array[] = [];
-    docs[1].getArray('quoin').observeDeep((events) => changed.push(...events.map((event) => event.target)));
+    const shared = docs[1].getText('quoin');
+    shared.observeDeep((events) => changed.push(...events.map((event) => event.target)));
     docs[0].on('update', (update: Uint8Array) => updates.push(update));
     one.editor.commands.setSelection(caret('p500', 3));
     one.editor.insertText('x');
     flush();
-    const text = (docs[1].getArray<Y.Map<unknown>>('quoin').get(500).get('regions') as Y.Map<Y.Text>).get('text');
-    expect(changed).toEqual([text]);
+    expect(changed).toEqual([shared]);
     expect(updates).toHaveLength(1);
     expect(updates[0].byteLength).toBeLessThan(64);
   });
@@ -75,6 +76,17 @@ describe('an editor synced through a shared document', () => {
     expect(one.editor.getBlocks().map((block) => block.id)).toEqual(['p1', 'p0', 'p2']);
     expect(one.editor.getBlocks()[1]).toEqual(md('p0', 'Paragraph 0'));
     expect(two.editor.getBlocks()).toEqual(one.editor.getBlocks());
+  });
+
+  it('keeps the end of a mark that stands just before the characters it deletes', () => {
+    const { one, two, deliver } = twoPeers([md('a', 'one **two** three'), md('b', 'four'), md('c', 'six')]);
+    one.editor.commands.setSelection(range('a', 0, 4));
+    one.editor.insertText('x0');
+    deliver(1);
+    two.editor.commands.setSelection({ ...range('a', 1, 0), head: { block: 'b', region: 'text', offset: 0 } });
+    two.editor.insertText('y1');
+    expect(two.editor.getBlocks()).toEqual([md('a', '**xy1**four'), md('c', 'six')]);
+    expect(sameDoc(readShared(two.collaboration.text).doc, two.editor.state.doc)).toBe(true);
   });
 
   it('keeps blocks and marks the local schema does not know through a remote edit', () => {

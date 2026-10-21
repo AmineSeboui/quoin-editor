@@ -4,13 +4,13 @@ import * as Y from 'yjs';
 import { atom, text } from '../engine/model/inline';
 import type { EngineBlock } from '../engine/model/types';
 import { sameDoc } from '../engine/model/same-doc';
-import { createDoc } from '../engine/model/doc';
-import { fromYBlock, toYBlock, type YBlock } from './doc-shape';
+import { writeBlocks } from './doc-shape';
+import { readShared } from './read-shared';
 import { arbitraryEngineDoc } from './test-support/engine-doc-arbitrary';
 
 function stored(blocks: readonly EngineBlock[]) {
-  const shared = new Y.Doc().getArray<YBlock>('quoin');
-  shared.insert(0, blocks.map(toYBlock));
+  const shared = new Y.Doc().getText('quoin');
+  writeBlocks(shared, 0, blocks);
   return shared;
 }
 
@@ -33,19 +33,36 @@ const paragraph: EngineBlock = {
   },
 };
 
-describe('the shape of a block in a shared document', () => {
-  it('is a map of id, type, indent, attrs and regions of text', () => {
-    const block = stored([paragraph]).get(0);
-    expect(block.get('id')).toBe('a');
-    expect(block.get('type')).toBe('MARKDOWN');
-    expect(block.get('indent')).toBe(1);
-    expect((block.get('attrs') as Y.Map<unknown>).toJSON()).toEqual({ kind: 'heading', level: 2 });
-    expect([...(block.get('regions') as Y.Map<Y.Text>).keys()]).toEqual(['text']);
+const divider: EngineBlock = { id: 'd', type: 'DIVIDER', indent: 0, attrs: {}, regions: {} };
+const callout: EngineBlock = {
+  id: 'c',
+  type: 'CALLOUT',
+  indent: 0,
+  attrs: { tone: 'info' },
+  regions: { body: [text('hi')], note: [] },
+};
+
+type Op = { insert: unknown; attributes?: Record<string, unknown> };
+const plain = (op: Op) => (op.insert instanceof Y.Map ? { ...op, insert: op.insert.toJSON() } : op);
+
+describe('the shape of a shared document', () => {
+  it('starts each block with a marker map of id, type, indent and attrs, and each region with its name', () => {
+    const delta = (stored([divider, callout]).toDelta() as Op[]).map(plain);
+    expect(delta).toEqual([
+      { insert: { id: 'd', type: 'DIVIDER', indent: 0, attrs: {} } },
+      { insert: { id: 'c', type: 'CALLOUT', indent: 0, attrs: { tone: 'info' } } },
+      { insert: { r: 'body' } },
+      { insert: 'hi' },
+      { insert: { r: 'note' } },
+    ]);
+    const marker = (stored([callout]).toDelta() as Op[])[0].insert as Y.Map<unknown>;
+    expect(marker.get('attrs')).toBeInstanceOf(Y.Map);
   });
 
   it('keeps marks as formatting attributes and atoms as embeds', () => {
-    const region = (stored([paragraph]).get(0).get('regions') as Y.Map<Y.Text>).get('text')!;
-    expect(region.toDelta()).toEqual([
+    const delta = stored([paragraph]).toDelta() as Op[];
+    expect(delta.slice(1).map(plain)).toEqual([
+      { insert: { r: 'text' } },
       { insert: 'bold', attributes: { bold: true } },
       { insert: 'link', attributes: { link: { href: 'https://a.b', title: 'A' } } },
       { insert: 'red', attributes: { color: 'red' } },
@@ -54,11 +71,12 @@ describe('the shape of a block in a shared document', () => {
     ]);
   });
 
-  it('reads back every block it stores, unknown types and marks included', () => {
+  it('reads back every document it stores, unknown types and marks included', () => {
     fc.assert(
       fc.property(arbitraryEngineDoc, (doc) => {
-        const back = createDoc(stored(doc.blocks).toArray().map(fromYBlock));
-        expect(sameDoc(back, doc)).toBe(true);
+        const back = readShared(stored(doc.blocks));
+        expect(sameDoc(back.doc, doc)).toBe(true);
+        expect(back.layout.clean).toBe(true);
       }),
       { seed: 20261021, numRuns: 500 },
     );

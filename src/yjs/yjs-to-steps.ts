@@ -1,93 +1,78 @@
-import * as Y from 'yjs';
+import type * as Y from 'yjs';
 import { blockById, createDoc } from '../engine/model/doc';
+import { sameDoc } from '../engine/model/same-doc';
+import { sameValue } from '../engine/model/same-value';
 import type { EngineDoc } from '../engine/model/types';
 import { setAttrsStep, setIndentStep } from '../engine/transform/attrs-steps';
 import { replaceBlockStep } from '../engine/transform/block-steps';
 import { replaceDocStep } from '../engine/transform/replace-doc-step';
 import type { Step } from '../engine/transform/step';
-import { attrsOf, fromYBlock, idOf, regionsOf, type YBlock, type YBlocks } from './doc-shape';
-import { deltaSteps, type DeltaOp } from './delta-steps';
-import { structureSteps } from './structure-steps';
-import { uniqueBlocks } from './unique-blocks';
+import { readMarker } from './doc-shape';
+import { readShared } from './read-shared';
+import { splitOrJoin } from './read-split-join';
+import type { Shared } from './shared';
+import { textSteps, type DeltaOp } from './text-steps';
 
-type Change = { block: YBlock; steps: Step[]; replace: boolean };
-type YType = Y.AbstractType<unknown>;
-type YEvent = Y.YEvent<YType>;
+type YEvent = Y.YEvent<Y.AbstractType<unknown>>;
 
-function owner(blocks: YBlocks, target: YType): YBlock {
-  let type = target;
-  while (type.parent !== blocks) type = type.parent!;
-  return type as YBlock;
-}
+const REREAD = new Error('reread');
 
-const onlyIndent = (event: YEvent) =>
-  event instanceof Y.YMapEvent && [...event.keysChanged].every((key) => key === 'indent');
-
-function regionName(block: YBlock, target: unknown): string {
-  for (const [name, region] of regionsOf(block).entries()) if (region === target) return name;
-  return '';
-}
-
-function record(change: Change, event: YEvent): void {
-  const { block } = change;
-  const id = idOf(block);
-  const attrs = attrsOf(block);
-  if (event.target === attrs && event instanceof Y.YMapEvent) {
-    const patch = Object.fromEntries([...event.keysChanged].map((key) => [key, attrs.get(key)]));
-    change.steps.push(setAttrsStep(id, patch));
-  } else if (event instanceof Y.YTextEvent) {
-    change.steps.push(...deltaSteps(id, regionName(block, event.target), event.delta as DeltaOp[]));
-  } else if (event.target === block && onlyIndent(event)) {
-    change.steps.push(setIndentStep(id, block.get('indent') as number));
-  } else {
-    change.replace = true;
+// A change to a block's marker map or to its attrs map, as a step on that block; none for a marker no block holds.
+function markerSteps(shared: Shared, event: YEvent, doc: EngineDoc): Step[] {
+  const target = event.target as Y.Map<unknown>;
+  const marker = (target.parent === shared.text ? target : target.parent) as Y.Map<unknown>;
+  const fields = readMarker(marker);
+  const block = fields === null ? undefined : blockById(doc, fields.id);
+  if (block === undefined || shared.layout.entries.get(block.id)?.map !== marker) return [];
+  const keys = [...(event as Y.YMapEvent<unknown>).keysChanged];
+  if (target !== marker) {
+    if (fields!.attrs !== target) return [];
+    return [setAttrsStep(block.id, Object.fromEntries(keys.map((key) => [key, target.get(key)])))];
   }
+  if (keys.includes('id')) throw REREAD;
+  if (keys.every((key) => key === 'indent')) return [setIndentStep(block.id, fields!.indent)];
+  const { type, indent, attrs } = fields!;
+  return [replaceBlockStep({ ...block, type, indent, attrs: attrs?.toJSON() ?? {} })];
 }
 
-function contentSteps(
-  events: readonly YEvent[],
-  blocks: YBlocks,
-  doc: EngineDoc,
-  kept: ReadonlySet<YBlock> | null,
-): Step[] {
-  const changes = new Map<YBlock, Change>();
+function contentSteps(shared: Shared, events: readonly YEvent[], doc: EngineDoc): Step[] {
+  const textEvent = events.find((event) => event.target === shared.text);
+  const delta = (textEvent?.delta ?? []) as DeltaOp[];
+  const structure = splitOrJoin(shared.layout, delta, doc);
+  const steps = structure === null ? textSteps(shared.layout, delta) : [structure];
+  if (steps === null) throw REREAD;
+  let current = steps.reduce((changed, step) => step.apply(changed).doc, doc);
   for (const event of events) {
-    if (event.target === blocks) continue;
-    const block = owner(blocks, event.target);
-    if (kept?.has(block) === false || blockById(doc, idOf(block)) === undefined) continue;
-    const change = changes.get(block) ?? { block, steps: [], replace: false };
-    changes.set(block, change);
-    record(change, event);
+    if (event === textEvent) continue;
+    for (const step of markerSteps(shared, event, current)) {
+      current = step.apply(current).doc;
+      steps.push(step);
+    }
   }
-  return [...changes.values()].flatMap(({ block, steps, replace }) =>
-    replace ? [replaceBlockStep(fromYBlock(block))] : steps,
-  );
-}
-
-function insertedBlocks(event: YEvent): Set<YBlock> {
-  return new Set([...event.changes.added].flatMap((item) => item.content.getContent() as YBlock[]));
+  return steps;
 }
 
 /**
- * The engine steps of a change to the shared array, against the editor's document `doc`, which held what the array
- * held before it, and the indexes of block copies the array now holds twice. Content changes are found by block id;
- * when the array itself changed, its order is compared with the document's. Steps that do not apply to the document
- * give way to a replacement of the whole document.
+ * The engine steps of a change to the shared text, against the editor's document `doc`, which is what the text read
+ * as before it, with the layout moved on. A change to the characters of regions, a split, a join or a change of a
+ * block's marker is read as its own steps; anything else is read as one replacement of the document, which keeps the
+ * blocks the change left alone, and is `structural`.
  */
-export function stepsFromYjs(
+export function readRemote(
+  shared: Shared,
   events: readonly YEvent[],
-  blocks: YBlocks,
   doc: EngineDoc,
-): { steps: Step[]; copies: number[] } {
-  const root = events.find((event) => event.target === blocks);
-  const { kept, copies } = root === undefined ? { kept: [], copies: [] } : uniqueBlocks(blocks);
+): { steps: Step[]; structural: boolean } {
   try {
-    const steps = contentSteps(events, blocks, doc, root === undefined ? null : new Set(kept));
-    const changed = steps.reduce((current, step) => step.apply(current).doc, doc);
-    if (root === undefined) return { steps, copies };
-    return { steps: [...steps, ...structureSteps(changed, kept, insertedBlocks(root))], copies };
+    return { steps: contentSteps(shared, events, doc), structural: false };
   } catch {
-    const all = root === undefined ? uniqueBlocks(blocks) : { kept, copies };
-    return { steps: [replaceDocStep(createDoc(all.kept.map(fromYBlock)))], copies: all.copies };
+    const read = readShared(shared.text);
+    shared.layout = read.layout;
+    const blocks = read.doc.blocks.map((block) => {
+      const held = blockById(doc, block.id);
+      return held !== undefined && sameValue(held, block) ? held : block;
+    });
+    const next = createDoc(blocks);
+    return { steps: sameDoc(next, doc) ? [] : [replaceDocStep(next)], structural: true };
   }
 }

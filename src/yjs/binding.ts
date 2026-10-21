@@ -1,24 +1,23 @@
-import * as Y from 'yjs';
+import type * as Y from 'yjs';
 import { applyRemote } from '../engine/collab/apply-remote';
 import type { CommandFactories } from '../engine/commands/chain';
 import type { Editor } from '../engine/extension/editor';
+import { sameDoc } from '../engine/model/same-doc';
 import type { Transaction } from '../engine/state/transaction';
-import type { YBlocks } from './doc-shape';
+import { replaceDocStep } from '../engine/transform/replace-doc-step';
+import { holdSelection, restoreSelection, type HeldSelection } from './carets';
 import { writeLocalSteps } from './local-to-yjs';
-import type { Id } from './moves/ids';
-import { moveKeeper } from './moves/keeper';
+import { readShared } from './read-shared';
 import { seedOrLoad, type Seed } from './seed';
-import { removeCopies } from './unique-blocks';
+import type { Shared } from './shared';
 import { undoHistory, type UndoHistory } from './undo-history';
-import { stepsFromYjs } from './yjs-to-steps';
+import { readRemote } from './yjs-to-steps';
 
 export type Origins = {
   /** Changes of this client that undo can take back. */
   readonly local: object;
-  /** Changes of this client kept out of undo, such as removing a copy of a block. */
+  /** Changes of this client kept out of undo. */
   readonly untracked: object;
-  /** Changes of this client that put its characters where another client's split or join moved them. */
-  readonly moved: object;
 };
 
 export type Binding = {
@@ -29,25 +28,36 @@ export type Binding = {
   stop(): void;
 };
 
-/** Ties one editor to the shared array until `stop`: local changes are written to it and its changes are applied. */
+/** Ties one editor to the shared text until `stop`: local changes are written to it and its changes are applied. */
 export function bind(
   editor: Editor<CommandFactories>,
-  blocks: YBlocks,
-  { field, origins, seed }: { field: string; origins: Origins; seed: Seed },
+  text: Y.Text,
+  { origins, seed }: { origins: Origins; seed: Seed },
 ): Binding {
-  const doc = blocks.doc!;
-  seedOrLoad(editor, blocks, origins.local, seed);
-  const history = undoHistory(blocks, origins.local);
-  const deletedByMe = ([client, clock]: Id) =>
-    history.manager.undoStack.some(({ deletions }) => Y.isDeleted(deletions, Y.createID(client, clock)));
-  const keeper = moveKeeper(blocks, { field, origin: origins.moved, deletedByMe });
-  const observer = (events: Y.YEvent<Y.AbstractType<unknown>>[], transaction: Y.Transaction) => {
-    if (transaction.origin === origins.local || transaction.origin === origins.untracked) return;
-    const { steps, copies } = stepsFromYjs(events, blocks, editor.state.doc);
-    if (copies.length > 0) doc.transact(() => removeCopies(blocks, copies), origins.untracked);
-    if (steps.length > 0) applyRemote(editor, steps, transaction.origin === history.manager ? history.hint() : null);
+  const doc = text.doc!;
+  const shared: Shared = { text, layout: seedOrLoad(editor, text, origins.local, seed), stale: false };
+  const history = undoHistory(text, origins.local);
+  const ours = (origin: unknown) => origin === origins.local || origin === origins.untracked;
+  let held: HeldSelection = null;
+  const hold = (transaction: Y.Transaction) => {
+    if (!ours(transaction.origin)) held = holdSelection(text, shared.layout, editor.state.selection);
   };
-  blocks.observeDeep(observer);
+  const observer = (events: Y.YEvent<Y.AbstractType<unknown>>[], transaction: Y.Transaction) => {
+    if (ours(transaction.origin)) return;
+    const { steps, structural } = readRemote(shared, events, editor.state.doc);
+    const undoing = transaction.origin === history.manager;
+    const hint = undoing ? history.hint() : structural ? restoreSelection(text, shared.layout, held) : null;
+    if (steps.length > 0) applyRemote(editor, steps, hint);
+  };
+  // A change written over a text that is out of shape can read back as another document: the editor takes that one.
+  const settle = () => {
+    shared.stale = false;
+    const read = readShared(text);
+    shared.layout = read.layout;
+    if (!sameDoc(read.doc, editor.state.doc)) applyRemote(editor, [replaceDocStep(read.doc)]);
+  };
+  doc.on('beforeTransaction', hold);
+  text.observeDeep(observer);
   return {
     editor,
     history,
@@ -56,12 +66,13 @@ export function bind(
       if (!tr.docChanged) return;
       const docs = [...tr.docs, tr.doc];
       const origin = tr.addToHistory ? origins.local : origins.untracked;
-      doc.transact((ytr) => writeLocalSteps(blocks, tr.steps, docs, keeper.recorder(ytr)), origin);
+      doc.transact(() => writeLocalSteps(shared, tr.steps, docs), origin);
+      if (shared.stale) settle();
     },
     travel: (direction) => history.travel(direction, editor),
     stop() {
-      keeper.stop();
-      blocks.unobserveDeep(observer);
+      doc.off('beforeTransaction', hold);
+      text.unobserveDeep(observer);
       history.destroy();
     },
   };

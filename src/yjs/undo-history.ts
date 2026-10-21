@@ -4,7 +4,6 @@ import type { Editor } from '../engine/extension/editor';
 import type { Selection } from '../engine/model/types';
 import { HISTORY_GROUP } from '../engine/state/history';
 import type { Transaction } from '../engine/state/transaction';
-import type { YBlocks } from './doc-shape';
 
 const GROUP_DELAY = 500;
 const SELECTION = 'selection';
@@ -29,9 +28,9 @@ export type UndoHistory = {
   destroy(): void;
 };
 
-/** A `Y.UndoManager` over the shared array that tracks only `origin`, the changes of this client. */
-export function undoHistory(blocks: YBlocks, origin: object): UndoHistory {
-  const manager = new Y.UndoManager(blocks, { trackedOrigins: new Set([origin]), captureTimeout: Infinity });
+/** A `Y.UndoManager` over the shared text that tracks only `origin`, the changes of this client. */
+export function undoHistory(text: Y.Text, origin: object): UndoHistory {
+  const manager = new Y.UndoManager(text, { trackedOrigins: new Set([origin]), captureTimeout: Infinity });
   let group: string | null = null;
   let time = 0;
   let before: Selection | null = null;

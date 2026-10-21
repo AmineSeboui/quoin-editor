@@ -1,10 +1,17 @@
-import * as Y from 'yjs';
+import type * as Y from 'yjs';
 import { atom, nodeLength, normalizeInline, text } from '../engine/model/inline';
 import type { Attrs, Inline, InlineNode } from '../engine/model/types';
 import { attributesToMarks, marksToAttributes } from './marks-codec';
 
 export type AtomEmbed = { atom: string; attrs: Attrs };
 export type InsertOp = { insert: string | AtomEmbed; attributes?: Readonly<Record<string, unknown>> };
+
+/** The inserts of a delta that writes `inline`, each with its marks as formatting attributes. */
+export const inlineOps = (inline: Inline): { insert: string | AtomEmbed; attributes: Record<string, unknown> }[] =>
+  inline.map((node) => ({
+    insert: node.kind === 'text' ? node.text : { atom: node.type, attrs: node.attrs },
+    attributes: marksToAttributes(node.marks),
+  }));
 
 // Attributes are always given, empty ones included: without them Yjs would carry over the marks on the left.
 export function insertInline(target: Y.Text, at: number, inline: Inline): void {
@@ -15,12 +22,6 @@ export function insertInline(target: Y.Text, at: number, inline: Inline): void {
     else target.insertEmbed(offset, { atom: node.type, attrs: node.attrs } satisfies AtomEmbed, attributes);
     offset += nodeLength(node);
   }
-}
-
-export function toYText(inline: Inline): Y.Text {
-  const target = new Y.Text();
-  insertInline(target, 0, inline);
-  return target;
 }
 
 function nodeOf({ insert, attributes }: InsertOp): InlineNode {

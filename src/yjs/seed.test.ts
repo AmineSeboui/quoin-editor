@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import * as Y from 'yjs';
 import { md } from '../engine/test-support/editor-fixtures';
+import { readShared } from './read-shared';
 import { linkedDocs, peer } from './test-support/peers';
+import { plainDelta } from './test-support/plain-delta';
 
 const origins = (doc: Y.Doc) => {
   const seen: unknown[] = [];
@@ -15,7 +17,7 @@ describe('connecting an editor to a shared document', () => {
     const seen = origins(doc);
     const { editor, collaboration } = peer(doc, 'a', [md('a', 'hello'), md('b', '**bold**')]);
     expect(seen).toEqual([collaboration.origin]);
-    expect(collaboration.blocks.toArray().map((block) => block.get('id'))).toEqual(['a', 'b']);
+    expect(readShared(collaboration.text).doc.blocks.map((block) => block.id)).toEqual(['a', 'b']);
     expect(editor.can().undo()).toBe(false);
     expect(editor.commands.undo()).toBe(false);
   });
@@ -36,7 +38,7 @@ describe('connecting an editor to a shared document', () => {
   it('leaves an empty document empty without seeding, and empties the editor to match', () => {
     const doc = new Y.Doc();
     const { editor, collaboration } = peer(doc, 'a', [md('a', 'hello')], { seed: false });
-    expect(collaboration.blocks.length).toBe(0);
+    expect(collaboration.text.length).toBe(0);
     expect(editor.getBlocks()).toEqual([]);
   });
 
@@ -47,8 +49,7 @@ describe('connecting an editor to a shared document', () => {
     flush();
     expect(one.editor.getBlocks()).toEqual([md('a', 'hello'), md('b', 'world')]);
     expect(two.editor.getBlocks()).toEqual(one.editor.getBlocks());
-    expect(docs[0].getArray('quoin').length).toBe(2);
-    expect(docs[1].getArray('quoin').toJSON()).toEqual(docs[0].getArray('quoin').toJSON());
+    expect(plainDelta(docs[1].getText('quoin'))).toEqual(plainDelta(docs[0].getText('quoin')));
   });
 
   it('catches up with what changed while it was disconnected when it connects again', () => {
@@ -72,10 +73,10 @@ describe('connecting an editor to a shared document', () => {
     expect(two.editor.getBlocks()).toEqual([md('a', 'hello!?')]);
   });
 
-  it('keeps the blocks in the array the field names', () => {
+  it('keeps the blocks in the text the field names', () => {
     const doc = new Y.Doc();
     peer(doc, 'a', [md('a', 'hello')], { field: 'notes' });
-    expect(doc.getArray('notes').length).toBe(1);
-    expect(doc.getArray('quoin').length).toBe(0);
+    expect(readShared(doc.getText('notes')).doc.blocks).toHaveLength(1);
+    expect(doc.getText('quoin').length).toBe(0);
   });
 });

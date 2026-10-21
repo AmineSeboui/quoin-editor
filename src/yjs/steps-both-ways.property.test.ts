@@ -1,20 +1,20 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import type * as Y from 'yjs';
-import { blockById, createDoc } from '../engine/model/doc';
+import { blockById } from '../engine/model/doc';
 import { inlineText } from '../engine/model/inline';
 import { sameDoc } from '../engine/model/same-doc';
 import type { EngineDoc } from '../engine/model/types';
 import { arbitraryDocWithStep } from '../engine/transform/steps-arbitrary';
 import type { Step } from '../engine/transform/step';
-import { fromYBlock, toYBlock, type YBlock } from './doc-shape';
+import { writeBlocks } from './doc-shape';
 import { writeLocalSteps } from './local-to-yjs';
+import { readShared } from './read-shared';
+import { readRemote } from './yjs-to-steps';
+import { layoutShape } from './test-support/layout-shape';
 import { linkedDocs } from './test-support/peers';
-import { stepsFromYjs } from './yjs-to-steps';
 
 const LOCAL = { local: true };
-
-const readBack = (blocks: Y.Array<YBlock>) => createDoc(blocks.toArray().map(fromYBlock));
+const CONTENT = ['replaceInline', 'addMark', 'removeMark', 'setAttrs', 'setIndent'];
 
 function applied(doc: EngineDoc, step: Step): EngineDoc | null {
   try {
@@ -36,30 +36,34 @@ function cutsAPair(doc: EngineDoc, step: Step): boolean {
   return [from, to, offset].some((at) => typeof at === 'number' && isHighSurrogate(value.charCodeAt(at - 1)));
 }
 
-describe('a step written to a shared document and read back on another client', () => {
-  it('gives both clients the document the step gives the engine, read back as steps', () => {
+describe('a step written to a shared text and read back on another client', () => {
+  it('gives both clients the document the step gives the engine, with an index that matches the text', () => {
     fc.assert(
       fc.property(arbitraryDocWithStep(), ({ doc, step }) => {
         const after = applied(doc, step);
         fc.pre(after !== null && !cutsAPair(doc, step));
         const { docs, flush } = linkedDocs();
-        const [mine, theirs] = docs.map((ydoc) => ydoc.getArray<YBlock>('quoin'));
-        mine.insert(0, doc.blocks.map(toYBlock));
+        const [mine, theirs] = docs.map((ydoc) => ydoc.getText('quoin'));
+        writeBlocks(mine, 0, doc.blocks);
         flush();
+        const local = { text: mine, layout: readShared(mine).layout, stale: false };
+        const remote = { text: theirs, layout: readShared(theirs).layout, stale: false };
         let seen = doc;
         const kinds: string[] = [];
         theirs.observeDeep((events) => {
-          for (const remote of stepsFromYjs(events, theirs, seen).steps) {
-            kinds.push(remote.stepType);
-            seen = remote.apply(seen).doc;
+          for (const read of readRemote(remote, events, seen).steps) {
+            kinds.push(read.stepType);
+            seen = read.apply(seen).doc;
           }
         });
-        docs[0].transact(() => writeLocalSteps(mine, [step], [doc, after!]), LOCAL);
+        docs[0].transact(() => writeLocalSteps(local, [step], [doc, after!]), LOCAL);
         flush();
-        expect(sameDoc(readBack(mine), after!)).toBe(true);
-        expect(sameDoc(readBack(theirs), after!)).toBe(true);
+        expect(sameDoc(readShared(mine).doc, after!)).toBe(true);
+        expect(sameDoc(readShared(theirs).doc, after!)).toBe(true);
         expect(sameDoc(seen, after!)).toBe(true);
-        expect(kinds).not.toContain('replaceDoc');
+        expect(layoutShape(local.layout)).toEqual(layoutShape(readShared(mine).layout));
+        expect(layoutShape(remote.layout)).toEqual(layoutShape(readShared(theirs).layout));
+        if (CONTENT.includes(step.stepType)) expect(kinds).not.toContain('replaceDoc');
       }),
       { seed: 20261021, numRuns: 1000 },
     );

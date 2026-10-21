@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { setAttrsStep } from '../engine/transform/attrs-steps';
+import { removeBlocksStep } from '../engine/transform/block-steps';
 import { caret, md, mod } from '../engine/test-support/editor-fixtures';
 import { linkedDocs, peer } from './test-support/peers';
 
@@ -68,6 +69,44 @@ describe('undo through the shared document', () => {
     expect(one.editor.getBlocks()).not.toEqual(start);
     while (one.editor.commands.undo());
     expect(one.editor.getBlocks()).toEqual(start);
+  });
+
+  it('undoes its split and its join and leaves what the other client typed meanwhile', () => {
+    const { one, two, flush } = twoPeers();
+    one.editor.commands.setSelection(caret('a', 2));
+    one.editor.commands.splitBlock();
+    flush();
+    const tail = one.editor.state.doc.blocks[1].id;
+    two.editor.commands.setSelection(caret(tail, 1));
+    two.editor.insertText('X');
+    flush();
+    one.editor.commands.undo();
+    flush();
+    expect(one.editor.getBlocks()).toEqual([md('a', 'helXlo'), md('b', 'world')]);
+    one.editor.commands.setSelection(caret('b', 0));
+    one.editor.commands.deleteBackward();
+    two.editor.commands.setSelection(caret('b', 5));
+    two.editor.insertText('!');
+    flush();
+    one.editor.commands.undo();
+    flush();
+    expect(one.editor.getBlocks()).toEqual([md('a', 'helXlo'), md('b', 'world!')]);
+    expect(two.editor.getBlocks()).toEqual(one.editor.getBlocks());
+  });
+
+  it('brings back a removed block with its type, indent and attrs', () => {
+    const { one, two, flush } = twoPeers();
+    one.editor.commands.setSelection(caret('b', 0));
+    one.editor.commands.setAttrs({ kind: 'heading', level: 2 });
+    one.editor.commands.indent();
+    const kept = one.editor.getBlocks();
+    one.editor.dispatch(one.editor.createTransaction().step(removeBlocksStep(1, 1)));
+    flush();
+    expect(two.editor.getBlocks()).toEqual([md('a', 'hello')]);
+    one.editor.commands.undo();
+    flush();
+    expect(one.editor.getBlocks()).toEqual(kept);
+    expect(two.editor.getBlocks()).toEqual(kept);
   });
 
   it('keeps a change made outside the history out of the undo stack', () => {

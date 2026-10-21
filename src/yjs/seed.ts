@@ -1,29 +1,32 @@
+import type * as Y from 'yjs';
 import { applyRemote } from '../engine/collab/apply-remote';
 import type { CommandFactories } from '../engine/commands/chain';
 import type { Editor } from '../engine/extension/editor';
-import { createDoc } from '../engine/model/doc';
 import { sameDoc } from '../engine/model/same-doc';
 import { replaceDocStep } from '../engine/transform/replace-doc-step';
-import { fromYBlock, toYBlock, type YBlocks } from './doc-shape';
-import { removeCopies, uniqueBlocks } from './unique-blocks';
+import { writeBlocks } from './doc-shape';
+import { cleanEntry, createLayout, emptySpan, type Layout } from './layout';
+import { readShared } from './read-shared';
 
 export type Seed = 'if-empty' | false;
 
 /**
- * Brings the editor and the shared array to the same document as the editor connects. An empty array is seeded from
- * the editor in one transaction of `origin` when `seed` allows; otherwise the editor takes the array's document in one
- * remote change. Seeding is decided by what the array holds now, so two clients connecting to one empty document
- * before their provider synced both seed it: a host connects after the provider's first sync, or passes `seed: false`
- * to all but one client.
+ * Brings the editor and the shared text to the same document as the editor connects, and returns where the text holds
+ * it. An empty text is seeded from the editor in one transaction of `origin` when `seed` allows; otherwise the editor
+ * takes the text's document in one remote change. Seeding is decided by what the text holds now, so two clients
+ * connecting to one empty document before their provider synced both seed it: a host connects after the provider's
+ * first sync, or passes `seed: false` to all but one client.
  */
-export function seedOrLoad(editor: Editor<CommandFactories>, blocks: YBlocks, origin: object, seed: Seed): void {
-  const doc = blocks.doc!;
-  if (blocks.length === 0 && seed === 'if-empty') {
-    doc.transact(() => blocks.insert(0, editor.state.doc.blocks.map(toYBlock)), origin);
-    return;
+export function seedOrLoad(editor: Editor<CommandFactories>, text: Y.Text, origin: object, seed: Seed): Layout {
+  const { blocks } = editor.state.doc;
+  if (text.length === 0 && seed === 'if-empty') {
+    let maps: Y.Map<unknown>[] = [];
+    text.doc!.transact(() => (maps = writeBlocks(text, 0, blocks)), origin);
+    const entries = blocks.map((block, i) => cleanEntry(block, maps[i]));
+    const spans = [emptySpan(), ...entries.map((entry) => entry.span)];
+    return createLayout(spans, new Map(entries.map((entry) => [entry.id, entry])), true);
   }
-  const { kept, copies } = uniqueBlocks(blocks);
-  if (copies.length > 0) doc.transact(() => removeCopies(blocks, copies), origin);
-  const shared = createDoc(kept.map(fromYBlock));
-  if (!sameDoc(shared, editor.state.doc)) applyRemote(editor, [replaceDocStep(shared)]);
+  const { doc, layout } = readShared(text);
+  if (!sameDoc(doc, editor.state.doc)) applyRemote(editor, [replaceDocStep(doc)]);
+  return layout;
 }

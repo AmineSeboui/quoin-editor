@@ -1,7 +1,6 @@
 import type * as Y from 'yjs';
 import type { CollaborationAdapter, CollaborationHistory } from '../engine/collab/adapter';
 import { bind, type Binding } from './binding';
-import type { YBlocks } from './doc-shape';
 import type { Seed } from './seed';
 
 export type CollaborationUser = { readonly name: string; readonly color?: string };
@@ -18,7 +17,7 @@ export type YjsAwareness = {
 
 export type YjsCollaborationOptions = {
   doc: Y.Doc;
-  /** The name of the shared array the blocks live in. */
+  /** The name of the shared text the document lives in. */
   field?: string;
   awareness?: YjsAwareness;
   user: CollaborationUser;
@@ -30,7 +29,8 @@ export type YjsCollaborationOptions = {
 
 export type YjsCollaboration = CollaborationAdapter & {
   readonly doc: Y.Doc;
-  readonly blocks: YBlocks;
+  /** The shared text that holds the document, one marker map starting each block. */
+  readonly text: Y.Text;
   readonly awareness: YjsAwareness | undefined;
   readonly user: CollaborationUser;
   /** The origin of this client's own changes to the shared document, which undo takes back. */
@@ -39,18 +39,18 @@ export type YjsCollaboration = CollaborationAdapter & {
 };
 
 /**
- * Syncs an editor through `doc.getArray(field)`, one block per `Y.Map`, with an undo that takes back only this
+ * Syncs an editor through `doc.getText(field)`, which holds the whole document, with an undo that takes back only this
  * client's changes. Pass it to `collaborationExtension`; it connects one editor at a time.
  */
 export function yjsCollaboration(options: YjsCollaborationOptions): YjsCollaboration {
   const { doc, field = 'quoin', awareness, user, seed = 'if-empty' } = options;
   const onError = options.onError ?? ((error: Error) => console.error(error));
-  const blocks: YBlocks = doc.getArray(field);
-  const origins = { local: { user }, untracked: {}, moved: {} };
+  const text = doc.getText(field);
+  const origins = { local: { user }, untracked: {} };
   let binding: Binding | null = null;
   return {
     doc,
-    blocks,
+    text,
     awareness,
     user,
     origin: origins.local,
@@ -59,7 +59,7 @@ export function yjsCollaboration(options: YjsCollaborationOptions): YjsCollabora
         onError(new Error('A Yjs collaboration connects one editor at a time; this editor stays unconnected.'));
         return () => undefined;
       }
-      const current = bind(editor, blocks, { field, origins, seed });
+      const current = bind(editor, text, { origins, seed });
       binding = current;
       return () => {
         current.stop();

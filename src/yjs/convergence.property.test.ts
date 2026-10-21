@@ -1,10 +1,10 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import { createDoc } from '../engine/model/doc';
 import { sameDoc } from '../engine/model/same-doc';
 import { md } from '../engine/test-support/editor-fixtures';
-import { fromYBlock } from './doc-shape';
+import { readShared } from './read-shared';
 import { linkedDocs, peer, type Peer } from './test-support/peers';
+import { plainDelta } from './test-support/plain-delta';
 import { arbitraryEdit, runEdit } from './test-support/random-edits';
 
 const START = [md('a', 'one **two** three'), md('b', '- four five'), md('c', 'six'), md('d', '> seven eight')];
@@ -12,7 +12,7 @@ const START = [md('a', 'one **two** three'), md('b', '- four five'), md('c', 'si
 const turn = fc.record({ by: fc.constantFrom(0, 1), edit: arbitraryEdit(), deliver: fc.constantFrom(null, 0, 1) });
 
 const matchesShared = ({ editor, collaboration }: Peer) =>
-  sameDoc(editor.state.doc, createDoc(collaboration.blocks.toArray().map(fromYBlock)));
+  sameDoc(editor.state.doc, readShared(collaboration.text).doc);
 
 describe('two editors on two synced documents', () => {
   it('converge after random concurrent edits of every kind', () => {
@@ -24,11 +24,12 @@ describe('two editors on two synced documents', () => {
         peers.push(peer(docs[1], 'b'));
         turns.forEach(({ by, edit, deliver: to }, i) => {
           runEdit(peers[by].editor, edit, `${'xy'[by]}${i}`);
+          expect(matchesShared(peers[by])).toBe(true);
           if (to !== null) deliver(to);
         });
         flush();
         expect(peers[1].editor.getBlocks()).toEqual(peers[0].editor.getBlocks());
-        expect(docs[1].getArray('quoin').toJSON()).toEqual(docs[0].getArray('quoin').toJSON());
+        expect(plainDelta(docs[1].getText('quoin'))).toEqual(plainDelta(docs[0].getText('quoin')));
         expect(peers.every(matchesShared)).toBe(true);
       }),
       { seed: 20261021, numRuns: 300 },

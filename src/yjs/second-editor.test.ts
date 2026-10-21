@@ -26,9 +26,7 @@ describe('a Yjs collaboration asked to connect a second editor', () => {
     second.insertText('?');
     first.commands.setSelection(caret('a', 5));
     first.insertText('!');
-    expect((doc.getArray<Y.Map<unknown>>('quoin').get(0).get('regions') as Y.Map<Y.Text>).get('text')!.toString()).toBe(
-      'hello!',
-    );
+    expect(doc.getText('quoin').toString()).toBe('hello!');
   });
 
   it('logs the error when no onError is given', () => {

@@ -1,15 +1,6 @@
 import { sanitizeHref, type Mark } from '../../engine';
+import { PLAIN_MARK_TAGS } from '../../engine/render/plain-mark-tags';
 import { setAttributes } from './attributes';
-
-const PLAIN_TAGS: Readonly<Record<string, string>> = {
-  bold: 'strong',
-  italic: 'em',
-  underline: 'u',
-  strike: 's',
-  sub: 'sub',
-  sup: 'sup',
-  code: 'code',
-};
 
 type Pair = readonly [name: string, value: string | undefined];
 
@@ -27,7 +18,7 @@ function linkElement(href: string, doc: Document): HTMLElement {
 
 export function markElement(mark: Mark, doc: Document): HTMLElement {
   const attrs = mark.attrs ?? {};
-  const plain = Object.hasOwn(PLAIN_TAGS, mark.type) ? PLAIN_TAGS[mark.type] : undefined;
+  const plain = PLAIN_MARK_TAGS.get(mark.type);
   if (plain) return create(doc, plain);
   switch (mark.type) {
     case 'link':

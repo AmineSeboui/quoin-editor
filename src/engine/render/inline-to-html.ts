@@ -4,6 +4,7 @@ import { sameMark } from '../model/marks';
 import type { AtomNode, Inline, Mark } from '../model/types';
 import { escapeHtml } from './escape-html';
 import { element, openTag, type Attr } from './html-tag';
+import { PLAIN_MARK_TAGS } from './plain-mark-tags';
 
 export type InlineHtmlOptions = {
   renderMath?: (latex: string, options: { displayMode: boolean }) => string;
@@ -11,23 +12,13 @@ export type InlineHtmlOptions = {
 
 type Wrapper = { readonly open: string; readonly close: string };
 
-const PLAIN_TAGS: ReadonlyMap<string, string> = new Map([
-  ['bold', 'strong'],
-  ['italic', 'em'],
-  ['underline', 'u'],
-  ['strike', 's'],
-  ['sub', 'sub'],
-  ['sup', 'sup'],
-  ['code', 'code'],
-]);
-
 const wrap = (name: string, attrs: readonly Attr[] = []): Wrapper => ({
   open: openTag(name, attrs),
   close: `</${name}>`,
 });
 
 function markWrapper(mark: Mark): Wrapper | null {
-  const plain = PLAIN_TAGS.get(mark.type);
+  const plain = PLAIN_MARK_TAGS.get(mark.type);
   if (plain) return wrap(plain);
   const attrs = mark.attrs ?? {};
   switch (mark.type) {

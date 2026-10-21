@@ -5,6 +5,7 @@ import type { RenderOptions } from '../dom/render-inline';
 import type { KeyInterceptor } from '../input/keydown';
 import { createCrossMode } from '../selection/cross-mode';
 import { createNodeReveal } from '../selection/node-reveal';
+import { inPlace } from '../selection/in-place';
 import { focusSink } from '../selection/selection-sink';
 import { createAnnouncer } from './announcer';
 import { dispatchSelection } from './dispatch-selection';
@@ -64,6 +65,7 @@ export class ViewController {
     (model) => movedSelection(this, this.ownerDocument(), model),
   );
   private binding: RootBinding | null = null;
+  private quiet = false;
   private detachRoot: (() => void) | null = null;
   private readonly readOnlyState: ReadOnly;
 
@@ -96,6 +98,7 @@ export class ViewController {
   attach(root: HTMLElement): () => void {
     this.detachRoot?.();
     const binding = bindRoot(this, root, this.cross, (_, tr) => {
+      this.quiet = tr?.origin === 'remote';
       this.outside.committed(tr);
       this.nodeReveal.follow(this.editor.state.selection);
       this.drawn.syncTabStop();
@@ -174,15 +177,19 @@ export class ViewController {
   }
 
   // A change made outside edit() reaches the hosts when React draws them, so the selection is written back once that
-  // has happened, and focus follows a host the change replaced.
+  // has happened, and focus follows a host the change replaced. A collaborator's change scrolls nothing doing so.
   afterRender(): void {
     const doc = this.ownerDocument();
     const moved = this.outside.takeMoved();
     if (!this.outside.takeFocused() || !doc || !ownsFocus(this, doc)) return;
     if (moved) this.selectFromDom(moved);
     this.cross.sync();
-    this.keepFocus();
-    this.syncSelectionToDom();
+    const follow = () => {
+      this.keepFocus();
+      this.syncSelectionToDom();
+    };
+    if (this.quiet) inPlace(this.root!, follow);
+    else follow();
   }
 
   refreshHosts(): void {

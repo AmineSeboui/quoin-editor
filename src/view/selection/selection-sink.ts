@@ -3,6 +3,7 @@ import { markRanges, rangeContent } from '../../engine/commands/selection-marks'
 import { blockById } from '../../engine/model/doc';
 import { inlinePlainText } from '../../engine/render/block-plain-text';
 import type { ViewController } from '../controller/view-controller';
+import { inPlace } from './in-place';
 import { isCrossSelection } from './selection-decorations';
 
 /** Whether the selection is of whole blocks, a range of them or one selected as a node, which typing never replaces. */
@@ -25,27 +26,9 @@ function selectionText(state: EditorState): string {
   return text === '' ? NO_TEXT : text;
 }
 
-type Scrolled = { readonly at: Element | Window; readonly left: number; readonly top: number };
-
-function scrollOf(at: Element | Window): Scrolled {
-  return 'scrollY' in at ? { at, left: at.scrollX, top: at.scrollY } : { at, left: at.scrollLeft, top: at.scrollTop };
-}
-
 // WebKit scrolls the page as the sink takes focus, preventScroll notwithstanding: a few pixels, or under a transformed
-// ancestor its scroll container to the top. Every scroller around the sink is put back, at once even where the page
-// scrolls smoothly.
-function focusInPlace(sink: HTMLElement): void {
-  const scrollers: (Element | Window)[] = [];
-  for (let at = sink.parentElement; at !== null; at = at.parentElement) scrollers.push(at);
-  const view = sink.ownerDocument.defaultView;
-  if (view !== null) scrollers.push(view);
-  const before = scrollers.map(scrollOf);
-  sink.focus({ preventScroll: true });
-  for (const { at, left, top } of before) {
-    const now = scrollOf(at);
-    if (now.left !== left || now.top !== top) at.scrollTo({ left, top, behavior: 'instant' });
-  }
-}
+// ancestor its scroll container to the top.
+const focusInPlace = (sink: HTMLElement): void => inPlace(sink, () => sink.focus({ preventScroll: true }));
 
 let focusing: ViewController | null = null;
 

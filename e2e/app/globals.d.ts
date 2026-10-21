@@ -8,6 +8,7 @@ declare global {
       setBlocks?: (update: (blocks: QuoinBlock[]) => QuoinBlock[]) => void;
       changes: number;
       controller?: ViewController;
+      removeRemotely?: (id: string) => void;
       files?: { names: string[]; at: unknown }[];
       timings?: number[];
       opened?: unknown[];

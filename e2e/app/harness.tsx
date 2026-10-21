@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { BlockCanvas, coreBlocks, type QuoinBlock, type QuoinEditorHandle, type UploadFn } from 'quoin-editor';
+import { removeBlocksStep } from 'quoin-editor/headless';
 import { bookmarkDemo } from './bookmark-demo';
 import { fixtureDataUrl } from './fixture-png';
 import { everyBlock } from './every-block-doc';
@@ -199,6 +200,11 @@ export function Harness({ doc }: { doc: string }) {
     timings: window.__quoin?.timings ?? [],
     get controller() {
       return handle.current?.controller;
+    },
+    removeRemotely(id: string) {
+      const { editor } = handle.current!.controller;
+      const tr = editor.createTransaction().setOrigin('remote').setMeta('addToHistory', false);
+      editor.dispatch(tr.step(removeBlocksStep(editor.state.doc.index.get(id)!, 1)));
     },
   };
   useEffect(() => (handle.current === null ? undefined : timeEdits(handle.current.controller)), []);

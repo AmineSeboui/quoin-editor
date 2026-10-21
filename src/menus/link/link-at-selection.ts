@@ -1,9 +1,9 @@
 import type { EditorState, Pos } from '../../engine';
 import { markExtent } from '../../engine/commands/mark-extent';
 import type { MarkRange } from '../../engine/commands/selection-marks';
-import { blockById } from '../../engine/model/doc';
 import { sliceInline } from '../../engine/model/inline';
 import { orderedRange } from '../../engine/model/position';
+import { regionInline } from '../../view/controller/region-inline';
 
 export type LinkAtSelection = { href: string; title?: string; range: MarkRange };
 
@@ -13,7 +13,7 @@ export type LinkAtSelection = { href: string; title?: string; range: MarkRange }
  */
 export function linkAround(state: EditorState, from: Pos, to: Pos = from): LinkAtSelection | null {
   if (from.block !== to.block || from.region !== to.region) return null;
-  const inline = blockById(state.doc, from.block)?.regions[from.region] ?? [];
+  const inline = regionInline(state, from.block, from.region) ?? [];
   const extent = markExtent(inline, from.offset, 'link');
   if (extent === null || to.offset > extent.to) return null;
   const attrs = sliceInline(inline, extent.from, extent.to)[0]?.marks.find((mark) => mark.type === 'link')?.attrs;

@@ -36,10 +36,12 @@ function storeAlt(controller: ViewController, blockId: string, alt: string): voi
  * The alt text of an image, asked for as required. Enter, Save, and Tab or Shift+Tab out of it store it and hand focus
  * back to the image, and Escape hands focus back keeping the alt text the image had. A press elsewhere, or a script
  * moving focus elsewhere, stores it and leaves focus where that puts it; a press on the image's toolbar or handles
- * hands focus back to the image. A press on the button that opened it is left to that button.
+ * hands focus back to the image. A press on the button that opened it is left to that button. It closes, storing
+ * nothing, once the alt text changes under it.
  */
 export function AltTextPopover({ blockId, controller, anchor, opener, alt, onClose }: AltTextPopoverProps) {
   const labels = useLabels();
+  const [opened] = useState(alt);
   const [draft, setDraft] = useState(alt);
   const fieldId = useId();
   const hintId = `${fieldId}-hint`;
@@ -58,6 +60,9 @@ export function AltTextPopover({ blockId, controller, anchor, opener, alt, onClo
     closed.current = false;
     return () => void latestFinish.current(true);
   }, []);
+  useEffect(() => {
+    if (alt !== opened && finish(false)) onClose();
+  });
 
   // A tap gives the text focus and the caret before its click closes the popover, and the editor reads the caret only on
   // the next selection change. It is read first, or storing the text would hand focus back to the image.

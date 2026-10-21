@@ -4,6 +4,11 @@ import { blocks, caretSettled, openEditor } from '../../support/editor';
 
 const host = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
 const markdown = async (page: Page) => (await blocks(page)).map((block) => String(block.data.markdown));
+// Whether a collaborator's caret is drawn within a pixel or two of the start of the character at `at` of a host.
+const onCharacter = async (page: Page, name: string, block: string, at: number) => {
+  const { caret, point } = await boxes(page, name, block, at);
+  return Math.abs(caret.x - point.x) < 3 && caret.top <= point.y && point.y <= caret.bottom;
+};
 const caretOf = (page: Page, name: string) => page.locator('.quoin-presence-caret').filter({ hasText: name });
 const offset = (page: Page) =>
   page.evaluate(() => {
@@ -39,11 +44,11 @@ const boxes = (page: Page, name: string, block: string, at: number) =>
 
 // Two pages of one browser context, of different widths, sharing a document through the harness's BroadcastChannel
 // provider: Ada's page seeds it and Bea's takes it.
-async function twoPages(page: Page, doc = 'sample', ada = '') {
-  await openEditor(page, doc, `collab=presence&user=Ada%20Lovelace&color=%23b91c1c${ada}`);
+async function twoPages(page: Page, doc = 'sample', ada = '', both = '') {
+  await openEditor(page, doc, `collab=presence&user=Ada%20Lovelace&color=%23b91c1c${ada}${both}`);
   const other = await page.context().newPage();
   await other.setViewportSize({ width: 640, height: 720 });
-  await openEditor(other, 'empty', 'collab=presence&user=Bea&color=%231d4ed8&seed=0');
+  await openEditor(other, 'empty', `collab=presence&user=Bea&color=%231d4ed8&seed=0${both}`);
   await expect.poll(() => markdown(other)).toEqual(await markdown(page));
   return other;
 }
@@ -130,6 +135,45 @@ test.describe('presence between two pages', () => {
     expect(await moved('ArrowLeft')).toEqual([6, 5, 4, 3]);
     await page.keyboard.type('Q');
     await expect.poll(() => markdown(bea)).toEqual(['# Title', 'FirQst paragraph.']);
+  });
+
+  test('keeps a caret in a far column of a wide table inside the table, and moves it with the table', async ({
+    page,
+  }) => {
+    const bea = await twoPages(page, 'wide-table', '', '&table=1');
+    const far = page.getByRole('textbox', { name: 'Row 2, column 15', exact: true });
+    await far.click();
+    await expect(far).toBeFocused();
+    const caret = caretOf(bea, 'Ada Lovelace');
+    await expect(caret).toBeAttached();
+    await expect(caret).toBeHidden();
+    expect(await bea.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(640);
+    await bea.locator('.quoin-table-scroll').evaluate((scroller) => (scroller.scrollLeft = scroller.scrollWidth));
+    await expect(caret).toBeVisible();
+    const cell = bea.getByRole('textbox', { name: 'Row 2, column 15', exact: true });
+    await expect
+      .poll(async () => {
+        const [line, box] = [await caret.boundingBox(), await cell.boundingBox()];
+        return line !== null && box !== null && line.x >= box.x - 2 && line.x <= box.x + box.width;
+      })
+      .toBe(true);
+    expect(await bea.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(640);
+  });
+
+  test('puts a caret on its character when the canvas is scaled, and again when its text reflows', async ({ page }) => {
+    const bea = await twoPages(page);
+    await caretAt(page, 'b', 5);
+    await expect(caretOf(bea, 'Ada Lovelace')).toBeVisible();
+    await bea.evaluate(() => {
+      const canvas = document.querySelector<HTMLElement>('.quoin-editor')!.parentElement!;
+      canvas.style.transformOrigin = '0 0';
+      canvas.style.transform = 'scale(1.5)';
+    });
+    await expect.poll(() => onCharacter(bea, 'Ada Lovelace', 'b', 5)).toBe(true);
+    await bea.evaluate(() => {
+      document.querySelector<HTMLElement>('[data-block-id="b"] [data-quoin-host]')!.style.fontSize = '32px';
+    });
+    await expect.poll(() => onCharacter(bea, 'Ada Lovelace', 'b', 5)).toBe(true);
   });
 
   test('keeps the avatars in a gutter of their own, clear of the text, on a narrow page', async ({ page }) => {

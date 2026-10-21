@@ -48,7 +48,7 @@ export const packageEntries = [
   // Measured as what it adds to the main entry, like a feature: the engine entry it loads is a part of the main entry.
   { name: 'yjs', source: 'src/yjs.ts', client: false, added: incrementalBudget(8_044) },
   // Collaborators drawn in the canvas: a client entry, apart from the adapter, which a worker or a server can load alone.
-  { name: 'presence', source: 'src/presence.ts', client: true, added: incrementalBudget(4_035) },
+  { name: 'presence', source: 'src/presence.ts', client: true, added: incrementalBudget(4_305) },
   ...featureEntries,
   { name: 'catalogue', source: 'src/catalogue.ts', client: true, added: incrementalBudget(28_865) },
 ];

@@ -3,11 +3,12 @@
   background: color-mix(in srgb, var(--quoin-presence, var(--quoin-ring)) 20%, transparent);
 }
 
-/* Carets are drawn over the text, never in it, and take no pointer. */
+/* Carets are drawn over the text, never in it, and take no pointer. Nothing of them, a long name near the end of a
+   line included, reaches past the canvas's sides, so they never widen the page. */
 .quoin .quoin-presence-carets {
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
+  overflow-x: clip;
   pointer-events: none;
 }
 

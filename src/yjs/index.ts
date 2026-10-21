@@ -46,7 +46,7 @@ export function yjsCollaboration(options: YjsCollaborationOptions): YjsCollabora
   const { doc, field = 'quoin', awareness, user, seed = 'if-empty' } = options;
   const onError = options.onError ?? ((error: Error) => console.error(error));
   const blocks: YBlocks = doc.getArray(field);
-  const origins = { local: { user }, untracked: {} };
+  const origins = { local: { user }, untracked: {}, moved: {} };
   let binding: Binding | null = null;
   return {
     doc,
@@ -59,7 +59,7 @@ export function yjsCollaboration(options: YjsCollaborationOptions): YjsCollabora
         onError(new Error('A Yjs collaboration connects one editor at a time; this editor stays unconnected.'));
         return () => undefined;
       }
-      const current = bind(editor, blocks, origins, seed);
+      const current = bind(editor, blocks, { field, origins, seed });
       binding = current;
       return () => {
         current.stop();

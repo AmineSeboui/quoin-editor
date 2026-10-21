@@ -26,14 +26,14 @@ function ContextMenuSub(props: React.ComponentPropsWithoutRef<typeof ContextMenu
   return <ContextMenuPrimitive.Sub data-slot="context-menu-sub" {...props} />;
 }
 
-const ContextMenuTrigger = React.forwardRef<
+const ContextMenuTrigger = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof ContextMenuPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Trigger>
 >(function ContextMenuTrigger(props, ref) {
   return <ContextMenuPrimitive.Trigger ref={ref} data-slot="context-menu-trigger" {...props} />;
 });
 
-const ContextMenuContent = React.forwardRef<
+const ContextMenuContent = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof ContextMenuPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Content>
 >(function ContextMenuContent({ className, ...props }, ref) {
@@ -49,14 +49,14 @@ const ContextMenuContent = React.forwardRef<
   );
 });
 
-const ContextMenuGroup = React.forwardRef<
+const ContextMenuGroup = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof ContextMenuPrimitive.Group>,
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Group>
 >(function ContextMenuGroup(props, ref) {
   return <ContextMenuPrimitive.Group ref={ref} data-slot="context-menu-group" {...props} />;
 });
 
-const ContextMenuItem = React.forwardRef<
+const ContextMenuItem = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof ContextMenuPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Item> & { inset?: boolean }
 >(function ContextMenuItem({ className, inset, ...props }, ref) {
@@ -71,7 +71,7 @@ const ContextMenuItem = React.forwardRef<
   );
 });
 
-const ContextMenuCheckboxItem = React.forwardRef<
+const ContextMenuCheckboxItem = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof ContextMenuPrimitive.CheckboxItem>,
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.CheckboxItem>
 >(function ContextMenuCheckboxItem({ className, children, ...props }, ref) {
@@ -92,14 +92,14 @@ const ContextMenuCheckboxItem = React.forwardRef<
   );
 });
 
-const ContextMenuRadioGroup = React.forwardRef<
+const ContextMenuRadioGroup = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof ContextMenuPrimitive.RadioGroup>,
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.RadioGroup>
 >(function ContextMenuRadioGroup(props, ref) {
   return <ContextMenuPrimitive.RadioGroup ref={ref} data-slot="context-menu-radio-group" {...props} />;
 });
 
-const ContextMenuRadioItem = React.forwardRef<
+const ContextMenuRadioItem = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof ContextMenuPrimitive.RadioItem>,
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.RadioItem> & { indicator?: React.ReactNode }
 >(function ContextMenuRadioItem(
@@ -121,7 +121,7 @@ const ContextMenuRadioItem = React.forwardRef<
   );
 });
 
-const ContextMenuLabel = React.forwardRef<
+const ContextMenuLabel = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof ContextMenuPrimitive.Label>,
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Label> & { inset?: boolean }
 >(function ContextMenuLabel({ className, inset, ...props }, ref) {
@@ -136,7 +136,7 @@ const ContextMenuLabel = React.forwardRef<
   );
 });
 
-const ContextMenuSeparator = React.forwardRef<
+const ContextMenuSeparator = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof ContextMenuPrimitive.Separator>,
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Separator>
 >(function ContextMenuSeparator({ className, ...props }, ref) {
@@ -150,14 +150,14 @@ const ContextMenuSeparator = React.forwardRef<
   );
 });
 
-const ContextMenuShortcut = React.forwardRef<HTMLSpanElement, React.ComponentPropsWithoutRef<"span">>(function ContextMenuShortcut(
+const ContextMenuShortcut = /* @__PURE__ */ React.forwardRef<HTMLSpanElement, React.ComponentPropsWithoutRef<"span">>(function ContextMenuShortcut(
   { className, ...props },
   ref,
 ) {
   return <span ref={ref} data-slot="context-menu-shortcut" className={cn(MENU_SHORTCUT, className)} {...props} />;
 });
 
-const ContextMenuSubTrigger = React.forwardRef<
+const ContextMenuSubTrigger = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof ContextMenuPrimitive.SubTrigger>,
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.SubTrigger> & { inset?: boolean }
 >(function ContextMenuSubTrigger({ className, inset, children, ...props }, ref) {
@@ -175,7 +175,7 @@ const ContextMenuSubTrigger = React.forwardRef<
   );
 });
 
-const ContextMenuSubContent = React.forwardRef<
+const ContextMenuSubContent = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof ContextMenuPrimitive.SubContent>,
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.SubContent>
 >(function ContextMenuSubContent({ className, ...props }, ref) {

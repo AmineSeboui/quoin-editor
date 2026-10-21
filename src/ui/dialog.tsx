@@ -15,21 +15,21 @@ function DialogPortal(props: React.ComponentPropsWithoutRef<typeof DialogPrimiti
   return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />;
 }
 
-const DialogTrigger = React.forwardRef<
+const DialogTrigger = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof DialogPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Trigger>
 >(function DialogTrigger(props, ref) {
   return <DialogPrimitive.Trigger ref={ref} data-slot="dialog-trigger" {...props} />;
 });
 
-const DialogClose = React.forwardRef<
+const DialogClose = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof DialogPrimitive.Close>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Close>
 >(function DialogClose(props, ref) {
   return <DialogPrimitive.Close ref={ref} data-slot="dialog-close" {...props} />;
 });
 
-const DialogOverlay = React.forwardRef<
+const DialogOverlay = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof DialogPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
 >(function DialogOverlay({ className, ...props }, ref) {
@@ -46,7 +46,7 @@ const DialogOverlay = React.forwardRef<
   );
 });
 
-const DialogContent = React.forwardRef<
+const DialogContent = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & { closeLabel?: string }
 >(function DialogContent({ className, children, closeLabel = "Close", ...props }, ref) {
@@ -78,7 +78,7 @@ const DialogContent = React.forwardRef<
   );
 });
 
-const DialogHeader = React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<"div">>(function DialogHeader(
+const DialogHeader = /* @__PURE__ */ React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<"div">>(function DialogHeader(
   { className, ...props },
   ref,
 ) {
@@ -92,7 +92,7 @@ const DialogHeader = React.forwardRef<HTMLDivElement, React.ComponentPropsWithou
   );
 });
 
-const DialogFooter = React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<"div">>(function DialogFooter(
+const DialogFooter = /* @__PURE__ */ React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<"div">>(function DialogFooter(
   { className, ...props },
   ref,
 ) {
@@ -106,7 +106,7 @@ const DialogFooter = React.forwardRef<HTMLDivElement, React.ComponentPropsWithou
   );
 });
 
-const DialogTitle = React.forwardRef<
+const DialogTitle = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof DialogPrimitive.Title>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
 >(function DialogTitle({ className, ...props }, ref) {
@@ -120,7 +120,7 @@ const DialogTitle = React.forwardRef<
   );
 });
 
-const DialogDescription = React.forwardRef<
+const DialogDescription = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof DialogPrimitive.Description>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
 >(function DialogDescription({ className, ...props }, ref) {

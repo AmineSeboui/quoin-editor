@@ -1,12 +1,12 @@
 import { act, fireEvent, screen } from '@testing-library/react';
+import { Paperclip } from 'lucide-react';
 import { nodeSelection } from '../../engine';
 import { resetDevWarnings } from '../../dev-warn';
+import { defineBlock } from '../../registry';
 import type { QuoinBlock, UploadResult } from '../../types';
+import { UploadField } from '../../upload/UploadField';
 import type * as UploadFieldModule from '../../upload/UploadField';
-import { intrinsicSize, type IntrinsicSize } from '../intrinsic-size';
-import { bookmarkBlock, mountCanvas, paragraph } from './test-canvas';
-
-vi.mock('../intrinsic-size');
+import { bookmarkBlock, mountCanvas, paragraph, testBlockTypes } from './test-canvas';
 
 const picker = vi.hoisted(() => ({
   onUploaded: undefined as ((result: UploadResult) => void | Promise<void>) | undefined,
@@ -20,6 +20,16 @@ vi.mock('../../upload/UploadField', async (importOriginal) => {
       return <actual.UploadField {...props} />;
     },
   };
+});
+
+const attachment = defineBlock<{ storageKey: string }>({
+  type: 'ATTACHMENT',
+  label: 'Attachment',
+  icon: Paperclip,
+  editor: ({ onChange }) => (
+    <UploadField category="file" label="Attach" onUploaded={({ storageKey }) => onChange({ storageKey })} />
+  ),
+  preview: ({ data }) => <p>{data.storageKey}</p>,
 });
 
 const doc: QuoinBlock[] = [paragraph('a', 'above'), bookmarkBlock('b', 'quoin.dev'), paragraph('c', 'below')];
@@ -70,12 +80,12 @@ describe('VoidBlock', () => {
   });
 
   it('returns to the preview on Escape and leaves the block node-selected with focus', () => {
-    const { press, selection, shell } = openBookmark();
+    const { press, selection, sink } = openBookmark();
     press('Escape', urlField()!);
     expect(urlField()).toBeNull();
     expect(screen.getByText('Link to quoin.dev')).toBeInTheDocument();
     expect(selection()).toEqual(nodeSelection('b'));
-    expect(document.activeElement).toBe(shell('b'));
+    expect(document.activeElement).toBe(sink());
   });
 
   it('renders the editor of an alwaysEditing block permanently', () => {
@@ -101,38 +111,16 @@ describe('VoidBlock', () => {
   });
 
   it('leaves focus where it is when its editor writes, even once focus has fallen to the body', async () => {
-    const image: QuoinBlock = { id: 'i', type: 'IMAGE', data: { storageKey: '', alt: '' } };
-    const { nodeSelect, press, last } = mountCanvas([paragraph('a', 'above'), image]);
-    nodeSelect('i');
+    const file: QuoinBlock = { id: 'f', type: 'ATTACHMENT', data: { storageKey: '' } };
+    const { nodeSelect, press, last } = mountCanvas([paragraph('a', 'above'), file], {
+      blockTypes: [...testBlockTypes, attachment],
+    });
+    nodeSelect('f');
     press('Enter');
     act(() => (document.activeElement as HTMLElement).blur());
     expect(document.activeElement).toBe(document.body);
-    await act(async () => void (await picker.onUploaded!({ storageKey: 'cat.png', filename: 'cat.png', size: 1 })));
-    expect(last()[1].data).toMatchObject({ storageKey: 'cat.png' });
+    await act(async () => void (await picker.onUploaded!({ storageKey: 'notes.pdf', filename: 'notes.pdf', size: 1 })));
+    expect(last()[1].data).toMatchObject({ storageKey: 'notes.pdf' });
     expect(document.activeElement).toBe(document.body);
-  });
-
-  it('keeps the newest key when an image upload resolves out of order', async () => {
-    const pending = new Map<string, (size: IntrinsicSize | null) => void>();
-    vi.mocked(intrinsicSize).mockImplementation(
-      (src) => new Promise((resolve) => void pending.set(src, resolve)),
-    );
-    const image: QuoinBlock = { id: 'i', type: 'IMAGE', data: { storageKey: '', alt: '' } };
-    const { nodeSelect, press, last } = mountCanvas([image], { resolveAssetUrl: (key) => `/cdn/${key}` });
-    nodeSelect('i');
-    press('Enter');
-    const result = (storageKey: string): UploadResult => ({ storageKey, filename: `${storageKey}.png`, size: 1 });
-    let first!: Promise<void>;
-    let second!: Promise<void>;
-    act(() => {
-      first = Promise.resolve(picker.onUploaded!(result('a')));
-      second = Promise.resolve(picker.onUploaded!(result('b')));
-    });
-    expect(last()[0].data).toMatchObject({ storageKey: 'b' });
-    pending.get('/cdn/b')!({ width: 20, height: 10 });
-    await act(async () => void (await second));
-    pending.get('/cdn/a')!({ width: 99, height: 99 });
-    await act(async () => void (await first));
-    expect(last()[0].data).toMatchObject({ storageKey: 'b', width: 20, height: 10 });
   });
 });

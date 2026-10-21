@@ -1,11 +1,11 @@
 'use client';
 
 import { Fragment } from 'react';
-import type { EditorState, EngineBlock } from '../engine';
+import type { EngineBlock } from '../engine';
 import { isTextFlow } from '../engine/commands/block-helpers';
 import { useLabels } from '../i18n/use-labels';
 import type { ViewController } from '../view';
-import { useEditorState } from '../view/react/use-editor-state';
+import { useEditorState, wholeState } from '../view/react/use-editor-state';
 import type { BlockMenuAction } from './block-menu-items';
 import { CalloutMenus } from './CalloutMenus';
 import { ColorMenu } from './ColorMenu';
@@ -15,8 +15,6 @@ import { shortcutHint } from './shortcut-hint';
 import { TurnIntoMenu } from './TurnIntoMenu';
 
 const DESTRUCTIVE = 'text-destructive focus:text-destructive';
-
-const wholeState = (state: EditorState) => state;
 
 type BlockMenuItemsProps = {
   kit: MenuKit;

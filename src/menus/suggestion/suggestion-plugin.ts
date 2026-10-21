@@ -1,4 +1,4 @@
-import { getPluginState, Transaction, type Command, type PluginKey, type PluginSpec } from '../../engine';
+import { getPluginState, Transaction, type Command, type EditorState, type PluginKey, type PluginSpec } from '../../engine';
 import { sameSelection } from '../../engine/state/selection';
 import type { SuggestionRange } from '../../extensions/ui-types';
 import { findTrigger, type ActiveTrigger, type TriggerConfig } from './find-trigger';
@@ -7,7 +7,8 @@ export type SuggestionState = { active: ActiveTrigger | null; dismissedAt: Sugge
 
 const DISMISS = 'suggestion:dismiss';
 
-const rangeOf = ({ block, region, from, to }: SuggestionRange): SuggestionRange => ({ block, region, from, to });
+/** The place of a trigger and its query, without the query. */
+export const rangeOf = ({ block, region, from, to }: SuggestionRange): SuggestionRange => ({ block, region, from, to });
 
 const sameRange = (a: SuggestionRange | null, b: SuggestionRange | null): boolean =>
   a === b || (a !== null && b !== null && a.block === b.block && a.region === b.region && a.from === b.from && a.to === b.to);
@@ -24,10 +25,24 @@ function stillDismissed(tr: Transaction, dismissed: SuggestionRange, found: Acti
   return same ? rangeOf(found) : null;
 }
 
-export function suggestionPlugin(key: PluginKey<SuggestionState>, config: TriggerConfig): PluginSpec<SuggestionState> {
+type SuggestionSpec = PluginSpec<SuggestionState> & { readonly trigger?: TriggerConfig };
+
+// Of the triggers open at the caret only the one that starts nearest it is active, so one menu at a time holds the keys
+// and the combobox. The others stay where they are, dismissed or not, and come back once it has gone.
+function nearest(state: EditorState, found: ActiveTrigger | null): ActiveTrigger | null {
+  if (found === null) return null;
+  for (const { trigger } of state.plugins as readonly SuggestionSpec[]) {
+    const other = trigger && findTrigger(state, trigger);
+    if (other && other.from > found.from) return null;
+  }
+  return found;
+}
+
+export function suggestionPlugin(key: PluginKey<SuggestionState>, config: TriggerConfig): SuggestionSpec {
   return {
     key,
-    init: (state) => ({ active: findTrigger(state, config), dismissedAt: null }),
+    trigger: config,
+    init: (state) => ({ active: nearest(state, findTrigger(state, config)), dismissedAt: null }),
     apply(tr, value, oldState, newState) {
       const dismissing = tr.getMeta(DISMISS) === key.name;
       if (!dismissing && !tr.docChanged && sameSelection(oldState.selection, newState.selection)) return value;
@@ -35,7 +50,7 @@ export function suggestionPlugin(key: PluginKey<SuggestionState>, config: Trigge
       let dismissedAt: SuggestionRange | null = null;
       if (dismissing) dismissedAt = found && rangeOf(found);
       else if (value.dismissedAt !== null) dismissedAt = stillDismissed(tr, value.dismissedAt, found);
-      const active = dismissedAt === null ? found : null;
+      const active = dismissedAt === null ? nearest(newState, found) : null;
       const unchanged = sameTrigger(active, value.active) && sameRange(dismissedAt, value.dismissedAt);
       if (unchanged) return value;
       return {

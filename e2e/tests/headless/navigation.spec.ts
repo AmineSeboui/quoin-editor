@@ -146,7 +146,7 @@ test.describe('navigation', () => {
     const onImage = async () => {
       expect(await modelSelection(page)).toEqual({ kind: 'node', block: 'i' });
       await expect(image).toHaveAttribute('data-selected', 'true');
-      await expect(image).toBeFocused();
+      await expect(page.locator('[data-quoin-sink]')).toBeFocused();
     };
     await caretAt(page, 0, 3);
     await page.keyboard.press('ArrowDown');

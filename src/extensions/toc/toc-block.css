@@ -1,0 +1,39 @@
+.quoin .quoin-toc {
+  padding-block: 0.25rem;
+}
+
+.quoin .quoin-toc-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.quoin .quoin-toc-list .quoin-toc-list {
+  padding-inline-start: 1.25rem;
+}
+
+.quoin .quoin-toc-link {
+  display: inline-block;
+  padding-block: 0.125rem;
+  color: var(--quoin-muted-foreground);
+  text-decoration: underline;
+  text-decoration-color: var(--quoin-border);
+  text-underline-offset: 0.2em;
+}
+
+.quoin .quoin-toc-link:hover {
+  color: var(--quoin-foreground);
+  text-decoration-color: currentColor;
+}
+
+.quoin .quoin-toc-link:focus-visible {
+  border-radius: 2px;
+  outline: 2px solid var(--quoin-ring);
+  outline-offset: 2px;
+}
+
+.quoin .quoin-toc-empty {
+  margin: 0;
+  color: var(--quoin-muted-foreground);
+  font-size: 0.875rem;
+}

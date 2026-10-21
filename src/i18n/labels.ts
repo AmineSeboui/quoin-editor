@@ -152,21 +152,47 @@ export type QuoinLabels = {
   uploadFailed: string;
   /** What an upload field shows in place of working when the canvas was given no upload function. */
   uploadsUnavailable: string;
-  /** The image editor: its upload control, the visible names of its fields and their accessible names. */
+  /** An empty image block: its upload button, the link it can embed instead and what can be dropped or pasted on it. */
   uploadImage: string;
-  altText: string;
-  imageAltText: string;
-  captionOptional: string;
+  embedLink: string;
+  imageLink: string;
+  dropImage: string;
+  /** An image block: its caption, its toolbar, the handles of its width with their value, and the toolbar's buttons. */
   imageCaption: string;
-  imageAttached: string;
+  addCaption: string;
+  imageTools: string;
+  resizeFromLeft: string;
+  resizeFromRight: string;
+  widthValue: (percent: number) => string;
+  replaceImage: string;
+  download: string;
+  /** The alt text of an image: its field, what the field asks for, its button, and the name of an image without one. */
+  altText: string;
+  altTextHint: string;
+  save: string;
+  imageNoAlt: string;
+  /** An empty file block: its upload button and what can be dropped or pasted on it. */
   uploadFile: string;
-  /** The code editor's fields: the language and the code itself. */
-  codeLanguage: string;
+  dropFile: string;
+  /** A file block: its toolbar and the toolbar's replace button. */
+  fileTools: string;
+  replaceFile: string;
+  /** The name of a file's download link, given the file's name. It contains `download`, the link's visible text. */
+  downloadFile: (name: string) => string;
+  /** The size of a file, given in bytes. */
+  fileSize: (bytes: number) => string;
+  /** The name of a file block selected as a whole, given the file's name. */
+  fileBlockName: (name: string) => string;
+  /** A code block: its code, its language, the name of a code in no language, and its copy button. */
   codeText: string;
+  /** The name of a code block selected as a whole, given the name of its language. */
+  codeBlockName: (language: string) => string;
+  codeLanguage: string;
+  plainText: string;
+  copyCode: string;
   /** What the preview of a block without content says. */
   emptyImage: string;
   emptyFile: string;
-  emptyCode: string;
   emptyMarkdown: string;
   emptyCallout: string;
 };

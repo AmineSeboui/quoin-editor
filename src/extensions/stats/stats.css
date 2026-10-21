@@ -1,0 +1,21 @@
+.quoin .quoin-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin-top: 1rem;
+  color: var(--quoin-muted-foreground);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+
+/* Dimmed only while the canvas holds focus, so a page does not look faded before anyone writes. */
+.quoin[data-quoin-focus-mode]:focus-within [data-quoin-dimmed] {
+  opacity: 0.4;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .quoin[data-quoin-focus-mode] [data-quoin-block] {
+    transition: opacity 150ms ease;
+  }
+}

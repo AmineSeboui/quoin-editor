@@ -1,5 +1,5 @@
 import type { ViewController } from '../controller/view-controller';
-import { clearSink } from './selection-sink';
+import { clearSink, wholeBlocks } from './selection-sink';
 
 export type SinkComposition = { start(): void; end(): void; release(): void };
 
@@ -45,7 +45,7 @@ export function createSinkComposition(controller: ViewController): SinkCompositi
     stopWaiting?.();
     stopWaiting = null;
     const { sink } = controller;
-    const ignored = controller.editor.state.selection?.kind === 'blocks';
+    const ignored = wholeBlocks(controller.editor.state.selection);
     const text = sink !== null && outside !== null && !ignored ? composedText(sink, outside) : '';
     outside = null;
     controller.composingKey = null;

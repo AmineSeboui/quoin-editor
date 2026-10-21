@@ -18,16 +18,26 @@ type Scope = '.quoin-editor' | '.quoin' | `[role="${'menu' | 'listbox' | 'dialog
 // The ids of the rules the editor breaks, so a failing spec says which. Only the editor is scanned by default: the page
 // around it is the harness's. '.quoin' also takes in the menus, toolbars and dialogs the canvas portals out of it, and
 // a role scans one of them alone.
+const SCROLLING = 'scrollable-region-focusable';
+
+// The code of an editable code block scrolls with the caret, which reaches it through the editor's one tab stop, as a
+// text field's content does, so its scroller needs no tab stop of its own.
+const EDITABLE_CODE = '.quoin-code-scroll[data-quoin-native]';
+
 export async function axeViolations(
   page: Page,
   impacts: 'all' | 'serious' = 'all',
   scope: Scope | readonly Scope[] = '.quoin-editor',
 ): Promise<string[]> {
   await settleAnimations(page);
-  const builder = new AxeBuilder({ page });
-  for (const selector of ([] as Scope[]).concat(scope)) builder.include(selector);
-  const { violations } = await builder.analyze();
-  return violations
+  const scoped = () => {
+    const builder = new AxeBuilder({ page });
+    for (const selector of ([] as Scope[]).concat(scope)) builder.include(selector);
+    return builder;
+  };
+  const { violations } = await scoped().disableRules([SCROLLING]).analyze();
+  const scrolling = await scoped().withRules([SCROLLING]).exclude(EDITABLE_CODE).analyze();
+  return [...violations, ...scrolling.violations]
     .filter((violation) => impacts === 'all' || violation.impact === 'serious' || violation.impact === 'critical')
     .map((violation) => violation.id);
 }

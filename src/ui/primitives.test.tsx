@@ -47,7 +47,6 @@ import {
 } from './dropdown-menu';
 import { Input } from './input';
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from './popover';
-import { Textarea } from './textarea';
 
 // React 18 hands a ref to a function component only through forwardRef. A plain function drops it, which loses
 // focus return, menu anchoring and the drag handle, while React 19 tests would still pass on ref-as-prop.
@@ -128,7 +127,6 @@ const contextMenu = (refs: Refs<MenuParts | SubParts> = {}) => (
 const cases: Case[] = [
   ['Button', Button, (ref) => <Button ref={ref}>Save</Button>],
   ['Input', Input, (ref) => <Input ref={ref} aria-label="Name" />],
-  ['Textarea', Textarea, (ref) => <Textarea ref={ref} aria-label="Notes" />],
 
   ['DialogTrigger', DialogTrigger, (ref) => dialog({ trigger: ref })],
   ['DialogClose', DialogClose, (ref) => dialog({ close: ref })],

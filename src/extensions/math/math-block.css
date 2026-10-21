@@ -1,0 +1,83 @@
+.quoin .quoin-math {
+  padding-block: 0.25rem;
+}
+
+.quoin .quoin-math[data-editable] {
+  cursor: pointer;
+}
+
+.quoin .quoin-math-rendered {
+  overflow-x: auto;
+  padding: 0.5rem;
+  text-align: center;
+}
+
+.quoin .quoin-math .quoin-math-source,
+.quoin .quoin-math-preview .quoin-math-source {
+  margin: 0;
+  overflow-x: auto;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--quoin-radius);
+  background: var(--quoin-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.875rem;
+  white-space: pre-wrap;
+}
+
+.quoin .quoin-math-empty {
+  padding: 0.5rem;
+  color: var(--quoin-muted-foreground);
+  text-align: center;
+}
+
+.quoin .quoin-math-inline {
+  border-radius: 2px;
+}
+
+.quoin .quoin-math-inline[data-quoin-atom] {
+  cursor: pointer;
+}
+
+.quoin .quoin-math-inline.quoin-math-source {
+  padding-inline: 0.125rem;
+  background: var(--quoin-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.875em;
+}
+
+.quoin .quoin-math-inline.quoin-math-empty {
+  padding: 0;
+  font-style: italic;
+}
+
+.quoin .quoin-math-editor {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.quoin .quoin-math-field {
+  width: 100%;
+  resize: vertical;
+  padding: 0.375rem 0.75rem;
+  border: 1px solid var(--quoin-muted-foreground);
+  border-radius: calc(var(--quoin-radius) - 2px);
+  background: transparent;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.875rem;
+}
+
+.quoin .quoin-math-field:focus-visible {
+  border-color: var(--quoin-ring);
+  outline: 2px solid var(--quoin-ring);
+  outline-offset: 1px;
+}
+
+.quoin .quoin-math-preview {
+  width: 100%;
+  max-height: 12rem;
+  overflow: auto;
+  border: 1px dashed var(--quoin-border);
+  border-radius: calc(var(--quoin-radius) - 2px);
+}

@@ -25,6 +25,16 @@ describe('the main entry', () => {
     expect(main.formatShortcut('mod+b', { isMac: false })).toBe('Ctrl+B');
   });
 
+  it('exports insertText, the command an extension item returns to insert text at the selection', () => {
+    const editor = main.createEditor({ blocks: [{ id: 'a', type: 'MARKDOWN', data: { markdown: 'ab' } }] });
+    editor.dispatch(editor.createTransaction().setSelection(main.textSelection({ block: 'a', region: 'text', offset: 1 })));
+    const item: main.SlashItem = { id: 'x', title: 'X', group: 'basic', command: () => main.insertText('X') };
+    const command = item.command!({ state: editor.state, range: { block: 'a', region: 'text', from: 1, to: 1 } });
+    expect(command(editor.state, (tr) => editor.dispatch(tr))).toBe(true);
+    expect(editor.toMarkdown()).toBe('aXb\n');
+    expect(editor.state.selection).toEqual(main.textSelection({ block: 'a', region: 'text', offset: 2 }));
+  });
+
   it('still exports the editor surface alongside them', () => {
     expect(main.BlockCanvas).toBeDefined();
     expect(main.coreBlocks.length).toBeGreaterThan(0);

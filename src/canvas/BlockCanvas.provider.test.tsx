@@ -26,12 +26,13 @@ beforeEach(() => {
 });
 
 describe('what BlockCanvas hands its blocks through useQuoin', () => {
-  it('is the registry, the host couplings and the controller of the canvas', () => {
+  it('is the registry, the host couplings, the code highlighter and the controller of the canvas', () => {
     const ref = createRef<QuoinEditorHandle>();
     const blockTypes = [...coreBlocks];
     const upload = vi.fn();
     const resolveAssetUrl = (key: string) => `/files/${key}`;
     const onError = vi.fn();
+    const highlight = vi.fn(() => []);
     render(
       <BlockCanvas
         ref={ref}
@@ -42,9 +43,10 @@ describe('what BlockCanvas hands its blocks through useQuoin', () => {
         upload={upload}
         resolveAssetUrl={resolveAssetUrl}
         onError={onError}
+        highlight={highlight}
       />,
     );
-    expect(probe.config).toMatchObject({ blockTypes, upload, resolveAssetUrl, onError });
+    expect(probe.config).toMatchObject({ blockTypes, upload, resolveAssetUrl, onError, highlight });
     expect(probe.config?.controller).toBe(ref.current!.controller);
   });
 

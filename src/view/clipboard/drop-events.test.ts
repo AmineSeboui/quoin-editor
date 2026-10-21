@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createEditor } from '../../engine/extension/editor';
 import { blockRangeSelection } from '../../engine/state/selection';
 import { ViewController } from '../controller/view-controller';
+import { NODE_ENTRY } from '../navigation/node-entry';
 import { handleDragOver, handleDragStart, handleDrop } from './drop-events';
 import { dragEvent, fakeTransfer } from './test-transfer';
 
@@ -98,6 +99,25 @@ describe('dropping data', () => {
     handleDrop(controller, dragEvent('drop', fakeTransfer({}, [file]).transfer, 5, 30));
     expect(onFiles).toHaveBeenCalledWith([file], { block: 'd', region: '', offset: 0 });
     expect(editor.state.selection).toBe(before);
+  });
+
+  it('hands files dropped beside the text of a block drawn as a whole to onFiles with that block', () => {
+    const onFiles = vi.fn();
+    const { controller, hosts, dropAt } = mount(onFiles);
+    const shell = controller.root!.appendChild(document.createElement('div'));
+    const image = shell.appendChild(document.createElement('div'));
+    image.setAttribute(NODE_ENTRY, '');
+    const picture = image.appendChild(document.createElement('img'));
+    image.appendChild(hosts.b);
+    detachers.push(controller.registerBlockElement('b', shell));
+    dropAt(hosts.b, 0);
+    doc.elementFromPoint = () => picture;
+    const file = new File(['x'], 'cat.png', { type: 'image/png' });
+    handleDrop(controller, dragEvent('drop', fakeTransfer({}, [file]).transfer, 5, 30));
+    expect(onFiles).toHaveBeenCalledWith([file], { block: 'b', region: '', offset: 0 });
+    doc.elementFromPoint = () => hosts.b;
+    handleDrop(controller, dragEvent('drop', fakeTransfer({}, [file]).transfer, 5, 10));
+    expect(onFiles).toHaveBeenLastCalledWith([file], { block: 'b', region: 'text', offset: 0 });
   });
 
   it('still cancels a drop that carries no data transfer', () => {

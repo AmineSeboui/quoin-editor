@@ -13,6 +13,7 @@ import { toggleMark } from '../../engine/commands/marks';
 import { transposeChars } from '../../engine/commands/transpose-chars';
 import { redo, undo, undoInputRule } from '../../engine/state/history';
 import type { ViewController } from '../controller/view-controller';
+import { wholeBlocks } from '../selection/selection-sink';
 import { replaceRange } from './replace-range';
 import { targetBeyondSelection, targetRangeToModel, type ModelRange } from './target-range';
 
@@ -56,7 +57,7 @@ function insertReplacementText(controller: ViewController, event: InputEvent): v
   const text = event.dataTransfer?.getData('text/plain') || event.data;
   if (!text) return;
   const range = targetRangeToModel(controller, event);
-  if (range === null) controller.run(insertText(text));
+  if (range === null) controller.run(insertText(text, { origin: 'input' }));
   else controller.edit(() => replaceRange(controller.editor, range, text, false));
 }
 
@@ -89,7 +90,7 @@ const actions: Readonly<Record<string, Action>> = {
 export const isComposingInput = (controller: ViewController, event: InputEvent): boolean =>
   event.isComposing || controller.composingKey !== null;
 
-// The sink holds a block range editable only so that the browser fires clipboard events for it, so what is typed into
+// The sink holds whole blocks editable only so that the browser fires clipboard events for them, so what is typed into
 // it is ignored, as it was when focus sat on a shell that could not be typed into.
 const TYPED_INPUT: ReadonlySet<string> = new Set(['insertText', 'insertReplacementText']);
 
@@ -98,6 +99,6 @@ export function handleBeforeInput(controller: ViewController, event: InputEvent)
   if (isComposingInput(controller, event)) return;
   if (!event.cancelable || !Object.hasOwn(actions, inputType)) return;
   event.preventDefault();
-  if (TYPED_INPUT.has(inputType) && controller.editor.state.selection?.kind === 'blocks') return;
+  if (TYPED_INPUT.has(inputType) && wholeBlocks(controller.editor.state.selection)) return;
   actions[inputType](controller, event);
 }

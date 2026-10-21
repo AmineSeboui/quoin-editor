@@ -15,6 +15,13 @@ export type EmbedProvider = {
   match(url: EmbedUrl): string | null;
 };
 
+/** The attributes every embedded frame carries, on the canvas and in exported HTML, by their HTML names. */
+export const EMBED_FRAME = {
+  sandbox: 'allow-scripts allow-same-origin allow-presentation allow-popups',
+  loading: 'lazy',
+  referrerpolicy: 'strict-origin-when-cross-origin',
+} as const;
+
 const WEB = new Set(['http:', 'https:']);
 const SECURE = new Set(['https:']);
 

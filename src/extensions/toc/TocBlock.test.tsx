@@ -1,0 +1,175 @@
+import { act, cleanup, screen, within } from '@testing-library/react';
+import { axe } from 'vitest-axe';
+import { paragraph } from '../../blocks/void/test-canvas';
+import { defaultBlockLink } from '../../canvas/block-link';
+import { textSelection } from '../../engine';
+import { heading, mountToc, outline, tocBlock } from './toc-test-canvas';
+
+const itemsOf = (list: Element): string[] =>
+  Array.from(list.children, (item) => item.querySelector(':scope > a')?.textContent ?? '');
+
+function reduceMotion(reduce: boolean) {
+  const matchMedia = vi.fn((query: string) => ({
+    matches: reduce && query === '(prefers-reduced-motion: reduce)',
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  }));
+  vi.stubGlobal('matchMedia', matchMedia);
+}
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
+
+describe('a table of contents', () => {
+  it('lists the headings as links nested by level, in a navigation named by its label', () => {
+    const { nav } = mountToc(outline());
+    const top = nav().querySelector(':scope > ul')!;
+    expect(itemsOf(top)).toEqual(['Intro', 'End']);
+    const underIntro = top.children[0].querySelector(':scope > ul')!;
+    expect(itemsOf(underIntro)).toEqual(['Setup', 'Usage']);
+    expect(itemsOf(underIntro.children[0].querySelector(':scope > ul')!)).toEqual(['Deep']);
+    expect(top.children[1].querySelector('ul')).toBeNull();
+  });
+
+  it('nests a skipped level one deep', () => {
+    const { nav } = mountToc([tocBlock(), heading('a', 1, 'Top'), heading('b', 4, 'Deep'), heading('c', 2, 'Middle')]);
+    const top = nav().querySelector(':scope > ul')!;
+    expect(itemsOf(top)).toEqual(['Top']);
+    expect(itemsOf(top.children[0].querySelector(':scope > ul')!)).toEqual(['Deep', 'Middle']);
+  });
+
+  it('links each entry to its heading with the fragment a copied link to the block ends with', () => {
+    const { entry } = mountToc([tocBlock(), heading('a b', 1, 'Spaced'), heading('c', 2, 'Plain')]);
+    expect(entry('Spaced')).toHaveAttribute('href', '#block-a%20b');
+    expect(entry('Plain')).toHaveAttribute('href', '#block-c');
+    expect(defaultBlockLink('a b').endsWith(entry('Spaced').getAttribute('href')!)).toBe(true);
+  });
+
+  it('draws the text of a heading as text, and leaves out a heading with none', () => {
+    const { nav } = mountToc([tocBlock(), heading('a', 1, 'a < b & <i>c</i>'), paragraph('e', '#')]);
+    expect(within(nav()).getAllByRole('link')).toHaveLength(1);
+    expect(nav().querySelector('i')).toBeNull();
+  });
+
+  it('says how to fill it, as text in the navigation, while the document has no headings', () => {
+    const { nav } = mountToc([tocBlock(), paragraph('p', 'Text')]);
+    expect(nav()).toHaveTextContent('Add headings to build the table of contents');
+    expect(nav().querySelector('ul, ol, a')).toBeNull();
+  });
+
+  it('is called by its label when selected as a whole, and in the title of its block menu', () => {
+    const { nodeSelect, sink, openBlockMenu } = mountToc(outline(), { labels: { tableOfContents: 'Sommaire' } });
+    nodeSelect('toc');
+    expect(sink()).toHaveAccessibleName('Sommaire');
+    expect(openBlockMenu()).toHaveAccessibleName('Sommaire block menu');
+  });
+
+  it('numbers the second table of contents and those after it, as they come and go', async () => {
+    const tocs = [tocBlock('t1'), heading('a', 1, 'Intro'), tocBlock('t2'), tocBlock('t3')];
+    const { container, handle } = mountToc(tocs);
+    const names = () => screen.getAllByRole('navigation').map((nav) => nav.getAttribute('aria-label'));
+    expect(names()).toEqual(['Table of contents', 'Table of contents 2', 'Table of contents 3']);
+    expect(await axe(container)).toHaveNoViolations();
+    act(() => void handle().editor.setBlocks(tocs.slice(1)));
+    expect(names()).toEqual(['Table of contents', 'Table of contents 2']);
+  });
+
+  it('takes its name and its message from the labels', () => {
+    const labels = {
+      tableOfContents: 'Sommaire',
+      tableOfContentsNumbered: (n: number) => `Sommaire ${n}`,
+      noHeadings: 'Aucun titre',
+    };
+    mountToc([tocBlock('t1'), tocBlock('t2')], { labels });
+    expect(screen.getByRole('navigation', { name: 'Sommaire' })).toHaveTextContent('Aucun titre');
+    expect(screen.getByRole('navigation', { name: 'Sommaire 2' })).toHaveTextContent('Aucun titre');
+  });
+
+  it('follows the headings as they are typed, renamed and removed', () => {
+    const { caret, type, nav, entry, handle } = mountToc([tocBlock(), heading('a', 1, 'Intro'), paragraph('p', '')]);
+    caret('a', 'Intro'.length);
+    type('!');
+    expect(entry('Intro!')).toBeInTheDocument();
+    caret('p', 0);
+    type('## Next');
+    expect(itemsOf(nav().querySelector(':scope > ul > li > ul')!)).toEqual(['Next']);
+    act(() => void handle().editor.setBlocks([tocBlock()]));
+    expect(nav()).toHaveTextContent('Add headings to build the table of contents');
+  });
+
+  it('has no accessibility violations, filled, empty or read-only', async () => {
+    const filled = mountToc(outline());
+    expect(await axe(filled.container)).toHaveNoViolations();
+    cleanup();
+    const empty = mountToc([tocBlock(), paragraph('p', 'Text')]);
+    expect(await axe(empty.container)).toHaveNoViolations();
+    cleanup();
+    const readOnly = mountToc(outline(), {}, { readOnly: true });
+    expect(await axe(readOnly.container)).toHaveNoViolations();
+  });
+});
+
+describe('an entry of a table of contents', () => {
+  it('puts the caret at the end of its heading and scrolls to it smoothly, in place of the link', () => {
+    const scrolled = vi.spyOn(Element.prototype, 'scrollIntoView');
+    const { click, entry, selection, host, shell, changes } = mountToc(outline());
+    expect(click(entry('Setup'))).toBe(false);
+    expect(selection()).toEqual(textSelection({ block: 'b', region: 'text', offset: 'Setup'.length }));
+    expect(host('b')).toHaveFocus();
+    expect(scrolled.mock.contexts).toEqual([shell('b')]);
+    expect(scrolled).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
+    expect(changes).toEqual([]);
+  });
+
+  it('scrolls at once for a reader who asks for less motion', () => {
+    reduceMotion(true);
+    const scrolled = vi.spyOn(Element.prototype, 'scrollIntoView');
+    const { click, entry, shell } = mountToc(outline());
+    click(entry('End'));
+    expect(scrolled.mock.contexts).toEqual([shell('e')]);
+    expect(scrolled).toHaveBeenCalledWith({ behavior: 'auto', block: 'start' });
+  });
+
+  it('scrolls smoothly for a reader who asks for no less motion', () => {
+    reduceMotion(false);
+    const scrolled = vi.spyOn(Element.prototype, 'scrollIntoView');
+    const { click, entry } = mountToc(outline());
+    click(entry('End'));
+    expect(scrolled).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
+  });
+
+  it.each([
+    ['Ctrl', { ctrlKey: true }],
+    ['Meta', { metaKey: true }],
+    ['Shift', { shiftKey: true }],
+    ['Alt', { altKey: true }],
+    ['the middle button', { button: 1 }],
+  ])('is left to the browser on a click with %s', (_, init) => {
+    const scrolled = vi.spyOn(Element.prototype, 'scrollIntoView');
+    const { click, entry, selection } = mountToc(outline());
+    expect(click(entry('Deep'), init)).toBe(true);
+    expect(selection()).not.toEqual(textSelection({ block: 'c', region: 'text', offset: 4 }));
+    expect(scrolled).not.toHaveBeenCalled();
+  });
+
+  it('is kept out of the tab order of an editable canvas, and in it on a read-only one', () => {
+    const editable = mountToc(outline());
+    for (const link of within(editable.nav()).getAllByRole('link')) expect(link).toHaveAttribute('tabindex', '-1');
+    cleanup();
+    const readOnly = mountToc(outline(), {}, { readOnly: true });
+    for (const link of within(readOnly.nav()).getAllByRole('link')) expect(link).not.toHaveAttribute('tabindex');
+  });
+
+  it('on a read-only canvas, moves focus to its heading and scrolls to it without changing the document', () => {
+    const scrolled = vi.spyOn(Element.prototype, 'scrollIntoView');
+    const { click, entry, host, shell, changes, handle } = mountToc(outline(), {}, { readOnly: true });
+    const before = handle().editor.state.doc;
+    expect(click(entry('Usage'))).toBe(false);
+    expect(host('d')).toHaveFocus();
+    expect(scrolled.mock.contexts).toEqual([shell('d')]);
+    expect(handle().editor.state.doc).toBe(before);
+    expect(changes).toEqual([]);
+  });
+});

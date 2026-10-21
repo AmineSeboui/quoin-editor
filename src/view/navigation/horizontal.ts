@@ -4,7 +4,7 @@ import { isCollapsed, textSelection } from '../../engine/state/selection';
 import type { ViewController } from '../controller/view-controller';
 import { isCrossSelection } from '../selection/selection-decorations';
 import { collapseCross, crossHeadHorizontally } from './cross-moves';
-import { moveToNeighbour, neighbourHead } from './neighbour-block';
+import { moveToNeighbour, neighbourHead, ownNode } from './neighbour-block';
 
 export function moveHorizontally(controller: ViewController, direction: -1 | 1, extend: boolean): boolean {
   controller.goalX = null;
@@ -21,6 +21,11 @@ export function moveHorizontally(controller: ViewController, direction: -1 | 1, 
   const { head } = selection;
   const length = regionLength(doc.blocks[requireBlockIndex(doc, head.block)], head.region);
   if (direction < 0 ? head.offset > 0 : head.offset < length) return false;
+  const own = extend ? null : ownNode(controller, head.block, direction);
+  if (own !== null) {
+    controller.dispatch(editor.createTransaction().setSelection(own));
+    return true;
+  }
   if (!extend) return moveToNeighbour(controller, head.block, direction);
   const edge = neighbourHead(controller, head.block, direction);
   if (edge === null) return false;

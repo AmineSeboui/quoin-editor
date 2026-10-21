@@ -17,6 +17,8 @@ import { primaryRegion, startOf } from '../engine/state/selection';
 import { OPEN_EDITOR } from './void/void-editing';
 
 export type NewBlock = {
+  /** Kept, except by a first block that takes the place of an empty paragraph and so keeps the paragraph's id. */
+  readonly id?: string;
   readonly type: string;
   readonly attrs?: BlockAttrs;
   readonly regions?: Readonly<Record<string, Inline>>;
@@ -31,8 +33,8 @@ export type Landing = 'text' | 'editor' | 'line' | 'stay';
 const isEmptyParagraph = (schema: Schema, block: EngineBlock): boolean =>
   isParagraph(block) && regionLength(block, primaryRegion(schema, block) ?? '') === 0;
 
-function fresh(schema: Schema, { type, attrs, regions }: NewBlock, indent: number): EngineBlock {
-  const block = createBlock(schema, type, attrs, indent);
+function fresh(schema: Schema, { id, type, attrs, regions }: NewBlock, indent: number): EngineBlock {
+  const block = createBlock(schema, type, attrs, indent, id);
   return regions === undefined ? block : { ...block, regions };
 }
 

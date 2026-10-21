@@ -10,10 +10,11 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
+    "allowJs": true,
     "isolatedModules": true,
     "noEmit": true,
     "types": ["vitest/globals", "vite/client", "node"]
   },
-  "include": ["src", "test", "vitest.setup.ts", "vitest.config.ts", "tsup.config.ts"],
+  "include": ["src", "test", "scripts", "vitest.setup.ts", "vitest.config.ts", "tsup.config.ts"],
   "exclude": ["dist", "node_modules", "demo", "e2e"]
 }

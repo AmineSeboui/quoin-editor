@@ -298,17 +298,17 @@ describe('handleKeydown across blocks', () => {
   it('gets past such a block on the next key, whatever caret the browser kept', () => {
     const { editor, controller, container } = mount([md('a', 'one'), image, md('b', 'two')]);
     keepSelectionOnFocus();
-    const shell = container.querySelector<HTMLElement>('[data-block-id="i"]')!;
+    const sink = container.querySelector<HTMLElement>('[data-quoin-sink]')!;
     const keydown = (target: HTMLElement, name: string) => act(() => void target.dispatchEvent(key(name)));
     act(() => controller.focus(at('a', 3)));
     keydown(hostOf(container, 'a'), 'ArrowRight');
-    expect(document.activeElement).toBe(shell);
-    keydown(shell, 'ArrowRight');
+    expect(document.activeElement).toBe(sink);
+    keydown(sink, 'ArrowRight');
     expect(editor.state.selection).toEqual(textSelection(at('b', 0)));
     act(() => controller.focus(at('b', 0)));
     keydown(hostOf(container, 'b'), 'ArrowLeft');
-    expect(document.activeElement).toBe(shell);
-    keydown(shell, 'ArrowLeft');
+    expect(document.activeElement).toBe(sink);
+    keydown(sink, 'ArrowLeft');
     expect(editor.state.selection).toEqual(textSelection(at('a', 3)));
   });
 });

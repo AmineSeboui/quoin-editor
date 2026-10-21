@@ -1,13 +1,11 @@
 import { optionalNumber, str } from '../blocks/data-fields';
-import { sanitizeHref } from '../markdown/urls';
+import { sanitizeAssetUrl, sanitizeHref } from '../markdown/urls';
 import type { EngineBlock } from '../model/types';
 import { alignAttr, indentAttr } from './block-attrs';
-import { embedSource } from './embed-provider';
+import { EMBED_FRAME, embedSource } from './embed-provider';
 import { escapeHtml } from './escape-html';
 import { inlineHTML, type BlockView, type HtmlEnv } from './html-env';
 import { element, openTag, type Attr } from './html-tag';
-
-const SANDBOX = 'allow-scripts allow-same-origin allow-presentation';
 
 const numberAttr = (value: unknown): string | undefined => {
   const number = optionalNumber(value);
@@ -19,11 +17,15 @@ const paragraph = (view: BlockView, inner: string): string => element('p', [inde
 const link = (href: string, label: string): string =>
   element('a', [['href', href], ['rel', 'noopener noreferrer']], escapeHtml(label));
 
+function assetSource(block: EngineBlock, env: HtmlEnv): string | null {
+  const key = str(block.attrs.storageKey);
+  const src = key === '' ? null : env.resolveAssetUrl(key);
+  return src ? sanitizeAssetUrl(src) : null;
+}
+
 function imageSource(block: EngineBlock, env: HtmlEnv): string | null {
   const url = str(block.attrs.url);
-  if (url !== '') return sanitizeHref(url);
-  const key = str(block.attrs.storageKey);
-  return key === '' ? null : env.resolveAssetUrl(key);
+  return url === '' ? assetSource(block, env) : sanitizeHref(url);
 }
 
 export function imageHTML(block: EngineBlock, view: BlockView, env: HtmlEnv): string {
@@ -42,8 +44,7 @@ export function imageHTML(block: EngineBlock, view: BlockView, env: HtmlEnv): st
 }
 
 export function fileHTML(block: EngineBlock, view: BlockView, env: HtmlEnv): string {
-  const key = str(block.attrs.storageKey);
-  const href = key === '' ? null : env.resolveAssetUrl(key);
+  const href = assetSource(block, env);
   if (!href) return '';
   const attrs: Attr[] = [['href', href], ['download', true]];
   return paragraph(view, element('a', attrs, escapeHtml(str(block.attrs.filename))));
@@ -54,7 +55,7 @@ export function embedHTML(block: EngineBlock, view: BlockView, env: HtmlEnv): st
   if (!href) return '';
   const frame = env.embeds === 'iframe' ? embedSource(href, env.embedProviders) : null;
   if (frame) {
-    return element('iframe', [['src', frame], ['sandbox', SANDBOX], ['loading', 'lazy'], indentAttr(view.excess)], '');
+    return element('iframe', [['src', frame], ...Object.entries(EMBED_FRAME), indentAttr(view.excess)], '');
   }
   return paragraph(view, link(href, href));
 }

@@ -3,6 +3,9 @@
 import { useQuoin } from '../context';
 import { useLabels } from '../i18n/use-labels';
 import type { BlockPreviewProps } from '../types';
+import { captionText } from './caption-markdown';
+import { HighlightOverlay } from './code/HighlightOverlay';
+import { imageSource } from './image/image-source';
 import { str } from './str';
 
 const HINT = 'text-sm text-muted-foreground';
@@ -32,22 +35,24 @@ export function MarkdownPreview({ data }: BlockPreviewProps) {
 }
 
 export function CodePreview({ data }: BlockPreviewProps) {
-  const labels = useLabels();
-  const code = str(data.code);
-  if (code.trim() === '') return <p className={HINT}>{labels.emptyCode}</p>;
   return (
-    <pre className="overflow-x-auto rounded-md bg-muted p-3 text-sm">
-      <code>{code}</code>
-    </pre>
+    <div dir="ltr" className="quoin-code quoin-code-scroll pt-3">
+      <HighlightOverlay code={str(data.code)} language={str(data.language)} />
+    </div>
   );
 }
 
 export function ImagePreview({ data }: BlockPreviewProps) {
   const { resolveAssetUrl, labels } = useQuoin();
-  const key = str(data.storageKey);
-  // Guard on the key, not the resolved URL: a prefixing resolver turns an empty key into a truthy, dead address.
-  if (key === '') return <p className={HINT}>{labels.emptyImage}</p>;
-  return <img src={resolveAssetUrl(key)} alt={str(data.alt)} className="max-w-full rounded-md" />;
+  const src = imageSource(data, resolveAssetUrl);
+  if (src === null) return <p className={HINT}>{labels.emptyImage}</p>;
+  const caption = captionText(str(data.caption));
+  return (
+    <figure>
+      <img src={src} alt={str(data.alt) || labels.imageNoAlt} className="max-w-full rounded-md" />
+      {caption && <figcaption className={HINT}>{caption}</figcaption>}
+    </figure>
+  );
 }
 
 export function FilePreview({ data }: BlockPreviewProps) {

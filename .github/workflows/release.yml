@@ -23,6 +23,7 @@ jobs:
       - run: npm run build
       - run: npm test
       - run: npm run check:directives
+      - run: npm run check:size
       - run: npm run check:consumer
       - run: npm publish --access public --provenance
         env:

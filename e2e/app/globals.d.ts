@@ -10,6 +10,7 @@ declare global {
       controller?: ViewController;
       files?: { names: string[]; at: unknown }[];
       timings?: number[];
+      opened?: unknown[];
     };
   }
 }

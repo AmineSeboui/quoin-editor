@@ -2,6 +2,9 @@ import { useCallback, useRef, useSyncExternalStore } from 'react';
 import type { EditorState } from '../../engine';
 import type { ViewController } from '../controller/view-controller';
 
+/** The selector of the whole state, for a component that redraws on every change. */
+export const wholeState = (state: EditorState): EditorState => state;
+
 type Selected<T> = { readonly state: EditorState; readonly selector: (state: EditorState) => T; readonly value: T };
 
 export function useEditorState<T>(

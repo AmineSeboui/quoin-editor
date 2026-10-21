@@ -46,6 +46,8 @@ export type ExtensionUI = {
   bubbleItems?: readonly ToolbarItem[];
   blockMenuItems?: readonly BlockMenuAction[];
   renderers?: Readonly<Record<string, BlockRenderer>>;
+  /** What the block types the extension draws are called, in their block menu and while one is selected as a whole. */
+  blockNames?: Readonly<Record<string, string>>;
   render?: RenderOptions;
   overlays?: readonly ComponentType<{ controller: ViewController }>[];
 };

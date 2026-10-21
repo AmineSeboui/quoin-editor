@@ -3,6 +3,7 @@ export { hostKey } from './controller/host-registry';
 export type { KeyInterceptor } from './input/keydown';
 export { caretFromPoint } from './navigation/caret-from-point';
 export { isCrossSelection } from './selection/selection-decorations';
+export type { BlockLabel } from './selection/selection-sink';
 export { domMapOf, renderInline } from './dom/render-inline';
 export type { AtomRenderer, DomMap, DomPoint, RenderOptions, WidgetRenderer } from './dom/render-inline';
 export { useViewController } from './react/editor-context';

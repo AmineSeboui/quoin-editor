@@ -7,7 +7,7 @@ export type Flavours = { prevented: boolean; plain: string; html: string; json: 
 type Spec = {
   type: 'copy' | 'cut' | 'paste' | 'dragstart' | 'dragover' | 'drop';
   data?: Record<string, string>;
-  files?: { name: string; type: string }[];
+  files?: { name: string; type: string; base64?: string }[];
   // One DataTransfer stands in for the system clipboard across calls, so a copy can be followed by a paste.
   clipboard?: boolean;
   at?: { x: number; y: number };
@@ -22,7 +22,10 @@ function dispatch(page: Page, spec: Spec): Promise<Flavours> {
     if (spec.clipboard) transfer = w.__clip ??= new DataTransfer();
     else if (spec.data || spec.files) transfer = new DataTransfer();
     for (const [type, value] of Object.entries(spec.data ?? {})) transfer!.setData(type, value);
-    for (const { name, type } of spec.files ?? []) transfer!.items.add(new File(['x'], name, { type }));
+    for (const { name, type, base64 } of spec.files ?? []) {
+      const bytes = base64 === undefined ? 'x' : Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
+      transfer!.items.add(new File([bytes], name, { type }));
+    }
 
     const event = new Event(spec.type, { bubbles: true, cancelable: true });
     const key = spec.type === 'copy' || spec.type === 'cut' || spec.type === 'paste' ? 'clipboardData' : 'dataTransfer';

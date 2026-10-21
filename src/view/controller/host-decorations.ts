@@ -5,11 +5,11 @@ import { hostKey } from './host-registry';
 
 export const NO_DECORATIONS: readonly Decoration[] = [];
 
+// A block decoration goes under its block with an empty region, which no host has.
 export function decorationsByHost(decorations: readonly Decoration[]): ReadonlyMap<string, readonly Decoration[]> {
   const byHost = new Map<string, Decoration[]>();
   for (const decoration of decorations) {
-    if (decoration.kind === 'block') continue;
-    const key = hostKey(decoration.block, decoration.region);
+    const key = hostKey(decoration.block, decoration.kind === 'block' ? '' : decoration.region);
     const group = byHost.get(key);
     if (group) group.push(decoration);
     else byHost.set(key, [decoration]);

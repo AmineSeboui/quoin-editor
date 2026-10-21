@@ -30,6 +30,17 @@ describe('previews', () => {
     expect(screen.getByAltText('A cat')).toHaveAttribute('src', '/cdn/a.png');
   });
 
+  it('draws a linked picture, and the text its caption reads as', () => {
+    wrap(<ImagePreview data={{ storageKey: '', alt: 'A cat', url: 'https://quoin.dev/cat.png', caption: 'A \\*sleepy\\* cat' }} />);
+    expect(screen.getByAltText('A cat')).toHaveAttribute('src', 'https://quoin.dev/cat.png');
+    expect(screen.getByText('A *sleepy* cat')).toBeInTheDocument();
+  });
+
+  it('names a picture with no alt text as the canvas does', () => {
+    wrap(<ImagePreview data={{ storageKey: 'a.png', alt: '' }} />);
+    expect(screen.getByRole('img', { name: 'Image, no description' })).toBeInTheDocument();
+  });
+
   it('shows a hint instead of a broken image when no key is set', () => {
     wrap(<ImagePreview data={{ storageKey: '', alt: '' }} />);
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
@@ -51,10 +62,9 @@ describe('previews', () => {
     expect(screen.getByText('notes.pdf')).toBeInTheDocument();
   });
 
-  it('shows hints for a fresh code block and a fresh callout', () => {
+  it('draws a fresh code block as an empty block of code, and a hint for a fresh callout', () => {
     const { container } = wrap(<CodePreview data={{ language: '', code: '' }} />);
-    expect(container.querySelector('pre')).toBeNull();
-    expect(screen.getByText('Empty code block')).toBeInTheDocument();
+    expect(container.querySelector('pre')).toHaveTextContent('');
     wrap(<CalloutPreview data={{ tone: 'info', body: '' }} />);
     expect(screen.getByText('Empty callout')).toBeInTheDocument();
   });

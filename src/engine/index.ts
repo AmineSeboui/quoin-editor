@@ -61,6 +61,7 @@ export type { BoundCommands, Chain, CommandFactories } from './commands/chain';
 export type { BlockStructureOptions } from './commands/block-structure';
 export type { InsertTextOptions } from './commands/insert-text';
 export { insertBlockAfter } from './commands/block-structure';
+export { insertText } from './commands/insert-text';
 export { toggleMark } from './commands/marks';
 export { setBlockType } from './commands/turn-into';
 

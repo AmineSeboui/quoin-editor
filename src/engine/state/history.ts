@@ -8,7 +8,7 @@ import type { Step } from '../transform/step';
 import type { EditorState } from './editor-state';
 import { createPluginKey, type PluginSpec } from './plugin';
 import { isCollapsed, sameSelection, textSelection } from './selection';
-import { Transaction, type TransactionOrigin } from './transaction';
+import { foreignOrigins, Transaction, UNFILTERED, type TransactionOrigin } from './transaction';
 
 export type HistoryItem = {
   readonly steps: readonly Step[];
@@ -95,8 +95,6 @@ function moved(tr: Transaction, value: HistoryState, direction: Direction, depth
   return { ...value, ...stacks, lastGroup: null, lastInputRule: null };
 }
 
-const unrecordedOrigins: readonly TransactionOrigin[] = ['remote', 'reconcile', 'history'];
-
 const movesNoPosition = (tr: Transaction) =>
   tr.steps.every((_, i) => isPositionNeutral(tr.docs[i], { doc: tr.docs[i + 1] ?? tr.doc, map: tr.maps[i] }));
 
@@ -104,7 +102,7 @@ function advance(tr: Transaction, value: HistoryState, config: Config): HistoryS
   if (tr.docChanged) {
     const direction = tr.getMeta<Direction>('history');
     if (direction !== undefined) return moved(tr, value, direction, config.depth);
-    if (tr.addToHistory && !unrecordedOrigins.includes(tr.origin)) return recorded(tr, value, config);
+    if (tr.addToHistory && !foreignOrigins.includes(tr.origin)) return recorded(tr, value, config);
     if (!movesNoPosition(tr)) return emptyHistory;
   }
   const closed = tr.getMeta<boolean>('closeHistory') === true;
@@ -145,7 +143,7 @@ export const undoInputRule: Command = (state, dispatch) => {
   if (record === null || record === undefined) return false;
   if (dispatch !== undefined) {
     const { steps, undoText, at, marks } = record;
-    const tr = new Transaction(state);
+    const tr = new Transaction(state).setMeta(UNFILTERED, true);
     steps.forEach((step) => tr.step(step));
     tr.step(replaceInlineStep(at.block, at.region, at.offset, at.offset, [text(undoText, marks)]));
     dispatch(tr.setSelection(textSelection({ ...at, offset: at.offset + undoText.length })));

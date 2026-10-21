@@ -56,7 +56,7 @@ describe('toPlainText with a custom schema', () => {
   };
   const schema = createSchema({
     blocks: [note, stamp],
-    atoms: [{ type: 'emoji', toMarkdown: () => null, plainText: ({ name }) => `:${name}:` }],
+    atoms: [{ type: 'emoji', plainText: ({ name }) => `:${name}:` }],
   });
 
   it('reads the primary region of a custom text block', () => {

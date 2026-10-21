@@ -61,4 +61,34 @@ describe('suggestionPlugin', () => {
     const open = start('/x');
     expect(suggestion(apply(open, caretAt(2)))).toBe(suggestion(open));
   });
+
+  describe('beside other triggers', () => {
+    const mention = createPluginKey<SuggestionState>('test-mention');
+    const emoji = createPluginKey<SuggestionState>('test-emoji');
+    const all = [
+      suggestionPlugin(mention, { char: '@', allowSpaces: true }),
+      suggestionPlugin(key, { char: '/' }),
+      suggestionPlugin(emoji, { char: ':' }),
+    ];
+    const typed = (text: string) => buildState([{ paragraph: text }], { block: 0, offset: text.length }, { plugins: all });
+    const actives = (state: EditorState) => [mention, key, emoji].map((each) => getPluginState(state, each).active?.query ?? null);
+
+    it('leave only the one that starts nearest the caret active', () => {
+      expect(actives(typed('Ask @Ada /x'))).toEqual([null, 'x', null]);
+      expect(actives(typed('Ask @Ada :sm'))).toEqual([null, null, 'sm']);
+      expect(actives(typed('/x @Ada'))).toEqual(['Ada', null, null]);
+    });
+
+    it('give the farther one back, undismissed, once the nearer one goes away', () => {
+      const covered = apply(typed('Ask @Ada /x'), deleteBackward, deleteBackward);
+      expect(actives(covered)).toEqual(['Ada ', null, null]);
+      expect(getPluginState(covered, mention).dismissedAt).toBeNull();
+    });
+
+    it('keep a dismissed one dismissed while a nearer one comes and goes', () => {
+      const dismissed = apply(typed('Ask @Ada'), dismissSuggestion(mention), insertText(' /x'));
+      expect(actives(dismissed)).toEqual([null, 'x', null]);
+      expect(actives(apply(dismissed, deleteBackward, deleteBackward))).toEqual([null, null, null]);
+    });
+  });
 });

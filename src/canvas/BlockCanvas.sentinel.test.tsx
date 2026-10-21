@@ -44,7 +44,7 @@ const media: QuoinBlock[] = [
   { id: 'i0', type: 'IMAGE', data: { storageKey: '', alt: '' } },
   { id: 'i1', type: 'IMAGE', data: { storageKey: 'k1', alt: '~1' } },
   { id: 'f0', type: 'FILE', data: { storageKey: '', filename: '' } },
-  { id: 'f1', type: 'FILE', data: { storageKey: 'k2', filename: '~2' } },
+  { id: 'f1', type: 'FILE', data: { storageKey: 'k2', filename: '~2', size: 1536 } },
   { id: 'c0', type: 'CODE', data: { language: '', code: '' } },
   { id: 'c1', type: 'CODE', data: { language: '~3', code: '~4' } },
 ];

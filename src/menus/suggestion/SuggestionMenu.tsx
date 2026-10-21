@@ -3,17 +3,16 @@
 import { useRef, type ReactNode } from 'react';
 import type { PluginKey } from '../../engine';
 import type { SuggestionRange } from '../../extensions/ui-types';
-import { HIGHLIGHT_BAR } from '../../ui/focus';
 import { MENU_CONTENT } from '../../ui/menu-styles';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
-import { TAP_TARGET_FLOOR } from '../../ui/touch-target';
 import { cn } from '../../ui/cn';
+import { preventDefault } from '../../ui/prevent-default';
 import type { ViewController } from '../../view';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
-import { keepFocus } from '../floating/keep-focus';
 import { useRangeAnchor } from '../floating/use-range-anchor';
 import type { SuggestionSection } from './group-items';
 import type { SuggestionState } from './suggestion-plugin';
+import { SuggestionOption } from './SuggestionOption';
 import { useSuggestion } from './use-suggestion';
 
 export type SuggestionMenuProps<T> = {
@@ -26,6 +25,8 @@ export type SuggestionMenuProps<T> = {
   onSelect(item: T, range: SuggestionRange): void;
   label: string;
   emptyLabel: string;
+  /** What the menu shows while the items it waits for are pending, for a source that answers late. */
+  pendingLabel?: string;
 };
 
 // The listbox scrolls rather than the popover around it, so the scrolling region is the combobox's own popup, whose
@@ -36,35 +37,6 @@ const CONTENT = cn(
 );
 const LISTBOX = 'min-h-0 overflow-y-auto';
 const GROUP_LABEL = 'px-2 pt-2 pb-1 text-xs font-medium text-muted-foreground';
-const OPTION = cn(
-  'relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm',
-  'data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground',
-  HIGHLIGHT_BAR,
-  TAP_TARGET_FLOOR,
-);
-
-const preventDefault = (event: Event) => event.preventDefault();
-
-type OptionProps = { id: string; active: boolean; onHighlight(): void; onChoose(): void; children: ReactNode };
-
-function SuggestionOption({ id, active, onHighlight, onChoose, children }: OptionProps) {
-  return (
-    <div
-      role="option"
-      id={id}
-      aria-selected={active}
-      data-highlighted={active ? '' : undefined}
-      className={OPTION}
-      onPointerDown={keepFocus}
-      onMouseDown={keepFocus}
-      onPointerMove={onHighlight}
-      onClick={onChoose}
-    >
-      {children}
-    </div>
-  );
-}
-
 type SectionProps<T> = {
   section: SuggestionSection<T>;
   labelId: string;
@@ -100,7 +72,7 @@ function SuggestionGroup<T>({ section, labelId, activeIndex, optionId, renderIte
 
 /** A listbox of suggestions for the trigger at the caret, which keeps focus in the text as a combobox's popup does. */
 export function SuggestionMenu<T>(props: SuggestionMenuProps<T>) {
-  const { controller, renderItem, label, emptyLabel } = props;
+  const { controller, renderItem, label, emptyLabel, pendingLabel } = props;
   const suggestion = useSuggestion(props);
   const { trigger, sections, activeIndex, listboxId } = suggestion;
   const { anchor, side } = useRangeAnchor(controller, trigger);
@@ -119,7 +91,7 @@ export function SuggestionMenu<T>(props: SuggestionMenuProps<T>) {
     const focusStays = focused === null || focused === focused.ownerDocument.body || inEditor(focused);
     if (inEditor(event.target) && focusStays) event.preventDefault();
   };
-  const empty = sections.length === 0 && !suggestion.pending;
+  const status = suggestion.pending ? pendingLabel : sections.length === 0 ? emptyLabel : undefined;
   return (
     <Popover
       open
@@ -156,7 +128,7 @@ export function SuggestionMenu<T>(props: SuggestionMenuProps<T>) {
             />
           ))}
         </div>
-        {empty && <p className="px-2 py-1.5 text-sm text-muted-foreground">{emptyLabel}</p>}
+        {status && <p className="px-2 py-1.5 text-sm text-muted-foreground">{status}</p>}
       </PopoverContent>
     </Popover>
   );

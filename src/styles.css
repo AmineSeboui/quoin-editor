@@ -15,6 +15,18 @@
 @import "tw-animate-css";
 @import "./ui/tokens.css" layer(quoin.base);
 @import "./view/view.css" layer(quoin.components);
+@import "./blocks/code/code-block.css" layer(quoin.components);
+@import "./blocks/upload/upload-area.css" layer(quoin.components);
+@import "./blocks/image/image-block.css" layer(quoin.components);
+@import "./blocks/file/file-block.css" layer(quoin.components);
+@import "./extensions/table/table-block.css" layer(quoin.components);
+@import "./extensions/embed/embed-block.css" layer(quoin.components);
+@import "./extensions/atoms/selected-atom.css" layer(quoin.components);
+@import "./extensions/math/math-block.css" layer(quoin.components);
+@import "./extensions/toc/toc-block.css" layer(quoin.components);
+@import "./extensions/mention/mention.css" layer(quoin.components);
+@import "./extensions/find/find.css" layer(quoin.components);
+@import "./extensions/stats/stats.css" layer(quoin.components);
 @import "./ui/palette.css" layer(quoin.components);
 
 /* Tailwind's default dark: variant keys on prefers-color-scheme, while the --quoin- variables
@@ -29,6 +41,8 @@
    excluded for the same reason, a class named in an assertion is not a class we ship. */
 @source "./**/*.{ts,tsx}";
 @source not "./**/*.test.{ts,tsx}";
+/* The emoji dataset holds tags such as "shadow" and "uppercase", which would read as class names. */
+@source not "./emoji/data.ts";
 
 @layer quoin.base {
   /* Tailwind's preflight would reset the host's whole page, and browser defaults sit below every

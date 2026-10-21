@@ -9,6 +9,8 @@ const NAMED_ARGUMENTS: Partial<Record<keyof QuoinLabels, unknown[]>> = {
   undoHint: ['Ctrl+Z'],
   keySequence: ['Escape', 'Tab'],
   uploaded: ['photo.png'],
+  downloadFile: ['notes.pdf'],
+  fileBlockName: ['notes.pdf'],
 };
 
 function sampleText(key: keyof QuoinLabels): string[] {
@@ -164,21 +166,43 @@ describe('englishLabels', () => {
     expect(englishLabels.uploadsUnavailable).toBe('Uploads are not configured for this editor.');
   });
 
-  it('names the fields of the image, file and code editors and says what an empty preview lacks', () => {
-    expect(englishLabels.uploadImage).toBe('Upload image');
-    expect([englishLabels.altText, englishLabels.imageAltText]).toEqual(['Alt text', 'Image alt text']);
-    expect(englishLabels.captionOptional).toBe('Caption (optional)');
-    expect(englishLabels.imageCaption).toBe('Image caption');
-    expect(englishLabels.imageAttached).toBe('Image attached');
-    expect(englishLabels.uploadFile).toBe('Upload file');
-    expect([englishLabels.codeLanguage, englishLabels.codeText]).toEqual(['Language', 'Code']);
-    expect([englishLabels.emptyImage, englishLabels.emptyFile, englishLabels.emptyCode]).toEqual([
-      'No image chosen',
-      'No file chosen',
-      'Empty code block',
+  it('names the parts of an image block, says an image needs alt text and names one without it', () => {
+    expect([englishLabels.uploadImage, englishLabels.embedLink, englishLabels.imageLink]).toEqual([
+      'Upload image',
+      'Embed link',
+      'Image link',
     ]);
+    expect(englishLabels.dropImage).toBe('Or drop or paste an image here.');
+    expect([englishLabels.imageCaption, englishLabels.addCaption]).toEqual(['Image caption', 'Add a caption']);
+    expect(englishLabels.imageTools).toBe('Image tools');
+    expect([englishLabels.resizeFromLeft, englishLabels.resizeFromRight]).toEqual(['Resize from the left', 'Resize from the right']);
+    expect(englishLabels.widthValue(45)).toBe('45%');
+    expect([englishLabels.replaceImage, englishLabels.download]).toEqual(['Replace image', 'Download']);
+    expect([englishLabels.altText, englishLabels.save]).toEqual(['Alt text', 'Save']);
+    expect(englishLabels.altTextHint).toBe('Required. Describe what the image shows for anyone who cannot see it.');
+    expect(englishLabels.imageNoAlt).toBe('Image, no description');
+  });
+
+  it('names the parts of a file block, its download link after the file, and a selected one by the file', () => {
+    expect([englishLabels.uploadFile, englishLabels.dropFile]).toEqual(['Upload file', 'Or drop or paste a file here.']);
+    expect([englishLabels.fileTools, englishLabels.replaceFile]).toEqual(['File tools', 'Replace file']);
+    expect(englishLabels.downloadFile('notes.pdf')).toBe('Download notes.pdf');
+    expect(englishLabels.fileBlockName('notes.pdf')).toBe('File, notes.pdf');
+    expect([englishLabels.fileSize(0), englishLabels.fileSize(1536)]).toEqual(['0 B', '1.5 KB']);
+  });
+
+  it('says what an empty preview lacks', () => {
+    expect([englishLabels.emptyImage, englishLabels.emptyFile]).toEqual(['No image chosen', 'No file chosen']);
     expect(englishLabels.emptyMarkdown).toBe('Empty markdown block');
     expect(englishLabels.emptyCallout).toBe('Empty callout');
+  });
+
+  it('names the code of a code block, its language, a code in no language and its copy button', () => {
+    expect([englishLabels.codeText, englishLabels.codeLanguage]).toEqual(['Code', 'Language']);
+    expect(englishLabels.codeBlockName('TypeScript')).toBe('Code, TypeScript');
+    expect(englishLabels.plainText).toBe('Plain text');
+    expect(englishLabels.copyCode).toBe('Copy code');
+    expect(englishLabels.copied).toBe('Copied');
   });
 
   it('writes no empty label and no em or en dash', () => {

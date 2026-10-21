@@ -45,14 +45,11 @@ export type BlockSpec = {
 
 export type MarkSpec = {
   readonly type: string;
-  readonly rank: number;
   readonly inclusive: boolean;
-  readonly stackable?: boolean;
 };
 
 export type AtomSpec = {
   readonly type: string;
-  toMarkdown(attrs: Attrs): string | null;
   plainText(attrs: Attrs): string;
 };
 

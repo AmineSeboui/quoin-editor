@@ -1,0 +1,15 @@
+.quoin .quoin-mention {
+  border-radius: 4px;
+  padding-inline: 0.125rem;
+  background: var(--quoin-muted);
+  font-weight: 500;
+}
+
+.quoin .quoin-mention[data-opens] {
+  cursor: pointer;
+}
+
+.quoin .quoin-mention[role="button"]:focus-visible {
+  outline: 2px solid var(--quoin-ring);
+  outline-offset: 1px;
+}

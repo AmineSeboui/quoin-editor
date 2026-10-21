@@ -97,13 +97,13 @@ describe('VoidBlock editing ends', () => {
   });
 
   it('when the editor calls onDone, leaving the block node-selected with focus', () => {
-    const { selection, shell } = openBookmark();
+    const { selection, sink } = openBookmark();
     const done = screen.getByRole('button', { name: 'Done' });
     act(() => done.focus());
     fireEvent.click(done);
     expect(urlField()).toBeNull();
     expect(selection()).toEqual(nodeSelection('b'));
-    expect(document.activeElement).toBe(shell('b'));
+    expect(document.activeElement).toBe(sink());
   });
 
   it('when the editor inserts a block after its own, whose editor opens with focus', () => {

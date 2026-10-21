@@ -7,7 +7,7 @@ import { isCrossSelection } from '../selection/selection-decorations';
 import { caretFromPoint } from './caret-from-point';
 import { collapseCross, crossHeadVertically } from './cross-moves';
 import { adjacentLineMiddle, caretClientRect, isOnFirstLine, isOnLastLine, lineEdgeRect } from './line-edges';
-import { entryEdge, holdsTextHead, moveToNeighbour, neighbourBlock } from './neighbour-block';
+import { entryEdge, holdsTextHead, moveToNeighbour, neighbourBlock, ownNode } from './neighbour-block';
 import { stayOnLine } from './stay-on-line';
 
 // caretFromPoint only finds content inside the viewport.
@@ -76,6 +76,8 @@ function landing(
     const pos = moveInHost(controller, host, head, caret, direction);
     return pos && textSelection(pos);
   }
+  const own = extend ? null : ownNode(controller, head.block, direction);
+  if (own !== null) return own;
   const accept = extend ? holdsTextHead(controller) : undefined;
   const target = neighbourBlock(controller.editor.state.doc, head.block, direction, accept);
   return target && (landAtGoal(controller, target, direction) ?? entryEdge(controller, target.id, direction));

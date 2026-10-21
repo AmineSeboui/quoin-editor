@@ -1,26 +1,28 @@
+import { fileAttrs } from '../blocks/file/file-upload';
+import { isImageFile, measureImage } from '../blocks/image/image-upload';
 import { insertBlocks, type NewBlock } from '../blocks/insert-blocks';
 import type { Pos, Selection } from '../engine';
 import { headBlockId } from '../engine/commands/block-helpers';
+import { newId } from '../engine/model/new-id';
 import { sameSelection } from '../engine/state/selection';
 import type { UploadFn, UploadResult } from '../types';
+import { toError } from '../to-error';
 import type { ViewController } from '../view';
 
 export type InsertUploadsOptions = {
   upload?: UploadFn;
+  resolveAssetUrl: (storageKey: string) => string;
   onError: (error: Error) => void;
-  /** What onError hears when the canvas was given no upload function. */
+  /** What onError hears when the canvas was given no upload function, and when an upload resolves to no stored key. */
   unavailable: string;
+  failed: string;
 };
 
 type Writer = { selection: Selection | null; focus: Element | null };
 
-const isImage = (file: File) => file.type.startsWith('image/');
-
-const asError = (cause: unknown) => (cause instanceof Error ? cause : new Error(String(cause)));
-
-function fileBlock(file: File, { storageKey, filename, size }: UploadResult): NewBlock {
-  if (isImage(file)) return { type: 'IMAGE', attrs: { storageKey, alt: '' } };
-  return { type: 'FILE', attrs: { storageKey, filename, size } };
+function fileBlock(file: File, stored: UploadResult): NewBlock {
+  if (isImageFile(file)) return { id: newId(), type: 'IMAGE', attrs: { storageKey: stored.storageKey, alt: '' } };
+  return { type: 'FILE', attrs: fileAttrs(file, stored) };
 }
 
 function anchorBlock(controller: ViewController, at: Pos | null): string | null {
@@ -40,25 +42,31 @@ function movedOn(controller: ViewController, before: Writer): boolean {
 }
 
 /**
- * Uploads the files and inserts an image block for each image and a file block for anything else, in their order.
+ * Uploads the files and inserts an image block for each image and a file block for anything else, in their order,
+ * then measures the images. An upload that fails, or resolves to no stored key, is reported to `onError` and left out.
  * A writer still where the paste or drop left them goes on in an empty line after the blocks; one who moved on while
- * the files uploaded keeps their caret and focus.
+ * the files uploaded keeps their caret and focus. The blocks go in through the editor itself, as `writeAttrs` explains.
  */
 export async function insertUploads(
   controller: ViewController,
   files: readonly File[],
   at: Pos | null,
-  { upload, onError, unavailable }: InsertUploadsOptions,
+  { upload, resolveAssetUrl, onError, unavailable, failed }: InsertUploadsOptions,
 ): Promise<void> {
   if (!upload) return onError(new Error(unavailable));
   const writer = writerOf(controller);
-  const outcomes = await Promise.allSettled(files.map(async (file) => upload(file, isImage(file) ? 'image' : 'file')));
+  const outcomes = await Promise.allSettled(files.map(async (file) => upload(file, isImageFile(file) ? 'image' : 'file')));
   const blocks: NewBlock[] = [];
   outcomes.forEach((outcome, index) => {
-    if (outcome.status === 'fulfilled') blocks.push(fileBlock(files[index], outcome.value));
-    else onError(asError(outcome.reason));
+    if (outcome.status === 'rejected') onError(toError(outcome.reason));
+    else if (typeof outcome.value?.storageKey === 'string') blocks.push(fileBlock(files[index], outcome.value));
+    else onError(new Error(failed));
   });
   if (blocks.length === 0 || controller.root === null || controller.readOnly) return;
   const landing = movedOn(controller, writer) ? 'stay' : 'line';
-  controller.run(insertBlocks(blocks, landing, anchorBlock(controller, at)));
+  const { editor } = controller;
+  if (!insertBlocks(blocks, landing, anchorBlock(controller, at))(editor.state, (tr) => editor.dispatch(tr))) return;
+  for (const { id, attrs } of blocks) {
+    if (id !== undefined) void measureImage(controller, id, String(attrs?.storageKey), resolveAssetUrl);
+  }
 }

@@ -1,54 +1,68 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { toError } from '../../to-error';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
 
 export type SuggestionSource<T> = (query: string) => readonly T[] | Promise<readonly T[]>;
 
 type Results<T> = { readonly items: readonly T[]; readonly pending: boolean };
 
-type Resolved<T> = { readonly request: Promise<readonly T[]>; readonly items: readonly T[] };
+type Answer<T> = {
+  readonly source: SuggestionSource<T> | null;
+  readonly query: string | null;
+  readonly items: readonly T[];
+};
+
+const FORGOTTEN: Answer<never> = { source: null, query: null, items: [] };
+const CLOSED: Results<never> = { items: [], pending: false };
 
 const isPromise = <T>(value: unknown): value is Promise<T> =>
   typeof (value as Promise<T> | null)?.then === 'function';
 
-const toError = (reason: unknown) => (reason instanceof Error ? reason : new Error(String(reason)));
-
 /**
- * The items for the query. A source that answers with a promise keeps the items it answered last on show until the
- * new ones arrive, and an answer to a query the user has typed past is dropped.
+ * The items for the query, asked of the source from an effect whenever the query or the source changes. Until the
+ * current source answers the current query, the items answered last stay on show as pending, an answer to a query the
+ * user has typed past or from a source since replaced is dropped, and closing the menu forgets every answer.
  */
 export function useSuggestionResults<T>(
   source: SuggestionSource<T>,
   query: string | null,
   onError: (error: Error) => void,
 ): Results<T> {
-  const answer = useMemo(() => (query === null ? null : source(query)), [source, query]);
-  const [resolved, setResolved] = useState<Resolved<T> | null>(null);
+  const [answer, setAnswer] = useState<Answer<T>>(FORGOTTEN);
   const report = useRef(onError);
   useIsomorphicLayoutEffect(() => {
     report.current = onError;
   });
 
-  useEffect(() => {
-    if (!isPromise<readonly T[]>(answer)) return;
+  useIsomorphicLayoutEffect(() => {
+    if (query === null) {
+      setAnswer(FORGOTTEN);
+      return;
+    }
     let current = true;
-    answer.then(
-      (items) => {
-        if (current) setResolved({ request: answer, items });
-      },
-      (reason: unknown) => {
-        if (!current) return;
-        setResolved((last) => ({ request: answer, items: last?.items ?? [] }));
-        report.current(toError(reason));
-      },
-    );
+    const settle = (items?: readonly T[]) => {
+      if (current) setAnswer((last) => ({ source, query, items: items ?? last.items }));
+    };
+    const fail = (reason: unknown) => {
+      if (!current) return;
+      settle();
+      report.current(toError(reason));
+    };
+    try {
+      const items = source(query);
+      if (isPromise<readonly T[]>(items)) items.then(settle, fail);
+      else settle(items);
+    } catch (reason) {
+      fail(reason);
+    }
     return () => {
       current = false;
     };
-  }, [answer]);
+  }, [source, query]);
 
-  return useMemo(() => {
-    if (answer === null) return { items: [], pending: false };
-    if (!isPromise<readonly T[]>(answer)) return { items: answer, pending: false };
-    return { items: resolved?.items ?? [], pending: resolved?.request !== answer };
-  }, [answer, resolved]);
+  return useMemo(
+    () =>
+      query === null ? CLOSED : { items: answer.items, pending: answer.source !== source || answer.query !== query },
+    [source, query, answer],
+  );
 }

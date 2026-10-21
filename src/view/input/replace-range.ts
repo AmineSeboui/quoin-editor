@@ -9,5 +9,5 @@ export function replaceRange(editor: Editor, range: ModelRange, text: string, wi
   const dispatch = (tr: Transaction) => editor.dispatch(tr);
   dispatch(editor.createTransaction().setSelection(textSelection(range.from, range.to)).setOrigin('input'));
   if (text === '') return deleteSelection(editor.state, (tr) => dispatch(tr.setOrigin('input')));
-  return withRules ? editor.insertText(text) : insertText(text)(editor.state, dispatch);
+  return withRules ? editor.insertText(text) : insertText(text, { origin: 'input' })(editor.state, dispatch);
 }

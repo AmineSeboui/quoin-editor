@@ -12,6 +12,7 @@ export type {
   FileBlockData,
   CoreBlockData,
 } from './blocks/data';
+export type { CodeHighlighter, CodeToken } from './blocks/code/code-highlighter';
 export { UploadField, type UploadFieldProps } from './upload/UploadField';
 export { FilePickerButton, type FilePickerButtonProps } from './upload/FilePickerButton';
 export { QuoinProvider, useQuoin, type QuoinConfig, type QuoinConfigInput } from './context';

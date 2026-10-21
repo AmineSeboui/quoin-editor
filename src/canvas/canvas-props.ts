@@ -1,3 +1,4 @@
+import type { CodeHighlighter } from '../blocks/code/code-highlighter';
 import type { Editor, Extension, Pos, QuoinBlock } from '../engine';
 import type { QuoinLabels } from '../i18n/labels';
 import type { AnyBlockDefinition } from '../registry';
@@ -31,6 +32,11 @@ export type BlockCanvasProps = {
   upload?: UploadFn;
   resolveAssetUrl?: (storageKey: string) => string;
   onError?: (error: Error) => void;
+  /**
+   * Colours the code of code blocks: one array of tokens per line, whose texts spell the line exactly. Keep the function
+   * stable, as for `labels`. Without it, or when its tokens do not spell the code, the code is drawn as plain text.
+   */
+  highlight?: CodeHighlighter;
   readOnly?: boolean;
   autoFocus?: boolean;
   /** The text of an empty paragraph holding the caret, or alone in the document, in place of `labels.placeholderEmpty`. */

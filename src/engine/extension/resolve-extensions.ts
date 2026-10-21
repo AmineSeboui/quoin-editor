@@ -2,6 +2,7 @@ import type { CommandFactories } from '../commands/chain';
 import type { Command } from '../commands/command';
 import { createSchema } from '../schema/create-schema';
 import type { EditorState } from '../state/editor-state';
+import type { Transaction } from '../state/transaction';
 import { normalizeKey } from './keymap';
 import type { Extension, ResolvedExtensions } from './types';
 
@@ -45,5 +46,7 @@ export function resolveExtensions(extensions: readonly Extension[], isMac: boole
     commands: commandsOf(sorted),
     plugins: sorted.flatMap((extension) => extension.plugins ?? []),
     decorations: (state: EditorState) => sorted.flatMap((extension) => extension.decorations?.(state) ?? []),
+    filterTransaction: (tr: Transaction, state: EditorState) =>
+      sorted.every((extension) => extension.filterTransaction?.(tr, state) !== false),
   };
 }

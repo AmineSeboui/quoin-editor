@@ -8,7 +8,7 @@ import { useReadOnly } from '../../view/react/use-read-only';
 import { useComboboxHost } from './combobox-attributes';
 import type { ActiveTrigger } from './find-trigger';
 import { groupItems, type SuggestionSection } from './group-items';
-import { dismissSuggestion, type SuggestionState } from './suggestion-plugin';
+import { dismissSuggestion, rangeOf, type SuggestionState } from './suggestion-plugin';
 import { useSuggestionKeys } from './use-suggestion-keys';
 import { useSuggestionResults, type SuggestionSource } from './use-suggestion-results';
 
@@ -17,6 +17,7 @@ const SETTLE_MS = 150;
 export type SuggestionOptions<T> = {
   controller: ViewController;
   pluginKey: PluginKey<SuggestionState>;
+  /** Asked again whenever it changes, so a caller keeps it stable across renders. */
   items: SuggestionSource<T>;
   itemKey(item: T): string;
   groupOf?(item: T): string | null;
@@ -35,8 +36,6 @@ export type Suggestion<T> = {
   select(index: number): void;
   dismiss(): void;
 };
-
-const rangeOf = ({ block, region, from, to }: SuggestionRange): SuggestionRange => ({ block, region, from, to });
 
 // Option ids carry the item's key, so the active descendant changes whenever the active item does, even at one index.
 const idPart = (key: string) => key.replace(/[^a-zA-Z0-9-]/g, (character) => `_${character.charCodeAt(0).toString(16)}`);

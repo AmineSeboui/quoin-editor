@@ -1,5 +1,6 @@
 import { Star } from 'lucide-react';
 import { coreBlocks } from '../blocks/core';
+import { inPlaceOverlays, inPlaceRenderers } from '../blocks/in-place-renderers';
 import { textRenderers } from '../blocks/text/text-renderers';
 import { defineExtension } from '../engine';
 import type { ExtensionUI, SlashItem } from '../extensions/ui-types';
@@ -52,6 +53,43 @@ describe('collectUi', () => {
     expect([renderers.MARKDOWN, renderers.CALLOUT]).toEqual([textRenderers.MARKDOWN, textRenderers.CALLOUT]);
   });
 
+  it("draws Quoin's code block in place while a definition of it is registered, on any canvas", () => {
+    const relabelled = coreBlocks.map((definition) => ({ ...definition, label: `Copy of ${definition.label}` }));
+    expect(collectUi([], coreBlocks).renderers.CODE).toBe(inPlaceRenderers.CODE);
+    expect(collectUi([], coreBlocks, true).renderers.CODE).toBe(inPlaceRenderers.CODE);
+    expect(collectUi([], relabelled).renderers.CODE).toBe(inPlaceRenderers.CODE);
+  });
+
+  it('draws a host definition of CODE as a void block, and no code block where none is registered', () => {
+    const snippet = defineBlock({ type: 'CODE', label: 'Snippet', icon: Star, preview: () => null });
+    const { renderers } = collectUi([], [...coreBlocks, snippet]);
+    expect(renderers.CODE).toBe(collectUi([], [snippet]).renderers.CODE);
+    expect(renderers.CODE).not.toBe(inPlaceRenderers.CODE);
+    expect(collectUi([], [chart]).renderers.CODE).toBeUndefined();
+  });
+
+  it("draws Quoin's image block in place, with the toolbar of a selected image after the extensions' overlays", () => {
+    const ui = collectUi([withUi('a', { overlays: [Drawn] })], coreBlocks);
+    expect(ui.renderers.IMAGE).toBe(inPlaceRenderers.IMAGE);
+    expect(ui.overlays).toEqual([Drawn, inPlaceOverlays.IMAGE, inPlaceOverlays.FILE]);
+    const photo = defineBlock({ type: 'IMAGE', label: 'Photo', icon: Star, preview: () => null });
+    const hosted = collectUi([], [...coreBlocks, photo]);
+    expect(hosted.renderers.IMAGE).not.toBe(inPlaceRenderers.IMAGE);
+    expect(hosted.overlays).toEqual([inPlaceOverlays.FILE]);
+    expect(collectUi([], [chart]).overlays).toEqual([]);
+  });
+
+  it("draws Quoin's file block in place with the toolbar of a selected file, unless the host defines FILE", () => {
+    const ui = collectUi([], coreBlocks, true);
+    expect(ui.renderers.FILE).toBe(inPlaceRenderers.FILE);
+    expect(ui.overlays).toContain(inPlaceOverlays.FILE);
+    const attachment = defineBlock({ type: 'FILE', label: 'Attachment', icon: Star, preview: () => null });
+    const hosted = collectUi([], [...coreBlocks, attachment]);
+    expect(hosted.renderers.FILE).not.toBe(inPlaceRenderers.FILE);
+    expect(hosted.overlays).not.toContain(inPlaceOverlays.FILE);
+    expect(collectUi([], [chart]).renderers.FILE).toBeUndefined();
+  });
+
   it('merges the render options, a later extension winning an atom both draw', () => {
     const first = () => document.createElement('span');
     const second = () => document.createElement('b');
@@ -65,6 +103,13 @@ describe('collectUi', () => {
     );
     expect(ui.render?.atoms).toEqual({ emoji: second, mention });
     expect(collectUi([withUi('a', {})], []).render).toBeUndefined();
+  });
+
+  it('merges the names the extensions give their block types, a later extension winning a type both name', () => {
+    const first = withUi('a', { blockNames: { CHART: 'Chart', MAP: 'Map' } });
+    const ui = collectUi([first, withUi('b', { blockNames: { MAP: 'Plan' } })], []);
+    expect(ui.blockNames).toEqual({ CHART: 'Chart', MAP: 'Plan' });
+    expect(collectUi([withUi('a', {})], []).blockNames).toEqual({});
   });
 
   it('gathers block menu items, bubble items and overlays, and ignores a ui field that is not an object', () => {

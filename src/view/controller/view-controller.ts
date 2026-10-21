@@ -4,7 +4,8 @@ import { sameSelection } from '../../engine/state/selection';
 import type { RenderOptions } from '../dom/render-inline';
 import type { KeyInterceptor } from '../input/keydown';
 import { createCrossMode } from '../selection/cross-mode';
-import { focusSink, heldBySink } from '../selection/selection-sink';
+import { createNodeReveal } from '../selection/node-reveal';
+import { focusingSink, focusSink, heldBySink } from '../selection/selection-sink';
 import { createAnnouncer } from './announcer';
 import { readSelection, writeSelection } from './dom-selection';
 import { createDrawnElements } from './drawn-elements';
@@ -14,6 +15,7 @@ import { createHostRegistry, hostKey, type HostEntry, type HostRegistry } from '
 import { hostDecorations } from './host-decorations';
 import { createHostRenderer, type HostRenderer } from './host-renderer';
 import { createOutsideChanges } from './outside-changes';
+import { createReadOnly, type ReadOnly } from './read-only';
 import { bindRoot, type RootBinding } from './root-binding';
 import { samePoints, selectionPoints } from './selection-sync';
 
@@ -45,6 +47,7 @@ export class ViewController {
     };
   });
   readonly keyInterceptors = new Set<KeyInterceptor>();
+  readonly nodeReveal = createNodeReveal((id) => this.blockElement(id));
   readonly announcer = createAnnouncer(() => this.editor.state);
   readonly isMac: boolean;
   readonly onFiles: ViewControllerOptions['onFiles'];
@@ -59,8 +62,7 @@ export class ViewController {
   private readonly outside = createOutsideChanges(() => hasFocus(this, this.ownerDocument()));
   private binding: RootBinding | null = null;
   private detachRoot: (() => void) | null = null;
-  private readOnlyFlag: boolean;
-  private readonly readOnlyListeners = new Set<() => void>();
+  private readonly readOnlyState: ReadOnly;
 
   constructor(options: ViewControllerOptions) {
     this.editor = options.editor;
@@ -69,7 +71,7 @@ export class ViewController {
     this.isMac = options.isMac ?? detectMac();
     const decorationsOf = (block: string, region: string) => this.decorationsFor(block, region);
     this.hosts = createHostRenderer(options.editor, options.render, decorationsOf, (host) => this.binding?.input.drain(host));
-    this.readOnlyFlag = options.readOnly ?? false;
+    this.readOnlyState = createReadOnly(this.registry, options.readOnly ?? false);
   }
 
   get root(): HTMLElement | null {
@@ -77,7 +79,7 @@ export class ViewController {
   }
 
   get readOnly(): boolean {
-    return this.readOnlyFlag;
+    return this.readOnlyState.current();
   }
 
   get sink(): HTMLElement | null {
@@ -92,6 +94,7 @@ export class ViewController {
     this.detachRoot?.();
     const binding = bindRoot(this, root, this.cross, () => {
       this.outside.committed();
+      this.nodeReveal.follow(this.editor.state.selection);
       this.drawn.syncTabStop();
       this.cross.syncLater();
     });
@@ -189,10 +192,15 @@ export class ViewController {
     this.announcer.announce(message);
   }
 
+  // A redraw of the decorations alone, such as one that follows a selection the browser made, replaces the nodes that
+  // selection sits in, and nothing else writes it back. It is written only while the editor holds focus: written while
+  // focus is on the page, it would pull focus into the line.
   renderHost(block: string, region: string): void {
     const element = this.registry.get(block, region);
     const host = element && { block, region, element };
-    if (host && !this.isComposing(host)) this.hosts.render(host);
+    if (!host || this.isComposing(host) || !this.hosts.render(host)) return;
+    const inSelection = element.contains(this.domSelection()?.focusNode ?? null);
+    if (inSelection && hasFocus(this, element.ownerDocument)) this.syncSelectionToDom();
   }
 
   domSelection(): globalThis.Selection | null {
@@ -201,17 +209,18 @@ export class ViewController {
 
   // While an IME composes, the composing host's offset map is stale and moving the DOM selection would cancel the
   // composition, so the selection is left alone in both directions. A selection across hosts or of whole blocks has no
-  // native form in the hosts and is held by the sink, and where no sink is drawn a caret left behind in a host would be
-  // read back on the next key, so a block range empties the native selection.
+  // native form in the hosts and is held by the sink. Where no sink is drawn, a node selection falls back to its shell,
+  // and a caret left behind in a host would be read back on the next key, so a block range empties the native selection.
   syncSelectionToDom(): void {
     const doc = this.ownerDocument();
     const domSelection = doc?.getSelection();
-    if (this.composingKey !== null || !doc || !domSelection || !ownsFocus(this, doc)) return;
+    if (focusingSink(this) || this.composingKey !== null || !doc || !domSelection || !ownsFocus(this, doc)) return;
     const before = selectionPoints(domSelection);
     const { selection } = this.editor.state;
-    if (selection?.kind === 'blocks' && this.sink === null) domSelection.removeAllRanges();
-    else if (heldBySink(selection)) focusSink(this);
+    if (heldBySink(selection) && this.sink !== null) focusSink(this);
+    else if (selection?.kind === 'blocks') domSelection.removeAllRanges();
     else writeSelection(this.registry, selection, domSelection, (id) => this.blockElement(id));
+    this.nodeReveal.show(selection);
     const after = selectionPoints(domSelection);
     if (!samePoints(before, after)) this.binding?.selectionSync.suppressNext();
   }
@@ -242,20 +251,16 @@ export class ViewController {
     if (selection !== null && !sameSelection(selection, editor.state.selection)) {
       this.dispatch(editor.createTransaction().setSelection(selection));
     }
-    this.drawn.focusElement()?.focus();
+    this.takeFocus();
     this.syncSelectionToDom();
   }
 
   setReadOnly(readOnly: boolean): void {
-    const changed = readOnly !== this.readOnlyFlag;
-    this.readOnlyFlag = readOnly;
-    for (const { element } of this.registry.all()) element.contentEditable = readOnly ? 'false' : 'true';
-    if (changed) for (const listener of [...this.readOnlyListeners]) listener();
+    this.readOnlyState.set(readOnly);
   }
 
   subscribeReadOnly(listener: () => void): () => void {
-    this.readOnlyListeners.add(listener);
-    return () => void this.readOnlyListeners.delete(listener);
+    return this.readOnlyState.subscribe(listener);
   }
 
   destroy(): void {
@@ -273,9 +278,13 @@ export class ViewController {
   // React replaces a host whose block changes kind, which drops focus, and Firefox does not move focus into another
   // host when a script selects inside it.
   private keepFocus(): void {
+    if (this.composingKey === null) this.takeFocus();
+  }
+
+  private takeFocus(): void {
     const element = this.drawn.focusElement();
-    if (this.composingKey === null && element && element.ownerDocument.activeElement !== element) {
-      element.focus();
-    }
+    if (!element || element.ownerDocument.activeElement === element) return;
+    if (element === this.sink) focusSink(this);
+    else element.focus();
   }
 }

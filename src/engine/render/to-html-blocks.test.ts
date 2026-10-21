@@ -131,7 +131,20 @@ describe('toHTML media blocks', () => {
     expect(html(b('IMAGE', { storageKey: 'a/b.png', alt: 'x' }))).toBe('<figure><img src="a/b.png" alt="x"></figure>');
   });
 
-  it('trusts what a host resolver returns, and writes nothing when it returns nothing', () => {
+  it('keeps an http, https, blob, data or relative address a host resolver returns, and writes no other', () => {
+    for (const kept of ['https://a.b/k', 'http://a.b/k', 'blob:https://a.b/1', 'data:image/png;base64,AA', '/a/k']) {
+      const resolveAssetUrl = () => kept;
+      expect(html(b('IMAGE', { storageKey: 'k', alt: 'x' }), { resolveAssetUrl })).toBe(`<figure><img src="${kept}" alt="x"></figure>`);
+      expect(html(b('FILE', { storageKey: 'k', filename: 'f' }), { resolveAssetUrl })).toBe(`<p><a href="${kept}" download>f</a></p>`);
+    }
+    for (const dropped of ['javascript:alert(1)', 'vbscript:x', 'file:///etc/passwd', 'mailto:a@b.c', 'app:k']) {
+      const resolveAssetUrl = () => dropped;
+      expect(html(b('IMAGE', { storageKey: 'k', alt: 'x' }), { resolveAssetUrl })).toBe('');
+      expect(html(b('FILE', { storageKey: 'k', filename: 'f' }), { resolveAssetUrl })).toBe('');
+    }
+  });
+
+  it('writes what a host resolver returns for a key, and nothing when it returns nothing', () => {
     const resolveAssetUrl = (key: string) => (key === 'gone' ? '' : `/a/${key}`);
     expect(html(b('IMAGE', { storageKey: 'gone', alt: 'x' }), { resolveAssetUrl })).toBe('');
     expect(html(b('FILE', { storageKey: 'gone', filename: 'f' }), { resolveAssetUrl })).toBe('');
@@ -142,7 +155,9 @@ describe('toHTML media blocks', () => {
     const link = '<p><a href="https://youtu.be/dQw4w9WgXcQ" rel="noopener noreferrer">https://youtu.be/dQw4w9WgXcQ</a></p>';
     expect(html(b('EMBED', { url: 'https://youtu.be/dQw4w9WgXcQ' }))).toBe(link);
     expect(html(b('EMBED', { url: 'https://youtu.be/dQw4w9WgXcQ' }), { embeds: 'iframe' })).toBe(
-      '<iframe src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ" sandbox="allow-scripts allow-same-origin allow-presentation" loading="lazy"></iframe>',
+      '<iframe src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ" ' +
+        'sandbox="allow-scripts allow-same-origin allow-presentation allow-popups" loading="lazy" ' +
+        'referrerpolicy="strict-origin-when-cross-origin"></iframe>',
     );
     expect(html(b('EMBED', { url: 'mailto:a@b.c' }), { embeds: 'iframe' })).toContain('<p><a href="mailto:a@b.c"');
     expect(html(b('EMBED', { url: 'javascript:alert(1)' }), { embeds: 'iframe' })).toBe('');

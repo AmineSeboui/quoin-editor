@@ -107,9 +107,9 @@ describe('command helpers', () => {
 
   it('keeps one origin, and falls back to command when they differ', () => {
     const { helpers, last } = setup();
-    helpers.chain().insertText('a').insertText('b').run();
+    helpers.chain().insertText('a', { origin: 'input' }).insertText('b', { origin: 'input' }).run();
     expect(last.tr?.origin).toBe('input');
-    helpers.chain().insertText('a').toggleMark('bold').run();
+    helpers.chain().insertText('a', { origin: 'input' }).toggleMark('bold').run();
     expect(last.tr?.origin).toBe('command');
   });
 

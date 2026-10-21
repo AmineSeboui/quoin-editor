@@ -1,0 +1,247 @@
+import { expect, test, type Locator, type Page } from '@playwright/test';
+import { axeViolations } from '../../support/axe';
+import { blocks, openEditor } from '../../support/editor';
+
+const popover = (page: Page) => page.getByRole('dialog', { name: 'Edit equation' });
+const field = (page: Page) => page.getByRole('textbox', { name: 'LaTeX' });
+const formula = (page: Page) => page.locator('[data-quoin-atom="math"]').first();
+const equation = (page: Page) => page.getByRole('group', { name: 'Equation' });
+const markdownOf = async (page: Page, id: string) => (await blocks(page)).find((block) => block.id === id)?.data.markdown;
+const latexOf = async (page: Page) => (await blocks(page)).find((block) => block.type === 'MATH')?.data.latex;
+
+// The click places the caret through the browser, so its selectionchange has to reach the editor before a key does.
+async function caretIn(page: Page, host: Locator = page.locator('[data-quoin-host]').first()) {
+  await host.click();
+  await expect(host).toBeFocused();
+  await page.waitForFunction(() => document.activeElement?.contains(document.getSelection()?.focusNode ?? null));
+  return host;
+}
+
+async function caretAtEnd(page: Page, host: Locator) {
+  const box = (await host.boundingBox())!;
+  await page.mouse.click(box.x + box.width - 2, box.y + box.height / 2);
+  await expect(host).toBeFocused();
+  await page.waitForFunction(() => document.activeElement?.contains(document.getSelection()?.focusNode ?? null));
+}
+
+test('type inline math and edit it', async ({ page }) => {
+  await openEditor(page, 'empty', 'math=1');
+  const host = await caretIn(page);
+  await page.keyboard.type('Area $x^2$');
+  await expect(formula(page).locator('.harness-math')).toHaveText('x^2');
+  await expect.poll(async () => (await blocks(page))[0].data.markdown).toBe('Area $x^2$');
+
+  await formula(page).click();
+  await expect(field(page)).toBeFocused();
+  await expect(field(page)).toHaveValue('x^2');
+  await field(page).fill('y^3');
+  await expect(popover(page).locator('.harness-math')).toHaveText('y^3');
+  await page.keyboard.press('Enter');
+  await expect(popover(page)).toHaveCount(0);
+  await expect(host).toBeFocused();
+  await expect.poll(async () => (await blocks(page))[0].data.markdown).toBe('Area $y^3$');
+  await page.keyboard.type('!');
+  await expect.poll(async () => (await blocks(page))[0].data.markdown).toBe('Area $y^3$!');
+});
+
+test('Enter right after a formula typed at the end of a line goes on in a new line', async ({ page }) => {
+  await openEditor(page, 'empty', 'math=1');
+  await caretIn(page);
+  await page.keyboard.type('Area $x$');
+  await expect(formula(page)).toHaveCount(1);
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('next');
+  await expect(popover(page)).toHaveCount(0);
+  await expect.poll(async () => (await blocks(page)).map((block) => block.data.markdown)).toEqual(['Area $x$', 'next']);
+});
+
+test('the / menu inserts a block equation, and writes an inline one at the caret once its LaTeX is stored', async ({
+  page,
+}) => {
+  await openEditor(page, 'empty', 'math=1');
+  await caretIn(page);
+  await page.keyboard.type('Area /inlineeq');
+  await page.keyboard.press('Enter');
+  await expect(field(page)).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect.poll(async () => (await blocks(page))[0].data.markdown).toBe('Area&#32;');
+  await page.keyboard.type('/inlineeq');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('x^2');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type(' m');
+  await expect.poll(async () => (await blocks(page))[0].data.markdown).toBe('Area $x^2$ m');
+  expect(await axeViolations(page)).toEqual([]);
+
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('/blockeq');
+  await page.keyboard.press('Enter');
+  await expect(field(page)).toBeFocused();
+  await page.keyboard.type('\\int');
+  await page.keyboard.press('ControlOrMeta+Enter');
+  await expect(equation(page).locator('.harness-math')).toHaveText('\\int');
+});
+
+test('a price typed with dollars stays text', async ({ page }) => {
+  await openEditor(page, 'empty', 'math=1');
+  const host = await caretIn(page);
+  await page.keyboard.type('It costs $5 and $10, not 4$.');
+  await expect(host).toHaveText('It costs $5 and $10, not 4$.');
+  await expect(page.locator('[data-quoin-atom]')).toHaveCount(0);
+});
+
+test('Backspace selects a formula with a highlight, Enter then edits it, and a second Backspace deletes it', async ({
+  page,
+}) => {
+  await openEditor(page, 'math', 'math=1');
+  const host = page.locator('[data-block-id="p"] [data-quoin-host]');
+  await caretAtEnd(page, host);
+  for (let step = 0; step < ' here'.length; step++) await page.keyboard.press('ArrowLeft');
+  await page.keyboard.press('Backspace');
+  const selected = page.locator('[data-quoin-selected-atom] > [data-quoin-atom="math"]');
+  await expect(selected).toHaveCount(1);
+  expect(await selected.evaluate((element) => getComputedStyle(element).outlineStyle)).toBe('solid');
+
+  await page.keyboard.press('Enter');
+  await expect(field(page)).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(popover(page)).toHaveCount(0);
+  await expect(host).toBeFocused();
+  await page.keyboard.type('!');
+  await expect.poll(() => markdownOf(page, 'p')).toBe('Area $x^2$! here');
+
+  await page.keyboard.press('Backspace');
+  await page.keyboard.press('Backspace');
+  await expect(selected).toHaveCount(1);
+  await page.keyboard.press('Backspace');
+  await expect.poll(() => markdownOf(page, 'p')).toBe('Area  here');
+});
+
+for (const key of ['Backspace', 'Enter']) {
+  test(`a Shift selection over a formula at the end of a line is the formula, for ${key}`, async ({ page }) => {
+    await openEditor(page, 'math', 'math=1');
+    const host = page.locator('[data-block-id="p"] [data-quoin-host]');
+    await caretAtEnd(page, host);
+    for (let step = 0; step < ' here'.length; step++) await page.keyboard.press('Backspace');
+    await expect.poll(() => markdownOf(page, 'p')).toBe('Area $x^2$');
+    await page.keyboard.press('Shift+ArrowLeft');
+    await expect(page.locator('[data-quoin-selected-atom] > [data-quoin-atom="math"]')).toHaveCount(1);
+    await page.keyboard.press(key);
+    if (key === 'Enter') {
+      await expect(field(page)).toBeFocused();
+      await expect(field(page)).toHaveValue('x^2');
+      expect((await blocks(page)).map((block) => block.id)).toEqual(['p', 'm', 'q']);
+    } else {
+      await expect(host.locator('[data-quoin-atom]')).toHaveCount(0);
+      await expect(host).toHaveText('Area');
+      expect((await blocks(page)).map((block) => block.id)).toEqual(['p', 'm', 'q']);
+    }
+  });
+}
+
+test('a drag from inside a word to past a formula at the end of its line takes the formula, so Backspace removes both', async ({
+  page,
+}) => {
+  await openEditor(page, 'math', 'math=1');
+  const host = page.locator('[data-block-id="p"] [data-quoin-host]');
+  await caretAtEnd(page, host);
+  for (let step = 0; step < ' here'.length; step++) await page.keyboard.press('Backspace');
+  await expect.poll(() => markdownOf(page, 'p')).toBe('Area $x^2$');
+  // Chromium ends such a drag inside the formula when it starts after the first character of the line.
+  const start = await host.evaluate((element) => {
+    const range = document.createRange();
+    range.setStart(element.firstChild!, 2);
+    range.setEnd(element.firstChild!, 3);
+    return range.getBoundingClientRect().left + 1;
+  });
+  const atom = (await formula(page).boundingBox())!;
+  const line = (await host.boundingBox())!;
+  const middle = atom.y + atom.height / 2;
+  await page.mouse.move(start, middle);
+  await page.mouse.down();
+  await page.mouse.move(atom.x + atom.width + 20, middle, { steps: 5 });
+  await page.mouse.move(line.x + line.width - 5, middle, { steps: 5 });
+  await page.mouse.up();
+  await page.keyboard.press('Backspace');
+  await expect.poll(() => markdownOf(page, 'p')).toBe('Ar');
+});
+
+test('a Shift+click on a formula from right after it selects the formula, and the next key types over it', async ({
+  page,
+}) => {
+  await openEditor(page, 'math', 'math=1');
+  const host = page.locator('[data-block-id="p"] [data-quoin-host]');
+  const atom = (await formula(page).boundingBox())!;
+  const middle = atom.y + atom.height / 2;
+  await page.mouse.click(atom.x + atom.width + 1, middle);
+  await expect(host).toBeFocused();
+  await page.waitForFunction(() => document.activeElement?.contains(document.getSelection()?.focusNode ?? null));
+  await page.keyboard.down('Shift');
+  await page.mouse.click(atom.x + atom.width / 2, middle);
+  await page.keyboard.up('Shift');
+  await expect(page.locator('[data-quoin-selected-atom] > [data-quoin-atom="math"]')).toHaveCount(1);
+  await expect(popover(page)).toHaveCount(0);
+  await page.keyboard.type('Z');
+  await expect.poll(() => markdownOf(page, 'p')).toBe('Area Z here');
+});
+
+test('a math block opens its editor on a click, stores on Mod+Enter and hands focus back to the block', async ({ page }) => {
+  await openEditor(page, 'math', 'math=1');
+  await equation(page).click();
+  await expect(field(page)).toBeFocused();
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('+ 1');
+  await expect(popover(page).locator('.harness-math')).toHaveAttribute('data-display', 'true');
+  expect(await axeViolations(page, 'all', '[role="dialog"]')).toEqual([]);
+  await page.keyboard.press('ControlOrMeta+Enter');
+  await expect(popover(page)).toHaveCount(0);
+  await expect.poll(() => latexOf(page)).toBe('\\int_0^1 x\\,dx\n+ 1');
+  await expect(page.locator('[data-quoin-sink]')).toBeFocused();
+  await expect(page.locator('[data-block-id="m"]')).toHaveAttribute('data-selected', 'true');
+  await page.keyboard.press('ControlOrMeta+z');
+  await expect.poll(() => latexOf(page)).toBe('\\int_0^1 x\\,dx');
+});
+
+test('$$ and a space make a math block whose editor opens at once', async ({ page }) => {
+  await openEditor(page, 'empty', 'math=1');
+  await caretIn(page);
+  await page.keyboard.type('$$ ');
+  await expect(field(page)).toBeFocused();
+  await page.keyboard.type('\\sum_i i');
+  await page.keyboard.press('ControlOrMeta+Enter');
+  await expect(equation(page).locator('.harness-math')).toHaveText('\\sum_i i');
+});
+
+test('a press in the text stores the formula and leaves the caret where it was pressed', async ({ page }) => {
+  await openEditor(page, 'math', 'math=1');
+  await formula(page).click();
+  await field(page).fill('z');
+  const below = page.locator('[data-block-id="q"] [data-quoin-host]');
+  await caretAtEnd(page, below);
+  await expect(popover(page)).toHaveCount(0);
+  await expect.poll(() => markdownOf(page, 'p')).toBe('Area $z$ here');
+  await page.keyboard.type('!');
+  await expect.poll(() => markdownOf(page, 'q')).toBe('Below the equation!');
+});
+
+test('without renderMath the LaTeX shows as monospace text', async ({ page }) => {
+  await openEditor(page, 'math', 'math=source');
+  await expect(formula(page)).toHaveText('x^2');
+  await expect(equation(page).locator('pre')).toHaveText('\\int_0^1 x\\,dx');
+  const font = await equation(page).locator('pre').evaluate((element) => getComputedStyle(element).fontFamily);
+  expect(font).toMatch(/mono/i);
+});
+
+test('math has no accessibility violations, editable or read-only', async ({ page }) => {
+  await openEditor(page, 'math', 'math=1');
+  expect(await axeViolations(page)).toEqual([]);
+  await formula(page).click();
+  await expect(field(page)).toBeFocused();
+  expect(await axeViolations(page, 'all', '[role="dialog"]')).toEqual([]);
+
+  await openEditor(page, 'math', 'math=1&readonly=1');
+  await formula(page).click();
+  await equation(page).click();
+  await expect(popover(page)).toHaveCount(0);
+  expect(await axeViolations(page)).toEqual([]);
+});

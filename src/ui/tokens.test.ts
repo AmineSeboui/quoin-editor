@@ -2,7 +2,6 @@ import css from './tokens.css?raw';
 import viewCss from '../view/view.css?raw';
 import stylesCss from '../styles.css?raw';
 import inputSource from './input.tsx?raw';
-import textareaSource from './textarea.tsx?raw';
 import { TONE } from '../blocks/previews';
 import { PALETTE } from '../engine/markdown/palette';
 import { contrastOnWash, contrastRatio, tokenReader, type Theme } from './oklch-contrast';
@@ -37,10 +36,7 @@ function fieldBorder(source: string): string {
   return token;
 }
 
-const FIELD_BORDERS = [
-  { field: 'input', token: fieldBorder(inputSource) },
-  { field: 'textarea', token: fieldBorder(textareaSource) },
-];
+const FIELD_BORDERS = [{ field: 'input', token: fieldBorder(inputSource) }];
 
 const FIELD_SURFACES = ['background', 'popover', 'accent'];
 

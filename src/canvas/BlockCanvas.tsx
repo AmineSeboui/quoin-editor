@@ -9,6 +9,7 @@ import { coreExtensions } from '../engine';
 import { BlockContextMenu } from '../gutter/BlockContextMenu';
 import { coreBlockMenuActions, menuActions } from '../gutter/block-menu-items';
 import { blockMenuKeymap } from '../gutter/block-menu-keymap';
+import { ExtensionBlockNames } from '../gutter/extension-block-names';
 import { Gutter } from '../gutter/Gutter';
 import { resolveLabels } from '../i18n/resolve-labels';
 import { bubbleExtension, BubbleItemsProvider } from '../menus/bubble/bubble-extension';
@@ -23,6 +24,7 @@ import type { BlockCanvasProps, QuoinEditorHandle } from './canvas-props';
 import { collectUi } from './collect-ui';
 import { insertUploads } from './insert-uploads';
 import { placeholderFor } from './placeholders';
+import { selectedBlockLabel } from './selected-block-label';
 import { CanvasUiProvider, createCanvasUiStore } from './ui-store';
 import { useBlockLinkTarget } from './use-block-link-target';
 import { useDeleteReporter } from './use-delete-reporter';
@@ -42,6 +44,7 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
     upload,
     resolveAssetUrl,
     onError,
+    highlight,
     readOnly = false,
     autoFocus = false,
     placeholder,
@@ -78,8 +81,10 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
     onFiles: (files, at) =>
       void insertUploads(controller, files, at, {
         upload,
+        resolveAssetUrl: resolveAssetUrl ?? String,
         onError: onError ?? console.error,
         unavailable: labels.uploadsUnavailable,
+        failed: labels.uploadFailed,
       }),
   });
   useDeleteReporter(controller, onDelete);
@@ -92,6 +97,10 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
   const slashItems = useMemo(
     () => [shortcutsSlashItem(labels, uiStore), ...ui.slashItems],
     [labels, uiStore, ui.slashItems],
+  );
+  const blockLabel = useMemo(
+    () => selectedBlockLabel(labels, blockTypes, ui.blockNames),
+    [labels, blockTypes, ui.blockNames],
   );
   const blockPlaceholder = useMemo<BlockPlaceholder>(() => {
     const placeholderLabels = placeholder === undefined ? labels : { ...labels, placeholderEmpty: placeholder };
@@ -110,7 +119,7 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
   );
 
   return (
-    <QuoinProvider value={{ blockTypes, upload, resolveAssetUrl, onError, controller, labels }}>
+    <QuoinProvider value={{ blockTypes, upload, resolveAssetUrl, onError, highlight, controller, labels }}>
       <VoidEditingContext.Provider value={voidEditing}>
         <SlashItemsProvider value={slashItems}>
           <BubbleItemsProvider value={ui.bubbleItems}>
@@ -124,13 +133,18 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
                 hint={labels.editorHint}
                 paragraphLabel={labels.paragraph}
                 selectedContentLabel={labels.selectedContent}
+                blockLabel={blockLabel}
                 unsupportedBlockLabel={labels.unsupportedBlock}
                 placeholder={placeholder ?? labels.placeholderEmpty}
                 blockPlaceholder={blockPlaceholder}
                 blocksSelectedLabel={labels.blocksSelected}
               >
-                {!readOnly && <Gutter controller={controller} store={uiStore} actions={actions} />}
-                {!readOnly && <BlockContextMenu controller={controller} store={uiStore} actions={actions} />}
+                {!readOnly && (
+                  <ExtensionBlockNames.Provider value={ui.blockNames}>
+                    <Gutter controller={controller} store={uiStore} actions={actions} />
+                    <BlockContextMenu controller={controller} store={uiStore} actions={actions} />
+                  </ExtensionBlockNames.Provider>
+                )}
                 {ui.overlays.map((Overlay, index) => (
                   <Overlay key={index} controller={controller} />
                 ))}

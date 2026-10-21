@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import type { CodeHighlighter } from './blocks/code/code-highlighter';
 import { englishLabels } from './i18n/english-labels';
 import type { QuoinLabels } from './i18n/labels';
 import type { AnyBlockDefinition } from './registry';
@@ -14,6 +15,8 @@ export type QuoinConfig = {
   upload?: UploadFn;
   resolveAssetUrl: (storageKey: string) => string;
   onError: (error: Error) => void;
+  /** Highlights the code of code blocks; without it their code is drawn as plain text. */
+  highlight?: CodeHighlighter;
   /** The controller of the canvas the block is drawn in; null under a provider no canvas set up. */
   controller: ViewController | null;
   labels: QuoinLabels;
@@ -26,7 +29,7 @@ export type QuoinConfigInput = Partial<QuoinConfig> & {
 
 const QuoinContext = React.createContext<QuoinConfig | null>(null);
 
-/** Supplies the block registry, the host couplings (upload, asset URLs, error reporting), the canvas controller and the labels to every block below it. */
+/** Supplies the block registry, the host couplings (upload, asset URLs, error reporting, code highlighting), the canvas controller and the labels to every block below it. */
 export function QuoinProvider({
   value,
   children,
@@ -34,7 +37,7 @@ export function QuoinProvider({
   value: QuoinConfigInput;
   children: React.ReactNode;
 }) {
-  const { blockTypes, upload, resolveAssetUrl, onError, controller = null, labels = englishLabels } = value;
+  const { blockTypes, upload, resolveAssetUrl, onError, highlight, controller = null, labels = englishLabels } = value;
   const config = React.useMemo<QuoinConfig>(
     () => ({
       blockTypes,
@@ -43,10 +46,11 @@ export function QuoinProvider({
       // wherever a resolved URL is tested for "no asset chosen yet".
       resolveAssetUrl: resolveAssetUrl ?? ((key: string) => key),
       onError: onError ?? ((error: Error) => console.error(error)),
+      highlight,
       controller,
       labels,
     }),
-    [blockTypes, upload, resolveAssetUrl, onError, controller, labels],
+    [blockTypes, upload, resolveAssetUrl, onError, highlight, controller, labels],
   );
   return <QuoinContext.Provider value={config}>{children}</QuoinContext.Provider>;
 }

@@ -38,14 +38,12 @@ test('a command chosen after a space at the end of a line takes that space with 
   await expect.poll(() => shape(page)).toEqual(['MARKDOWN:# Title', 'MARKDOWN:First paragraph.', 'MARKDOWN:> after']);
 });
 
-test('/code opens the code editor, so what is typed next goes into it', async ({ page }) => {
+test('/code lands the caret in the code, so what is typed next goes into it', async ({ page }) => {
   await chooseInEmptyDocument(page, '/code');
-  await expect(page.getByRole('textbox', { name: 'Language' })).toBeFocused();
-  await page.keyboard.type('ts');
-  await page.keyboard.press('Tab');
+  await expect(page.getByRole('textbox', { name: 'Code', exact: true })).toBeFocused();
   await page.keyboard.type('let x = 1;');
   await expect.poll(async () => (await blocks(page)).map((block) => block.data)).toEqual([
-    { language: 'ts', code: 'let x = 1;' },
+    { language: '', code: 'let x = 1;' },
   ]);
 });
 

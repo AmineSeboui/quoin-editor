@@ -101,11 +101,11 @@ describe('a block range in the sink', () => {
     expect(hostOf(container, 'b').contains(document.getSelection()!.anchorNode)).toBe(true);
   });
 
-  it('leaves the sink empty for a node selection, which stays on its shell', () => {
-    const { sink, container, select } = mount([md('a', 'hello'), { id: 'd', type: 'DIVIDER', data: {} }]);
+  it('keeps focus in the sink when the range narrows to a node selection', () => {
+    const { sink, select } = mount([md('a', 'hello'), { id: 'd', type: 'DIVIDER', data: {} }]);
     select(blockRangeSelection('a', 'd'));
     select(nodeSelection('d'));
-    expect(sink.textContent).toBe('');
-    expect(document.activeElement).toBe(container.querySelector('[data-block-id="d"]'));
+    expect(document.activeElement).toBe(sink);
+    expect(document.getSelection()!.isCollapsed).toBe(false);
   });
 });

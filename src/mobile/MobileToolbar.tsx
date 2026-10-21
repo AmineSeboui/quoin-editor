@@ -3,7 +3,6 @@
 import { useMemo, type CSSProperties, type KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useCanvasUiStore } from '../canvas/ui-store';
-import type { EditorState } from '../engine';
 import type { ToolbarItem } from '../extensions/ui-types';
 import { useLabels } from '../i18n/use-labels';
 import { ToolbarButton } from '../menus/bubble/bubble-items';
@@ -12,7 +11,7 @@ import { useRovingFocus } from '../menus/bubble/use-roving-focus';
 import { bubblePart } from '../menus/bubble/bubble-part';
 import { keepFocus } from '../menus/floating/keep-focus';
 import type { ViewController } from '../view';
-import { useEditorState } from '../view/react/use-editor-state';
+import { useEditorState, wholeState } from '../view/react/use-editor-state';
 import { mobileItems } from './mobile-items';
 import { useCoarsePointer } from './use-coarse-pointer';
 import { useEditorFocus } from './use-editor-focus';
@@ -22,8 +21,6 @@ const TOOLBAR = [
   'quoin bg-popover text-popover-foreground fixed inset-x-0 z-40 flex items-center gap-0.5 overflow-x-auto',
   'border-t p-1 shadow-md',
 ].join(' ');
-
-const wholeState = (state: EditorState) => state;
 
 // A fixed element is placed against the layout viewport, which a virtual keyboard leaves whole, so the bar follows the
 // bottom edge of the visual viewport instead.

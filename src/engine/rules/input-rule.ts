@@ -60,7 +60,7 @@ export function insertTextWithRules(
   options: { newId?: () => string } = {},
 ): Command {
   const context: InputRuleContext = { newId: options.newId ?? newId };
-  const insert = insertText(value, { newId: context.newId });
+  const insert = insertText(value, { origin: 'input', newId: context.newId });
   return (state, dispatch) => {
     let fired = false;
     const applyRules: Command = (current, emit) => {

@@ -1,6 +1,7 @@
 import { memo, useRef, type CSSProperties } from 'react';
 import type { EngineBlock } from '../../engine';
 import { alignOrUndefined, paletteOrUndefined } from '../../engine/blocks/data-fields';
+import { hostDecorations, sameDecorations } from '../controller/host-decorations';
 import { useBlockDomId } from './block-dom-id';
 import type { BlockRenderer } from './block-renderer-types';
 import { blockStatus } from './block-status';
@@ -26,6 +27,7 @@ export const BlockShell = memo(function BlockShell({ block, renderers }: BlockSh
   const domId = useBlockDomId();
   const choices = useReaderChoices(controller);
   const status = useEditorState(controller, (state) => blockStatus(state, block.id, choices));
+  const decorations = useEditorState(controller, () => hostDecorations(controller.editor, block.id, ''), sameDecorations);
   const hidden = status === 'hidden';
 
   useIsomorphicLayoutEffect(() => {
@@ -38,6 +40,7 @@ export const BlockShell = memo(function BlockShell({ block, renderers }: BlockSh
   const { kind, color, background, align } = block.attrs;
   return (
     <div
+      {...Object.assign({}, ...decorations.map((decoration) => decoration.attrs))}
       ref={ref}
       id={domId(block.id)}
       data-quoin-block=""

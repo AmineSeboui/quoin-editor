@@ -77,6 +77,96 @@
         "default": "./dist/engine.cjs"
       }
     },
+    "./table": {
+      "import": {
+        "types": "./dist/table.d.ts",
+        "default": "./dist/table.js"
+      },
+      "require": {
+        "types": "./dist/table.d.cts",
+        "default": "./dist/table.cjs"
+      }
+    },
+    "./embed": {
+      "import": {
+        "types": "./dist/embed.d.ts",
+        "default": "./dist/embed.js"
+      },
+      "require": {
+        "types": "./dist/embed.d.cts",
+        "default": "./dist/embed.cjs"
+      }
+    },
+    "./math": {
+      "import": {
+        "types": "./dist/math.d.ts",
+        "default": "./dist/math.js"
+      },
+      "require": {
+        "types": "./dist/math.d.cts",
+        "default": "./dist/math.cjs"
+      }
+    },
+    "./toc": {
+      "import": {
+        "types": "./dist/toc.d.ts",
+        "default": "./dist/toc.js"
+      },
+      "require": {
+        "types": "./dist/toc.d.cts",
+        "default": "./dist/toc.cjs"
+      }
+    },
+    "./mention": {
+      "import": {
+        "types": "./dist/mention.d.ts",
+        "default": "./dist/mention.js"
+      },
+      "require": {
+        "types": "./dist/mention.d.cts",
+        "default": "./dist/mention.cjs"
+      }
+    },
+    "./emoji": {
+      "import": {
+        "types": "./dist/emoji.d.ts",
+        "default": "./dist/emoji.js"
+      },
+      "require": {
+        "types": "./dist/emoji.d.cts",
+        "default": "./dist/emoji.cjs"
+      }
+    },
+    "./find": {
+      "import": {
+        "types": "./dist/find.d.ts",
+        "default": "./dist/find.js"
+      },
+      "require": {
+        "types": "./dist/find.d.cts",
+        "default": "./dist/find.cjs"
+      }
+    },
+    "./stats": {
+      "import": {
+        "types": "./dist/stats.d.ts",
+        "default": "./dist/stats.js"
+      },
+      "require": {
+        "types": "./dist/stats.d.cts",
+        "default": "./dist/stats.cjs"
+      }
+    },
+    "./catalogue": {
+      "import": {
+        "types": "./dist/catalogue.d.ts",
+        "default": "./dist/catalogue.js"
+      },
+      "require": {
+        "types": "./dist/catalogue.d.cts",
+        "default": "./dist/catalogue.cjs"
+      }
+    },
     "./styles.css": "./dist/styles.css",
     "./package.json": "./package.json"
   },
@@ -84,10 +174,12 @@
     "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
     "build": "npm run clean && tsup && npm run build:css",
     "build:css": "tailwindcss -i ./src/styles.css -o ./dist/styles.css --minify",
+    "build:emoji": "node scripts/build-emoji-data.mjs",
     "check:css": "node scripts/check-css-scope.mjs dist/styles.css",
     "check:size": "node scripts/check-size.mjs",
     "check:directives": "node scripts/check-directives.mjs",
     "check:consumer": "node scripts/check-consumer.mjs",
+    "sync:exports": "node scripts/sync-exports.mjs",
     "lint": "eslint . && node scripts/check-engine-deps.mjs",
     "typecheck": "tsc --noEmit && tsc --noEmit -p e2e/tsconfig.json",
     "test": "vitest run",
@@ -106,10 +198,8 @@
     "@radix-ui/react-dropdown-menu": "^2.1.6",
     "@radix-ui/react-popover": "^1.1.6",
     "@radix-ui/react-slot": "^1.4.0",
-    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "lucide-react": "^1.17.0",
-    "tailwind-merge": "^3.0.0"
+    "lucide-react": "^1.17.0"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
@@ -124,6 +214,7 @@
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
     "@vitest/coverage-v8": "^3.2.7",
+    "emojibase-data": "17.0.0",
     "esbuild": "^0.27.7",
     "eslint": "^9.39.5",
     "eslint-plugin-react-hooks": "^5.2.0",

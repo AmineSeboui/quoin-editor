@@ -1,17 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
 import { blocks, openEditor } from '../../support/editor';
+import { chooseCommand } from '../../support/slash';
 
 const shell = (page: Page, id: string) => page.locator(`[data-block-id="${id}"]`);
 const host = (page: Page, id: string) => shell(page, id).locator('[data-quoin-host]');
 const handle = (page: Page) => page.getByRole('button', { name: 'Drag to move, click for options' });
 const markdown = async (page: Page) =>
   (await blocks(page)).map((block) => (block.type === 'MARKDOWN' ? block.data.markdown : block.data));
-
-async function chooseCommand(page: Page, query: string, name: string) {
-  await page.keyboard.type(`/${query}`);
-  await expect(page.getByRole('listbox', { name: 'Commands' }).getByRole('option', { selected: true })).toContainText(name);
-  await page.keyboard.press('Enter');
-}
 
 async function dragBelow(page: Page, id: string, target: string) {
   await host(page, id).hover();

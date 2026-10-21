@@ -2,7 +2,7 @@ import { createContext } from 'react';
 import type { EditorState, EngineBlock } from '../../engine';
 import { blockById } from '../../engine/model/doc';
 import { primaryRegion } from '../../engine/state/selection';
-import { headingLevel } from './heading-level';
+import { headingLevel } from '../../engine/render/heading-level';
 
 /** The text an empty block shows in its main region, read again whenever the editor state changes. */
 export type BlockPlaceholder = (state: EditorState, block: EngineBlock) => string | undefined;

@@ -3,7 +3,7 @@
 import { useLabels } from '../../i18n/use-labels';
 import { EditableRegion, type BlockRenderProps, type BlockRenderer } from '../../view';
 import { useRegionDomId } from '../../view/react/block-dom-id';
-import { headingLevel } from '../../view/react/heading-level';
+import { headingLevel } from '../../engine/render/heading-level';
 import { useOrderedNumber } from '../../view/react/use-ordered-number';
 import { ListMarker } from './ListMarker';
 import { TaskCheckbox } from './TaskCheckbox';

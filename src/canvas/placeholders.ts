@@ -2,7 +2,7 @@ import type { EditorState, EngineBlock } from '../engine';
 import { regionLength } from '../engine/commands/block-helpers';
 import { primaryRegion } from '../engine/state/selection';
 import type { QuoinLabels } from '../i18n/labels';
-import { headingLevel } from '../view/react/heading-level';
+import { headingLevel } from '../engine/render/heading-level';
 
 const LIST_KINDS: ReadonlySet<unknown> = new Set(['bullet', 'ordered', 'task']);
 

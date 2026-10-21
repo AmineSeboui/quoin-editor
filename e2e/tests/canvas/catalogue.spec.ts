@@ -149,8 +149,8 @@ for (const { id, option, drawn } of gaps('readOnly')) {
 for (const { id, option, wholeByArrow } of gaps('axeWhole')) {
   test.describe(() => {
     test.fixme(
-      ({ browserName }) => browserName === 'webkit' && id === 'text',
-      'WebKit cannot close the page once a paragraph of a long document has been selected as a whole for a second',
+      ({ browserName }) => browserName === 'webkit' && process.platform === 'darwin' && id === 'text',
+      'WebKit on macOS cannot close the page once a paragraph of a long document has been held as a block range for a second',
     );
     test(`axe finds no violation with ${option} selected as a whole`, async ({ page }) => {
       await openEvery(page);

@@ -44,7 +44,8 @@ class ChannelAwareness implements YjsAwareness {
  */
 export function broadcastProvider(doc: Y.Doc, name: string, batch = false): { awareness: YjsAwareness; leave(): void } {
   const channel = new BroadcastChannel(name);
-  const send = (message: Message) => channel.postMessage(message);
+  let open = true;
+  const send = (message: Message) => open && channel.postMessage(message);
   const awareness = new ChannelAwareness(doc.clientID, send);
   doc.on('update', (update: Uint8Array, origin: unknown) => {
     if (origin !== channel) send({ type: 'update', update });
@@ -62,7 +63,13 @@ export function broadcastProvider(doc: Y.Doc, name: string, batch = false): { aw
     }
   };
   send({ type: 'hello', vector: Y.encodeStateVector(doc) });
-  const leave = () => awareness.announce(null);
+  // Leaving disconnects, as a provider does: whatever the page writes afterwards, a blur on closing included, reaches no
+  // one, so it cannot bring this client back on the other pages.
+  const leave = () => {
+    awareness.announce(null);
+    open = false;
+    channel.close();
+  };
   addEventListener('pagehide', leave);
   return { awareness, leave };
 }

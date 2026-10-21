@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react';
 import { ChevronDown, ChevronUp, X } from 'lucide-react';
+import { keyName, normalizeKey, redo, undo, type Command } from '../../engine';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import type { ViewController } from '../../view';
@@ -22,11 +23,21 @@ const focusAll = (field: HTMLInputElement | null) => {
   field?.select();
 };
 
+const HISTORY: readonly [string, Command][] = [
+  ['Mod-z', undo],
+  ['Mod-Shift-z', redo],
+  ['Mod-y', redo],
+];
+
+const historyCommand = (event: KeyboardEvent, isMac: boolean): Command | undefined =>
+  HISTORY.find(([key]) => normalizeKey(key, isMac) === keyName(event, isMac))?.[1];
+
 const plainEnter = (event: KeyboardEvent) => event.key === 'Enter' && !event.altKey && !event.ctrlKey && !event.metaKey;
 
 /**
  * The query, its options and the replacement, with the count of matches and the means to step through them and replace
- * them. It is not modal: the canvas stays editable, and only Escape or its close button closes it.
+ * them. It is not modal: the canvas stays editable, and only Escape or its close button closes it. Undo and redo pressed
+ * on its buttons undo and redo in the editor, keeping focus in the panel.
  */
 export function FindPanel({ controller, labels, value, readOnly }: Props) {
   const actions = useMemo(() => findActions(controller), [controller]);
@@ -44,7 +55,18 @@ export function FindPanel({ controller, labels, value, readOnly }: Props) {
     } else if (isFindShortcut(event, controller.isMac)) {
       event.preventDefault();
       focusAll(query.current);
+    } else {
+      // Focus stays in the panel after a replace, where the editor's keymap never hears the keys; a field keeps its own.
+      const command = historyCommand(event, controller.isMac);
+      if (command === undefined || readOnly || (event.target as Element).matches('input')) return;
+      event.preventDefault();
+      command(controller.editor.state, (tr) => controller.editor.dispatch(tr));
     }
+  };
+  // WebKit leaves focus on the page after a click on a button, where Escape and the history keys would go nowhere.
+  const onPanelClick = (event: MouseEvent) => {
+    const button = (event.target as Element).closest('button');
+    if (button !== null && button.ownerDocument.activeElement === button.ownerDocument.body) button.focus();
   };
   const onQueryKeyDown = (event: KeyboardEvent) => {
     if (composing(event) || !plainEnter(event)) return;
@@ -64,6 +86,7 @@ export function FindPanel({ controller, labels, value, readOnly }: Props) {
       aria-label={labels.findAndReplace}
       className="quoin quoin-find-panel bg-popover fixed top-4 right-4 z-50 max-w-[calc(100vw-2rem)] text-popover-foreground flex flex-col gap-1.5 rounded-md border p-2 shadow-md"
       onKeyDown={onPanelKeyDown}
+      onClick={onPanelClick}
     >
       <div className="flex flex-wrap items-center gap-1">
         <Input

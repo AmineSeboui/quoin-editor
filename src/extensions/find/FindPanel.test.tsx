@@ -112,6 +112,31 @@ describe('the find panel', () => {
     expect(last()?.map((block) => block.data.markdown)).toEqual(['A dog sat on a cat mat', 'The cat']);
   });
 
+  it('undoes and redoes in the editor on the history keys pressed on its buttons, and leaves them to its fields', () => {
+    const { fill, button, last, mod, field } = openOn();
+    fill('Find', 'cat');
+    fill('Replace with', 'dog');
+    act(() => button('Replace all').click());
+    const texts = () => last()?.map((block) => block.data.markdown);
+    const press = (target: Element, key: string, init: KeyboardEventInit = {}) => {
+      let taken = false;
+      act(() => (target as HTMLElement).focus());
+      act(() => void (taken = !fireEvent.keyDown(target, { key, code: `Key${key.toUpperCase()}`, ...mod(), ...init })));
+      return taken;
+    };
+    expect(press(button('Replace all'), 'z')).toBe(true);
+    expect(texts()).toEqual(['A cat sat on a cat mat', 'The cat']);
+    expect(button('Replace all')).toHaveFocus();
+    expect(press(button('Next match'), 'Z', { shiftKey: true })).toBe(true);
+    expect(texts()).toEqual(['A dog sat on a dog mat', 'The dog']);
+    press(button('Next match'), 'z');
+    expect(press(button('Match case'), 'y')).toBe(true);
+    expect(texts()).toEqual(['A dog sat on a dog mat', 'The dog']);
+    expect(press(field('Replace with'), 'z')).toBe(false);
+    expect(press(field('Find'), 'z')).toBe(false);
+    expect(texts()).toEqual(['A dog sat on a dog mat', 'The dog']);
+  });
+
   it('closes on Escape, clearing the marks and selecting the current match in the editor', () => {
     const { fill, keyIn, panel, handle, host } = openOn();
     fill('Find', 'cat');

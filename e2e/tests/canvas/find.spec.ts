@@ -55,6 +55,20 @@ test('finds, steps through the matches and replaces them all in one undo step', 
   expect([restored[1], restored.at(-1)]).toEqual(['The cat came back', 'The last cat']);
 });
 
+test('undoes and redoes a Replace all from the panel, which keeps focus', async ({ page }) => {
+  await openFind(page);
+  await page.keyboard.type('cat');
+  await panel(page).getByRole('textbox', { name: 'Replace with' }).fill('dog');
+  await panel(page).getByRole('button', { name: 'Replace all' }).click();
+  await expect(status(page)).toHaveText('No results');
+  await expect(panel(page).getByRole('button', { name: 'Replace all' })).toBeFocused();
+  await page.keyboard.press('ControlOrMeta+z');
+  await expect.poll(async () => (await markdownOf(page))[0]).toBe('A cat sat on the **cat** mat');
+  await page.keyboard.press('ControlOrMeta+Shift+z');
+  await expect.poll(async () => (await markdownOf(page))[0]).toBe('A dog sat on the **dog** mat');
+  await expect(panel(page)).toBeVisible();
+});
+
 test('replaces the current match on Enter in the replace field and moves to the next', async ({ page }) => {
   await openFind(page);
   await page.keyboard.type('cat');

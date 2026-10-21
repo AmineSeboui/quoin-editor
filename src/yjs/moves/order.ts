@@ -33,7 +33,8 @@ function moveAfter(context: Context, block: YBlock, after: YBlock): void {
     const target = regionsOf(copy).get(name)!;
     const to = insertPieces(target, 0, pieces);
     const anchor = Y.relativePositionToJSON(Y.createRelativePositionFromTypeIndex(target, 0));
-    writeRecord(context, { kind: 'join', writer: context.me, sv, source: textId(text), from: toRuns(from), to: toRuns(to), anchor });
+    const source = textId(text);
+    writeRecord(context, { kind: 'join', writer: context.me, sv, source, from: toRuns(from), to: toRuns(to), anchor });
   }
 }
 

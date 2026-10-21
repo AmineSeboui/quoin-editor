@@ -61,9 +61,8 @@ export function claimOwn(context: Context, text: Y.Text, list: readonly Unit[], 
     return record === null ? [] : [{ ordinal, record, ...decide(context, unit, record) }];
   });
   // A character re-homed again takes the place of its earlier copies, which are not claimed on their own.
-  const replaced = new Set(
-    decided.flatMap(({ claim, retired, replaces, chain }) => (claim === null && retired === null ? [] : [...replaces, ...chain])).map(idKey),
-  );
+  const taken = decided.filter(({ claim, retired }) => claim !== null || retired !== null);
+  const replaced = new Set(taken.flatMap(({ replaces, chain }) => [...replaces, ...chain]).map(idKey));
   deleteUnits(context, decided.flatMap(({ replaces }) => replaces));
   const redirects: [Id, Id][] = [];
   const retiredBy = new Map<string, Id>();
@@ -90,14 +89,14 @@ export function claimOwn(context: Context, text: Y.Text, list: readonly Unit[], 
       const retired = retiredBy.get(idKey(original));
       if (retired !== undefined) redirects.push([retired, to[i]]);
     });
-    writeRecord(context, { kind: 'map', writer: context.me, sv: {}, source: textId(text), from, to: copies, against: record.key });
+    const source = textId(text);
+    writeRecord(context, { kind: 'map', writer: context.me, sv: {}, source, from, to: copies, against: record.key });
     deleteUnits(context, claims.filter(({ shown }) => shown).map(({ original }) => original));
   }
   // A re-homing taken back is marked so, like a trimmed copy, so copies others made of it are known as duplicates.
   if (redirects.length > 0) {
-    const source = textId(text);
-    const from = toRuns(redirects.map(([old]) => old));
-    writeRecord(context, { kind: 'map', writer: context.me, sv: {}, source, from, to: toRuns(redirects.map(([, next]) => next)) });
+    const [from, to] = [toRuns(redirects.map(([old]) => old)), toRuns(redirects.map(([, next]) => next))];
+    writeRecord(context, { kind: 'map', writer: context.me, sv: {}, source: textId(text), from, to });
   }
 }
 

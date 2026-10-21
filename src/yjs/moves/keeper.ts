@@ -62,7 +62,9 @@ export function moveKeeper(
     guard.hold(tr, [...waiting.values()]);
     const ready = [...waiting.values()].filter((record) => isReady(doc, record));
     for (const record of ready) waiting.delete(record.key);
-    if (ready.length > 0) work.push({ batch: ready, formats: ready.filter(({ kind }) => kind !== 'map').flatMap((record) => ownFormatsCopied(context(), record)) });
+    if (ready.length === 0) return;
+    const copying = ready.filter(({ kind }) => kind !== 'map');
+    work.push({ batch: ready, formats: copying.flatMap((record) => ownFormatsCopied(context(), record)) });
   };
   // Writing while Yjs still cleans up the arrival would slip those writes into the arrival's own update, half done.
   const onSettled = () => {
@@ -83,8 +85,8 @@ export function moveKeeper(
       const writers = index.over(textId(move.source)).map(({ writer }) => writer);
       const sv = seenOf(units(move.source), tr.beforeState, writers);
       const { kind, from, to, anchor } = move;
-      const record: MoveRecord = { kind, writer: doc.clientID, sv, source: textId(move.source), from, to, anchor };
-      index.add(appendRecord(log, anchor === undefined ? { kind, writer: record.writer, sv, source: record.source, from, to } : record));
+      const record: MoveRecord = { kind, writer: doc.clientID, sv, source: textId(move.source), from, to };
+      index.add(appendRecord(log, anchor === undefined ? record : { ...record, anchor }));
     },
     stop() {
       log.unobserve(onLog);

@@ -33,14 +33,17 @@ function reconcileText(context: Context, source: Id): void {
 /**
  * After records of other clients arrive, this client fixes what is its own, and nothing else: its copies another
  * record now decides about, its characters a record moved without having seen them, its formatting on them, the
- * order of a block it split, and its deletions and take-backs that a copy undid. Each client doing so for its own makes every character end up once, in one place.
+ * order of a block it split, and its deletions and take-backs that a copy undid. Each client doing so for its own
+ * makes every character end up once, in one place.
  */
 export function reconcile(context: Context, arrived: readonly KnownRecord[], formats: readonly FormatChange[]): void {
   setFormats(context, formats);
   const sources = new Map<string, Id>();
   for (const record of arrived) {
     if (record.kind !== 'map') sources.set(idKey(record.source), record.source);
-    else if (record.against === undefined) for (const text of textsOfMine(context, record)) sources.set(idKey(text), text);
+    else if (record.against === undefined) {
+      for (const text of textsOfMine(context, record)) sources.set(idKey(text), text);
+    }
   }
   for (const source of sources.values()) reconcileText(context, source);
   for (const record of arrived) {

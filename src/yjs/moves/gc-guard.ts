@@ -84,7 +84,8 @@ export function gcGuard(blocks: YBlocks) {
       );
       redirected = takenBack(doc, waiting);
       if (!pending()) deleted.clear();
-      if (joined.size === 0 && deleted.size === 0 && redirected.size === 0) for (const deleteSet of deferred.splice(0)) Y.tryGc(deleteSet, doc.store, filter);
+      if (joined.size > 0 || deleted.size > 0 || redirected.size > 0) return;
+      for (const deleteSet of deferred.splice(0)) Y.tryGc(deleteSet, doc.store, filter);
     },
     stop(): void {
       if (doc.gcFilter === filter) doc.gcFilter = gcFilter;

@@ -1,5 +1,6 @@
 import type { ViewController } from '../../view';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
+import { interceptKeys } from '../../view/input/intercept-keys';
 
 const isFocusKey = (event: KeyboardEvent) =>
   event.key === 'F10' && event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey;
@@ -13,7 +14,6 @@ export function useFocusKey(controller: ViewController, focus: () => void): void
       focus();
       return true;
     };
-    controller.keyInterceptors.add(intercept);
-    return () => void controller.keyInterceptors.delete(intercept);
+    return interceptKeys(controller, intercept);
   }, [controller, focus]);
 }

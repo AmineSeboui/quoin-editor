@@ -6,6 +6,7 @@ import { cellSelection } from '../../engine/state/cell-selection';
 import type { KeyInterceptor, ViewController } from '../../view';
 import { isComposingKey } from '../../view/input/keydown';
 import { enterTable, moveBetweenRows } from './vertical-cell-move';
+import { interceptKeys } from '../../view/input/intercept-keys';
 
 const printable = (event: KeyboardEvent): boolean => [...event.key].length === 1 && !event.ctrlKey && !event.metaKey;
 
@@ -32,7 +33,6 @@ export function useTableKeys(controller: ViewController, blockId: string, editab
       if (handled) event.preventDefault();
       return handled;
     };
-    controller.keyInterceptors.add(intercept);
-    return () => void controller.keyInterceptors.delete(intercept);
+    return interceptKeys(controller, intercept);
   }, [controller, blockId, editable]);
 }

@@ -18,6 +18,7 @@ import { TableHandles, type OpenMenu, type TableHandlesProps } from './TableHand
 import { useTableGeometry } from './use-table-geometry';
 import { useCutCells } from './use-cut-cells';
 import { caretTarget, useTableTarget, type TableTarget } from './use-table-target';
+import { interceptKeys } from '../../view/input/intercept-keys';
 
 type Held = { readonly target: TableTarget; readonly menu: OpenMenu; readonly opened?: EngineBlock };
 
@@ -63,8 +64,7 @@ export function TableControls({ controller, labels }: { controller: ViewControll
       setFocusFor(caret.block);
       return true;
     };
-    controller.keyInterceptors.add(intercept);
-    return () => void controller.keyInterceptors.delete(intercept);
+    return interceptKeys(controller, intercept);
   }, [controller, readOnly]);
 
   const onMenu = useCallback(

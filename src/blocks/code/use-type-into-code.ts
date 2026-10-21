@@ -3,6 +3,7 @@
 import { useEffect, type RefObject } from 'react';
 import type { KeyInterceptor, ViewController } from '../../view';
 import { insertInCode, type CodeField } from './code-edits';
+import { interceptKeys } from '../../view/input/intercept-keys';
 
 /**
  * A character typed while the code block is selected as a whole goes at the end of its code, where the editor would
@@ -26,7 +27,6 @@ export function useTypeIntoCode(
       edit(insertInCode({ value: area.value, start: end, end }, event.key));
       return true;
     };
-    controller.keyInterceptors.add(typeInto);
-    return () => void controller.keyInterceptors.delete(typeInto);
+    return interceptKeys(controller, typeInto);
   }, [controller, blockId, field, edit]);
 }

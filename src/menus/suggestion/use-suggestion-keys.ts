@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import type { ViewController } from '../../view';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
+import { interceptKeys } from '../../view/input/intercept-keys';
 
 type MenuKeys = {
   count: number;
@@ -46,7 +47,6 @@ export function useSuggestionKeys(controller: ViewController, open: boolean, men
       if (handled) event.preventDefault();
       return handled;
     };
-    controller.keyInterceptors.add(intercept);
-    return () => void controller.keyInterceptors.delete(intercept);
+    return interceptKeys(controller, intercept);
   }, [controller, open]);
 }

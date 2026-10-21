@@ -7,6 +7,7 @@ import { inlineLength } from '../../engine/model/inline';
 import type { KeyInterceptor, ViewController } from '../../view';
 import { insertBlocks } from '../insert-blocks';
 import { useNodeKeys, type NodeKeys } from '../void/use-node-keys';
+import { interceptKeys } from '../../view/input/intercept-keys';
 
 function captionEnd(controller: ViewController, blockId: string): Pos {
   const caption = blockById(controller.editor.state.doc, blockId)?.regions.caption ?? [];
@@ -62,7 +63,6 @@ export function useImageKeys(
       event.preventDefault();
       return true;
     };
-    controller.keyInterceptors.add(intercept);
-    return () => void controller.keyInterceptors.delete(intercept);
+    return interceptKeys(controller, intercept);
   }, [controller, blockId, editable]);
 }

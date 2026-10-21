@@ -3,6 +3,7 @@
 import { useEffect, type RefObject } from 'react';
 import type { KeyInterceptor, ViewController } from '../../view';
 import { useVoidEditing } from './use-void-editing';
+import { interceptKeys } from '../../view/input/intercept-keys';
 
 const CONTROL = 'input:not([disabled]), button:not([disabled])';
 
@@ -41,7 +42,6 @@ export function useNodeKeys(
       event.preventDefault();
       return true;
     };
-    controller.keyInterceptors.add(intercept);
-    return () => void controller.keyInterceptors.delete(intercept);
+    return interceptKeys(controller, intercept);
   }, [controller, blockId, editable, type]);
 }

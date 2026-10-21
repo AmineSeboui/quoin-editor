@@ -1,4 +1,5 @@
 import { isPaletteColor } from '../markdown/palette';
+import { isRecord } from '../model/is-record';
 import type { BlockAttrs, EngineBlock, Inline } from '../model/types';
 
 const ALIGNMENTS = ['left', 'center', 'right', 'justify'];
@@ -39,8 +40,7 @@ export function withDefined(record: Record<string, unknown>): Record<string, unk
 
 export function withExtra(fields: Record<string, unknown>, attrs: BlockAttrs): Record<string, unknown> {
   const { extra } = attrs;
-  const isRecord = typeof extra === 'object' && extra !== null && !Array.isArray(extra);
-  return { ...withDefined(fields), ...(isRecord ? extra : undefined) };
+  return { ...withDefined(fields), ...(isRecord(extra) ? extra : undefined) };
 }
 
 export function regionOf(block: EngineBlock, name: string): Inline {

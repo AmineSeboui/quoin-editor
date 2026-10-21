@@ -29,7 +29,7 @@ export const featureEntries = [
   { name: 'mention', source: 'src/mention.ts', client: true, added: incrementalBudget(2_837) },
   { name: 'emoji', source: 'src/emoji.ts', client: true, added: incrementalBudget(3_149) },
   { name: 'find', source: 'src/find.ts', client: true, added: incrementalBudget(4_020) },
-  { name: 'stats', source: 'src/stats.ts', client: true, added: incrementalBudget(1_339) },
+  { name: 'stats', source: 'src/stats.ts', client: true, added: incrementalBudget(1_742) },
 ];
 
 /**

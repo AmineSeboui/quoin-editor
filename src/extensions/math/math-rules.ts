@@ -6,6 +6,7 @@ import { regionInline } from '../../engine/rules/region-inline';
 import { textSelection } from '../../engine/state/selection';
 import { Transaction } from '../../engine/state/transaction';
 import { replaceInlineStep } from '../../engine/transform/replace-inline-step';
+import { escaped } from './math-opener';
 
 // Neither a dollar, a space, a digit nor a backslash, so the predicates read it as they read a markdown delimiter.
 const OPAQUE = '`';
@@ -35,13 +36,6 @@ function scannedLine(inline: Inline): ScannedLine {
   }
   if (marks.length > 0) push(OPAQUE, null);
   return { src, offsets };
-}
-
-// An odd run of backslashes before a dollar escapes it, as the parser reads a backslash and the character after it.
-function escaped(src: string, at: number): boolean {
-  let backslashes = 0;
-  while (src[at - 1 - backslashes] === '\\') backslashes++;
-  return backslashes % 2 === 1;
 }
 
 /**

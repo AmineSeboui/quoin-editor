@@ -1,5 +1,6 @@
 import { act, cleanup, fireEvent, screen } from '@testing-library/react';
 import type { QuoinBlock } from '../../engine';
+import { mathExtension } from '../math/math-extension';
 import { mountTypingCanvas } from '../typing-test-canvas';
 import { countWriting } from './count-writing';
 import { statsExtension, type StatsOptions } from './stats-extension';
@@ -193,4 +194,26 @@ describe('typography', () => {
     type('a--');
     expect(handle().editor.getBlocks()[0].data.markdown).toBe('a\u2014');
   });
+
+  it.each([
+    ["$f'(x)$", "$f'(x)$"],
+    ['$a--b$', '$a--b$'],
+    ['$x...n$', '$x...n$'],
+    ['$a -> b$ -> c', '$a -> b$ \u2192 c'],
+    ['`a -> b` -> c', '`a -> b` \u2192 c'],
+  ])('leaves what is typed inside a formula or a code span not yet closed as it is, in %j', (typed, markdown) => {
+    const extensions = [statsExtension({ typography: { dashes: 'em' }, footer: false }), mathExtension()];
+    const { caret, type, handle } = mountTypingCanvas([md('a', '')], { extensions });
+    caret('a', 0);
+    type(typed);
+    expect(handle().editor.getBlocks()[0].data.markdown).toBe(markdown);
+  });
+
+  it('reads a dollar before a number as a price, which opens no formula', () => {
+    const { caret, type, handle } = mountStats([md('a', '')], { typography: true, footer: false });
+    caret('a', 0);
+    type("$5 -> it's");
+    expect(handle().editor.getBlocks()[0].data.markdown).toBe('\\$5 \u2192 it\u2019s');
+  });
 });
+

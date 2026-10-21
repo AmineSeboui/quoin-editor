@@ -5,6 +5,7 @@ import type { ViewController } from '../../view';
 import { focusDecorations } from '../focus/focus-decorations';
 import { createLimit } from '../limit/limit-plugin';
 import type { ExtensionUI } from '../ui-types';
+import { plainInCodeAndMath } from './plain-in-code-and-math';
 import { resolveStatsLabels, type StatsLabels } from './stats-labels';
 import { StatsOverlay } from './StatsOverlay';
 
@@ -19,7 +20,10 @@ export type StatsOptions = {
   limit?: number;
   /** Dims every block but those the selection touches, while the canvas is editable and holds focus. */
   focusMode?: boolean;
-  /** Turns quotes, dashes, arrows and the like into their typographic forms as they are typed. */
+  /**
+   * Turns quotes, dashes, arrows and the like into their typographic forms as they are typed, outside a formula or a
+   * code span still being typed.
+   */
   typography?: boolean | { dashes?: 'em' | 'en' | 'none' };
   /** Every string the feature shows or speaks, English by default. A key left out stays English. */
   labels?: Partial<StatsLabels>;
@@ -46,7 +50,7 @@ export function statsExtension(options: StatsOptions = {}): Extension {
     name: 'stats',
     ...(guard && { filterTransaction: guard.filterTransaction }),
     ...(focusMode && { decorations: focusDecorations }),
-    ...(typography && { inputRules: typographyRules(typography === true ? {} : typography) }),
+    ...(typography && { inputRules: plainInCodeAndMath(typographyRules(typography === true ? {} : typography)) }),
     ui,
   });
 }

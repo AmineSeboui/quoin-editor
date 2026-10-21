@@ -630,7 +630,7 @@ const extensions = [findExtension({ labels: { findAndReplace: 'Rechercher et rem
 
 - `limit`: the most characters the document may hold, counted as the footer counts them, so attaching an image, a file, an embed or a bookmark never counts against it, and an upload or an unfurl that lands at the limit is written. An edit that would leave more than the limit, and more than there were, is refused whole, a paste, a drop or a composition included, and the reason is announced once; a deletion always goes through, so a document loaded over the limit can still be edited down. The footer then shows the count against the limit, as a polite live region from 90 percent of it. Undo, redo and the blocks the host supplies are never refused.
 - `focusMode`: dims every block but those the selection touches, and the blocks they are nested in, to 40 percent while the canvas is editable and holds focus. Nothing is hidden from assistive technology.
-- `typography`: turns quotes, ellipses, arrows and the like into their typographic forms as they are typed; `{ dashes: 'em' }` or `'en'` turns a double hyphen into a dash too.
+- `typography`: turns quotes, ellipses, arrows and the like into their typographic forms as they are typed; `{ dashes: 'em' }` or `'en'` turns a double hyphen into a dash too. Nothing is turned inside a formula or a code span still being typed: after a `$` that opens a formula, or a run of backticks that opens a code span, with nothing yet to close it, `$f'(x)$` keeps its prime and `` `a -> b` `` its arrow.
 
 ```tsx
 import { statsExtension, useEditorStats } from 'quoin-editor/stats';

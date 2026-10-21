@@ -129,6 +129,37 @@ describe('the host unfurl of a bookmark', () => {
     expect(within(card()).getByRole('link', { name: URL })).toBeInTheDocument();
   });
 
+  it.each<[string, () => Promise<UnfurledLink>, string]>([
+    ['rejects', () => Promise.reject(new Error('offline')), 'offline'],
+    [
+      'throws',
+      () => {
+        throw new Error('broken');
+      },
+      'broken',
+    ],
+    ['rejects with what is no error', () => Promise.reject('down'), 'down'],
+  ])('reports to onError when it %s, once', async (_case, result, message) => {
+    const onError = vi.fn();
+    mountEmbeds([bookmark()], { unfurl: vi.fn(result) }, { onError });
+    await settle();
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(onError).toHaveBeenCalledWith(new Error(message));
+  });
+
+  it('reports nothing when it finds nothing, or once the bookmark is gone', async () => {
+    const onError = vi.fn();
+    mountEmbeds([bookmark()], { unfurl: async () => null }, { onError });
+    await settle();
+    let fail: (cause: Error) => void = () => {};
+    const late = new Promise<UnfurledLink>((_, reject) => (fail = reject));
+    const { handle } = mountEmbeds([bookmark({ url: 'https://a.io' })], { unfurl: () => late }, { onError });
+    act(() => void handle().editor.setBlocks([]));
+    fail(new Error('late'));
+    await settle();
+    expect(onError).not.toHaveBeenCalled();
+  });
+
   it('writes nothing once the bookmark holds another address, which it is asked for in turn', async () => {
     const answers = [deferred(), deferred()];
     const unfurl = vi.fn(() => answers[unfurl.mock.calls.length - 1].promise);

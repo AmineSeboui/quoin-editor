@@ -535,7 +535,7 @@ const extensions = [
 
 A link pasted alone on an empty line stays a link, and a toolbar beside it offers Embed (when a provider frames it), Bookmark or Keep as link. It never takes focus: Alt+F10 moves into it, the arrows walk it, and Escape, a press elsewhere or any edit keeps the link. Choosing Embed or Bookmark puts the block in place of the link, and one undo brings the link back. `/embed` and `/bookmark` ask for the link: Enter places it, Escape asks no more, and a press outside places a valid link.
 
-On an editable canvas a press on an embed selects the block rather than the frame, which is out of the tab order; Enter on the selected embed moves focus into the frame. A read-only canvas draws the frames as they are, in the tab order. Without `unfurl`, a bookmark shows its address and domain. Every string a bookmark holds is drawn as text, and its picture only from an http or https address.
+On an editable canvas a press on an embed selects the block rather than the frame, which is out of the tab order; Enter on the selected embed moves focus into the frame. A read-only canvas draws the frames as they are, in the tab order. Without `unfurl`, a bookmark shows its address and domain, as it does when `unfurl` finds nothing; an `unfurl` that throws or rejects is reported to the canvas's `onError`, and is not asked again for that bookmark and address. Every string a bookmark holds is drawn as text, and its picture only from an http or https address.
 
 ### Math
 

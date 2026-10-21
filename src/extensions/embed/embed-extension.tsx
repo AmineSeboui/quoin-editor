@@ -17,7 +17,10 @@ export type { UnfurledLink, Unfurl } from './embed-feature';
 export type EmbedOptions = {
   /** Providers tried before the built-in ones, each turning the address of a page into the https address of a frame. */
   providers?: readonly EmbedProvider[];
-  /** Looks up a bookmark with no title yet, once per bookmark and address. What it finds is written to the block. */
+  /**
+   * Looks up a bookmark with no title yet, once per bookmark and address. What it finds is written to the block; when it
+   * throws or rejects, the canvas's `onError` hears why, and the bookmark keeps its address.
+   */
   unfurl?: Unfurl;
   /** Every string the feature shows or speaks, English by default. A key left out stays English. */
   labels?: Partial<EmbedLabels>;

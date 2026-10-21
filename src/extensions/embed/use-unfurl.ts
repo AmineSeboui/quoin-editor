@@ -2,8 +2,10 @@
 
 import { useEffect } from 'react';
 import { str } from '../../blocks/str';
+import { useQuoin } from '../../context';
 import { setAttrsStep } from '../../engine';
 import { blockById } from '../../engine/model/doc';
+import { toError } from '../../to-error';
 import type { ViewController } from '../../view';
 import type { Unfurl } from './embed-feature';
 import { unfurledPatch } from './unfurled-patch';
@@ -38,16 +40,23 @@ function bookmarkAt(controller: ViewController, blockId: string, url: string) {
   return block?.type === 'BOOKMARK' && str(block.attrs.url) === url ? block : undefined;
 }
 
-async function unfurlInto(controller: ViewController, blockId: string, url: string, unfurl: Unfurl): Promise<void> {
+async function unfurlInto(
+  controller: ViewController,
+  blockId: string,
+  url: string,
+  unfurl: Unfurl,
+  onError: (error: Error) => void,
+): Promise<void> {
+  const { asked, drawn } = asksOf(controller);
   let found: unknown;
   try {
     found = await unfurl(url);
-  } catch {
+  } catch (cause) {
+    if (bookmarkAt(controller, blockId, url) && drawn.get(blockId)) onError(toError(cause));
     return;
   }
   const patch = unfurledPatch(found);
   if (patch === null) return;
-  const { asked, drawn } = asksOf(controller);
   const block = bookmarkAt(controller, blockId, url);
   if (block === undefined || !drawn.get(blockId) || controller.readOnly) {
     asked.delete(keyOf(blockId, url));
@@ -62,9 +71,11 @@ async function unfurlInto(controller: ViewController, blockId: string, url: stri
 
 /**
  * Asks the host's unfurl about a bookmark's address once, while it is given, and writes what it found out of the undo
- * history, as long as the block is drawn, still untitled at that address, and the canvas editable.
+ * history, as long as the block is drawn, still untitled at that address, and the canvas editable. An unfurl that
+ * throws or rejects is reported to `onError` while the bookmark is still drawn at that address.
  */
 export function useUnfurl(controller: ViewController, blockId: string, url: string, unfurl: Unfurl | undefined): void {
+  const { onError } = useQuoin();
   useEffect(() => {
     const { drawn } = asksOf(controller);
     drawn.set(blockId, (drawn.get(blockId) ?? 0) + 1);
@@ -76,6 +87,6 @@ export function useUnfurl(controller: ViewController, blockId: string, url: stri
   }, [controller, blockId]);
   useEffect(() => {
     if (unfurl === undefined || url === '' || !askFirstTime(controller, blockId, url)) return;
-    void unfurlInto(controller, blockId, url, unfurl);
-  }, [controller, blockId, url, unfurl]);
+    void unfurlInto(controller, blockId, url, unfurl, onError);
+  }, [controller, blockId, url, unfurl, onError]);
 }

@@ -92,6 +92,7 @@ export function createInternalEditor<F extends CommandFactories = CoreCommands>(
     state: () => state,
     dispatch,
     onChange: options.onChange,
+    accepts: (incoming) => resolved.extensions.every((extension) => extension.filterHostBlocks?.(incoming) ?? true),
   });
   const { getBlocks } = controlled;
 
@@ -133,7 +134,7 @@ export function createInternalEditor<F extends CommandFactories = CoreCommands>(
 
   const helpers = createCommandHelpers(() => state, dispatch, resolved.commands as F, () => !destroyed);
 
-  return {
+  const editor: InternalEditor<F> = {
     get state() {
       return state;
     },
@@ -163,6 +164,9 @@ export function createInternalEditor<F extends CommandFactories = CoreCommands>(
       destroyed = true;
       listeners.clear();
       queue.clear();
+      for (const stop of stops.splice(0)) stop?.();
     },
   };
+  const stops = resolved.extensions.map((extension) => extension.onCreate?.(editor));
+  return editor;
 }

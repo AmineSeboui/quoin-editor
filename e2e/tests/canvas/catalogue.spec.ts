@@ -10,8 +10,9 @@ type Requirement = 'insert' | 'edit' | 'arrows' | 'undo' | 'readOnly' | 'axeWhol
 // The blocks no other spec covers for a requirement, so each runs here only where it would otherwise go untested.
 const GAPS: Record<Requirement, readonly string[]> = {
   insert: ['text', 'heading1', 'heading2', 'heading3', 'numberedList', 'todoList', 'toggle'],
-  edit: ['heading2', 'heading3', 'numberedList', 'toggle'],
+  edit: ['heading1', 'heading2', 'heading3', 'numberedList', 'todoList', 'toggle'],
   arrows: [
+    'text',
     'heading1',
     'heading2',
     'heading3',
@@ -26,11 +27,23 @@ const GAPS: Record<Requirement, readonly string[]> = {
     'embed',
     'bookmark',
     'blockEquation',
+    'tableOfContents',
   ],
-  undo: ['heading1', 'heading2', 'heading3', 'quote', 'numberedList', 'todoList', 'toggle', 'table', 'bookmark', 'tableOfContents'],
+  undo: CATALOGUE_BLOCKS.map(({ id }) => id).filter((id) => id !== 'blockEquation'),
   readOnly: ['heading2', 'heading3', 'quote', 'bulletedList', 'numberedList', 'image'],
   axeWhole: CATALOGUE_BLOCKS.map(({ id }) => id).filter((id) => id !== 'image' && id !== 'file'),
-  axeEditing: ['heading1', 'heading2', 'heading3', 'quote', 'callout', 'bulletedList', 'numberedList', 'todoList', 'toggle'],
+  axeEditing: [
+    'text',
+    'heading1',
+    'heading2',
+    'heading3',
+    'quote',
+    'callout',
+    'bulletedList',
+    'numberedList',
+    'todoList',
+    'toggle',
+  ],
 };
 
 const gaps = (requirement: Requirement) => CATALOGUE_BLOCKS.filter(({ id }) => GAPS[requirement].includes(id));
@@ -114,12 +127,15 @@ for (const { id, option, rows = 1 } of gaps('arrows')) {
 }
 
 for (const block of gaps('undo')) {
-  test(`undo takes ${block.option} back out, to the line as it was before the command`, async ({ page }) => {
-    await insert(page, block);
-    await page.keyboard.press('ControlOrMeta+z');
-    await expect
-      .poll(async () => (await blocks(page)).map(({ type, data }) => ({ type, data })))
-      .toEqual([{ type: 'MARKDOWN', data: { markdown: block.undone ?? `/${block.query}` } }]);
+  test.describe(() => {
+    test.fixme(block.id === 'image', 'Mod+Z on the controls /image focuses never reaches the history, so the image stays');
+    test(`undo takes ${block.option} back out, to the line as it was before the command`, async ({ page }) => {
+      await insert(page, block);
+      await page.keyboard.press('ControlOrMeta+z');
+      await expect
+        .poll(async () => (await blocks(page)).map(({ type, data }) => ({ type, data })))
+        .toEqual([{ type: 'MARKDOWN', data: { markdown: block.undone ?? `/${block.query}` } }]);
+    });
   });
 }
 
@@ -132,21 +148,23 @@ for (const { id, option, drawn } of gaps('readOnly')) {
 }
 
 for (const { id, option, wholeByArrow } of gaps('axeWhole')) {
-  test(`axe finds no violation with ${option} selected as a whole`, async ({ page, browserName }) => {
+  test.describe(() => {
     test.fixme(
-      browserName === 'webkit' && id === 'text',
+      ({ browserName }) => browserName === 'webkit' && id === 'text',
       'WebKit cannot close the page once a paragraph of a long document has been selected as a whole for a second',
     );
-    await openEvery(page);
-    await caretAtEnd(page, await lineBeside(page, id, 'previous'));
-    await page.keyboard.press('ArrowDown');
-    if (!wholeByArrow) {
-      await expect.poll(() => selectedBlock(page)).toBe(id);
-      await page.keyboard.press('Escape');
-    }
-    await expect(shell(page, id)).toHaveAttribute('data-selected', 'true');
-    await page.mouse.move(0, 0);
-    expect(await axeViolations(page, 'all', '.quoin')).toEqual([]);
+    test(`axe finds no violation with ${option} selected as a whole`, async ({ page }) => {
+      await openEvery(page);
+      await caretAtEnd(page, await lineBeside(page, id, 'previous'));
+      await page.keyboard.press('ArrowDown');
+      if (!wholeByArrow) {
+        await expect.poll(() => selectedBlock(page)).toBe(id);
+        await page.keyboard.press('Escape');
+      }
+      await expect(shell(page, id)).toHaveAttribute('data-selected', 'true');
+      await page.mouse.move(0, 0);
+      expect(await axeViolations(page, 'all', '.quoin')).toEqual([]);
+    });
   });
 }
 

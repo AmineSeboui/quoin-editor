@@ -32,7 +32,7 @@ async function everyBlockDrawn(page: Page) {
 test.beforeEach(({ page }) => answerEveryRequest(page));
 
 for (const readOnly of [false, true]) {
-  test(`every block with the whole catalogue on, ${readOnly ? 'read-only' : 'editable'}, loads cleanly and passes axe`, async ({
+  test(`every block with the whole catalogue on, ${readOnly ? 'read-only' : 'editable'}, loads cleanly, passes axe and reads back as given`, async ({
     page,
   }) => {
     const errors = collectErrors(page);

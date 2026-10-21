@@ -1,27 +1,18 @@
 import type { Locator } from '@playwright/test';
 import type { QuoinBlock } from '../../src/types';
 
-/**
- * A block type the catalogue inserts from the slash menu. `id` names it in the harness's `every` document too, where it
- * sits between two lines of text.
- */
 export type CatalogueBlock = {
   id: string;
   option: string;
   query: string;
-  /** The first block of an empty document once the command has run. */
   inserted?: Pick<QuoinBlock, 'type' | 'data'>;
-  /** The link typed when the command asks for one. */
   link?: string;
-  /** The text of the line after one undo, the slash and the query by default. */
   undone?: string;
-  /** The arrow presses from inside the block to the line past it, one by default. */
+  /** The arrow presses from inside the block to the line past it. */
   rows?: number;
-  /** Whether the arrows select the block as a whole, where a block with text takes the caret and Escape selects it. */
+  /** The arrows select the block as a whole, where a block with text takes the caret and Escape selects it. */
   wholeByArrow?: boolean;
-  /** Its data once ' more' is typed at the end of its text. */
   edited?: Record<string, unknown>;
-  /** What a read-only canvas draws for it. */
   drawn?: (shell: Locator) => Locator;
 };
 
@@ -29,7 +20,13 @@ const markdown = (value: string) => ({ type: 'MARKDOWN', data: { markdown: value
 
 export const CATALOGUE_BLOCKS: readonly CatalogueBlock[] = [
   { id: 'text', option: 'Text', query: 'text', inserted: markdown('') },
-  { id: 'heading1', option: 'Heading 1', query: 'h1', inserted: markdown('# ') },
+  {
+    id: 'heading1',
+    option: 'Heading 1',
+    query: 'h1',
+    inserted: markdown('# '),
+    edited: { markdown: '# Catalogue more' },
+  },
   {
     id: 'heading2',
     option: 'Heading 2',
@@ -51,14 +48,27 @@ export const CATALOGUE_BLOCKS: readonly CatalogueBlock[] = [
     option: 'Quote',
     query: 'quote',
     inserted: markdown('> '),
-    drawn: (shell) => shell.locator('.quoin-quote').getByRole('textbox', { name: 'Quote' }).filter({ hasText: 'Quoted words' }),
+    drawn: (shell) =>
+      shell.locator('.quoin-quote').getByRole('textbox', { name: 'Quote' }).filter({ hasText: 'Quoted words' }),
   },
-  { id: 'divider', option: 'Divider', query: 'divider', wholeByArrow: true },
-  { id: 'callout', option: 'Callout', query: 'callout' },
+  {
+    id: 'divider',
+    option: 'Divider',
+    query: 'divider',
+    inserted: { type: 'DIVIDER', data: {} },
+    wholeByArrow: true,
+  },
+  {
+    id: 'callout',
+    option: 'Callout',
+    query: 'callout',
+    inserted: { type: 'CALLOUT', data: { tone: 'info', body: '' } },
+  },
   {
     id: 'bulletedList',
     option: 'Bulleted list',
     query: 'bul',
+    inserted: markdown('- '),
     drawn: (shell) => shell.getByRole('textbox', { name: 'Bullet list item' }).filter({ hasText: 'Bullet' }),
   },
   {
@@ -69,7 +79,13 @@ export const CATALOGUE_BLOCKS: readonly CatalogueBlock[] = [
     edited: { markdown: '1. Numbered more' },
     drawn: (shell) => shell.getByRole('textbox', { name: 'Numbered list item 1' }).filter({ hasText: 'Numbered' }),
   },
-  { id: 'todoList', option: 'To-do list', query: 'todo', inserted: markdown('- [ ] ') },
+  {
+    id: 'todoList',
+    option: 'To-do list',
+    query: 'todo',
+    inserted: markdown('- [ ] '),
+    edited: { markdown: '- [ ] Task more' },
+  },
   {
     id: 'toggle',
     option: 'Toggle',
@@ -81,19 +97,53 @@ export const CATALOGUE_BLOCKS: readonly CatalogueBlock[] = [
     id: 'image',
     option: 'Image',
     query: 'image',
+    inserted: { type: 'IMAGE', data: { storageKey: '', alt: '' } },
     wholeByArrow: true,
     drawn: (shell) => shell.getByRole('img', { name: 'A red square' }),
   },
-  { id: 'file', option: 'File', query: 'file', wholeByArrow: true },
-  { id: 'code', option: 'Code', query: 'code', wholeByArrow: true },
+  {
+    id: 'file',
+    option: 'File',
+    query: 'file',
+    inserted: { type: 'FILE', data: { storageKey: '', filename: '' } },
+    wholeByArrow: true,
+  },
+  {
+    id: 'code',
+    option: 'Code',
+    query: 'code',
+    inserted: { type: 'CODE', data: { language: '', code: '' } },
+    wholeByArrow: true,
+  },
   {
     id: 'table',
     option: 'Table',
     query: 'table',
-    inserted: { type: 'TABLE', data: { rows: Array(3).fill(['', '', '']), header: true, align: [null, null, null] } },
+    inserted: {
+      type: 'TABLE',
+      data: {
+        rows: Array(3).fill(['', '', '']),
+        header: true,
+        align: [null, null, null],
+      },
+    },
     rows: 2,
   },
-  { id: 'embed', option: 'Embed', query: 'embed', wholeByArrow: true },
+  {
+    id: 'embed',
+    option: 'Embed',
+    query: 'embed',
+    link: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    inserted: {
+      type: 'EMBED',
+      data: {
+        url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        provider: 'youtube',
+      },
+    },
+    undone: '',
+    wholeByArrow: true,
+  },
   {
     id: 'bookmark',
     option: 'Bookmark',
@@ -101,11 +151,26 @@ export const CATALOGUE_BLOCKS: readonly CatalogueBlock[] = [
     link: 'quoin.dev/docs',
     inserted: {
       type: 'BOOKMARK',
-      data: { url: 'https://quoin.dev/docs', title: 'Unfurled quoin.dev', description: 'Found by the host' },
+      data: {
+        url: 'https://quoin.dev/docs',
+        title: 'Unfurled quoin.dev',
+        description: 'Found by the host',
+      },
     },
     undone: '',
     wholeByArrow: true,
   },
-  { id: 'blockEquation', option: 'Block equation', query: 'blockeq', wholeByArrow: true },
-  { id: 'tableOfContents', option: 'Table of contents', query: 'toc', inserted: { type: 'TOC', data: {} }, wholeByArrow: true },
+  {
+    id: 'blockEquation',
+    option: 'Block equation',
+    query: 'blockeq',
+    wholeByArrow: true,
+  },
+  {
+    id: 'tableOfContents',
+    option: 'Table of contents',
+    query: 'toc',
+    inserted: { type: 'TOC', data: {} },
+    wholeByArrow: true,
+  },
 ];

@@ -172,3 +172,20 @@ describe('ViewController', () => {
     expect(document.activeElement).toBe(input);
   });
 });
+
+describe('what the controller announces', () => {
+  it('belongs to the change it was said in, whatever order the editor tells its listeners in', () => {
+    const editor = createEditor({ blocks: [{ id: 'a', type: 'MARKDOWN', data: { markdown: 'hi' } }] });
+    const controller = new ViewController({ editor });
+    editor.subscribe(() => controller.announce('Moved'));
+    const root = document.createElement('div');
+    document.body.append(root);
+    const detach = controller.attach(root);
+    controller.run(insertText('!'));
+    expect(controller.announcer.current()?.message).toBe('Moved');
+    editor.dispatch(editor.createTransaction().setOrigin('remote').setMeta('addToHistory', false));
+    expect(controller.announcer.current()?.message).toBe('Moved');
+    detach();
+    root.remove();
+  });
+});

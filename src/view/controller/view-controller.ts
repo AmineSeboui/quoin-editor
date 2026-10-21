@@ -67,6 +67,10 @@ export class ViewController {
 
   constructor(options: ViewControllerOptions) {
     this.editor = options.editor;
+    // Subscribed first, so a listener that announces after a change finds the change already noted.
+    options.editor.subscribe((state, tr) => {
+      if (tr?.origin !== 'remote') this.said = state;
+    });
     this.flush = options.flush ?? runNow;
     this.onFiles = options.onFiles;
     this.isMac = options.isMac ?? detectMac();
@@ -94,8 +98,7 @@ export class ViewController {
   attach(root: HTMLElement): () => void {
     this.detachRoot?.();
     const binding = bindRoot(this, root, this.cross, (_, tr) => {
-      if (tr?.origin === 'remote') this.quiet = true;
-      else this.said = this.editor.state;
+      this.quiet ||= tr?.origin === 'remote';
       this.outside.committed(tr);
       this.nodeReveal.follow(this.editor.state.selection);
       this.drawn.syncTabStop();

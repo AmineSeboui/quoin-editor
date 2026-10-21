@@ -1,7 +1,9 @@
 import * as Y from 'yjs';
 import { coreExtensions, type Extension } from 'quoin-editor/engine';
-import type { RenderOptions } from 'quoin-editor/headless';
-import { collaborationExtension, presenceExtension, yjsCollaboration } from 'quoin-editor/yjs';
+import type { ComponentType } from 'react';
+import type { ViewController } from 'quoin-editor/headless';
+import { presenceExtension } from 'quoin-editor/presence';
+import { collaborationExtension, yjsCollaboration } from 'quoin-editor/yjs';
 import { localAwareness, stillCollaborators } from './collab-canvas';
 
 // The characters of the block at `index` in a shared text, where a marker map starts each block.
@@ -20,12 +22,12 @@ const PRESENT = [100, 300, 500, 700, 900];
 /**
  * The core extensions with a Yjs document whose every update reaches a second document, as a provider would send it,
  * and the text of a block as that second document holds it. With `presence`, that many collaborators sit still in the
- * document, their selections and carets drawn.
+ * document, their selections and carets drawn by presence's overlays, which the page draws in its view.
  */
 export function collaborative(presence = 0): {
   extensions: Extension[];
   sharedText: (index: number) => string;
-  render?: RenderOptions;
+  overlays?: readonly ComponentType<{ controller: ViewController }>[];
 } {
   const doc = new Y.Doc();
   const peer = new Y.Doc();
@@ -37,5 +39,6 @@ export function collaborative(presence = 0): {
   if (awareness === undefined) return { extensions, sharedText };
   stillCollaborators(awareness, PRESENT.slice(0, presence));
   const shown = presenceExtension(collaboration);
-  return { extensions: [...extensions, shown], sharedText, render: (shown.ui as { render: RenderOptions }).render };
+  const { overlays } = shown.ui as { overlays: readonly ComponentType<{ controller: ViewController }>[] };
+  return { extensions: [...extensions, shown], sharedText, overlays };
 }

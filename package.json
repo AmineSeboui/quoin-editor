@@ -87,6 +87,16 @@
         "default": "./dist/yjs.cjs"
       }
     },
+    "./presence": {
+      "import": {
+        "types": "./dist/presence.d.ts",
+        "default": "./dist/presence.js"
+      },
+      "require": {
+        "types": "./dist/presence.d.cts",
+        "default": "./dist/presence.cjs"
+      }
+    },
     "./table": {
       "import": {
         "types": "./dist/table.d.ts",

@@ -73,7 +73,7 @@ export function HeadlessHarness({ doc }: { doc: string }) {
   const [blocks, setBlocks] = useState<QuoinBlock[]>(docs[doc] ?? []);
   const controller = useQuoinEditor({
     blocks,
-    render: doc === 'atoms' ? MENTION_CHIPS : COLLABORATION?.render,
+    render: doc === 'atoms' ? MENTION_CHIPS : undefined,
     onChange: (next) => {
       window.__quoin.changes += 1;
       if (ECHO === 'immediate') setBlocks(next);
@@ -106,7 +106,9 @@ export function HeadlessHarness({ doc }: { doc: string }) {
         aria-label="Document"
         placeholder="Start writing"
         className={MONOSPACE.has(doc) ? 'harness-monospace' : undefined}
-      />
+      >
+        {COLLABORATION?.overlays?.map((Overlay, index) => <Overlay key={index} controller={controller} />)}
+      </EditorView>
       <button type="button">After the editor</button>
     </>
   );

@@ -1,4 +1,4 @@
-import type { Person } from '../../yjs/presence-link';
+import type { Person } from './presence-link';
 import type { PresenceLabels } from './presence-labels';
 
 /** How long after saying that a person came or went the next change of theirs waits. */

@@ -15,13 +15,15 @@ export const presenceKey = createPluginKey<readonly Peer[]>('presence');
 /** The meta of a transaction that hands the editor the collaborators it now sees. */
 export const PRESENCE = 'presence';
 
+export const samePeer = (a: Peer, b: Peer): boolean =>
+  a.client === b.client &&
+  a.name === b.name &&
+  a.color === b.color &&
+  a.idle === b.idle &&
+  sameSelection(a.selection, b.selection);
+
 export const samePeers = (a: readonly Peer[], b: readonly Peer[]): boolean =>
-  a.length === b.length &&
-  a.every((peer, i) => {
-    const other = b[i];
-    const same = peer.client === other.client && peer.name === other.name && peer.color === other.color;
-    return same && peer.idle === other.idle && sameSelection(peer.selection, other.selection);
-  });
+  a.length === b.length && a.every((peer, i) => samePeer(peer, b[i]));
 
 const NO_PEERS: readonly Peer[] = [];
 

@@ -1,13 +1,13 @@
 import type * as Y from 'yjs';
-import type { CommandFactories } from '../engine/commands/chain';
-import type { Editor } from '../engine/extension/editor';
-import { getPluginState } from '../engine/state/editor-state';
-import { sameSelection } from '../engine/state/selection';
-import { PRESENCE, presenceKey, samePeers, type Peer } from '../extensions/presence/presence-plugin';
-import { fromAware, toAware } from './awareness';
-import type { YjsAwareness, YjsCollaboration } from './index';
+import type { CommandFactories } from '../../engine/commands/chain';
+import type { Editor } from '../../engine/extension/editor';
+import { getPluginState } from '../../engine/state/editor-state';
+import { sameSelection } from '../../engine/state/selection';
+import { fromAware, toAware } from '../../yjs/awareness';
+import type { Shared } from '../../yjs/shared';
+import type { YjsAwareness, YjsCollaboration } from '../../yjs/index';
 import type { Person, PresenceLink } from './presence-link';
-import type { Shared } from './shared';
+import { PRESENCE, presenceKey, samePeer, samePeers, type Peer } from './presence-plugin';
 
 const THROTTLE_MS = 50;
 const IDLE_MS = 2000;
@@ -68,6 +68,7 @@ export function startPresence(
   };
 
   const refresh = () => {
+    const before = getPluginState(editor.state, presenceKey);
     const peers: Peer[] = [];
     const joined: Person[] = [];
     const gone = new Set(seen.keys());
@@ -80,16 +81,17 @@ export function startPresence(
       if (known === undefined && heard) joined.push({ client, name: found.name });
       if (known?.key !== key) {
         clearTimeout(known?.timer);
-        known = { name: found.name, key, idle: false };
-        const idle = known;
-        known.timer = setTimeout(() => {
-          idle.idle = true;
+        const fresh: Seen = { name: found.name, key, idle: false };
+        fresh.timer = setTimeout(() => {
+          fresh.idle = true;
           refresh();
         }, IDLE_MS);
-        seen.set(client, known);
+        seen.set(client, (known = fresh));
       }
       const selection = fromAware(sharedOf(), editor.state.doc, editor.state.schema, state.selection);
-      peers.push({ client, name: found.name, color: safeColor(found.color), selection, idle: known.idle });
+      const peer = { client, name: found.name, color: safeColor(found.color), selection, idle: known.idle };
+      // A collaborator that did not change keeps its object, and with it the decorations drawn for it.
+      peers.push(before.find((last) => samePeer(last, peer)) ?? peer);
     }
     const left = [...gone].map((client) => {
       const { name, timer: idle } = seen.get(client)!;
@@ -100,32 +102,26 @@ export function startPresence(
     if (heard && joined.length + left.length > 0)
       for (const listener of [...link.listeners]) listener({ joined, left });
     heard = true;
-    if (samePeers(peers, getPluginState(editor.state, presenceKey))) return;
+    if (samePeers(peers, before)) return;
     const tr = editor.createTransaction().setOrigin('remote').setMeta('addToHistory', false);
     editor.dispatch(tr.setMeta(PRESENCE, peers));
   };
-  // Read again a task after a change from another client, once the view has drawn it: a second change from outside
-  // in the task of the first would have the view read a caret still drawn for the document before the first.
-  let reread: ReturnType<typeof setTimeout> | undefined;
+  const changed = () => {
+    if (!writing) refresh();
+  };
   const afterTransaction = (transaction: Y.Transaction) => {
-    if (transaction.local || seen.size === 0) return;
-    reread ??= setTimeout(() => {
-      reread = undefined;
-      refresh();
-    });
+    if (!transaction.local && seen.size > 0) refresh();
   };
   const stopEditor = editor.subscribe((state, tr) => {
     if (tr !== null && tr.origin !== 'remote' && !sameSelection(tr.before.selection, state.selection)) schedule();
   });
 
-  const changed = () => {
-    if (!writing) refresh();
-  };
   put('user', { name: user.name, color: user.color });
   write(null);
   awareness.on('change', changed);
   doc.on('afterTransaction', afterTransaction);
   refresh();
+  if (link.active) schedule();
   return {
     activeChanged() {
       if (link.active) return schedule();
@@ -138,7 +134,6 @@ export function startPresence(
       doc.off('afterTransaction', afterTransaction);
       stopEditor();
       clearTimeout(timer);
-      clearTimeout(reread);
       for (const { timer: idle } of seen.values()) clearTimeout(idle);
       write(null);
     },

@@ -1,14 +1,15 @@
 import * as Y from 'yjs';
-import type { Transaction } from '../engine/state/transaction';
-import { linkOf } from './presence-link';
+import type { Transaction } from '../../engine/state/transaction';
+import { getPluginState } from '../../engine/state/editor-state';
+import { linkOf, setActive } from './presence-link';
+import { presenceKey } from './presence-plugin';
 import { caret, md, presencePeer } from './test-support/presence-peer';
 
 const ada = { name: 'Ada', color: '#e11d48' };
 const at = (offset: number) => ({ block: 'a', region: 'text', offset });
 const selectionWrites = (writes: { field: string; value: unknown }[]) =>
   writes.filter(({ field }) => field === 'selection');
-const caretWidget = (peer: ReturnType<typeof presencePeer>) =>
-  peer.editor.decorations().find((decoration) => decoration.kind === 'widget');
+const idle = (peer: ReturnType<typeof presencePeer>) => getPluginState(peer.editor.state, presenceKey)[0]?.idle;
 
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => vi.useRealTimers());
@@ -32,6 +33,20 @@ describe('the local selection written to awareness', () => {
     expect(writes.length).toBeGreaterThanOrEqual(2);
     expect(writes.length).toBeLessThanOrEqual(3);
     expect(writes.at(-1)?.value).toMatchObject({ anchor: at(8), head: at(8) });
+  });
+
+  it('shares the selection at once when it starts while the canvas is already active', () => {
+    const peer = presencePeer(new Y.Doc(), 1, [md('a', 'hello world')], ada);
+    peer.activate();
+    peer.editor.commands.setSelection(caret('a', 4));
+    vi.advanceTimersByTime(60);
+    peer.unmount();
+    expect(peer.awareness.getLocalState()?.selection).toBeNull();
+    setActive(linkOf(peer.editor), true);
+    const unmount = peer.editor.mount();
+    vi.advanceTimersByTime(10);
+    expect(peer.awareness.getLocalState()?.selection).toMatchObject({ head: at(4) });
+    unmount();
   });
 
   it('clears the selection while the editor is unfocused or read-only, and writes nothing until active again', () => {
@@ -101,14 +116,14 @@ describe('collaborators read from awareness', () => {
       selection: { anchor: at(2), head: at(2) },
     });
     vi.advanceTimersByTime(1900);
-    expect(caretWidget(peer)?.attrs['data-idle']).toBeUndefined();
+    expect(idle(peer)).toBe(false);
     vi.advanceTimersByTime(200);
-    expect(caretWidget(peer)?.attrs['data-idle']).toBe('');
+    expect(idle(peer)).toBe(true);
     peer.awareness.setRemote(7, {
       user: ada,
       selection: { anchor: at(3), head: at(3) },
     });
-    expect(caretWidget(peer)?.attrs['data-idle']).toBeUndefined();
+    expect(idle(peer)).toBe(false);
   });
 
   it('say who joined and who left, but not who was already there', () => {

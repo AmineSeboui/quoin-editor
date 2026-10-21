@@ -77,11 +77,17 @@ describe('the package entry list', () => {
     expect(incrementalBudget(9_999)).toBe(10_399);
   });
 
-  it('publishes the Yjs adapter, every feature, then the catalogue, held to what they add to the main entry', () => {
+  it('publishes the Yjs adapter, presence, every feature, then the catalogue, held to what they add to the main entry', () => {
     const optIn = packageEntries.slice(3);
-    expect(optIn.map(({ name }) => name)).toEqual(['yjs', ...featureEntries.map(({ name }) => name), 'catalogue']);
-    expect(optIn[0]).toMatchObject({ source: 'src/yjs.ts', client: true });
-    expect(optIn.every(({ client }) => client)).toBe(true);
+    expect(optIn.map(({ name }) => name)).toEqual([
+      'yjs',
+      'presence',
+      ...featureEntries.map(({ name }) => name),
+      'catalogue',
+    ]);
+    expect(optIn[0]).toMatchObject({ source: 'src/yjs.ts', client: false });
+    expect(optIn[1]).toMatchObject({ source: 'src/presence.ts', client: true });
+    expect(optIn.slice(1).every(({ client }) => client)).toBe(true);
     expect(optIn.at(-1)).toMatchObject({ source: 'src/catalogue.ts', client: true });
     expect(optIn.every(({ added }) => Number.isInteger(added) && Number(added) > 0)).toBe(true);
   });
@@ -93,19 +99,18 @@ const importsOf = (code: string) => [...code.matchAll(/^import\s[\s\S]*?['"]([^'
 // A feature that reaches only some modules of the main entry makes the bundler split the main entry's chunks around
 // them, which reorders the main entry's code and grows its gzip by hundreds of bytes with no change to it.
 describe('the sources of the opt-in entries', () => {
-  it.each(featureEntries.map(({ name, source }) => [name, source]))(
-    '%s starts with the client directive, then imports the whole main entry',
-    (_, source) => {
-      const code = sourceOf(source);
-      expect(code.startsWith("'use client';\n")).toBe(true);
-      expect(importsOf(code)[0]).toBe('./index');
-    },
-  );
-
-  it('include the Yjs adapter, whose presence draws in the canvas: the directive, then the whole main entry', () => {
-    const code = sourceOf('src/yjs.ts');
+  it.each(
+    [...featureEntries, { name: 'presence', source: 'src/presence.ts' }].map(({ name, source }) => [name, source]),
+  )('%s starts with the client directive, then imports the whole main entry', (_, source) => {
+    const code = sourceOf(source);
     expect(code.startsWith("'use client';\n")).toBe(true);
     expect(importsOf(code)[0]).toBe('./index');
+  });
+
+  it('include the Yjs adapter, which reaches no client code: no directive, and the whole engine entry first', () => {
+    const code = sourceOf('src/yjs.ts');
+    expect(code).not.toMatch(/['"]use client['"]/);
+    expect(importsOf(code)[0]).toBe('./engine/index');
   });
 
   it('gather in the catalogue through each feature entry, and nothing else', () => {

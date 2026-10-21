@@ -51,6 +51,10 @@ function setup({ readOnly = false } = {}) {
   };
 }
 
+// jsdom lays nothing out and draws no range boxes, so a caret falls back to its host's box.
+beforeAll(() => {
+  Range.prototype.getClientRects ??= () => [] as unknown as DOMRectList;
+});
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => vi.useRealTimers());
 
@@ -67,8 +71,10 @@ describe('presence on a canvas', () => {
     );
     const avatars = screen.getByRole('img', { name: 'Ada Lovelace is here' });
     expect(avatars).toHaveTextContent('AL');
-    const caret = document.querySelector('[data-block-id="b"] .quoin-presence-caret');
-    expect(caret?.getAttribute('aria-hidden')).toBe('true');
+    expect(document.querySelector('[data-quoin-host] .quoin-presence-caret')).toBeNull();
+    const caret = document.querySelector('.quoin-presence-carets .quoin-presence-caret');
+    expect(caret?.closest('[aria-hidden="true"]')).not.toBeNull();
+    expect(caret).toHaveTextContent('Ada Lovelace');
     expect(screen.getAllByRole('textbox', { name: 'Paragraph' })).toHaveLength(2);
   });
 

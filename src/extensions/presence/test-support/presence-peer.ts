@@ -1,12 +1,12 @@
 import type * as Y from 'yjs';
-import { presenceExtension } from '../../extensions/presence/presence-extension';
-import { collaborationExtension } from '../../engine/collab/collaboration-extension';
-import { coreExtensions, type CoreCommands } from '../../engine/extension/core-extensions';
-import { createEditor, type Editor } from '../../engine/extension/editor';
-import type { QuoinBlock } from '../../engine/model/quoin-block';
-import { yjsCollaboration } from '../index';
+import { presenceExtension } from '../presence-extension';
+import { collaborationExtension } from '../../../engine/collab/collaboration-extension';
+import { coreExtensions, type CoreCommands } from '../../../engine/extension/core-extensions';
+import { createEditor, type Editor } from '../../../engine/extension/editor';
+import type { QuoinBlock } from '../../../engine/model/quoin-block';
+import { yjsCollaboration } from '../../../yjs/index';
 import { linkOf, setActive } from '../presence-link';
-import { FakeAwareness } from './fake-awareness';
+import { FakeAwareness } from '../../../yjs/test-support/fake-awareness';
 
 export type PresencePeer = {
   editor: Editor<CoreCommands>;

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import type { ViewController } from '../../view';
-import { setActive, type PresenceLink } from '../../yjs/presence-link';
+import { setActive, type PresenceLink } from './presence-link';
 
 /** Tells presence whether the canvas is focused and editable, the only time its selection is shared. */
 export function usePresenceActivity(controller: ViewController, link: PresenceLink): void {

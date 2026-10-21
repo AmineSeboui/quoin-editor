@@ -25,7 +25,7 @@ Quoin needs React 18.2 or later (React 19 is supported) and TypeScript 5.4 or la
 
 **Tailwind is not required, and either major version works.** See [Tailwind, or no Tailwind](#tailwind-or-no-tailwind) for the one thing a v4 host has to do.
 
-Quoin depends on five Radix primitives, `lucide-react` for its icons, and `clsx` for class composition. A page downloads only the entries it imports: the canvas, `quoin-editor`, is held under 155 kB gzip, `quoin-editor/headless` under 70 kB and `quoin-editor/engine` under 52 kB. Each opt-in feature adds between about 1.7 kB (stats, or the table of contents) and 9.5 kB (tables) to the canvas, all of them together about 29 kB, and the emoji dataset, about 42 kB, loads only when the `:` menu or the emoji picker first opens. Collaboration with presence, `quoin-editor/yjs`, adds about 11 kB and needs `yjs` installed beside it, an optional peer dependency. The npm tarball is larger, about 1.6 MB, because it carries ESM and CommonJS builds with their sourcemaps. If you want the text editing and none of the UI, [`quoin-editor/headless`](#headless) has no component or UI library dependency at all.
+Quoin depends on five Radix primitives, `lucide-react` for its icons, and `clsx` for class composition. A page downloads only the entries it imports: the canvas, `quoin-editor`, is held under 155 kB gzip, `quoin-editor/headless` under 70 kB and `quoin-editor/engine` under 52 kB. Each opt-in feature adds between about 1.7 kB (stats, or the table of contents) and 9.5 kB (tables) to the canvas, all of them together about 29 kB, and the emoji dataset, about 42 kB, loads only when the `:` menu or the emoji picker first opens. Collaboration, `quoin-editor/yjs`, adds about 8 kB and needs `yjs` installed beside it, an optional peer dependency; showing collaborators, `quoin-editor/presence`, adds about 4 kB more. The npm tarball is larger, about 1.6 MB, because it carries ESM and CommonJS builds with their sourcemaps. If you want the text editing and none of the UI, [`quoin-editor/headless`](#headless) has no component or UI library dependency at all.
 
 ## Quickstart
 
@@ -684,10 +684,11 @@ The whole document lives in one `Y.Text`, `doc.getText('quoin')` (`field` names 
 
 ### Showing who else is here
 
-`presenceExtension` shows the people your provider's awareness knows: each one's selection tinted with their colour, their caret with their name, small avatars of their initials at the end of the first line of the block they are in, and, through the canvas's live region, who joined and who left. Give `yjsCollaboration` the provider's awareness, such as `provider.awareness` of `y-websocket`, and a `user` with a name and a colour; Quoin never makes one up, and a colour that is not a plain CSS colour is left out. Pick colours that white text reads well on, since names and initials are drawn in white.
+`quoin-editor/presence` shows the people your provider's awareness knows: each one's selection tinted with their colour, their caret with their name, small avatars of their initials in a narrow gutter beside the block they are in, and, through the canvas's live region, who joined and who left. It is an entry of its own, so a worker or a server that only syncs through `quoin-editor/yjs` loads none of the canvas. Give `yjsCollaboration` the provider's awareness, such as `provider.awareness` of `y-websocket`, and a `user` with a name and a colour; Quoin never makes one up, and a colour that is not a plain CSS colour is left out. Pick colours that white text reads well on, since names and initials are drawn in white.
 
 ```tsx
-import { collaborationExtension, presenceExtension, yjsCollaboration, type YjsAwareness } from 'quoin-editor/yjs';
+import { presenceExtension } from 'quoin-editor/presence';
+import { collaborationExtension, yjsCollaboration, type YjsAwareness } from 'quoin-editor/yjs';
 import { useState } from 'react';
 import type * as Y from 'yjs';
 
@@ -701,7 +702,7 @@ export function useSharedExtensions(doc: Y.Doc, awareness: YjsAwareness) {
 }
 ```
 
-Each client writes `{ user: { name, color }, selection }` to its awareness state, the selection's ends given by block id, region and offset with a Yjs relative position beside them, so a caret stays on its character while others type before it. The selection is written at most every 50 ms, and only while the canvas is focused and editable: on blur or in read-only it is cleared, so others stop showing it. A collaborator's name fades after 2 seconds without a move. Carets are hidden from assistive technology and take no pointer or focus, and nothing a collaborator does scrolls the page or moves the focus. Strings come from `PresenceLabels` (English in `englishPresenceLabels`), overridden through `presenceExtension(collaboration, { labels })`.
+Each client writes `{ user: { name, color }, selection }` to its awareness state, the selection's ends given by block id, region and offset with a Yjs relative position beside them, so a caret stays on its character while others type before it. The selection is written at most every 50 ms, and only while the canvas is focused and editable: on blur or in read-only it is cleared, so others stop showing it. Carets are drawn over the text rather than in it, so they never change how your own caret moves, what you select, copy or compose; they are hidden from assistive technology and take no pointer or focus. A collaborator's name fades after 2 seconds without a move, and a long name is cut short with an ellipsis (the avatars' accessible name keeps it whole). The avatars' gutter takes 24 px at the end of the canvas. Nothing a collaborator does scrolls the page or moves the focus, and an announcement stays in the live region until you, not a collaborator, change something. Strings come from `PresenceLabels` (English in `englishPresenceLabels`), overridden through `presenceExtension(collaboration, { labels })`.
 
 ## Read-only
 
@@ -941,7 +942,9 @@ From `quoin-editor/find`: `findExtension`, its `FindOptions`, `FindLabels` and `
 
 From `quoin-editor/stats`: `statsExtension`, its `StatsOptions`, `StatsLabels` and `englishStatsLabels`, and `useEditorStats` with its `EditorStats` type.
 
-From `quoin-editor/yjs`: `yjsCollaboration` with its `YjsCollaborationOptions`, `YjsCollaboration`, `CollaborationUser`, `YjsAwareness` and `Seed` types, `presenceExtension` with its `PresenceOptions` and `PresenceLabels` types and `englishPresenceLabels`, and `collaborationExtension`, `applyRemote` and the `CollaborationAdapter` and `CollaborationHistory` types for an adapter of your own. It carries a `'use client'` banner, since presence draws in the canvas; the adapter on its own still runs where there is no DOM, such as Node or a worker.
+From `quoin-editor/yjs`: `yjsCollaboration` with its `YjsCollaborationOptions`, `YjsCollaboration`, `CollaborationUser`, `YjsAwareness` and `Seed` types, and `collaborationExtension`, `applyRemote` and the `CollaborationAdapter` and `CollaborationHistory` types for an adapter of your own. Like the engine entry it has no `'use client'` banner and needs no DOM.
+
+From `quoin-editor/presence`: `presenceExtension` with its `PresenceOptions` and `PresenceLabels` types, and `englishPresenceLabels`.
 
 From `quoin-editor/catalogue`: `catalogue`, every opt-in feature at once.
 

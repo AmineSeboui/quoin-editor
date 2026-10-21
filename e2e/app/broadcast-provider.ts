@@ -42,16 +42,20 @@ class ChannelAwareness implements YjsAwareness {
  * A provider for the harness: the pages of one browser context share a Yjs document and their awareness through a
  * BroadcastChannel, as a server would relay them. A page that opens asks the others for what it lacks.
  */
-export function broadcastProvider(doc: Y.Doc, name: string): { awareness: YjsAwareness; leave(): void } {
+export function broadcastProvider(doc: Y.Doc, name: string, batch = false): { awareness: YjsAwareness; leave(): void } {
   const channel = new BroadcastChannel(name);
   const send = (message: Message) => channel.postMessage(message);
   const awareness = new ChannelAwareness(doc.clientID, send);
   doc.on('update', (update: Uint8Array, origin: unknown) => {
     if (origin !== channel) send({ type: 'update', update });
   });
+  const held: Uint8Array[] = [];
+  const applyHeld = () => held.splice(0).forEach((update) => Y.applyUpdate(doc, update, channel));
   channel.onmessage = ({ data }: MessageEvent<Message>) => {
-    if (data.type === 'update') Y.applyUpdate(doc, data.update, channel);
-    else if (data.type === 'awareness') awareness.receive(data.client, data.state);
+    if (data.type === 'update') {
+      if (!batch) Y.applyUpdate(doc, data.update, channel);
+      else if (held.push(data.update) === 1) setTimeout(applyHeld, 120);
+    } else if (data.type === 'awareness') awareness.receive(data.client, data.state);
     else {
       send({ type: 'update', update: Y.encodeStateAsUpdate(doc, data.vector) });
       awareness.announce();

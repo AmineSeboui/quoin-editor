@@ -2,15 +2,16 @@
 
 import { defineExtension, type Extension } from '../../engine';
 import type { ViewController } from '../../view';
-import { sharedOf, type YjsCollaboration } from '../../yjs/index';
-import { linkOf } from '../../yjs/presence-link';
-import { startPresence } from '../../yjs/presence-session';
+import { sharedOf } from '../../yjs/bound';
+import type { YjsCollaboration } from '../../yjs/index';
 import type { ExtensionUI } from '../ui-types';
 import { PresenceAvatars } from './PresenceAvatars';
 import { presenceDecorations } from './presence-decorations';
 import { resolvePresenceLabels, type PresenceLabels } from './presence-labels';
+import { linkOf } from './presence-link';
 import { presencePlugin } from './presence-plugin';
-import { PRESENCE_CARET, remoteCaret } from './RemoteCaret';
+import { startPresence } from './presence-session';
+import { RemoteCarets } from './RemoteCarets';
 import { usePresenceActivity } from './use-presence-activity';
 import { usePresenceAnnouncements } from './use-presence-announcements';
 
@@ -32,12 +33,14 @@ export function presenceExtension(collaboration: YjsCollaboration, options: Pres
     const link = linkOf(controller.editor);
     usePresenceActivity(controller, link);
     usePresenceAnnouncements(controller, link, labels);
-    return <PresenceAvatars controller={controller} labels={labels} />;
+    return (
+      <>
+        <RemoteCarets controller={controller} labels={labels} />
+        <PresenceAvatars controller={controller} labels={labels} />
+      </>
+    );
   }
-  const ui: ExtensionUI = {
-    overlays: [Overlay],
-    render: { widgets: { [PRESENCE_CARET]: remoteCaret(labels) } },
-  };
+  const ui: ExtensionUI = { overlays: [Overlay] };
   return defineExtension({
     name: 'presence',
     // Below the default, so the collaboration it reads has connected before it starts.

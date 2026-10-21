@@ -4,12 +4,43 @@ import { blocks, caretSettled, openEditor } from '../../support/editor';
 
 const host = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
 const markdown = async (page: Page) => (await blocks(page)).map((block) => String(block.data.markdown));
-const caretOf = (page: Page, block: string) => page.locator(`[data-block-id="${block}"] .quoin-presence-caret`);
+const caretOf = (page: Page, name: string) => page.locator('.quoin-presence-caret').filter({ hasText: name });
+const offset = (page: Page) =>
+  page.evaluate(() => {
+    const selection = window.__quoin.controller!.editor.state.selection;
+    return selection?.kind === 'text' ? selection.head.offset : null;
+  });
+
+// The box of a collaborator caret and of the character of the host at `at`, in the page.
+const boxes = (page: Page, name: string, block: string, at: number) =>
+  page.evaluate(
+    ([name, block, at]) => {
+      const caret = [...document.querySelectorAll('.quoin-presence-caret')].find((one) => one.textContent === name)!;
+      const host = document.querySelector(`[data-block-id="${block}"] [data-quoin-host]`)!;
+      const walker = document.createTreeWalker(host, NodeFilter.SHOW_TEXT);
+      let left = at;
+      let node = walker.nextNode() as Text | null;
+      while (node && left > node.length) {
+        left -= node.length;
+        node = walker.nextNode() as Text | null;
+      }
+      const range = document.createRange();
+      range.setStart(node!, left);
+      range.collapse(true);
+      const point = range.getClientRects()[0] ?? range.getBoundingClientRect();
+      const line = caret.getBoundingClientRect();
+      return {
+        caret: { x: line.left + line.width / 2, top: line.top, bottom: line.bottom },
+        point: { x: point.left, y: point.top + point.height / 2 },
+      };
+    },
+    [name, block, at] as const,
+  );
 
 // Two pages of one browser context, of different widths, sharing a document through the harness's BroadcastChannel
 // provider: Ada's page seeds it and Bea's takes it.
-async function twoPages(page: Page, doc = 'sample') {
-  await openEditor(page, doc, 'collab=presence&user=Ada%20Lovelace&color=%23b91c1c');
+async function twoPages(page: Page, doc = 'sample', ada = '') {
+  await openEditor(page, doc, `collab=presence&user=Ada%20Lovelace&color=%23b91c1c${ada}`);
   const other = await page.context().newPage();
   await other.setViewportSize({ width: 640, height: 720 });
   await openEditor(other, 'empty', 'collab=presence&user=Bea&color=%231d4ed8&seed=0');
@@ -38,10 +69,16 @@ test.describe('presence between two pages', () => {
     await caretAtEnd(page, 'b');
     await page.keyboard.type(' Hello');
     await expect.poll(() => markdown(bea)).toEqual(['# Title', 'First paragraph. Hello']);
-    await expect(caretOf(bea, 'b')).toBeVisible();
-    await expect(caretOf(bea, 'b')).toHaveText('Ada Lovelace');
+    await expect(caretOf(bea, 'Ada Lovelace')).toBeVisible();
     await expect(bea.getByRole('img', { name: 'Ada Lovelace is here' })).toBeVisible();
-    await expect(caretOf(page, 'a')).toHaveText('Bea');
+    await expect(caretOf(page, 'Bea')).toBeVisible();
+    await expect(bea.locator('[data-quoin-host] .quoin-presence-caret')).toHaveCount(0);
+    await expect
+      .poll(async () => {
+        const { caret, point } = await boxes(bea, 'Ada Lovelace', 'b', 'First paragraph. Hello'.length);
+        return Math.abs(caret.x - point.x) < 3 && caret.top <= point.y && point.y <= caret.bottom;
+      })
+      .toBe(true);
     await expect(host(bea, 'a')).toBeFocused();
     expect(await bea.evaluate(() => scrollY)).toBe(scroll);
   });
@@ -49,23 +86,75 @@ test.describe('presence between two pages', () => {
   test('fades a still collaborator name, keeps its caret and drops both when it leaves', async ({ page }) => {
     const bea = await twoPages(page);
     await caretAtEnd(page, 'b');
-    await expect(caretOf(bea, 'b')).toBeVisible();
-    await expect(caretOf(bea, 'b')).toHaveAttribute('data-idle', '', { timeout: 4000 });
+    await expect(caretOf(bea, 'Ada Lovelace')).toBeVisible();
+    await expect(caretOf(bea, 'Ada Lovelace')).toHaveAttribute('data-idle', '', { timeout: 4000 });
     await page.evaluate(() => window.__quoinLeave!());
     await page.close();
-    await expect(caretOf(bea, 'b')).toHaveCount(0);
+    await expect(caretOf(bea, 'Ada Lovelace')).toHaveCount(0);
     await expect(bea.getByRole('status')).toHaveText('Ada Lovelace left', { timeout: 8000 });
   });
 
-  test('keeps the caret of a page that types while the other types before it', async ({ page }) => {
+  for (const [setting, ada] of [
+    ['', ''],
+    [', its updates applied several in one task', '&batch=1'],
+  ]) {
+    test(`keeps the caret of a page that types while the other types before it${setting}`, async ({ page }) => {
+      const bea = await twoPages(page, 'sample', ada);
+      await caretAtEnd(page, 'b');
+      await caretAt(bea, 'b', 0);
+      const typed = 'abcdefghijklmnopqrst';
+      await Promise.all([page.keyboard.type(typed, { delay: 35 }), bea.keyboard.type('XYZXYZXYZ', { delay: 55 })]);
+      const expected = ['# Title', `XYZXYZXYZFirst paragraph.${typed}`];
+      await expect.poll(() => markdown(page)).toEqual(expected);
+      await expect.poll(() => markdown(bea)).toEqual(expected);
+    });
+  }
+
+  test('moves the caret one character a press across a collaborator caret, both ways', async ({ page }) => {
+    const bea = await twoPages(page);
+    await caretAt(bea, 'b', 5);
+    await caretAt(page, 'b', 3);
+    await expect(caretOf(page, 'Bea')).toBeVisible();
+    const moved = async (key: string) => {
+      const offsets: (number | null)[] = [];
+      let last = await offset(page);
+      for (let i = 0; i < 4; i++) {
+        await page.keyboard.press(key);
+        await expect.poll(() => offset(page)).not.toBe(last);
+        last = await offset(page);
+        offsets.push(last);
+      }
+      return offsets;
+    };
+    expect(await moved('ArrowRight')).toEqual([4, 5, 6, 7]);
+    expect(await moved('ArrowLeft')).toEqual([6, 5, 4, 3]);
+    await page.keyboard.type('Q');
+    await expect.poll(() => markdown(bea)).toEqual(['# Title', 'FirQst paragraph.']);
+  });
+
+  test('keeps the avatars in a gutter of their own, clear of the text, on a narrow page', async ({ page }) => {
     const bea = await twoPages(page);
     await caretAtEnd(page, 'b');
-    await caretAt(bea, 'b', 0);
-    const typed = 'abcdefghijklmnopqrst';
-    await Promise.all([page.keyboard.type(typed, { delay: 35 }), bea.keyboard.type('XYZXYZXYZ', { delay: 55 })]);
-    const expected = ['# Title', `XYZXYZXYZFirst paragraph.${typed}`];
-    await expect.poll(() => markdown(page)).toEqual(expected);
-    await expect.poll(() => markdown(bea)).toEqual(expected);
+    await page.keyboard.type(
+      ' Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt',
+    );
+    const avatar = bea.getByRole('img', { name: 'Ada Lovelace is here' });
+    await expect(avatar).toBeVisible();
+    const overlaps = await bea.evaluate(() => {
+      const group = document.querySelector('.quoin-presence-group')!.getBoundingClientRect();
+      const range = document.createRange();
+      range.selectNodeContents(document.querySelector('[data-block-id="b"] [data-quoin-host]')!);
+      return [...range.getClientRects()].filter(
+        (rect) =>
+          rect.width > 0 &&
+          rect.right > group.left &&
+          rect.left < group.right &&
+          rect.bottom > group.top &&
+          rect.top < group.bottom,
+      ).length;
+    });
+    expect(overlaps).toBe(0);
+    await bea.screenshot({ path: test.info().outputPath('avatars.png') });
   });
 
   test('a composition keeps what the other page types meanwhile', async ({ page, browserName }) => {

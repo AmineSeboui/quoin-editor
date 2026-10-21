@@ -7,14 +7,8 @@ import { describeBuilt, dist } from '../test/support/built-dist';
 import * as yjs from './yjs';
 
 describe('the yjs entry', () => {
-  it('exports the Yjs adapter, the collaboration hook and presence', () => {
-    expect(Object.keys(yjs).sort()).toEqual([
-      'applyRemote',
-      'collaborationExtension',
-      'englishPresenceLabels',
-      'presenceExtension',
-      'yjsCollaboration',
-    ]);
+  it('exports the Yjs adapter and the collaboration hook', () => {
+    expect(Object.keys(yjs).sort()).toEqual(['applyRemote', 'collaborationExtension', 'yjsCollaboration']);
   });
 });
 

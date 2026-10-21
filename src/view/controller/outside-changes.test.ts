@@ -75,7 +75,11 @@ describe('outside changes', () => {
     expect(outside.takeMoved()).toEqual(caret(3));
   });
 
-  it('reads the browser selection at most once before the next draw, so a second change never reads a stale caret', () => {
+  // The second change is a plain one, then one that only hands an extension's plugin new state, as presence does.
+  it.each([
+    ['a change', (tr: Transaction) => tr],
+    ['one that hands presence its collaborators', (tr: Transaction) => tr.setOrigin('remote').setMeta('presence', [])],
+  ])('reads the browser selection at most once before the next draw, the second being %s', (_, shaped) => {
     const models: (Selection | null)[] = [];
     const outside = createOutsideChanges(
       () => true,
@@ -87,10 +91,10 @@ describe('outside changes', () => {
     const first = insertion();
     outside.committed(first);
     const after = { ...state, doc: first.doc, selection: caret(7) };
-    outside.committed(new Transaction(after));
+    outside.committed(shaped(new Transaction(after)));
     expect(models).toEqual([caret(5)]);
     expect(outside.takeMoved()).toBeNull();
-    outside.committed(new Transaction(after));
+    outside.committed(shaped(new Transaction(after)));
     expect(models).toEqual([caret(5), caret(7)]);
   });
 });

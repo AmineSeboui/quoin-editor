@@ -1,14 +1,16 @@
 import * as Y from 'yjs';
-import { collaborationExtension, presenceExtension, yjsCollaboration, type YjsAwareness } from 'quoin-editor/yjs';
+import { presenceExtension } from 'quoin-editor/presence';
+import { collaborationExtension, yjsCollaboration, type YjsAwareness } from 'quoin-editor/yjs';
 import { broadcastProvider } from './broadcast-provider';
 
 /**
  * Collaboration and presence for a canvas page, shared with the other pages of its browser context. The first page
- * seeds the document; a page opened with `seed=0` takes it from the others.
+ * seeds the document; a page opened with `seed=0` takes it from the others, and one opened with `batch=1` applies
+ * what the others send in batches, several updates in one task.
  */
 export function collaborativeCanvas(params: URLSearchParams) {
   const doc = new Y.Doc();
-  const { awareness, leave } = broadcastProvider(doc, params.get('collab') ?? 'quoin');
+  const { awareness, leave } = broadcastProvider(doc, params.get('collab') ?? 'quoin', params.get('batch') === '1');
   window.__quoinLeave = leave;
   const user = { name: params.get('user') ?? 'Ada', color: params.get('color') ?? undefined };
   const seed = params.get('seed') === '0' ? false : 'if-empty';

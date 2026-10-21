@@ -1,10 +1,8 @@
 import { packageEntries } from '../scripts/package-entries.mjs';
 
 const PINNED: Readonly<Record<string, { load: () => Promise<object>; exports: readonly string[] }>> = {
-  yjs: {
-    load: () => import('./yjs'),
-    exports: ['yjsCollaboration', 'collaborationExtension', 'applyRemote', 'presenceExtension', 'englishPresenceLabels'],
-  },
+  yjs: { load: () => import('./yjs'), exports: ['yjsCollaboration', 'collaborationExtension', 'applyRemote'] },
+  presence: { load: () => import('./presence'), exports: ['presenceExtension', 'englishPresenceLabels'] },
   table: {
     load: () => import('./table'),
     exports: [

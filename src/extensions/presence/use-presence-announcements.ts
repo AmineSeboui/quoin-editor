@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import type { ViewController } from '../../view';
-import type { PeopleChange, PresenceLink } from '../../yjs/presence-link';
+import type { PeopleChange, PresenceLink } from './presence-link';
 import { createPresenceAnnouncer } from './presence-announcements';
 import type { PresenceLabels } from './presence-labels';
 

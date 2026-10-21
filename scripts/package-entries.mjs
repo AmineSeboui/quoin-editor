@@ -45,8 +45,10 @@ export const packageEntries = [
   { name: MAIN_ENTRY, source: 'src/index.ts', client: true, total: 155_000 },
   { name: 'headless', source: 'src/headless.ts', client: true, total: 70_000 },
   { name: 'engine', source: 'src/engine/index.ts', client: false, total: 52_000 },
-  // Measured as what it adds to the main entry, like a feature, whose whole entry it loads.
-  { name: 'yjs', source: 'src/yjs.ts', client: true, added: incrementalBudget(11_144) },
+  // Measured as what it adds to the main entry, like a feature: the engine entry it loads is a part of the main entry.
+  { name: 'yjs', source: 'src/yjs.ts', client: false, added: incrementalBudget(8_044) },
+  // Collaborators drawn in the canvas: a client entry, apart from the adapter, which a worker or a server can load alone.
+  { name: 'presence', source: 'src/presence.ts', client: true, added: incrementalBudget(4_035) },
   ...featureEntries,
   { name: 'catalogue', source: 'src/catalogue.ts', client: true, added: incrementalBudget(28_865) },
 ];

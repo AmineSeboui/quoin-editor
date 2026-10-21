@@ -91,6 +91,19 @@ describe('an extension filtering transactions', () => {
     expect(editor.getBlocks()[0].data).toEqual({ markdown: 'xy\\*\\*b\\*\\*' });
   });
 
+  it('filters a chain that joins the undo of an input rule to another change', () => {
+    let open = true;
+    const { editor } = filtered((tr) => open || !tr.docChanged);
+    editor.commands.setSelection(caret('a', 2));
+    for (const typed of ['*', '*', 'b', '*', '*']) editor.insertText(typed);
+    const ruled = editor.getBlocks()[0].data;
+    open = false;
+    editor.chain().undoInputRule().insertText('!').run();
+    expect(editor.getBlocks()[0].data).toEqual(ruled);
+    expect(editor.chain().undoInputRule().run()).toBe(true);
+    expect(editor.getBlocks()[0].data).toEqual({ markdown: 'xy\\*\\*b\\*\\*' });
+  });
+
   it('never filters a remote transaction', () => {
     const { editor } = filtered(() => false);
     const tr = editor.createTransaction().setOrigin('remote');

@@ -653,19 +653,34 @@ const extensions = [statsExtension({ limit: 280, focusMode: true, typography: { 
 ```tsx
 import { BlockCanvas, type QuoinBlock } from 'quoin-editor';
 import { collaborationExtension, yjsCollaboration } from 'quoin-editor/yjs';
-import { useState } from 'react';
-import * as Y from 'yjs';
+import { useEffect, useState } from 'react';
+import type * as Y from 'yjs';
 
-const doc = new Y.Doc();
-const extensions = [collaborationExtension(yjsCollaboration({ doc, user: { name: 'Ada' } }))];
+// The part of a provider such as y-websocket's WebsocketProvider this needs: whether it has synced, and its event.
+type Provider = {
+  synced: boolean;
+  on(event: 'sync', listener: (synced: boolean) => void): void;
+  off(event: 'sync', listener: (synced: boolean) => void): void;
+};
 
-export function SharedEditor({ starting }: { starting: QuoinBlock[] }) {
+export function SharedEditor({ doc, provider, starting }: { doc: Y.Doc; provider: Provider; starting: QuoinBlock[] }) {
+  const [synced, setSynced] = useState(provider.synced);
+  const [extensions] = useState(() => [collaborationExtension(yjsCollaboration({ doc, user: { name: 'Ada' } }))]);
   const [blocks, setBlocks] = useState(starting);
+  useEffect(() => {
+    const listen = (done: boolean) => {
+      if (done) setSynced(true);
+    };
+    provider.on('sync', listen);
+    return () => provider.off('sync', listen);
+  }, [provider]);
+  // Connect only once the provider has synced, so an empty document is seeded by one client alone.
+  if (!synced) return null;
   return <BlockCanvas blocks={blocks} onChange={setBlocks} extensions={extensions} />;
 }
 ```
 
-The blocks live in `doc.getArray('quoin')` (`field` names another array), one `Y.Map` per block with its `id`, `type`, `indent`, `attrs` and a `Y.Text` for each region, whose formatting attributes are the marks (`{ bold: true }`, `{ link: { href } }`, `{ 'comment:c1': true }`). Blocks and marks the canvas does not know are kept as they are. When the canvas connects, a shared document with content replaces the canvas's blocks, and an empty one takes them; two clients that connect to an empty document before their provider has synced would both fill it, so connect after the provider's first sync, or pass `seed: false` to all clients but one. Pressing Enter or Backspace copies text from one block to another, and the copy is recorded beside the blocks (in `doc.getMap('quoin:moves')`): what another client typed or formatted at the same moment in the text that moved follows it to its new block, once, written there by that client. Moving a block also writes a copy of it, but without that record, so an edit someone makes inside a block being moved at the same moment is lost; every client still ends with the same document. Undo and redo go through a `Y.UndoManager` that tracks this client's changes alone, grouped as the canvas groups typing. One `yjsCollaboration` serves one editor at a time. Recent releases of `lib0`, which `yjs` depends on, declare types that need TypeScript 5.7: on an older TypeScript, set `skipLibCheck` or hold `lib0` at 0.2.111.
+The blocks live in `doc.getArray('quoin')` (`field` names another array), one `Y.Map` per block with its `id`, `type`, `indent`, `attrs` and a `Y.Text` for each region, whose formatting attributes are the marks (`{ bold: true }`, `{ link: { href } }`, `{ 'comment:c1': true }`). Blocks and marks the canvas does not know are kept as they are. When the canvas connects, a shared document with content replaces the canvas's blocks, and an empty one takes them; two clients that connect to an empty document before their provider has synced would both fill it, so connect after the provider's first sync, or pass `seed: false` to all clients but one. Pressing Enter or Backspace copies text from one block to another, and the copy is recorded beside the blocks (in `doc.getMap('quoin:moves')`): what another client typed or formatted at the same moment in the text that moved follows it to its new block, once, written there by that client. Moving a block also writes a copy of it, but without that record, so an edit someone makes inside a block being moved at the same moment is lost; every client still ends with the same document. Undo and redo go through a `Y.UndoManager` that tracks this client's changes alone, grouped as the canvas groups typing. One `yjsCollaboration` serves one editor at a time: build it with the editor, as above, and a second editor it is given stays unconnected and is reported to its `onError` option. Recent releases of `lib0`, which `yjs` depends on, declare types that need TypeScript 5.7: on an older TypeScript, set `skipLibCheck` or hold `lib0` at 0.2.111.
 
 ## Read-only
 

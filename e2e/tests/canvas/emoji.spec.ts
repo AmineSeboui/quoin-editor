@@ -107,9 +107,10 @@ test('the picker a callout block menu opens writes the emoji found to its icon, 
   const host = await openPicker(page);
   await expect(page.getByRole('menu')).toHaveCount(0);
   await expect(picker(page).getByRole('grid', { name: 'Smileys and emotion' })).toBeVisible();
-  expect(await axeViolations(page, 'all', '[role="dialog"]')).toEqual([]);
   await page.keyboard.type('tada');
   await expect(picker(page).getByRole('grid', { name: 'Search results' })).toBeVisible();
+  // Unsearched, the picker draws nearly two thousand cells of the same markup, which axe takes most of the timeout over.
+  expect(await axeViolations(page, 'all', '[role="dialog"]')).toEqual([]);
   await page.keyboard.press('Enter');
   await expect(picker(page)).toHaveCount(0);
   await expect(host).toBeFocused();

@@ -6,12 +6,14 @@ import type { Step } from '../engine/transform/step';
 import { readMarker, regionNameOf } from './doc-shape';
 import { cleanEntry, indexOf, offsetIn, placeEntries, spanAt, spanStart, type Layout } from './layout';
 import { isPlain, rewritten } from './plain';
+import type { RequiredRegions } from './required-regions';
 import type { DeltaOp } from './text-steps';
 
 const bare = (op: DeltaOp | undefined) => op === undefined || op.attributes === undefined;
 
-// A marker and a region start put in inside the last region of a plain block, as a split writes them.
-function split(layout: Layout, delta: readonly DeltaOp[]): { step: Step; map: Y.Map<unknown> } | null {
+// A marker and a region start put in inside the last region of a plain block, as a split writes them, for a block
+// that needs no other region.
+function split(layout: Layout, delta: readonly DeltaOp[], required: RequiredRegions) {
   const [at, ops] = delta[0]?.retain === undefined ? [0, delta] : [delta[0].retain, delta.slice(1)];
   const map = ops[0]?.insert;
   const name = regionNameOf(ops[1]?.insert);
@@ -23,6 +25,7 @@ function split(layout: Layout, delta: readonly DeltaOp[]): { step: Step; map: Y.
   const seg = region?.segs[0];
   const rel = at - spanStart(layout, span);
   if (marker === null || seg === undefined || rel < seg.at || rel > seg.at + seg.length) return null;
+  if (required(marker.type).some((needed) => needed !== name)) return null;
   const { id, type, indent, attrs } = marker;
   const created = { id, type, indent, attrs: attrs?.toJSON() ?? {}, region: name, regions: {} };
   return { step: splitBlockStep(span.entry.id, region!.name, offsetIn(seg, rel), created), map };
@@ -46,8 +49,13 @@ function join(layout: Layout, delta: readonly DeltaOp[]): Step | null {
  * The split or join step of a change to the shared text that writes one in plain blocks, with the layout moved on to
  * the document after it; null for any other change.
  */
-export function splitOrJoin(layout: Layout, delta: readonly DeltaOp[], doc: EngineDoc): Step | null {
-  const found = split(layout, delta);
+export function splitOrJoin(
+  layout: Layout,
+  delta: readonly DeltaOp[],
+  doc: EngineDoc,
+  required: RequiredRegions,
+): Step | null {
+  const found = split(layout, delta, required);
   const step = found?.step ?? join(layout, delta);
   if (step === null) return null;
   const after = step.apply(doc).doc;

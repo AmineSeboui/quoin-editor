@@ -7,6 +7,7 @@ import { replaceDocStep } from '../engine/transform/replace-doc-step';
 import { writeBlocks } from './doc-shape';
 import { cleanEntry, createLayout, emptySpan, type Layout } from './layout';
 import { readShared } from './read-shared';
+import type { RequiredRegions } from './required-regions';
 
 export type Seed = 'if-empty' | false;
 
@@ -17,7 +18,11 @@ export type Seed = 'if-empty' | false;
  * connecting to one empty document before their provider synced both seed it: a host connects after the provider's
  * first sync, or passes `seed: false` to all but one client.
  */
-export function seedOrLoad(editor: Editor<CommandFactories>, text: Y.Text, origin: object, seed: Seed): Layout {
+export function seedOrLoad(
+  editor: Editor<CommandFactories>,
+  text: Y.Text,
+  { origin, seed, required }: { origin: object; seed: Seed; required: RequiredRegions },
+): Layout {
   const { blocks } = editor.state.doc;
   if (text.length === 0 && seed === 'if-empty') {
     let maps: Y.Map<unknown>[] = [];
@@ -26,7 +31,7 @@ export function seedOrLoad(editor: Editor<CommandFactories>, text: Y.Text, origi
     const spans = [emptySpan(), ...entries.map((entry) => entry.span)];
     return createLayout(spans, new Map(entries.map((entry) => [entry.id, entry])), true);
   }
-  const { doc, layout } = readShared(text);
+  const { doc, layout } = readShared(text, required);
   if (!sameDoc(doc, editor.state.doc)) applyRemote(editor, [replaceDocStep(doc)]);
   return layout;
 }

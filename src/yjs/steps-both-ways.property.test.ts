@@ -9,6 +9,7 @@ import type { Step } from '../engine/transform/step';
 import { writeBlocks } from './doc-shape';
 import { writeLocalSteps } from './local-to-yjs';
 import { readShared } from './read-shared';
+import { noRequiredRegions } from './required-regions';
 import { readRemote } from './yjs-to-steps';
 import { layoutShape } from './test-support/layout-shape';
 import { linkedDocs } from './test-support/peers';
@@ -46,8 +47,8 @@ describe('a step written to a shared text and read back on another client', () =
         const [mine, theirs] = docs.map((ydoc) => ydoc.getText('quoin'));
         writeBlocks(mine, 0, doc.blocks);
         flush();
-        const local = { text: mine, layout: readShared(mine).layout, stale: false };
-        const remote = { text: theirs, layout: readShared(theirs).layout, stale: false };
+        const local = { text: mine, layout: readShared(mine).layout, stale: false, required: noRequiredRegions };
+        const remote = { text: theirs, layout: readShared(theirs).layout, stale: false, required: noRequiredRegions };
         let seen = doc;
         const kinds: string[] = [];
         theirs.observeDeep((events) => {

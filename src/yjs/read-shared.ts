@@ -4,11 +4,12 @@ import type { EngineBlock, EngineDoc } from '../engine/model/types';
 import { isAtomEmbed, readMarker, regionNameOf, type Marker } from './doc-shape';
 import { inlineOfOps, type InsertOp } from './inline-codec';
 import { createLayout, emptySpan, type Entry, type Layout, type Region, type Seg, type Span } from './layout';
+import { noRequiredRegions, type RequiredRegions } from './required-regions';
 
 type Op = { insert: unknown; attributes?: Record<string, unknown> };
 type Stray = { host: Span; at: number; length: number; ops: InsertOp[]; after: Region | null };
 
-function reader() {
+function reader(required: RequiredRegions) {
   const spans = [emptySpan()];
   const entries = new Map<string, Entry>();
   const markers = new Map<Entry, Marker>();
@@ -109,6 +110,9 @@ function reader() {
       order[0]?.segs.unshift(...prepended);
       const blocks = [...entries.values()].map((kept): EngineBlock => {
         const { type, indent, attrs } = markers.get(kept)!;
+        for (const name of required(type)) {
+          if (!kept.regions.some((region) => region.name === name)) kept.regions.push({ name, entry: kept, segs: [] });
+        }
         const inline = (segs: readonly Seg[]) => inlineOfOps(segs.flatMap((seg) => held.get(seg)!));
         const regions = kept.regions.map(({ name, segs }) => [name, inline(segs)]);
         return { id: kept.id, type, indent, attrs: attrs?.toJSON() ?? {}, regions: Object.fromEntries(regions) };
@@ -128,10 +132,14 @@ function reader() {
  *   skipped, and the region before it goes on after it;
  * - characters outside a region join the region before them in the text, or the first region of the document when
  *   no region comes before them, and are dropped when the document has no region;
- * - a marker's missing type reads as '', its missing indent as 0 and its missing attrs as none.
+ * - a marker's missing type reads as '', its missing indent as 0 and its missing attrs as none;
+ * - a region `required` names for the block's type that the text does not hold reads as empty.
  */
-export function readShared(text: Y.Text): { doc: EngineDoc; layout: Layout } {
-  const read = reader();
+export function readShared(
+  text: Y.Text,
+  required: RequiredRegions = noRequiredRegions,
+): { doc: EngineDoc; layout: Layout } {
+  const read = reader(required);
   for (const op of text.toDelta() as Op[]) read.read(op);
   return read.finish();
 }

@@ -8,6 +8,7 @@ import { replaceDocStep } from '../engine/transform/replace-doc-step';
 import { holdSelection, restoreSelection, type HeldSelection } from './carets';
 import { writeLocalSteps } from './local-to-yjs';
 import { readShared } from './read-shared';
+import { requiredRegions } from './required-regions';
 import { seedOrLoad, type Seed } from './seed';
 import type { Shared } from './shared';
 import { undoHistory, type UndoHistory } from './undo-history';
@@ -35,7 +36,9 @@ export function bind(
   { origins, seed }: { origins: Origins; seed: Seed },
 ): Binding {
   const doc = text.doc!;
-  const shared: Shared = { text, layout: seedOrLoad(editor, text, origins.local, seed), stale: false };
+  const required = requiredRegions(editor.state.schema);
+  const layout = seedOrLoad(editor, text, { origin: origins.local, seed, required });
+  const shared: Shared = { text, layout, stale: false, required };
   const history = undoHistory(text, origins.local);
   const ours = (origin: unknown) => origin === origins.local || origin === origins.untracked;
   let held: HeldSelection = null;
@@ -52,7 +55,7 @@ export function bind(
   // A change written over a text that is out of shape can read back as another document: the editor takes that one.
   const settle = () => {
     shared.stale = false;
-    const read = readShared(text);
+    const read = readShared(text, required);
     shared.layout = read.layout;
     if (!sameDoc(read.doc, editor.state.doc)) applyRemote(editor, [replaceDocStep(read.doc)]);
   };

@@ -32,13 +32,16 @@ function markerSteps(shared: Shared, event: YEvent, doc: EngineDoc): Step[] {
   if (keys.includes('id')) throw REREAD;
   if (keys.every((key) => key === 'indent')) return [setIndentStep(block.id, fields!.indent)];
   const { type, indent, attrs } = fields!;
+  // A region read as empty for the old type, or one the new type needs, changes how the block's regions are read.
+  const empty = shared.layout.entries.get(block.id)!.regions.some((region) => region.segs.length === 0);
+  if (empty || shared.required(type).some((name) => !Object.hasOwn(block.regions, name))) throw REREAD;
   return [replaceBlockStep({ ...block, type, indent, attrs: attrs?.toJSON() ?? {} })];
 }
 
 function contentSteps(shared: Shared, events: readonly YEvent[], doc: EngineDoc): Step[] {
   const textEvent = events.find((event) => event.target === shared.text);
   const delta = (textEvent?.delta ?? []) as DeltaOp[];
-  const structure = splitOrJoin(shared.layout, delta, doc);
+  const structure = splitOrJoin(shared.layout, delta, doc, shared.required);
   const steps = structure === null ? textSteps(shared.layout, delta) : [structure];
   if (steps === null) throw REREAD;
   let current = steps.reduce((changed, step) => step.apply(changed).doc, doc);
@@ -66,7 +69,7 @@ export function readRemote(
   try {
     return { steps: contentSteps(shared, events, doc), structural: false };
   } catch {
-    const read = readShared(shared.text);
+    const read = readShared(shared.text, shared.required);
     shared.layout = read.layout;
     const blocks = read.doc.blocks.map((block) => {
       const held = blockById(doc, block.id);

@@ -5,7 +5,7 @@ import type { BlockAttrs, EngineBlock, Inline } from '../engine/model/types';
 import { definedEntries, deleteText, regionStart } from './doc-shape';
 import { insertInline } from './inline-codec';
 import { changedSpan } from './inline-span';
-import { indexOf, placeEntries, spanStart, type Entry } from './layout';
+import { indexOf, placeEntries, regionOf, spanStart, type Entry } from './layout';
 import { isPlain, rewritten } from './plain';
 import { deleteContent, insertContent, type Shared } from './shared';
 import { insertBlocks, removeBlock } from './write-blocks';
@@ -79,11 +79,12 @@ export function syncBlock(shared: Shared, before: EngineBlock, after: EngineBloc
   if (before.indent !== after.indent) entry.map.set('indent', after.indent);
   syncAttrs(entry.map, before.attrs, after.attrs);
   if (plain) return syncRegions(shared, entry, before, after);
-  for (const region of entry.regions) {
-    const was = before.regions[region.name];
-    const now = after.regions[region.name];
+  // Writing into a region the text does not hold re-reads the text, so each region is looked up again.
+  for (const name of entry.regions.map((region) => region.name)) {
+    const [was, now] = [before.regions[name], after.regions[name]];
     if (equalInline(was, now)) continue;
     const { from, to, slice } = changedSpan(was, now);
+    const region = regionOf(shared.layout, before.id, name);
     deleteContent(shared, region, from, to);
     insertContent(shared, region, from, slice);
   }

@@ -6,6 +6,7 @@ import type { EngineBlock, EngineDoc } from '../engine/model/types';
 import type { Step } from '../engine/transform/step';
 import { markerOf, regionStart, writeBlocks } from './doc-shape';
 import { readShared } from './read-shared';
+import { noRequiredRegions } from './required-regions';
 import { readRemote } from './yjs-to-steps';
 
 const block = (id: string, value: string): EngineBlock => ({
@@ -20,7 +21,7 @@ const block = (id: string, value: string): EngineBlock => ({
 function observed(doc: EngineDoc, given: EngineDoc = doc) {
   const shared = new Y.Doc().getText('quoin');
   writeBlocks(shared, 0, doc.blocks);
-  const mirror = { text: shared, layout: readShared(shared).layout, stale: false };
+  const mirror = { text: shared, layout: readShared(shared).layout, stale: false, required: noRequiredRegions };
   const seen: Step[][] = [];
   let current = given;
   shared.observeDeep((events) => {

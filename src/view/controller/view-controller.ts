@@ -5,21 +5,19 @@ import type { RenderOptions } from '../dom/render-inline';
 import type { KeyInterceptor } from '../input/keydown';
 import { createCrossMode } from '../selection/cross-mode';
 import { createNodeReveal } from '../selection/node-reveal';
-import { focusingSink, focusSink, heldBySink } from '../selection/selection-sink';
+import { focusSink } from '../selection/selection-sink';
 import { createAnnouncer } from './announcer';
 import { dispatchSelection } from './dispatch-selection';
-import { writeSelection } from './dom-selection';
 import { createDrawnElements } from './drawn-elements';
 import { hasFocus, ownsFocus } from './focus-ownership';
 import { focusTarget, type FocusTarget } from './focus-target';
 import { createHostRegistry, hostKey, type HostEntry, type HostRegistry } from './host-registry';
 import { hostDecorations } from './host-decorations';
 import { createHostRenderer, type HostRenderer } from './host-renderer';
-import { movedSelection } from './moved-selection';
 import { createOutsideChanges } from './outside-changes';
 import { createReadOnly, type ReadOnly } from './read-only';
 import { bindRoot, type RootBinding } from './root-binding';
-import { samePoints, selectionPoints } from './selection-sync';
+import { movedSelection, writeModelSelection } from './selection-io';
 
 export type ViewControllerOptions = {
   editor: Editor;
@@ -214,22 +212,8 @@ export class ViewController {
     return this.ownerDocument()?.getSelection() ?? null;
   }
 
-  // While an IME composes, the composing host's offset map is stale and moving the DOM selection would cancel the
-  // composition, so the selection is left alone in both directions. A selection across hosts or of whole blocks has no
-  // native form in the hosts and is held by the sink. Where no sink is drawn, a node selection falls back to its shell,
-  // and a caret left behind in a host would be read back on the next key, so a block range empties the native selection.
   syncSelectionToDom(): void {
-    const doc = this.ownerDocument();
-    const domSelection = doc?.getSelection();
-    if (focusingSink(this) || this.composingKey !== null || !doc || !domSelection || !ownsFocus(this, doc)) return;
-    const before = selectionPoints(domSelection);
-    const { selection } = this.editor.state;
-    if (heldBySink(selection) && this.sink !== null) focusSink(this);
-    else if (selection?.kind === 'blocks') domSelection.removeAllRanges();
-    else writeSelection(this.registry, selection, domSelection, (id) => this.blockElement(id));
-    this.nodeReveal.show(selection);
-    const after = selectionPoints(domSelection);
-    if (!samePoints(before, after)) this.binding?.selectionSync.suppressNext();
+    writeModelSelection(this, this.ownerDocument(), () => this.binding?.selectionSync.suppressNext());
   }
 
   // A pointer drag across hosts sets the model selection itself, while the browser keeps extending its own. Leaving

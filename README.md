@@ -25,7 +25,7 @@ Quoin needs React 18.2 or later (React 19 is supported) and TypeScript 5.4 or la
 
 **Tailwind is not required, and either major version works.** See [Tailwind, or no Tailwind](#tailwind-or-no-tailwind) for the one thing a v4 host has to do.
 
-Quoin depends on five Radix primitives, `lucide-react` for its icons, and `clsx` for class composition. A page downloads only the entries it imports: the canvas, `quoin-editor`, is held under 155 kB gzip, `quoin-editor/headless` under 70 kB and `quoin-editor/engine` under 52 kB. Each opt-in feature adds between about 1.7 kB (stats, or the table of contents) and 9.5 kB (tables) to the canvas, all of them together about 29 kB, and the emoji dataset, about 42 kB, loads only when the `:` menu or the emoji picker first opens. The npm tarball is larger, about 1.6 MB, because it carries ESM and CommonJS builds with their sourcemaps. If you want the text editing and none of the UI, [`quoin-editor/headless`](#headless) has no component or UI library dependency at all.
+Quoin depends on five Radix primitives, `lucide-react` for its icons, and `clsx` for class composition. A page downloads only the entries it imports: the canvas, `quoin-editor`, is held under 155 kB gzip, `quoin-editor/headless` under 70 kB and `quoin-editor/engine` under 52 kB. Each opt-in feature adds between about 1.7 kB (stats, or the table of contents) and 9.5 kB (tables) to the canvas, all of them together about 29 kB, and the emoji dataset, about 42 kB, loads only when the `:` menu or the emoji picker first opens. Collaboration, `quoin-editor/yjs`, adds about 4 kB and needs `yjs` installed beside it, an optional peer dependency. The npm tarball is larger, about 1.6 MB, because it carries ESM and CommonJS builds with their sourcemaps. If you want the text editing and none of the UI, [`quoin-editor/headless`](#headless) has no component or UI library dependency at all.
 
 ## Quickstart
 
@@ -646,6 +646,27 @@ const extensions = [statsExtension({ limit: 280, focusMode: true, typography: { 
 
 `footer: false` leaves the footer out and keeps the rest. `useEditorStats(controller)` returns `{ characters, words, blocks }` for a count of your own, with the controller of a `BlockCanvas` handle or, inside the canvas, of `useViewController()`.
 
+### Collaborating through Yjs
+
+`quoin-editor/yjs` syncs a canvas through a [Yjs](https://yjs.dev) document, with an undo that takes back only your own changes. Install `yjs` beside the package (it is an optional peer dependency) and bring your own provider, such as `y-websocket`; Quoin never opens a connection itself.
+
+```tsx
+import { BlockCanvas, type QuoinBlock } from 'quoin-editor';
+import { collaborationExtension, yjsCollaboration } from 'quoin-editor/yjs';
+import { useState } from 'react';
+import * as Y from 'yjs';
+
+const doc = new Y.Doc();
+const extensions = [collaborationExtension(yjsCollaboration({ doc, user: { name: 'Ada' } }))];
+
+export function SharedEditor({ starting }: { starting: QuoinBlock[] }) {
+  const [blocks, setBlocks] = useState(starting);
+  return <BlockCanvas blocks={blocks} onChange={setBlocks} extensions={extensions} />;
+}
+```
+
+The blocks live in `doc.getArray('quoin')` (`field` names another array), one `Y.Map` per block with its `id`, `type`, `indent`, `attrs` and a `Y.Text` for each region, whose formatting attributes are the marks (`{ bold: true }`, `{ link: { href } }`, `{ 'comment:c1': true }`). Blocks and marks the canvas does not know are kept as they are. When the canvas connects, a shared document with content replaces the canvas's blocks, and an empty one takes them; two clients that connect to an empty document before their provider has synced would both fill it, so connect after the provider's first sync, or pass `seed: false` to all clients but one. Moving a block writes a copy of it: an edit someone makes inside that block at the same moment is lost, and every client still ends with the same document. Undo and redo go through a `Y.UndoManager` that tracks this client's changes alone, grouped as the canvas groups typing. One `yjsCollaboration` serves one editor at a time. Recent releases of `lib0`, which `yjs` depends on, declare types that need TypeScript 5.7: on an older TypeScript, set `skipLibCheck` or hold `lib0` at 0.2.111.
+
 ## Read-only
 
 ```tsx
@@ -883,6 +904,8 @@ From `quoin-editor/emoji`: `emojiExtension`, its `EmojiOptions`, `EmojiLabels` a
 From `quoin-editor/find`: `findExtension`, its `FindOptions`, `FindLabels` and `englishFindLabels`, `findMatches` and `replaceMatches`, and the `SearchOptions`, `FindQuery`, `FindMatch` and `FindResult` types.
 
 From `quoin-editor/stats`: `statsExtension`, its `StatsOptions`, `StatsLabels` and `englishStatsLabels`, and `useEditorStats` with its `EditorStats` type.
+
+From `quoin-editor/yjs`: `yjsCollaboration` with its `YjsCollaborationOptions`, `YjsCollaboration`, `CollaborationUser`, `YjsAwareness` and `Seed` types, and `collaborationExtension`, `applyRemote` and the `CollaborationAdapter` and `CollaborationHistory` types for an adapter of your own. Like the engine entry it has no `'use client'` banner and needs no DOM.
 
 From `quoin-editor/catalogue`: `catalogue`, every opt-in feature at once.
 

@@ -11,6 +11,7 @@ declare global {
       removeRemotely?: (id: string) => void;
       files?: { names: string[]; at: unknown }[];
       timings?: number[];
+      sharedText?: (index: number) => string;
       opened?: unknown[];
     };
   }

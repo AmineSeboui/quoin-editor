@@ -77,9 +77,11 @@ describe('the package entry list', () => {
     expect(incrementalBudget(9_999)).toBe(10_399);
   });
 
-  it('publishes every feature, then the catalogue, as client entries held to what they add to the main entry', () => {
+  it('publishes the Yjs adapter, every feature, then the catalogue, held to what they add to the main entry', () => {
     const optIn = packageEntries.slice(3);
-    expect(optIn.map(({ name }) => name)).toEqual([...featureEntries.map(({ name }) => name), 'catalogue']);
+    expect(optIn.map(({ name }) => name)).toEqual(['yjs', ...featureEntries.map(({ name }) => name), 'catalogue']);
+    expect(optIn[0]).toMatchObject({ source: 'src/yjs.ts', client: false });
+    expect(optIn.slice(1).every(({ client }) => client)).toBe(true);
     expect(optIn.at(-1)).toMatchObject({ source: 'src/catalogue.ts', client: true });
     expect(optIn.every(({ added }) => Number.isInteger(added) && Number(added) > 0)).toBe(true);
   });
@@ -99,6 +101,12 @@ describe('the sources of the opt-in entries', () => {
       expect(importsOf(code)[0]).toBe('./index');
     },
   );
+
+  it('include the Yjs adapter, which reaches no client code: no directive, and the whole engine entry first', () => {
+    const code = sourceOf('src/yjs.ts');
+    expect(code).not.toMatch(/['"]use client['"]/);
+    expect(importsOf(code)[0]).toBe('./engine/index');
+  });
 
   it('gather in the catalogue through each feature entry, and nothing else', () => {
     const own = ['./engine', './extensions/create-catalogue'];

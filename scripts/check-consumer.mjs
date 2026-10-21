@@ -25,6 +25,10 @@ run(
   ],
   work,
 );
+// yjs is an optional peer, so the package installs without it; the yjs entry and its README sample then need it. Its
+// lib0 is held at the last release whose declarations TypeScript 5.4 reads: later ones write Uint8Array<ArrayBuffer>,
+// which needs TypeScript 5.7.
+run('npm', ['install', '--no-audit', '--no-fund', 'yjs@13.6.33', 'lib0@0.2.111'], work);
 
 const samples = join(work, 'samples');
 mkdirSync(samples);

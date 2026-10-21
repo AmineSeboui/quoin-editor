@@ -77,6 +77,16 @@
         "default": "./dist/engine.cjs"
       }
     },
+    "./yjs": {
+      "import": {
+        "types": "./dist/yjs.d.ts",
+        "default": "./dist/yjs.js"
+      },
+      "require": {
+        "types": "./dist/yjs.d.cts",
+        "default": "./dist/yjs.cjs"
+      }
+    },
     "./table": {
       "import": {
         "types": "./dist/table.d.ts",
@@ -190,7 +200,13 @@
   },
   "peerDependencies": {
     "react": "^18.2.0 || ^19.0.0",
-    "react-dom": "^18.2.0 || ^19.0.0"
+    "react-dom": "^18.2.0 || ^19.0.0",
+    "yjs": "^13.6.0"
+  },
+  "peerDependenciesMeta": {
+    "yjs": {
+      "optional": true
+    }
   },
   "dependencies": {
     "@radix-ui/react-context-menu": "^2.3.8",
@@ -229,6 +245,7 @@
     "typescript": "^5.7.0",
     "typescript-eslint": "^8.71.1",
     "vitest": "^3.0.0",
-    "vitest-axe": "^0.1.0"
+    "vitest-axe": "^0.1.0",
+    "yjs": "13.6.33"
   }
 }

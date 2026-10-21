@@ -14,8 +14,8 @@ const SENTENCE = 'The quick brown fox jumps over the lazy dog again and again.';
 
 const p95 = (timings: number[]) => [...timings].sort((a, b) => a - b)[Math.floor(timings.length * 0.95)];
 
-async function typingP95(page: Page, doc: string, block: number): Promise<number> {
-  await openHeadless(page, doc);
+async function typingP95(page: Page, doc: string, block: number, extra: string): Promise<number> {
+  await openHeadless(page, doc, extra);
   await caretAt(page, block, 0);
   await page.evaluate(() => (window.__quoin.timings = []));
   await page.keyboard.type(SENTENCE);
@@ -28,35 +28,46 @@ const note = (type: string, description: string) => test.info().annotations.push
 
 type Round = { readonly small: number; readonly large: number; readonly ratio: number };
 
-async function measureRound(page: Page): Promise<Round> {
-  const small = await typingP95(page, 'forty', 20);
-  const large = await typingP95(page, 'large', 500);
+async function measureRound(page: Page, extra: string): Promise<Round> {
+  const small = await typingP95(page, 'forty', 20, extra);
+  const large = await typingP95(page, 'large', 500, extra);
   return { small, large, ratio: large / small };
 }
 
-test('typing in a 1,000 block document stays under one frame', async ({ page, browserName }) => {
-  test.skip(browserName !== 'chromium', 'the budget is set for Chromium');
-  note('gate', GATE);
-  if (!process.env.CI) {
-    const large = await typingP95(page, 'large', 500);
-    note('p95 of 1,000 blocks', `${large.toFixed(1)} ms`);
-    expect(large).toBeLessThan(16);
-    return;
-  }
-  test.setTimeout(120_000);
-  await typingP95(page, 'forty', 20);
-  const rounds: Round[] = [];
-  while (rounds.length < ROUNDS && !rounds.some(({ ratio }) => ratio < SLOWDOWN_LIMIT)) rounds.push(await measureRound(page));
-  rounds.forEach(({ small, large, ratio }, index) =>
-    note(`round ${index + 1}`, `40 blocks ${small.toFixed(1)} ms, 1,000 blocks ${large.toFixed(1)} ms, ratio ${ratio.toFixed(2)}`),
-  );
-  const best = rounds.reduce((lowest, round) => (round.ratio < lowest.ratio ? round : lowest));
-  note('p95 of 40 blocks', `${best.small.toFixed(1)} ms`);
-  note('p95 of 1,000 blocks', `${best.large.toFixed(1)} ms`);
-  note('ratio', best.ratio.toFixed(2));
-  expect(best.ratio).toBeLessThan(SLOWDOWN_LIMIT);
-  expect(best.large).toBeLessThan(CAP_MS);
-});
+async function expectShared(page: Page, extra: string) {
+  if (extra !== '') expect(await page.evaluate(() => window.__quoin.sharedText?.(500))).toContain(SENTENCE);
+}
+
+// With collaboration on, each keystroke is also written to a Yjs document that sends its update to a second one.
+for (const [setting, extra] of [['', ''], [' with collaboration on', 'collab=1']]) {
+  test(`typing in a 1,000 block document${setting} stays under one frame`, async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium', 'the budget is set for Chromium');
+    note('gate', GATE);
+    if (!process.env.CI) {
+      const large = await typingP95(page, 'large', 500, extra);
+      note('p95 of 1,000 blocks', `${large.toFixed(1)} ms`);
+      expect(large).toBeLessThan(16);
+      await expectShared(page, extra);
+      return;
+    }
+    test.setTimeout(120_000);
+    await typingP95(page, 'forty', 20, extra);
+    const rounds: Round[] = [];
+    while (rounds.length < ROUNDS && !rounds.some(({ ratio }) => ratio < SLOWDOWN_LIMIT)) {
+      rounds.push(await measureRound(page, extra));
+    }
+    rounds.forEach(({ small, large, ratio }, index) =>
+      note(`round ${index + 1}`, `40 blocks ${small.toFixed(1)} ms, 1,000 blocks ${large.toFixed(1)} ms, ratio ${ratio.toFixed(2)}`),
+    );
+    const best = rounds.reduce((lowest, round) => (round.ratio < lowest.ratio ? round : lowest));
+    note('p95 of 40 blocks', `${best.small.toFixed(1)} ms`);
+    note('p95 of 1,000 blocks', `${best.large.toFixed(1)} ms`);
+    note('ratio', best.ratio.toFixed(2));
+    expect(best.ratio).toBeLessThan(SLOWDOWN_LIMIT);
+    expect(best.large).toBeLessThan(CAP_MS);
+    await expectShared(page, extra);
+  });
+}
 
 test('Enter near the top of a 1,000 block document stays under one frame', async ({ page, browserName }) => {
   test.skip(browserName !== 'chromium', 'the budget is set for Chromium');

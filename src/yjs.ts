@@ -1,7 +1,8 @@
-// Plain logic with no React, so like the engine entry it carries no client directive and runs in Node or a worker.
-// The whole engine entry, so that the bundler splits none of the chunks the other entries share around the modules
-// this entry reaches.
-import './engine/index';
+'use client';
+
+// The whole main entry, for the reason src/table.ts gives. Presence draws in the canvas, so this entry reaches React;
+// the adapter alone still runs in Node or a worker with no DOM.
+import './index';
 
 export {
   yjsCollaboration,
@@ -14,3 +15,5 @@ export type { Seed } from './yjs/seed';
 export type { CollaborationAdapter, CollaborationHistory } from './engine/collab/adapter';
 export { applyRemote } from './engine/collab/apply-remote';
 export { collaborationExtension } from './engine/collab/collaboration-extension';
+export { presenceExtension, type PresenceOptions } from './extensions/presence/presence-extension';
+export { englishPresenceLabels, type PresenceLabels } from './extensions/presence/presence-labels';

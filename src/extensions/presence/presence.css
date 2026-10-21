@@ -1,0 +1,80 @@
+/* A collaborator's colour comes as --quoin-presence on each element; without one the ring colour stands in. */
+.quoin .quoin-presence-selection {
+  background: color-mix(in srgb, var(--quoin-presence, var(--quoin-ring)) 20%, transparent);
+}
+
+/* No width of its own, so the line lays out as it would without it; it never takes the pointer or a selection. */
+.quoin .quoin-presence-caret {
+  position: relative;
+  display: inline-block;
+  width: 0;
+  height: 1.2em;
+  margin-inline: -1px;
+  vertical-align: text-bottom;
+  border-inline-start: 2px solid var(--quoin-presence, var(--quoin-ring));
+  pointer-events: none;
+  user-select: none;
+}
+
+.quoin .quoin-presence-name {
+  position: absolute;
+  bottom: 100%;
+  inset-inline-start: -2px;
+  padding: 0 4px;
+  border-radius: 3px;
+  background: var(--quoin-presence, var(--quoin-ring));
+  color: #fff;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
+  transition: opacity 0.3s;
+}
+
+.quoin .quoin-presence-caret[data-idle] .quoin-presence-name {
+  opacity: 0;
+}
+
+/* The start of each line holds the block handle, so the avatars sit at the end of the block's first line. */
+.quoin .quoin-presence-avatars {
+  position: absolute;
+  top: 0;
+  inset-inline-end: 0;
+  pointer-events: none;
+}
+
+.quoin .quoin-presence-group {
+  position: absolute;
+  top: 0;
+  inset-inline-end: 0;
+  display: flex;
+  gap: 2px;
+}
+
+.quoin .quoin-presence-avatar {
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: var(--quoin-presence, var(--quoin-ring));
+  color: #fff;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
+}
+
+@media (forced-colors: active) {
+  .quoin .quoin-presence-selection {
+    background: Mark;
+    color: MarkText;
+  }
+
+  .quoin .quoin-presence-caret {
+    border-color: Highlight;
+  }
+
+  .quoin .quoin-presence-name,
+  .quoin .quoin-presence-avatar {
+    border: 1px solid CanvasText;
+  }
+}

@@ -24,6 +24,7 @@ export type Origins = {
 export type Binding = {
   readonly editor: Editor<CommandFactories>;
   readonly history: UndoHistory;
+  readonly shared: Shared;
   local(tr: Transaction): void;
   travel(direction: 'undo' | 'redo'): boolean;
   stop(): void;
@@ -64,6 +65,7 @@ export function bind(
   return {
     editor,
     history,
+    shared,
     local(tr) {
       history.record(tr);
       if (!tr.docChanged) return;

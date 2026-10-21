@@ -14,5 +14,7 @@ declare global {
       sharedText?: (index: number) => string;
       opened?: unknown[];
     };
+    /** Tells the other pages this one has gone, as a provider does when it disconnects. */
+    __quoinLeave?: () => void;
   }
 }

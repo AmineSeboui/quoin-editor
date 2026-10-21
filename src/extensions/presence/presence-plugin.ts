@@ -1,0 +1,46 @@
+import { createPluginKey, type PluginSpec, type Selection } from '../../engine';
+import { mapSelection, sameSelection } from '../../engine/state/selection';
+
+/** A collaborator as this editor draws it: `idle` once its selection has not moved for a while. */
+export type Peer = {
+  readonly client: number;
+  readonly name: string;
+  readonly color?: string;
+  readonly selection: Selection | null;
+  readonly idle: boolean;
+};
+
+export const presenceKey = createPluginKey<readonly Peer[]>('presence');
+
+/** The meta of a transaction that hands the editor the collaborators it now sees. */
+export const PRESENCE = 'presence';
+
+export const samePeers = (a: readonly Peer[], b: readonly Peer[]): boolean =>
+  a.length === b.length &&
+  a.every((peer, i) => {
+    const other = b[i];
+    const same = peer.client === other.client && peer.name === other.name && peer.color === other.color;
+    return same && peer.idle === other.idle && sameSelection(peer.selection, other.selection);
+  });
+
+const NO_PEERS: readonly Peer[] = [];
+
+// Between two readings of awareness, the selections are carried through every change, each end kept before what is
+// typed at it, as the Yjs relative positions it was read from keep it.
+export const presencePlugin: PluginSpec<readonly Peer[]> = {
+  key: presenceKey,
+  init: () => NO_PEERS,
+  apply(tr, peers) {
+    const given = tr.getMeta<readonly Peer[]>(PRESENCE);
+    if (given !== undefined) return given;
+    if (!tr.docChanged) return peers;
+    let moved = false;
+    const next = peers.map((peer) => {
+      const selection = peer.selection && mapSelection(peer.selection, (pos) => tr.mapPos(pos, -1), tr.before.doc);
+      if (selection === peer.selection) return peer;
+      moved = true;
+      return { ...peer, selection };
+    });
+    return moved ? next : peers;
+  },
+};

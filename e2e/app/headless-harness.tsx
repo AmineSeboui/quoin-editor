@@ -21,7 +21,7 @@ const PARAMS = new URLSearchParams(location.search);
 // array of the same blocks, or never.
 const ECHO = PARAMS.get('echo') ?? 'immediate';
 const READ_ONLY = PARAMS.get('readonly') === '1';
-const COLLABORATION = PARAMS.get('collab') === '1' ? collaborative() : undefined;
+const COLLABORATION = PARAMS.get('collab') === '1' ? collaborative(Number(PARAMS.get('presence') ?? 0)) : undefined;
 
 const docs: Record<string, QuoinBlock[]> = {
   empty: [],
@@ -73,7 +73,7 @@ export function HeadlessHarness({ doc }: { doc: string }) {
   const [blocks, setBlocks] = useState<QuoinBlock[]>(docs[doc] ?? []);
   const controller = useQuoinEditor({
     blocks,
-    render: doc === 'atoms' ? MENTION_CHIPS : undefined,
+    render: doc === 'atoms' ? MENTION_CHIPS : COLLABORATION?.render,
     onChange: (next) => {
       window.__quoin.changes += 1;
       if (ECHO === 'immediate') setBlocks(next);

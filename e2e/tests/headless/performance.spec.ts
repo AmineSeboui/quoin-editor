@@ -36,10 +36,18 @@ async function measureRound(page: Page, extra: string): Promise<Round> {
 
 async function expectShared(page: Page, extra: string) {
   if (extra !== '') expect(await page.evaluate(() => window.__quoin.sharedText?.(500))).toContain(SENTENCE);
+  if (extra.includes('presence')) await expect(page.locator('.quoin-presence-caret')).toHaveCount(5);
 }
 
-// With collaboration on, each keystroke is also written to a Yjs document that sends its update to a second one.
-for (const [setting, extra] of [['', ''], [' with collaboration on', 'collab=1']]) {
+// With collaboration on, each keystroke is also written to a Yjs document that sends its update to a second one. Five
+// collaborators shown add their selections and carets, one of them in the block being typed in, carried by each key.
+const SETTINGS = [
+  ['', ''],
+  [' with collaboration on', 'collab=1'],
+  [' with five collaborators shown', 'collab=1&presence=5'],
+];
+
+for (const [setting, extra] of SETTINGS) {
   test(`typing in a 1,000 block document${setting} stays under one frame`, async ({ page, browserName }) => {
     test.skip(browserName !== 'chromium', 'the budget is set for Chromium');
     note('gate', GATE);

@@ -25,7 +25,7 @@ Quoin needs React 18.2 or later (React 19 is supported) and TypeScript 5.4 or la
 
 **Tailwind is not required, and either major version works.** See [Tailwind, or no Tailwind](#tailwind-or-no-tailwind) for the one thing a v4 host has to do.
 
-Quoin depends on five Radix primitives, `lucide-react` for its icons, and `clsx` for class composition. A page downloads only the entries it imports: the canvas, `quoin-editor`, is held under 155 kB gzip, `quoin-editor/headless` under 70 kB and `quoin-editor/engine` under 52 kB. Each opt-in feature adds between about 1.7 kB (stats, or the table of contents) and 9.5 kB (tables) to the canvas, all of them together about 29 kB, and the emoji dataset, about 42 kB, loads only when the `:` menu or the emoji picker first opens. Collaboration, `quoin-editor/yjs`, adds about 7 kB and needs `yjs` installed beside it, an optional peer dependency. The npm tarball is larger, about 1.6 MB, because it carries ESM and CommonJS builds with their sourcemaps. If you want the text editing and none of the UI, [`quoin-editor/headless`](#headless) has no component or UI library dependency at all.
+Quoin depends on five Radix primitives, `lucide-react` for its icons, and `clsx` for class composition. A page downloads only the entries it imports: the canvas, `quoin-editor`, is held under 155 kB gzip, `quoin-editor/headless` under 70 kB and `quoin-editor/engine` under 52 kB. Each opt-in feature adds between about 1.7 kB (stats, or the table of contents) and 9.5 kB (tables) to the canvas, all of them together about 29 kB, and the emoji dataset, about 42 kB, loads only when the `:` menu or the emoji picker first opens. Collaboration with presence, `quoin-editor/yjs`, adds about 11 kB and needs `yjs` installed beside it, an optional peer dependency. The npm tarball is larger, about 1.6 MB, because it carries ESM and CommonJS builds with their sourcemaps. If you want the text editing and none of the UI, [`quoin-editor/headless`](#headless) has no component or UI library dependency at all.
 
 ## Quickstart
 
@@ -682,6 +682,27 @@ export function SharedEditor({ doc, provider, starting }: { doc: Y.Doc; provider
 
 The whole document lives in one `Y.Text`, `doc.getText('quoin')` (`field` names another). Each block starts with an embedded `Y.Map` holding its `id`, `type`, `indent` and `attrs` (a `Y.Map` of its own, so two people changing different attrs of one block both keep their change), and each region with an embed naming it (`{ r: 'text' }`), followed by its characters, whose formatting attributes are the marks (`{ bold: true }`, `{ link: { href } }`, `{ 'comment:c1': true }`); atoms are embeds `{ atom, attrs }`. Blocks and marks the canvas does not know are kept as they are. Pressing Enter puts a block marker into the text and Backspace at the start of a line takes one out, so what someone else types in that line at the same moment stays where they typed it. Edits that cross at the same moment can leave the text in a shape no single client wrote (characters outside any region, two markers of one block); every client reads such a text the same way, without writing anything back, so all of them still show the same document. Text someone types into a block that another person deletes at the same moment is kept: it shows up at the end of the region before it in the document, which can be a block above a divider or an image. When a region later appears between that text and the region it shows up in, as when a code block above it becomes a paragraph, the text moves into the new region, on every client alike. A text block whose region another edit took out reads as empty, and typing into it writes the region again. When the canvas connects, a shared document with content replaces the canvas's blocks, and an empty one takes them; two clients that connect to an empty document before their provider has synced would both fill it, so connect after the provider's first sync, or pass `seed: false` to all clients but one. Moving a block takes it out of the text and writes it again where it goes, so an edit someone makes inside a block being moved at the same moment is lost; every client still ends with the same document. Undo and redo go through a `Y.UndoManager` that tracks this client's changes alone, grouped as the canvas groups typing. One `yjsCollaboration` serves one editor at a time: build it with the editor, as above, and a second editor it is given stays unconnected and is reported to its `onError` option. Recent releases of `lib0`, which `yjs` depends on, declare types that need TypeScript 5.7: on an older TypeScript, set `skipLibCheck` or hold `lib0` at 0.2.111.
 
+### Showing who else is here
+
+`presenceExtension` shows the people your provider's awareness knows: each one's selection tinted with their colour, their caret with their name, small avatars of their initials at the end of the first line of the block they are in, and, through the canvas's live region, who joined and who left. Give `yjsCollaboration` the provider's awareness, such as `provider.awareness` of `y-websocket`, and a `user` with a name and a colour; Quoin never makes one up, and a colour that is not a plain CSS colour is left out. Pick colours that white text reads well on, since names and initials are drawn in white.
+
+```tsx
+import { collaborationExtension, presenceExtension, yjsCollaboration, type YjsAwareness } from 'quoin-editor/yjs';
+import { useState } from 'react';
+import type * as Y from 'yjs';
+
+export function useSharedExtensions(doc: Y.Doc, awareness: YjsAwareness) {
+  const [extensions] = useState(() => {
+    const user = { name: 'Ada Lovelace', color: '#b91c1c' };
+    const collaboration = yjsCollaboration({ doc, awareness, user });
+    return [collaborationExtension(collaboration), presenceExtension(collaboration)];
+  });
+  return extensions;
+}
+```
+
+Each client writes `{ user: { name, color }, selection }` to its awareness state, the selection's ends given by block id, region and offset with a Yjs relative position beside them, so a caret stays on its character while others type before it. The selection is written at most every 50 ms, and only while the canvas is focused and editable: on blur or in read-only it is cleared, so others stop showing it. A collaborator's name fades after 2 seconds without a move. Carets are hidden from assistive technology and take no pointer or focus, and nothing a collaborator does scrolls the page or moves the focus. Strings come from `PresenceLabels` (English in `englishPresenceLabels`), overridden through `presenceExtension(collaboration, { labels })`.
+
 ## Read-only
 
 ```tsx
@@ -920,7 +941,7 @@ From `quoin-editor/find`: `findExtension`, its `FindOptions`, `FindLabels` and `
 
 From `quoin-editor/stats`: `statsExtension`, its `StatsOptions`, `StatsLabels` and `englishStatsLabels`, and `useEditorStats` with its `EditorStats` type.
 
-From `quoin-editor/yjs`: `yjsCollaboration` with its `YjsCollaborationOptions`, `YjsCollaboration`, `CollaborationUser`, `YjsAwareness` and `Seed` types, and `collaborationExtension`, `applyRemote` and the `CollaborationAdapter` and `CollaborationHistory` types for an adapter of your own. Like the engine entry it has no `'use client'` banner and needs no DOM.
+From `quoin-editor/yjs`: `yjsCollaboration` with its `YjsCollaborationOptions`, `YjsCollaboration`, `CollaborationUser`, `YjsAwareness` and `Seed` types, `presenceExtension` with its `PresenceOptions` and `PresenceLabels` types and `englishPresenceLabels`, and `collaborationExtension`, `applyRemote` and the `CollaborationAdapter` and `CollaborationHistory` types for an adapter of your own. It carries a `'use client'` banner, since presence draws in the canvas; the adapter on its own still runs where there is no DOM, such as Node or a worker.
 
 From `quoin-editor/catalogue`: `catalogue`, every opt-in feature at once.
 

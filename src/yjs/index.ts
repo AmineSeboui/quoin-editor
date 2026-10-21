@@ -2,6 +2,7 @@ import type * as Y from 'yjs';
 import type { CollaborationAdapter, CollaborationHistory } from '../engine/collab/adapter';
 import { bind, type Binding } from './binding';
 import type { Seed } from './seed';
+import type { Shared } from './shared';
 
 export type CollaborationUser = { readonly name: string; readonly color?: string };
 
@@ -38,6 +39,14 @@ export type YjsCollaboration = CollaborationAdapter & {
   readonly history: CollaborationHistory;
 };
 
+const bindings = new WeakMap<YjsCollaboration, () => Binding | null>();
+
+/** Where the blocks of `editor` sit in the shared text, or null while that editor is not the one connected. */
+export function sharedOf(collaboration: YjsCollaboration, editor: object): Shared | null {
+  const binding = bindings.get(collaboration)?.();
+  return binding?.editor === editor ? binding.shared : null;
+}
+
 /**
  * Syncs an editor through `doc.getText(field)`, which holds the whole document, with an undo that takes back only this
  * client's changes. Pass it to `collaborationExtension`; it connects one editor at a time.
@@ -48,7 +57,7 @@ export function yjsCollaboration(options: YjsCollaborationOptions): YjsCollabora
   const text = doc.getText(field);
   const origins = { local: { user }, untracked: {} };
   let binding: Binding | null = null;
-  return {
+  const collaboration: YjsCollaboration = {
     doc,
     text,
     awareness,
@@ -76,4 +85,6 @@ export function yjsCollaboration(options: YjsCollaborationOptions): YjsCollabora
       canRedo: () => binding?.history.manager.canRedo() ?? false,
     },
   };
+  bindings.set(collaboration, () => binding);
+  return collaboration;
 }

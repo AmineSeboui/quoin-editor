@@ -4,12 +4,12 @@ import { offsetIn, pointOf, regionOf, spanAt, spanStart, type Layout } from './l
 
 export type HeldSelection = { anchor: Y.RelativePosition; head: Y.RelativePosition } | null;
 
-function relative(text: Y.Text, layout: Layout, pos: Pos): Y.RelativePosition {
+export function relative(text: Y.Text, layout: Layout, pos: Pos): Y.RelativePosition {
   const { seg, rel } = pointOf(regionOf(layout, pos.block, pos.region), pos.offset);
   return Y.createRelativePositionFromTypeIndex(text, spanStart(layout, seg.host) + rel, -1);
 }
 
-function absolute(text: Y.Text, layout: Layout, held: Y.RelativePosition): Pos | null {
+export function absolute(text: Y.Text, layout: Layout, held: Y.RelativePosition): Pos | null {
   const found = Y.createAbsolutePositionFromRelativePosition(held, text.doc!);
   if (found === null || found.type !== text) return null;
   const span = spanAt(layout, found.index);

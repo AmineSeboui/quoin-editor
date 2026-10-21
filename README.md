@@ -25,7 +25,7 @@ Quoin needs React 18.2 or later (React 19 is supported) and TypeScript 5.4 or la
 
 **Tailwind is not required, and either major version works.** See [Tailwind, or no Tailwind](#tailwind-or-no-tailwind) for the one thing a v4 host has to do.
 
-The package is around 200 kB packed. It depends on `@dnd-kit` for dragging, five Radix primitives, `cmdk` for the slash palette, `lucide-react` for the icons, and `clsx` and `class-variance-authority` for class composition. That is the price of the canvas: the cards, the drag gutter, the inserters, the palette and the dialogs. If you want the text editing and none of the UI, [`quoin-editor/headless`](#headless) has no component or UI library dependency at all.
+Quoin depends on five Radix primitives, `lucide-react` for its icons, and `clsx` for class composition. A page downloads only the entries it imports: the canvas, `quoin-editor`, is held under 155 kB gzip, `quoin-editor/headless` under 70 kB and `quoin-editor/engine` under 52 kB. Each opt-in feature adds between about 1.7 kB (stats, or the table of contents) and 9.5 kB (tables) to the canvas, all of them together about 29 kB, and the emoji dataset, about 42 kB, loads only when the `:` menu or the emoji picker first opens. The npm tarball is larger, about 1.6 MB, because it carries ESM and CommonJS builds with their sourcemaps. If you want the text editing and none of the UI, [`quoin-editor/headless`](#headless) has no component or UI library dependency at all.
 
 ## Quickstart
 
@@ -492,7 +492,7 @@ The arrows select a card as a whole, and it is announced as "File" and the file'
 
 ## Opt-in features
 
-Features beyond the core blocks ship as their own entries, so a host that leaves one out never downloads it. Add a feature's extension to `extensions`, or `catalogue()` from `quoin-editor/catalogue` for all of them, each taking its options under its own name (`catalogue({ table: { labels } })`, or `false` to leave one out). Every string a feature shows or speaks comes from its own `labels` option, English by default, the name its blocks go by in their block menu and while one is selected as a whole included.
+Features beyond the core blocks ship as their own entries, so a host that leaves one out never downloads it. Add a feature's extension to `extensions`, or `catalogue()` from `quoin-editor/catalogue` for all of them, each taking its options under its own name (`catalogue({ table: { labels } })`, or `false` to leave one out). Every string a feature shows or speaks comes from its own `labels` option, English by default, the name its blocks go by in their block menu and while one is selected as a whole included. A feature's options go through `catalogue({ <name>: options })` when you use the catalogue, and the feature is never added again beside it, which would mount it twice. Extensions are read when the canvas mounts: keep host functions stable or read changing values through a ref, and remount the canvas with a `key` to change options or labels.
 
 A block whose feature is not installed, such as a table on a canvas without `tableExtension()`, an embed without `embedExtension()`, a math block without `mathExtension()` or a table of contents without `tocExtension()`, is drawn as an unsupported block. Its data is kept as it was, through edits around it, `onChange` and markdown. A math formula in a line, without `mathExtension()`, shows its LaTeX as plain text, and a mention, without `mentionExtension()`, shows `@` and its label as plain text.
 

@@ -27,6 +27,8 @@ export type CatalogueOptions = CatalogueOptionsOf<typeof features>;
 
 /**
  * The extensions of every opt-in feature, for `BlockCanvas`'s `extensions`. Each feature takes its options under its
- * own name, and `false` leaves it out.
+ * own name, and `false` leaves it out. A feature's options go here, as `catalogue({ math: { renderMath } })`: a
+ * feature added again beside the catalogue mounts twice. The canvas reads its extensions when it mounts, so remount it
+ * with a new `key` to change options or labels.
  */
 export const catalogue: (options?: CatalogueOptions) => Extension[] = createCatalogue(features);

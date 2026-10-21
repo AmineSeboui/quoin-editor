@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, render } from '@testing-library/react';
-import { nodeSelection, removeBlocksStep, type QuoinBlock, type Selection, type TransactionOrigin } from '../../engine';
+import { nodeSelection, removeBlocksStep, type QuoinBlock, type TransactionOrigin } from '../../engine';
 import { Editor, md } from '../react/test-harness';
 import type { ViewController } from './view-controller';
 
@@ -14,58 +14,101 @@ afterEach(() => {
   document.body.replaceChildren();
 });
 
-// jsdom neither lays out nor scrolls, so revealing an element or focusing a host scrolls the page's scroller to the top
-// here, as a browser would to bring them into view.
-function mountScrolled() {
-  const scroller = document.createElement('div');
-  const scrollTo = (options: ScrollToOptions) => void (scroller.scrollTop = options.top ?? 0);
-  scroller.scrollTo = scrollTo as typeof scroller.scrollTo;
-  document.body.appendChild(scroller);
+const scrollable = (element: HTMLElement) => {
+  const scrollTo = (options: ScrollToOptions) => void (element.scrollTop = options.top ?? 0);
+  element.scrollTo = scrollTo as typeof element.scrollTo;
+  return element;
+};
+
+// jsdom neither lays out nor scrolls, so a host's focus() scrolls the scroller to the top here, as a browser would to
+// bring it into view. A reveal is only counted, since one that scrolls smoothly would move the page after any check.
+function mountScrolled(where: 'around' | 'root') {
+  const around = scrollable(document.createElement('div'));
+  document.body.appendChild(around);
   let controller!: ViewController;
   render(<Editor options={{ blocks, onChange: () => {} }} onController={(c) => (controller = c)} />, {
-    container: scroller.appendChild(document.createElement('div')),
+    container: around.appendChild(document.createElement('div')),
   });
+  const scroller = where === 'root' ? scrollable(controller.root!) : around;
+  const reveals = vi.spyOn(Element.prototype, 'scrollIntoView');
   const focus = HTMLElement.prototype.focus;
-  vi.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(() => void (scroller.scrollTop = 0));
-  vi.spyOn(HTMLElement.prototype, 'focus').mockImplementation(function (this: HTMLElement, options) {
+  const focuses = vi.spyOn(HTMLElement.prototype, 'focus').mockImplementation(function (this: HTMLElement, options) {
     focus.call(this, options);
     if (options?.preventScroll !== true) scroller.scrollTop = 0;
   });
-  const select = (selection: Selection) => {
-    act(() => controller.dispatch(controller.editor.createTransaction().setSelection(selection)));
-    scroller.scrollTop = SCROLLED;
-  };
-  const remove = (id: string, origin: TransactionOrigin) => {
+  const removal = (id: string, origin: TransactionOrigin) => {
     const { editor } = controller;
     const tr = editor.createTransaction().setOrigin(origin).setMeta('addToHistory', false);
-    act(() => editor.dispatch(tr.step(removeBlocksStep(editor.state.doc.index.get(id)!, 1))));
+    editor.dispatch(tr.step(removeBlocksStep(editor.state.doc.index.get(id)!, 1)));
   };
-  return { controller, scroller, select, remove };
+  const remove = (id: string, origin: TransactionOrigin) => act(() => removal(id, origin));
+  const selectNode = (id: string) => {
+    act(() => controller.dispatch(controller.editor.createTransaction().setSelection(nodeSelection(id))));
+    reveals.mockClear();
+  };
+  return { controller, scroller, reveals, focuses, remove, removal, selectNode };
 }
 
-describe('a change from outside that removes the selected block', () => {
+describe.each(['around', 'root'] as const)('a change from outside, the scroller being %s the canvas,', (where) => {
   it.each([
-    ['remote', SCROLLED],
-    ['command', 0],
-  ] as const)('selects its neighbour, which a %s change leaves scrolled to %i', (origin, scrolled) => {
-    const { controller, scroller, select, remove } = mountScrolled();
+    ['remote', 0],
+    ['command', 1],
+  ] as const)('that removes the selected block selects the next, a %s change revealing it %i times', (origin, n) => {
+    const { controller, reveals, selectNode, remove } = mountScrolled(where);
     act(() => controller.focus());
-    select(nodeSelection('d1'));
+    selectNode('d1');
     remove('d1', origin);
     expect(controller.editor.state.selection).toEqual(nodeSelection('d2'));
-    expect(scroller.scrollTop).toBe(scrolled);
+    expect(reveals).toHaveBeenCalledTimes(n);
   });
 
   it.each([
     ['remote', SCROLLED],
     ['command', 0],
-  ] as const)('moves the caret and focus to the next block, which a %s change leaves at %i', (origin, scrolled) => {
-    const { controller, scroller, remove } = mountScrolled();
+  ] as const)('that removes the caret block focuses the next, a %s change leaving it at %i', (origin, at) => {
+    const { controller, scroller, focuses, remove } = mountScrolled(where);
     act(() => controller.focus({ block: 'c', region: 'text', offset: 2 }));
     scroller.scrollTop = SCROLLED;
+    focuses.mockClear();
     remove('c', origin);
     expect(controller.editor.state.selection).toMatchObject({ kind: 'text', head: { block: 'e' } });
     expect(document.activeElement?.closest('[data-block-id="e"]')).not.toBeNull();
-    expect(scroller.scrollTop).toBe(scrolled);
+    expect(scroller.scrollTop).toBe(at);
+    expect(focuses.mock.calls.map(([options]) => options?.preventScroll)).toEqual([origin === 'remote']);
+  });
+});
+
+describe('a remote change followed by others before the canvas draws it', () => {
+  it('scrolls nothing for the render it causes', () => {
+    const { controller, scroller, reveals, removal, selectNode } = mountScrolled('around');
+    const followUp = () => {
+      const { editor } = controller;
+      editor.dispatch(editor.createTransaction().setSelection(editor.state.selection).setMeta('presence', true));
+    };
+    act(() => controller.focus());
+    selectNode('d1');
+    act(() => {
+      removal('d1', 'remote');
+      followUp();
+    });
+    expect(controller.editor.state.selection).toEqual(nodeSelection('d2'));
+    expect(reveals).not.toHaveBeenCalled();
+    act(() => controller.focus({ block: 'c', region: 'text', offset: 2 }));
+    scroller.scrollTop = SCROLLED;
+    act(() => {
+      removal('c', 'remote');
+      followUp();
+    });
+    expect(document.activeElement?.closest('[data-block-id="e"]')).not.toBeNull();
+    expect(scroller.scrollTop).toBe(SCROLLED);
+  });
+
+  it('scrolls again for a later change from elsewhere, once that render is drawn', () => {
+    const { controller, scroller, remove } = mountScrolled('around');
+    act(() => controller.focus({ block: 'c', region: 'text', offset: 2 }));
+    remove('a', 'remote');
+    scroller.scrollTop = SCROLLED;
+    remove('c', 'command');
+    expect(scroller.scrollTop).toBe(0);
   });
 });

@@ -98,7 +98,7 @@ export class ViewController {
   attach(root: HTMLElement): () => void {
     this.detachRoot?.();
     const binding = bindRoot(this, root, this.cross, (_, tr) => {
-      this.quiet = tr?.origin === 'remote';
+      this.quiet ||= tr?.origin === 'remote';
       this.outside.committed(tr);
       this.nodeReveal.follow(this.editor.state.selection);
       this.drawn.syncTabStop();
@@ -179,17 +179,20 @@ export class ViewController {
   // A change made outside edit() reaches the hosts when React draws them, so the selection is written back once that
   // has happened, and focus follows a host the change replaced. A collaborator's change scrolls nothing doing so.
   afterRender(): void {
+    const { quiet } = this;
+    this.quiet = false;
     const doc = this.ownerDocument();
     const moved = this.outside.takeMoved();
     if (!this.outside.takeFocused() || !doc || !ownsFocus(this, doc)) return;
     if (moved) this.selectFromDom(moved);
     this.cross.sync();
     const follow = () => {
-      this.keepFocus();
+      this.keepFocus(quiet);
       this.syncSelectionToDom();
     };
-    if (this.quiet) inPlace(this.root!, follow);
-    else follow();
+    if (!quiet) return follow();
+    this.nodeReveal.settle(this.editor.state.selection);
+    inPlace(this.root!, follow);
   }
 
   refreshHosts(): void {
@@ -275,14 +278,14 @@ export class ViewController {
 
   // React replaces a host whose block changes kind, which drops focus, and Firefox does not move focus into another
   // host when a script selects inside it.
-  private keepFocus(): void {
-    if (this.composingKey === null) this.takeFocus();
+  private keepFocus(preventScroll = false): void {
+    if (this.composingKey === null) this.takeFocus(preventScroll);
   }
 
-  private takeFocus(): void {
+  private takeFocus(preventScroll = false): void {
     const element = this.drawn.focusElement();
     if (!element || element.ownerDocument.activeElement === element) return;
     if (element === this.sink) focusSink(this);
-    else element.focus();
+    else element.focus({ preventScroll });
   }
 }

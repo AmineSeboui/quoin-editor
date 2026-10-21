@@ -4,10 +4,10 @@ function scrollOf(at: Element | Window): Scrolled {
   return 'scrollY' in at ? { at, left: at.scrollX, top: at.scrollY } : { at, left: at.scrollLeft, top: at.scrollTop };
 }
 
-/** Runs `change`, then puts back every scroller around `element` it moved, at once even where scrolling is smooth. */
+/** Runs `change`, then puts back `element` and every scroller around it that it moved, at once even when smooth. */
 export function inPlace(element: HTMLElement, change: () => void): void {
   const scrollers: (Element | Window)[] = [];
-  for (let at = element.parentElement; at !== null; at = at.parentElement) scrollers.push(at);
+  for (let at: Element | null = element; at !== null; at = at.parentElement) scrollers.push(at);
   const view = element.ownerDocument.defaultView;
   if (view !== null) scrollers.push(view);
   const before = scrollers.map(scrollOf);

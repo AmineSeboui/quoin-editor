@@ -610,6 +610,20 @@ export async function emojiOf(shortcode: string): Promise<string | undefined> {
 
 `loadEmojiData()` resolves to `searchEmoji(query, limit?)`, which ranks as the menu does and finds every emoji for an empty query, `emojiByShortcode(code)`, and `skinTones`, the five skin tone modifiers from light to dark.
 
+### Find and replace
+
+`quoin-editor/find` adds a find and replace panel, which Mod+Shift+F opens from the canvas, read-only or not. The query starts as the selected text when the selection lies inside one line, and focus goes to it. Every match in the text of the document is marked, in paragraphs, headings, list items, quotes, callouts, table cells and captions alike: formatting never breaks a match, and a formula or a mention stands between matches. Match case, Whole word (letters, digits and underscores of any script) and Regular expression are toggle buttons; a pattern that cannot be read says so instead of finding anything. The panel counts the matches, up to 1,000, and announces the count once typing rests.
+
+Enter and Shift+Enter in the query move to the next and the previous match, wrapping, and bring it into view without taking focus from the panel. Replace, or Enter in the replacement field, replaces the current match and moves on; Replace all replaces every match in one undo step. Each replacement takes the formatting of the start of the match it replaces, and in regex mode `$&` and `$1` to `$9` stand for the match and its groups. The panel is not modal: the canvas stays editable and the marks follow each edit. Escape, or its close button, closes it and selects the current match, or puts the caret back where it was. A read-only canvas finds without replacing.
+
+```tsx
+import { findExtension, findMatches } from 'quoin-editor/find';
+
+const extensions = [findExtension({ labels: { findAndReplace: 'Rechercher et remplacer' } })];
+```
+
+`findMatches(doc, query, { caseSensitive, wholeWord, regex })` returns `{ matches }`, each `{ block, region, from, to }` in document order, or `{ error }` for a pattern that cannot be read, and never throws. `replaceMatches(search, matches, replacement)` is the command that replaces them in one transaction.
+
 ## Read-only
 
 ```tsx
@@ -843,6 +857,8 @@ From `quoin-editor/toc`: `tocExtension`, its `TocOptions`, `TocLabels` and `engl
 From `quoin-editor/mention`: `mentionExtension`, its `MentionOptions`, `MentionLabels` and `englishMentionLabels`, and the `Mention`, `MentionResult` and `MentionSearch` types.
 
 From `quoin-editor/emoji`: `emojiExtension`, its `EmojiOptions`, `EmojiLabels` and `englishEmojiLabels`, `loadEmojiData` with its `EmojiData`, and the `Emoji` and `EmojiGroup` types.
+
+From `quoin-editor/find`: `findExtension`, its `FindOptions`, `FindLabels` and `englishFindLabels`, `findMatches` and `replaceMatches`, and the `SearchOptions`, `FindQuery`, `FindMatch` and `FindResult` types.
 
 From `quoin-editor/catalogue`: `catalogue`, every opt-in feature at once.
 

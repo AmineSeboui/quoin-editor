@@ -137,6 +137,16 @@
         "default": "./dist/emoji.cjs"
       }
     },
+    "./find": {
+      "import": {
+        "types": "./dist/find.d.ts",
+        "default": "./dist/find.js"
+      },
+      "require": {
+        "types": "./dist/find.d.cts",
+        "default": "./dist/find.cjs"
+      }
+    },
     "./catalogue": {
       "import": {
         "types": "./dist/catalogue.d.ts",

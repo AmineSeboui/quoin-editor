@@ -30,6 +30,7 @@ const PINNED: Readonly<Record<string, { load: () => Promise<object>; exports: re
   toc: { load: () => import('./toc'), exports: ['tocExtension', 'englishTocLabels', 'headings'] },
   mention: { load: () => import('./mention'), exports: ['mentionExtension', 'englishMentionLabels'] },
   emoji: { load: () => import('./emoji'), exports: ['emojiExtension', 'englishEmojiLabels', 'loadEmojiData'] },
+  find: { load: () => import('./find'), exports: ['findExtension', 'englishFindLabels', 'findMatches', 'replaceMatches'] },
   catalogue: { load: () => import('./catalogue'), exports: ['catalogue'] },
 };
 

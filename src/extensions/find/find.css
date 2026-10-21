@@ -1,0 +1,22 @@
+.quoin .quoin-find-match {
+  border-radius: 2px;
+  background: var(--quoin-bg-yellow);
+}
+
+/* An outline as well as a stronger wash, so the current match stands apart without relying on colour. */
+.quoin .quoin-find-current {
+  background: var(--quoin-bg-orange);
+  outline: 2px solid var(--quoin-ring);
+  outline-offset: 1px;
+}
+
+@media (forced-colors: active) {
+  .quoin .quoin-find-match {
+    background: Mark;
+    color: MarkText;
+  }
+
+  .quoin .quoin-find-current {
+    outline-color: Highlight;
+  }
+}

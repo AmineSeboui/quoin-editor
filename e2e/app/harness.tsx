@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { BlockCanvas, coreBlocks, type QuoinBlock, type UploadFn } from 'quoin-editor';
+import { useEffect, useRef, useState } from 'react';
+import { BlockCanvas, coreBlocks, type QuoinBlock, type QuoinEditorHandle, type UploadFn } from 'quoin-editor';
 import { embedExtension, type Unfurl } from 'quoin-editor/embed';
 import { emojiExtension } from 'quoin-editor/emoji';
+import { findExtension } from 'quoin-editor/find';
 import { mathExtension, type RenderMath } from 'quoin-editor/math';
 import { mentionExtension, type MentionResult } from 'quoin-editor/mention';
 import { tableExtension } from 'quoin-editor/table';
@@ -9,6 +10,7 @@ import { tocExtension } from 'quoin-editor/toc';
 import { bookmarkDemo } from './bookmark-demo';
 import { fixtureDataUrl } from './fixture-png';
 import { noteDemo } from './note-demo';
+import { timeEdits } from './time-edits';
 
 const blockTypes = [...coreBlocks, bookmarkDemo, noteDemo];
 
@@ -46,6 +48,7 @@ const extensions = [
     ? [mentionExtension({ search: searchPeople, onOpen: (mention) => window.__quoin.opened?.push(mention) })]
     : []),
   ...(params.get('emoji') === '1' ? [emojiExtension()] : []),
+  ...(params.get('find') === '1' ? [findExtension()] : []),
 ];
 
 // Each upload is kept as an object URL under its key, so the picture of an uploaded image loads.
@@ -76,8 +79,27 @@ const section = (id: string, level: number, title: string): QuoinBlock[] => [
   })),
 ];
 
+const paragraphs = (count: number): QuoinBlock[] =>
+  Array.from({ length: count }, (_, i) => ({
+    id: `p${i}`,
+    type: 'MARKDOWN',
+    data: { markdown: `Paragraph ${i} of a large document, with some words in it.` },
+  }));
+
 const docs: Record<string, QuoinBlock[]> = {
   empty: [],
+  large: paragraphs(1000),
+  forty: paragraphs(40),
+  find: [
+    { id: 'a', type: 'MARKDOWN', data: { markdown: 'A cat sat on the **cat** mat' } },
+    { id: 'b', type: 'MARKDOWN', data: { markdown: 'The cat came back' } },
+    ...Array.from({ length: 40 }, (_, line) => ({
+      id: `f${line}`,
+      type: 'MARKDOWN',
+      data: { markdown: `Filler line ${line + 1}` },
+    })),
+    { id: 'z', type: 'MARKDOWN', data: { markdown: 'The last cat' } },
+  ],
   table: [
     { id: 'p', type: 'MARKDOWN', data: { markdown: 'Above the table' } },
     { id: 't', type: 'TABLE', data: { rows: grid(3, 3), header: true, align: [null, null, null] } },
@@ -205,15 +227,22 @@ const docs: Record<string, QuoinBlock[]> = {
 
 export function Harness({ doc }: { doc: string }) {
   const [blocks, setBlocks] = useState<QuoinBlock[]>(docs[doc] ?? []);
+  const handle = useRef<QuoinEditorHandle>(null);
   window.__quoin = {
     blocks: () => blocks,
     setBlocks,
     changes: window.__quoin?.changes ?? 0,
     opened: window.__quoin?.opened ?? [],
+    timings: window.__quoin?.timings ?? [],
+    get controller() {
+      return handle.current?.controller;
+    },
   };
+  useEffect(() => (handle.current === null ? undefined : timeEdits(handle.current.controller)), []);
   return (
     <>
       <BlockCanvas
+        ref={handle}
         aria-label="Document"
         placeholder="Write something"
         blocks={blocks}

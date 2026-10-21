@@ -28,6 +28,7 @@ export const featureEntries = [
   { name: 'toc', source: 'src/toc.ts', client: true, added: incrementalBudget(1_803) },
   { name: 'mention', source: 'src/mention.ts', client: true, added: incrementalBudget(2_837) },
   { name: 'emoji', source: 'src/emoji.ts', client: true, added: incrementalBudget(3_149) },
+  { name: 'find', source: 'src/find.ts', client: true, added: incrementalBudget(4_020) },
 ];
 
 /**
@@ -44,5 +45,5 @@ export const packageEntries = [
   { name: 'headless', source: 'src/headless.ts', client: true, total: 70_000 },
   { name: 'engine', source: 'src/engine/index.ts', client: false, total: 52_000 },
   ...featureEntries,
-  { name: 'catalogue', source: 'src/catalogue.ts', client: true, added: incrementalBudget(23_709) },
+  { name: 'catalogue', source: 'src/catalogue.ts', client: true, added: incrementalBudget(27_702) },
 ];

@@ -2,6 +2,7 @@ import type { Command, EditorState, Transaction } from '../../engine';
 import { inlineText } from '../../engine/model/inline';
 import type { SlashItem, SuggestionRange } from '../../extensions/ui-types';
 import type { ViewController } from '../../view';
+import { regionInline } from '../../view/controller/region-inline';
 import { replaceTrigger, triggerReplacement } from '../suggestion/replace-trigger';
 
 const TEXT_STEPS: ReadonlySet<string> = new Set(['replaceInline', 'addMark', 'removeMark']);
@@ -12,8 +13,8 @@ const changesBlocks = (tr: Transaction | null): boolean =>
 
 // The space a slash was typed after would end the line, or double the next one, once the slash and the query are gone.
 // A line break before the slash is the writer's own and stays.
-function withSpaceBefore({ doc }: EditorState, range: SuggestionRange): SuggestionRange | null {
-  const inline = doc.blocks[doc.index.get(range.block) ?? -1]?.regions[range.region];
+function withSpaceBefore(state: EditorState, range: SuggestionRange): SuggestionRange | null {
+  const inline = regionInline(state, range.block, range.region);
   if (inline === undefined || range.from === 0) return null;
   const text = inlineText(inline);
   const after = text.charAt(range.to);

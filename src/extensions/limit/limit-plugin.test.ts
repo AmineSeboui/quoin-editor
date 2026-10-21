@@ -1,12 +1,16 @@
-import { coreExtensions, defineExtension, type EditorState } from '../../engine';
+import { coreExtensions, defineExtension, typographyRules, type EditorState } from '../../engine';
 import { caret, key, md, range, startEditor } from '../../engine/test-support/editor-fixtures';
 import { createLimit } from './limit-plugin';
 
-function limited(markdown: string, limit: number) {
+function limited(markdown: string, limit: number, typography = false) {
   const guard = createLimit(limit);
   const refused: EditorState[] = [];
   guard.onRefused((state) => refused.push(state));
-  const extension = defineExtension({ name: 'limit', filterTransaction: guard.filterTransaction });
+  const extension = defineExtension({
+    name: 'limit',
+    filterTransaction: guard.filterTransaction,
+    ...(typography && { inputRules: typographyRules() }),
+  });
   const started = startEditor([md('a', markdown)], { extensions: [...coreExtensions(), extension] });
   const text = () => started.editor.getBlocks()[0].data.markdown;
   return { ...started, text, refused };
@@ -69,5 +73,33 @@ describe('a character limit', () => {
     stop();
     editor.insertText('b');
     expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  it('lets Backspace undo an input rule at the limit, and the next Backspace delete', () => {
+    const { editor, text, refused } = limited('abc', 5, true);
+    editor.commands.setSelection(caret('a', 3));
+    for (const typed of '...') editor.insertText(typed);
+    expect(text()).toBe('abc\u2026');
+    editor.handleKey(key('Backspace'));
+    expect(text()).toBe('abc...');
+    editor.handleKey(key('Backspace'));
+    expect(text()).toBe('abc..');
+    expect(refused).toEqual([]);
+  });
+
+  it('lets Backspace undo a markdown shortcut at the limit, and the next Backspace delete', () => {
+    const guard = createLimit(4);
+    const extension = defineExtension({ name: 'limit', filterTransaction: guard.filterTransaction });
+    const { editor } = startEditor([md('a', 'abc'), md('b', '')], { extensions: [...coreExtensions(), extension] });
+    const listed = () => editor.state.doc.blocks[1].attrs.kind;
+    editor.commands.setSelection(caret('b', 0));
+    editor.insertText('-');
+    editor.insertText(' ');
+    expect([listed(), editor.stats().characters]).toEqual(['bullet', 3]);
+    editor.handleKey(key('Backspace'));
+    expect([listed(), editor.stats().characters]).not.toEqual(['bullet', 3]);
+    expect(editor.stats().characters).toBe(5);
+    editor.handleKey(key('Backspace'));
+    expect(editor.stats().characters).toBe(4);
   });
 });

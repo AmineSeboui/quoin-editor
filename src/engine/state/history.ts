@@ -8,7 +8,7 @@ import type { Step } from '../transform/step';
 import type { EditorState } from './editor-state';
 import { createPluginKey, type PluginSpec } from './plugin';
 import { isCollapsed, sameSelection, textSelection } from './selection';
-import { foreignOrigins, Transaction, type TransactionOrigin } from './transaction';
+import { foreignOrigins, Transaction, UNFILTERED, type TransactionOrigin } from './transaction';
 
 export type HistoryItem = {
   readonly steps: readonly Step[];
@@ -143,7 +143,7 @@ export const undoInputRule: Command = (state, dispatch) => {
   if (record === null || record === undefined) return false;
   if (dispatch !== undefined) {
     const { steps, undoText, at, marks } = record;
-    const tr = new Transaction(state);
+    const tr = new Transaction(state).setMeta(UNFILTERED, true);
     steps.forEach((step) => tr.step(step));
     tr.step(replaceInlineStep(at.block, at.region, at.offset, at.offset, [text(undoText, marks)]));
     dispatch(tr.setSelection(textSelection({ ...at, offset: at.offset + undoText.length })));

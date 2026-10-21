@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { redo, undo } from '../state/history';
+import { redo, undo, undoInputRule } from '../state/history';
 import type { EditorState } from '../state/editor-state';
 import type { Transaction } from '../state/transaction';
 import { caret, md, startEditor } from '../test-support/editor-fixtures';
@@ -73,6 +73,22 @@ describe('an extension filtering transactions', () => {
     expect(editor.getBlocks()[0].data).toEqual({ markdown: 'xy' });
     expect(redo(editor.state, editor.dispatch)).toBe(true);
     expect(editor.getBlocks()[0].data).toEqual({ markdown: 'xy!' });
+  });
+
+  it('never filters the undo of an input rule', () => {
+    let open = true;
+    const { editor } = filtered((tr) => open || !tr.docChanged);
+    editor.commands.setSelection(caret('a', 2));
+    editor.insertText('*');
+    editor.insertText('*');
+    editor.insertText('b');
+    editor.insertText('*');
+    editor.insertText('*');
+    const ruled = editor.getBlocks()[0].data;
+    open = false;
+    expect(undoInputRule(editor.state, editor.dispatch)).toBe(true);
+    expect(editor.getBlocks()[0].data).not.toEqual(ruled);
+    expect(editor.getBlocks()[0].data).toEqual({ markdown: 'xy\\*\\*b\\*\\*' });
   });
 
   it('never filters a remote transaction', () => {

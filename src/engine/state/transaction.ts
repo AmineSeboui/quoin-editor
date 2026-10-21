@@ -8,6 +8,9 @@ export type TransactionOrigin = 'input' | 'command' | 'paste' | 'drop' | 'remote
 /** Where a change was not made by this editor's user: kept out of the history and never filtered. */
 export const foreignOrigins: readonly TransactionOrigin[] = ['remote', 'reconcile', 'history'];
 
+/** The meta of a transaction no extension may filter, such as the undo of an input rule. */
+export const UNFILTERED = 'unfiltered';
+
 export class Transaction {
   readonly before: EditorState;
   readonly time: number;

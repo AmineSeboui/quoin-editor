@@ -1,25 +1,14 @@
 import { expect, test, type Page } from '@playwright/test';
-import { FIXTURE_PNG } from '../../app/fixture-png';
 import { axeViolations } from '../../support/axe';
 import { blocks, openEditor } from '../../support/editor';
+import { answerEveryRequest } from '../../support/network';
 import { pasteEvent } from '../../support/synthetic-events';
 
 const YOUTUBE = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
 const NOCOOKIE = 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ';
 const SANDBOX = 'allow-scripts allow-same-origin allow-presentation allow-popups';
 
-// axe scans the frames too, so the page standing in for a provider's is a whole page, its landmark named after it.
-const stubPage = (url: string) =>
-  `<!doctype html><html lang="en"><title>Stub</title><main aria-label="${encodeURI(url)}"><h1>Stub</h1></main></html>`;
-
-// Every provider, picture and page is answered here: no test depends on the network or on a frame loading.
-test.beforeEach(async ({ page }) => {
-  await page.route(/^https:\/\//, (route) =>
-    route.request().url().endsWith('.png')
-      ? route.fulfill({ contentType: 'image/png', body: Buffer.from(FIXTURE_PNG.base64, 'base64') })
-      : route.fulfill({ contentType: 'text/html', body: stubPage(route.request().url()) }),
-  );
-});
+test.beforeEach(({ page }) => answerEveryRequest(page));
 
 const options = (page: Page) => page.getByRole('toolbar', { name: 'Link options' });
 const youtube = (page: Page) => page.getByTitle('YouTube video');

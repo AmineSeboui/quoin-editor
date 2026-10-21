@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { EditorState } from '../../engine';
+import type { EditorState, EngineBlock } from '../../engine';
 import { isCollapsed } from '../../engine/state/selection';
 import { cellSelection } from '../../engine/state/cell-selection';
 import { tableBlock } from '../../engine/commands/table-shape';
@@ -12,13 +12,14 @@ import { useEditorState } from '../../view/react/use-editor-state';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
 import { useReadOnly } from '../../view/react/use-read-only';
 import { controlsSlot } from './controls-slot';
+import { sameMenuCells } from './menu-cells';
 import type { TableLabels } from './table-labels';
 import { TableHandles, type OpenMenu, type TableHandlesProps } from './TableHandles';
 import { useTableGeometry } from './use-table-geometry';
 import { useCutCells } from './use-cut-cells';
 import { caretTarget, useTableTarget, type TableTarget } from './use-table-target';
 
-type Held = { readonly target: TableTarget; readonly menu: OpenMenu };
+type Held = { readonly target: TableTarget; readonly menu: OpenMenu; readonly opened?: EngineBlock };
 
 const isFocusKey = (event: KeyboardEvent) =>
   event.key === 'F10' && event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey;
@@ -43,6 +44,8 @@ export function TableControls({ controller, labels }: { controller: ViewControll
     useCallback((state: EditorState) => (blockId === null ? null : tableBlock(state.doc, blockId)), [blockId]),
   );
 
+  if (held?.menu && held.opened && block && !sameMenuCells(held.opened, block, held.target, held.menu)) setHeld(null);
+
   useEffect(() => {
     if (!readOnly && block !== null) return;
     setHeld(null);
@@ -65,8 +68,8 @@ export function TableControls({ controller, labels }: { controller: ViewControll
   }, [controller, readOnly]);
 
   const onMenu = useCallback(
-    (menu: OpenMenu) => setHeld(menu === null || target === null ? null : { target, menu }),
-    [target],
+    (menu: OpenMenu) => setHeld(menu === null || target === null || block === null ? null : { target, menu, opened: block }),
+    [target, block],
   );
   const onHold = useCallback((hold: boolean) => setHeld(hold && target !== null ? { target, menu: null } : null), [target]);
   const onFocused = useCallback(() => {

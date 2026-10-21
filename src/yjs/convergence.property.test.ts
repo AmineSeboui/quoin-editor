@@ -1,18 +1,26 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import { sameDoc } from '../engine/model/same-doc';
+import type { QuoinBlock } from '../engine/model/quoin-block';
 import { md } from '../engine/test-support/editor-fixtures';
 import { readShared } from './read-shared';
+import { requiredRegions } from './required-regions';
 import { linkedDocs, peer, type Peer } from './test-support/peers';
 import { plainDelta } from './test-support/plain-delta';
-import { arbitraryEdit, runEdit } from './test-support/random-edits';
+import { ALL_KINDS, arbitraryEdit, runEdit } from './test-support/random-edits';
 
-const START = [md('a', 'one **two** three'), md('b', '- four five'), md('c', 'six'), md('d', '> seven eight')];
+const CODE: QuoinBlock = { id: 'k', type: 'CODE', data: { code: 'let x', language: '' } };
+const DIVIDER: QuoinBlock = { id: 'h', type: 'DIVIDER', data: {} };
+const START = [md('a', 'one **two** three'), CODE, md('b', '- four five'), DIVIDER, md('c', 'six'), md('d', '> seven')];
 
-const turn = fc.record({ by: fc.constantFrom(0, 1), edit: arbitraryEdit(), deliver: fc.constantFrom(null, 0, 1) });
+const turn = fc.record({
+  by: fc.constantFrom(0, 1),
+  edit: arbitraryEdit(ALL_KINDS),
+  deliver: fc.constantFrom(null, 0, 1),
+});
 
 const matchesShared = ({ editor, collaboration }: Peer) =>
-  sameDoc(editor.state.doc, readShared(collaboration.text).doc);
+  sameDoc(editor.state.doc, readShared(collaboration.text, requiredRegions(editor.state.schema)).doc);
 
 describe('two editors on two synced documents', () => {
   it('converge after random concurrent edits of every kind', () => {

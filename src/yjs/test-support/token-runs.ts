@@ -10,16 +10,26 @@ import { peer, type Peer } from './peers';
 
 const DIVIDER: QuoinBlock = { id: 'd', type: 'DIVIDER', data: {} };
 const TABLE: QuoinBlock = { id: 't', type: 'TABLE', data: { rows: [['', ''], ['', '']], header: true } };
-const START = [md('z', ''), md('a', 'abcdefgh'), DIVIDER, md('e', ''), md('b', 'ijklmnop'), TABLE, md('c', 'qrstuvwx')];
+const CODE: QuoinBlock = { id: 'k', type: 'CODE', data: { code: '', language: '' } };
+const START = [
+  md('z', ''),
+  md('a', 'abcdefgh'),
+  DIVIDER,
+  md('e', ''),
+  md('b', 'ijklmnop'),
+  CODE,
+  TABLE,
+  md('c', 'qrstuvwx'),
+];
 const ORIGINAL = 'abcdefghijklmnopqrstuvwx';
 const TOKENS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
-type Turn = { by: number; kind: 'insert' | 'split' | 'join'; block: number; offset: number; deliver: [number, number] | null };
+type Turn = { by: number; kind: 'insert' | 'split' | 'join' | 'retype'; block: number; offset: number; deliver: [number, number] | null };
 
 const turn = (clients: number): fc.Arbitrary<Turn> =>
   fc.record({
     by: fc.nat(clients - 1),
-    kind: fc.constantFrom('insert', 'insert', 'split', 'join'),
+    kind: fc.constantFrom('insert', 'insert', 'split', 'join', 'retype'),
     block: fc.nat(20),
     offset: fc.nat(20),
     deliver: fc.option(fc.tuple(fc.nat(clients - 1), fc.nat(clients - 1)), { nil: null }),
@@ -37,7 +47,8 @@ export type TokenRun = [clients: number, seedAll: boolean, triggers: readonly Tr
 
 /**
  * Two or three clients, whether all of them seed the document at once, edits that leave the text out of shape, and
- * what each client then does in turn: type a token at a caret, press Enter, or Backspace at a start.
+ * what each client then does in turn: type a token at a caret, press Enter, Backspace at a start, or give a block with no
+ * region one.
  */
 export const tokenRun: fc.Arbitrary<TokenRun> = fc
   .constantFrom(2, 3)
@@ -104,7 +115,22 @@ function triggered([one, two]: Peer[], { kind, block }: Trigger, token: string):
   return [];
 }
 
-function play({ editor }: Peer, { kind, block, offset }: Turn, token: string): boolean {
+// Enter on a divider or the code block turned into a paragraph: a block with no region gains one.
+function retype({ editor }: Peer, block: number): void {
+  const voids = editor.state.doc.blocks.filter((candidate) => ['CODE', 'DIVIDER'].includes(candidate.type));
+  if (voids.length === 0) return;
+  const target = voids[block % voids.length];
+  editor.commands.setSelection({ kind: 'node', block: target.id });
+  if (target.type === 'DIVIDER') editor.commands.splitBlock();
+  else editor.commands.setBlockType('MARKDOWN', { kind: 'paragraph' });
+}
+
+function play(client: Peer, { kind, block, offset }: Turn, token: string): boolean {
+  if (kind === 'retype') {
+    retype(client, block);
+    return false;
+  }
+  const { editor } = client;
   const blocks = editor.state.doc.blocks.filter((candidate) => Object.hasOwn(candidate.regions, 'text'));
   if (blocks.length === 0) return false;
   const target = blocks[block % blocks.length];

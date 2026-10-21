@@ -26,12 +26,17 @@ export function rewritten(entry: Entry, block: EngineBlock, map: Y.Map<unknown> 
 }
 
 /**
- * Whether blocks with regions put in before the span at `index` would come between characters outside any region and
- * the region they are read into, which would read them into the new blocks instead.
+ * Whether a region written where the span at `index` starts, as blocks put in before it or as the first region of the
+ * block it holds, would come between characters outside any region and the region they are read into, or be the region
+ * characters nobody read until then are read into.
  */
 export function crossesStray(layout: Layout, index: number): boolean {
-  return layout.strays.some((seg) => {
-    const [host, region] = [indexOf(layout, seg.host), indexOf(layout, seg.region.entry.span)];
-    return region < index ? host >= index : host < index;
-  });
+  const { read, leading, unread } = layout.strays;
+  return (
+    unread ||
+    read.some((seg) => {
+      const region = indexOf(layout, seg.region.entry.span);
+      return leading.has(seg) ? index <= region : region < index && index <= indexOf(layout, seg.host);
+    })
+  );
 }

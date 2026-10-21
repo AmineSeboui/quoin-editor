@@ -6,8 +6,8 @@ import { definedEntries, deleteText, regionStart } from './doc-shape';
 import { insertInline } from './inline-codec';
 import { changedSpan } from './inline-span';
 import { indexOf, placeEntries, regionOf, spanStart, type Entry } from './layout';
-import { isPlain, rewritten } from './plain';
-import { deleteContent, insertContent, type Shared } from './shared';
+import { crossesStray, isPlain, rewritten } from './plain';
+import { deleteContent, insertContent, reread, type Shared } from './shared';
 import { insertBlocks, removeBlock } from './write-blocks';
 
 function syncAttrs(map: Y.Map<unknown>, before: BlockAttrs, after: BlockAttrs): void {
@@ -78,7 +78,13 @@ export function syncBlock(shared: Shared, before: EngineBlock, after: EngineBloc
   if (before.type !== after.type) entry.map.set('type', after.type);
   if (before.indent !== after.indent) entry.map.set('indent', after.indent);
   syncAttrs(entry.map, before.attrs, after.attrs);
-  if (plain) return syncRegions(shared, entry, before, after);
+  if (plain) {
+    const gains = Object.keys(before.regions).length === 0 && Object.keys(after.regions).length > 0;
+    const crosses = gains && crossesStray(shared.layout, indexOf(shared.layout, entry.span));
+    syncRegions(shared, entry, before, after);
+    if (crosses) reread(shared);
+    return;
+  }
   // Writing into a region the text does not hold re-reads the text, so each region is looked up again.
   for (const name of entry.regions.map((region) => region.name)) {
     const [was, now] = [before.regions[name], after.regions[name]];

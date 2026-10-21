@@ -98,16 +98,20 @@ function reader(required: RequiredRegions) {
       span.length += 1;
     },
     finish(): { doc: EngineDoc; layout: Layout } {
-      const prepended: Seg[] = [];
+      const leading: Seg[] = [];
+      const read: Seg[] = [];
+      let unread = false;
       for (const { host, at, length, ops, after } of strays) {
         const region = after ?? order[0];
+        unread ||= region === undefined;
         if (region === undefined) continue;
         const seg = segFor(region, host, at, ops);
         seg.length = length;
-        if (after === null) prepended.push(seg);
+        read.push(seg);
+        if (after === null) leading.push(seg);
         else region.segs.push(seg);
       }
-      order[0]?.segs.unshift(...prepended);
+      order[0]?.segs.unshift(...leading);
       const blocks = [...entries.values()].map((kept): EngineBlock => {
         const { type, indent, attrs } = markers.get(kept)!;
         for (const name of required(type)) {
@@ -117,8 +121,8 @@ function reader(required: RequiredRegions) {
         const regions = kept.regions.map(({ name, segs }) => [name, inline(segs)]);
         return { id: kept.id, type, indent, attrs: attrs?.toJSON() ?? {}, regions: Object.fromEntries(regions) };
       });
-      const outside = [...held.keys()].filter((seg) => seg.host !== seg.region.entry.span);
-      return { doc: createDoc(blocks), layout: createLayout(spans, entries, clean, outside) };
+      const layout = createLayout(spans, entries, clean, { read, leading: new Set(leading), unread });
+      return { doc: createDoc(blocks), layout };
     },
   };
 }

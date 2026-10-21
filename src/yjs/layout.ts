@@ -24,11 +24,18 @@ export type Layout = {
   readonly spans: Span[];
   readonly entries: Map<string, Entry>;
   clean: boolean;
-  /** The segs of characters read into a region of another span than the one holding them. */
-  readonly strays: readonly Seg[];
+  readonly strays: Strays;
   readonly starts: number[];
   valid: number;
 };
+
+/**
+ * Characters outside any region: the segs they are `read` as, the `leading` ones among them, read into the first
+ * region of the document as no region comes before them, and whether some are `unread`, the document having no region.
+ */
+export type Strays = { readonly read: readonly Seg[]; readonly leading: ReadonlySet<Seg>; readonly unread: boolean };
+
+const NO_STRAYS: Strays = { read: [], leading: new Set(), unread: false };
 
 export const emptySpan = (): Span => ({ length: 0, entry: null, segs: [], index: 0 });
 
@@ -36,7 +43,7 @@ export const createLayout = (
   spans: Span[],
   entries: Map<string, Entry>,
   clean: boolean,
-  strays: readonly Seg[] = [],
+  strays: Strays = NO_STRAYS,
 ): Layout => ({
   spans,
   entries,

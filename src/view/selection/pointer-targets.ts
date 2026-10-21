@@ -1,9 +1,8 @@
 import type { Pos } from '../../engine';
-import { domToPos } from '../controller/dom-selection';
 import type { HostEntry } from '../controller/host-registry';
 import type { ViewController } from '../controller/view-controller';
 import { domMapOf } from '../dom/render-inline';
-import { caretFromPoint } from '../navigation/caret-from-point';
+import { caretInHost } from '../navigation/caret-in-host';
 import { visibleBlockIndexes } from '../navigation/visible-blocks';
 
 function distance(rect: DOMRect, x: number, y: number): [number, number] {
@@ -51,8 +50,5 @@ export function caretPosAt(controller: ViewController, host: HostEntry, x: numbe
   const box = element.getBoundingClientRect();
   if (y < box.top) return at(0);
   if (y >= box.bottom) return at(end);
-  const point = caretFromPoint(element.ownerDocument, Math.min(Math.max(x, box.left), box.right - 1), y);
-  const pos = point && domToPos(controller.registry, point.node, point.offset);
-  if (pos && pos.block === block && pos.region === region) return pos;
-  return at(x < box.left ? 0 : end);
+  return caretInHost(controller.registry, element, box, host, x, y) ?? at(x < box.left ? 0 : end);
 }

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { sameItems } from '../engine/model/same-items';
 import { alwaysRetry } from './autosave-backoff';
 import { createSaveRunner, type AutosaveStatus } from './autosave-runner';
 
@@ -76,7 +77,7 @@ export function useAutosave<T>({
     const seen = seenRef.current;
     seenRef.current = deps;
     if (seen === null) return;
-    const unchanged = seen.length === deps.length && seen.every((v, i) => v === deps[i]);
+    const unchanged = sameItems(seen, deps);
     if (!unchanged) runner.markDirty();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the caller owns the tracked fields
   }, deps);

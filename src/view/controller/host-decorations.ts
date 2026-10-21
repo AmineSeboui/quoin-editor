@@ -1,5 +1,6 @@
 import type { Decoration, Editor, EditorState } from '../../engine';
 import { sameAttrs } from '../../engine/model/attrs';
+import { sameItems } from '../../engine/model/same-items';
 import { selectionDecorations, type PaintMode } from '../selection/selection-decorations';
 import { hostKey } from './host-registry';
 
@@ -30,7 +31,7 @@ function sameDecoration(a: Decoration, b: Decoration): boolean {
 }
 
 export function sameDecorations(a: readonly Decoration[], b: readonly Decoration[]): boolean {
-  return a === b || (a.length === b.length && a.every((decoration, index) => sameDecoration(decoration, b[index])));
+  return a === b || sameItems(a, b, sameDecoration);
 }
 
 type Grouped = WeakMap<EditorState, ReadonlyMap<string, readonly Decoration[]>>;

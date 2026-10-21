@@ -1,10 +1,11 @@
 import type { QuoinBlock } from '../model/quoin-block';
+import { sameItems } from '../model/same-items';
 import { sameBlock } from './same-blocks';
 
 export type Emission = { readonly blocks: readonly QuoinBlock[]; readonly sequence: number };
 
 const sameIds = (a: readonly QuoinBlock[], b: readonly QuoinBlock[]) =>
-  a.length === b.length && a.every((block, i) => block.id === b[i].id);
+  sameItems(a, b, (x, y) => x.id === y.id);
 
 /**
  * The sequence of the oldest emission that `incoming` is a deep copy of. Only emissions whose ids line up are

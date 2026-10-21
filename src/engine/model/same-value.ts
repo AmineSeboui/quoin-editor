@@ -1,3 +1,5 @@
+import { sameItems } from './same-items';
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
@@ -6,7 +8,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export function sameValue(a: unknown, b: unknown): boolean {
   if (a === b) return true;
   if (!isRecord(a) || !isRecord(b) || Array.isArray(a) !== Array.isArray(b)) return false;
-  if (Array.isArray(a) && Array.isArray(b)) return a.length === b.length && a.every((item, i) => sameValue(item, b[i]));
+  if (Array.isArray(a) && Array.isArray(b)) return sameItems(a, b, sameValue);
   const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
   return [...keys].every((key) => sameValue(a[key], b[key]));
 }

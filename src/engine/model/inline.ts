@@ -1,5 +1,6 @@
 import { sameAttrs } from './attrs';
 import { addMark, hasMark, removeMark, sameMarkSet, sortMarks } from './marks';
+import { sameItems } from './same-items';
 import type { AtomNode, Attrs, Inline, InlineNode, Mark, TextNode } from './types';
 
 const OBJECT_REPLACEMENT = '\uFFFC';
@@ -156,5 +157,5 @@ export function equalNode(a: InlineNode, b: InlineNode): boolean {
 }
 
 export function equalInline(a: Inline, b: Inline): boolean {
-  return a.length === b.length && a.every((node, i) => equalNode(node, b[i]));
+  return sameItems(a, b, equalNode);
 }

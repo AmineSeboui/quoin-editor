@@ -2,8 +2,10 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { act, render } from '@testing-library/react';
 import { useState } from 'react';
 import { textSelection } from '../../engine/state/selection';
+import { text } from '../../engine/model/inline';
+import { replaceInlineStep } from '../../engine/transform/replace-inline-step';
 import type { QuoinBlock } from '../../engine/model/quoin-block';
-import { readSelection } from '../controller/dom-selection';
+import { posToDom, readSelection } from '../controller/dom-selection';
 import type { ViewController } from '../controller/view-controller';
 import { Editor, hostOf, md } from './test-harness';
 
@@ -31,7 +33,12 @@ function mount(blocks: QuoinBlock[] = three) {
     );
   const load = (next: QuoinBlock[]) => act(() => setBlocks(() => next));
   const domSelection = () => readSelection(controller.registry, document.getSelection());
-  return { ...view, controller, rewrite, load, domSelection };
+  // Moves the caret the way the browser does for an arrow key, leaving the model to the selection change that follows.
+  const moveNatively = (block: string, offset: number) => {
+    const point = posToDom(controller.registry, at(block, offset))!;
+    document.getSelection()!.collapse(point.node, point.offset);
+  };
+  return { ...view, controller, rewrite, load, domSelection, moveNatively };
 }
 
 describe('changes the controller did not make', () => {
@@ -101,5 +108,52 @@ describe('changes the controller did not make', () => {
     rewrite('b', (old) => `## ${old}`);
     expect(document.activeElement).toBe(button);
     expect(selection.rangeCount).toBe(0);
+  });
+
+  it('keeps a caret the user moved when a change from outside commits before the move is read', () => {
+    const { controller, rewrite, domSelection, moveNatively } = mount();
+    act(() => controller.focus(at('b', 8)));
+    moveNatively('b', 7);
+    rewrite('c', (old) => `${old}!`);
+    expect(controller.editor.state.selection).toEqual(textSelection(at('b', 7)));
+    expect(domSelection()).toEqual(textSelection(at('b', 7)));
+    moveNatively('b', 5);
+    rewrite('b', (old) => `XX${old}`);
+    expect(controller.editor.state.selection).toEqual(textSelection(at('b', 7)));
+    expect(domSelection()).toEqual(textSelection(at('b', 7)));
+  });
+
+  it('lets a change from outside that sets the selection win over a caret the user moved', () => {
+    const { controller, domSelection, moveNatively } = mount();
+    act(() => controller.focus(at('b', 8)));
+    moveNatively('b', 7);
+    act(() => void controller.editor.commands.setSelection(textSelection(at('c', 2))));
+    expect(controller.editor.state.selection).toEqual(textSelection(at('c', 2)));
+    expect(domSelection()).toEqual(textSelection(at('c', 2)));
+  });
+
+  it('carries a caret the user moved through every remote change committed before the hosts are drawn again', () => {
+    const { controller, domSelection, moveNatively } = mount();
+    const { editor } = controller;
+    const remoteInsert = (offset: number, value: string) =>
+      editor.dispatch(editor.createTransaction().setOrigin('remote').step(replaceInlineStep('b', 'text', offset, offset, [text(value)])));
+    act(() => controller.focus(at('b', 8)));
+    moveNatively('b', 3);
+    act(() => {
+      remoteInsert(0, 'XX');
+      remoteInsert(0, 'Y');
+    });
+    expect(editor.state.selection).toEqual(textSelection(at('b', 6)));
+    expect(domSelection()).toEqual(textSelection(at('b', 6)));
+  });
+
+  it('leaves a selection a pointer drag is making to the drag', () => {
+    const { controller, rewrite, moveNatively } = mount();
+    act(() => controller.focus(at('b', 8)));
+    controller.dragging = true;
+    moveNatively('b', 3);
+    rewrite('c', (old) => `${old}!`);
+    controller.dragging = false;
+    expect(controller.editor.state.selection).toEqual(textSelection(at('b', 8)));
   });
 });

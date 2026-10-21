@@ -1,4 +1,4 @@
-import type { Command, Decoration, Editor, Pos, Transaction } from '../../engine';
+import type { Command, Decoration, Editor, Pos, Selection, Transaction } from '../../engine';
 import { detectMac } from '../../engine/extension/detect-mac';
 import { sameSelection } from '../../engine/state/selection';
 import type { RenderOptions } from '../dom/render-inline';
@@ -8,13 +8,14 @@ import { createNodeReveal } from '../selection/node-reveal';
 import { focusingSink, focusSink, heldBySink } from '../selection/selection-sink';
 import { createAnnouncer } from './announcer';
 import { dispatchSelection } from './dispatch-selection';
-import { readSelection, writeSelection } from './dom-selection';
+import { writeSelection } from './dom-selection';
 import { createDrawnElements } from './drawn-elements';
 import { hasFocus, ownsFocus } from './focus-ownership';
 import { focusTarget, type FocusTarget } from './focus-target';
 import { createHostRegistry, hostKey, type HostEntry, type HostRegistry } from './host-registry';
 import { hostDecorations } from './host-decorations';
 import { createHostRenderer, type HostRenderer } from './host-renderer';
+import { movedSelection } from './moved-selection';
 import { createOutsideChanges } from './outside-changes';
 import { createReadOnly, type ReadOnly } from './read-only';
 import { bindRoot, type RootBinding } from './root-binding';
@@ -60,7 +61,10 @@ export class ViewController {
   private readonly hosts: HostRenderer;
   private readonly drawn = createDrawnElements(this.registry, () => this.editor.state);
   private readonly cross = createCrossMode(this);
-  private readonly outside = createOutsideChanges(() => hasFocus(this, this.ownerDocument()));
+  private readonly outside = createOutsideChanges(
+    () => hasFocus(this, this.ownerDocument()),
+    (model) => movedSelection(this, this.ownerDocument(), model),
+  );
   private binding: RootBinding | null = null;
   private detachRoot: (() => void) | null = null;
   private readonly readOnlyState: ReadOnly;
@@ -93,8 +97,8 @@ export class ViewController {
 
   attach(root: HTMLElement): () => void {
     this.detachRoot?.();
-    const binding = bindRoot(this, root, this.cross, () => {
-      this.outside.committed();
+    const binding = bindRoot(this, root, this.cross, (_, tr) => {
+      this.outside.committed(tr);
       this.nodeReveal.follow(this.editor.state.selection);
       this.drawn.syncTabStop();
       this.cross.syncLater();
@@ -173,7 +177,9 @@ export class ViewController {
   // has happened, and focus follows a host the change replaced.
   afterRender(): void {
     const doc = this.ownerDocument();
+    const moved = this.outside.takeMoved();
     if (!this.outside.takeFocused() || !doc || !ownsFocus(this, doc)) return;
+    if (moved) this.selectFromDom(moved);
     this.cross.sync();
     this.keepFocus();
     this.syncSelectionToDom();
@@ -230,16 +236,11 @@ export class ViewController {
   // cross mode re-renders the hosts that drew it as decorations, which can remove the node holding the caret, so the
   // selection is written back.
   readSelectionFromDom(): void {
-    const { editor } = this;
-    const doc = this.ownerDocument();
-    if (this.composingKey !== null || this.dragging || !doc || !ownsFocus(this, doc)) return;
-    const selection = readSelection(this.registry, doc.getSelection(), (node) => this.blockAt(node));
-    if (selection === null || sameSelection(selection, editor.state.selection)) return;
+    const selection = movedSelection(this, this.ownerDocument(), this.editor.state.selection);
+    if (selection === null) return;
     const wasCross = this.cross.active;
     if (!this.nativeVerticalMove) this.goalX = null;
-    this.flush(() =>
-      this.outside.inside(() => editor.dispatch(editor.createTransaction().setSelection(selection).setOrigin('input'))),
-    );
+    this.flush(() => this.selectFromDom(selection));
     this.cross.sync();
     if (!wasCross && !this.cross.active) return;
     this.keepFocus();
@@ -264,6 +265,11 @@ export class ViewController {
 
   destroy(): void {
     this.detachRoot?.();
+  }
+
+  private selectFromDom(selection: Selection): void {
+    const { editor } = this;
+    this.outside.inside(() => editor.dispatch(editor.createTransaction().setSelection(selection).setOrigin('input')));
   }
 
   private isComposing(host: HostEntry): boolean {

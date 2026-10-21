@@ -57,6 +57,8 @@ export type Editor<F extends CommandFactories = CoreCommands> = {
   copy(): { json: string; html: string; text: string } | null;
   getBlocks(): QuoinBlock[];
   setBlocks(blocks: readonly QuoinBlock[]): boolean;
+  /** Runs the extensions' `onMount`, as a view does when it attaches; returns the means to end that mount. */
+  mount(): () => void;
   decorations(): readonly Decoration[];
   toMarkdown(options?: MarkdownOptions): string;
   stats(): TextStats;
@@ -84,6 +86,7 @@ export function createInternalEditor<F extends CommandFactories = CoreCommands>(
   const { schema, plugins } = resolved;
   const codec = createBlockCodec(schema, { newId });
   const listeners = new Set<Listener>();
+  const mounts = new Set<() => void>();
   let state = createState({ doc: codec.docFromBlocks(options.blocks), schema, plugins, clock: options.now });
   let destroyed = false;
   const controlled = createControlledBlocks({
@@ -92,7 +95,7 @@ export function createInternalEditor<F extends CommandFactories = CoreCommands>(
     state: () => state,
     dispatch,
     onChange: options.onChange,
-    accepts: (incoming) => resolved.extensions.every((extension) => extension.filterHostBlocks?.(incoming) ?? true),
+    accepts: (incoming) => resolved.extensions.every((extension) => extension.filterHostBlocks?.(incoming) !== false),
   });
   const { getBlocks } = controlled;
 
@@ -157,6 +160,14 @@ export function createInternalEditor<F extends CommandFactories = CoreCommands>(
     copy,
     getBlocks,
     setBlocks: (incoming) => !destroyed && controlled.setBlocks(incoming),
+    mount() {
+      const stops = destroyed ? [] : resolved.extensions.map((extension) => extension.onMount?.(editor));
+      const unmount = () => {
+        if (mounts.delete(unmount)) for (const stop of stops) stop?.();
+      };
+      mounts.add(unmount);
+      return unmount;
+    },
     decorations: () => resolved.decorations(state),
     toMarkdown: exportMarkdown,
     stats: () => countDoc(state.doc, { schema }),
@@ -164,9 +175,8 @@ export function createInternalEditor<F extends CommandFactories = CoreCommands>(
       destroyed = true;
       listeners.clear();
       queue.clear();
-      for (const stop of stops.splice(0)) stop?.();
+      mounts.forEach((unmount) => unmount());
     },
   };
-  const stops = resolved.extensions.map((extension) => extension.onCreate?.(editor));
   return editor;
 }

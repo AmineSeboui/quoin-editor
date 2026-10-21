@@ -8,19 +8,43 @@ import { applyRemote } from './apply-remote';
 import { collaborationExtension } from './collaboration-extension';
 import type { CollaborationAdapter } from './adapter';
 
-const collaborating = (adapter: CollaborationAdapter) =>
+const withExtension = (adapter: CollaborationAdapter) =>
   startEditor([md('a', 'hello')], { extensions: [...coreExtensions(), collaborationExtension(adapter)] });
+
+function collaborating(adapter: CollaborationAdapter) {
+  const started = withExtension(adapter);
+  return { ...started, unmount: started.editor.mount() };
+}
 
 afterEach(() => vi.restoreAllMocks());
 
 describe('the collaboration extension', () => {
-  it('connects the editor once it is created and disconnects it when it is destroyed', () => {
-    const { adapter, connected, disconnect } = fakeAdapter();
-    const { editor } = collaborating(adapter);
+  it('connects the editor when it is mounted, not when it is created', () => {
+    const { adapter, connected } = fakeAdapter();
+    const { editor } = withExtension(adapter);
+    expect(connected).toEqual([]);
+    editor.mount();
     expect(connected).toEqual([editor]);
-    expect(disconnect).not.toHaveBeenCalled();
-    editor.destroy();
+  });
+
+  it('disconnects when the mount ends, or when the editor is destroyed', () => {
+    const { adapter, disconnect } = fakeAdapter();
+    const { editor, unmount } = collaborating(adapter);
+    unmount();
     expect(disconnect).toHaveBeenCalledTimes(1);
+    editor.mount();
+    editor.destroy();
+    expect(disconnect).toHaveBeenCalledTimes(2);
+  });
+
+  it('takes blocks from the host while it is not connected', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const { adapter } = fakeAdapter();
+    const { editor, unmount } = collaborating(adapter);
+    unmount();
+    expect(editor.setBlocks([md('b', 'host')])).toBe(true);
+    expect(editor.getBlocks()).toEqual([md('b', 'host')]);
+    expect(warn).not.toHaveBeenCalled();
   });
 
   it('hands the adapter every local transaction with the state it produced', () => {
@@ -34,6 +58,15 @@ describe('the collaboration extension', () => {
       ['input', true],
     ]);
     expect(onLocalTransaction).toHaveBeenLastCalledWith(local[1], editor.state);
+  });
+
+  it('hands the adapter nothing while it is not connected', () => {
+    const { adapter, local } = fakeAdapter();
+    const { editor } = withExtension(adapter);
+    editor.commands.setSelection(caret('a', 5));
+    editor.mount()();
+    editor.insertText('!');
+    expect(local).toEqual([]);
   });
 
   it('keeps remote, history and host transactions from the adapter', () => {
@@ -64,6 +97,25 @@ describe('the collaboration extension', () => {
     expect(history.redo).toHaveBeenCalledTimes(1);
     expect(history.canUndo).toHaveBeenCalledTimes(1);
     expect(editor.getBlocks()).toEqual([md('a', 'hello!')]);
+  });
+
+  it('runs an undo that applies a remote change, and refuses it inside a chain without throwing', () => {
+    const { adapter } = fakeAdapter();
+    const { editor } = collaborating({
+      ...adapter,
+      history: {
+        undo: () => (applyRemote(editor, [replaceInlineStep('a', 'text', 0, 1, [])]), true),
+        redo: () => false,
+        canUndo: () => true,
+        canRedo: () => false,
+      },
+    });
+    editor.commands.setSelection(caret('a', 5));
+    expect(() => editor.chain().undo().selectAll().run()).not.toThrow();
+    expect(() => editor.chain().selectAll().undo().run()).not.toThrow();
+    expect(editor.getBlocks()).toEqual([md('a', 'hello')]);
+    expect(editor.commands.undo()).toBe(true);
+    expect(editor.getBlocks()).toEqual([md('a', 'ello')]);
   });
 
   it('leaves undo to the editor when the adapter keeps no history', () => {

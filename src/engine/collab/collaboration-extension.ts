@@ -17,20 +17,30 @@ function providing(history: CollaborationHistory): PluginSpec<HistoryProvider> {
 }
 
 /**
- * Ties the editor to a shared document through `adapter`. The shared document is the source of truth: blocks the host
- * supplies afterwards are ignored, so a collaborative editor is fed its starting blocks once and then left to emit.
+ * Ties the editor to a shared document through `adapter` while it is mounted: a canvas mounts it from a layout effect,
+ * and a host without one calls `editor.mount()`. While connected the shared document is the source of truth: blocks
+ * the host supplies are ignored, so a collaborative editor is fed its starting blocks once and then left to emit.
  */
 export function collaborationExtension(adapter: CollaborationAdapter): Extension {
   const { history } = adapter;
+  let connections = 0;
   let warned = false;
   return defineExtension({
     name: 'collaboration',
     plugins: history === undefined ? [] : [providing(history)],
-    onCreate: (editor) => adapter.connect(editor),
+    onMount(editor) {
+      const disconnect = adapter.connect(editor);
+      connections += 1;
+      return () => {
+        connections -= 1;
+        disconnect();
+      };
+    },
     onTransaction(tr, state) {
-      if (!foreignOrigins.includes(tr.origin)) adapter.onLocalTransaction(tr, state);
+      if (connections > 0 && !foreignOrigins.includes(tr.origin)) adapter.onLocalTransaction(tr, state);
     },
     filterHostBlocks() {
+      if (connections === 0) return true;
       if (!warned) warnHostBlocks();
       warned = true;
       return false;

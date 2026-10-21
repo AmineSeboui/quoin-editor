@@ -101,7 +101,9 @@ export class ViewController {
       this.drawn.syncTabStop();
       this.cross.syncLater();
     });
+    const unmount = this.editor.mount();
     const detach = () => {
+      unmount();
       binding.detach();
       if (this.detachRoot !== detach) return;
       this.detachRoot = null;

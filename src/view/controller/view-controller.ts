@@ -7,6 +7,7 @@ import { createCrossMode } from '../selection/cross-mode';
 import { createNodeReveal } from '../selection/node-reveal';
 import { focusingSink, focusSink, heldBySink } from '../selection/selection-sink';
 import { createAnnouncer } from './announcer';
+import { dispatchSelection } from './dispatch-selection';
 import { readSelection, writeSelection } from './dom-selection';
 import { createDrawnElements } from './drawn-elements';
 import { hasFocus, ownsFocus } from './focus-ownership';
@@ -248,9 +249,7 @@ export class ViewController {
   focus(target?: FocusTarget): void {
     const { editor } = this;
     const selection = focusTarget(editor.state, target);
-    if (selection !== null && !sameSelection(selection, editor.state.selection)) {
-      this.dispatch(editor.createTransaction().setSelection(selection));
-    }
+    if (selection !== null && !sameSelection(selection, editor.state.selection)) dispatchSelection(this, selection);
     this.takeFocus();
     this.syncSelectionToDom();
   }

@@ -9,6 +9,7 @@ import { collapseCross, crossHeadVertically } from './cross-moves';
 import { adjacentLineMiddle, caretClientRect, isOnFirstLine, isOnLastLine, lineEdgeRect } from './line-edges';
 import { entryEdge, holdsTextHead, moveToNeighbour, neighbourBlock, ownNode } from './neighbour-block';
 import { stayOnLine } from './stay-on-line';
+import { dispatchSelection } from '../controller/dispatch-selection';
 
 // caretFromPoint only finds content inside the viewport.
 function lineInView(host: HTMLElement, last: boolean): DOMRect | null {
@@ -89,17 +90,15 @@ function moveText(controller: ViewController, selection: TextSelection, directio
     controller.nativeVerticalMove = true;
     return false;
   }
-  const { editor } = controller;
   const moved = extend && next.kind === 'text' ? textSelection(selection.anchor, next.head) : next;
-  controller.dispatch(editor.createTransaction().setSelection(moved));
+  dispatchSelection(controller, moved);
   return true;
 }
 
 function extendBlocks(controller: ViewController, { anchor, head }: BlockRangeSelection, direction: -1 | 1): boolean {
-  const { editor } = controller;
-  const next = neighbourBlock(editor.state.doc, head, direction);
+  const next = neighbourBlock(controller.editor.state.doc, head, direction);
   if (next === null) return false;
-  controller.dispatch(editor.createTransaction().setSelection(blockRangeSelection(anchor, next.id)));
+  dispatchSelection(controller, blockRangeSelection(anchor, next.id));
   return true;
 }
 

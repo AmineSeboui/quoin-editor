@@ -6,9 +6,10 @@ import { inlineText } from '../../engine/model/inline';
 import { selectionRange, textSelection } from '../../engine/state/selection';
 import type { ViewController } from '../controller/view-controller';
 import { neighbourHead } from './neighbour-block';
+import { dispatchSelection } from '../controller/dispatch-selection';
 
 function moveHead(controller: ViewController, { anchor }: TextSelection, head: Pos): true {
-  controller.dispatch(controller.editor.createTransaction().setSelection(textSelection(anchor, head)));
+  dispatchSelection(controller, textSelection(anchor, head));
   return true;
 }
 
@@ -19,7 +20,7 @@ function blockOf(controller: ViewController, { block }: Pos) {
 
 export function collapseCross(controller: ViewController, selection: TextSelection, direction: -1 | 1): true {
   const { from, to } = selectionRange(controller.editor.state.doc, selection) as { from: Pos; to: Pos };
-  controller.dispatch(controller.editor.createTransaction().setSelection(textSelection(direction < 0 ? from : to)));
+  dispatchSelection(controller, textSelection(direction < 0 ? from : to));
   return true;
 }
 

@@ -6,7 +6,8 @@ import { focusNode } from './select-node';
 
 /**
  * The handlers of a part of a block where Escape, or a press around the controls, selects the block as a whole, once
- * `onSelect` has run.
+ * `onSelect` has run. The editor's Mod keys, such as undo, pressed on a control other than a text field run in the
+ * editor, which takes focus back.
  */
 export function selectHandlers(
   controller: ViewController,
@@ -20,9 +21,17 @@ export function selectHandlers(
   };
   return {
     onKeyDown(event: KeyboardEvent) {
-      if (event.key !== 'Escape' || isComposingKey(controller, event.nativeEvent)) return;
+      const key = event.nativeEvent;
+      if (isComposingKey(controller, key)) return;
+      if (event.key === 'Escape') select();
+      else if (
+        !(event.metaKey || event.ctrlKey) ||
+        (event.target as Element).matches('input:not([type=file])') ||
+        !controller.edit(() => controller.editor.handleKey(key))
+      )
+        return;
+      else controller.focus();
       event.preventDefault();
-      select();
     },
     onClick(event: MouseEvent) {
       if (!isInteractive(root.current, event)) select();

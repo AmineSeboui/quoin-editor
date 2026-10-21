@@ -69,11 +69,10 @@ describe('the collaboration extension', () => {
     expect(local).toEqual([]);
   });
 
-  it('keeps remote, history and host transactions from the adapter', () => {
+  it('keeps remote and host transactions from the adapter', () => {
     const { adapter, local } = fakeAdapter();
     const { editor } = collaborating(adapter);
     applyRemote(editor, [replaceInlineStep('a', 'text', 0, 0, [text('X')])]);
-    editor.dispatch(editor.createTransaction().setOrigin('history'));
     editor.dispatch(editor.createTransaction().setOrigin('reconcile'));
     expect(local).toEqual([]);
   });
@@ -86,7 +85,7 @@ describe('the collaboration extension', () => {
   });
 
   it('undoes and redoes through the adapter history from keys, commands and their dry runs', () => {
-    const { adapter, history } = fakeAdapter({ history: true });
+    const { adapter, history, local } = fakeAdapter({ history: true });
     const { editor } = collaborating(adapter);
     editor.commands.setSelection(caret('a', 5));
     editor.insertText('!');
@@ -97,6 +96,7 @@ describe('the collaboration extension', () => {
     expect(history.redo).toHaveBeenCalledTimes(1);
     expect(history.canUndo).toHaveBeenCalledTimes(1);
     expect(editor.getBlocks()).toEqual([md('a', 'hello!')]);
+    expect(local.map((tr) => tr.origin)).not.toContain('history');
   });
 
   it('runs an undo that applies a remote change, and refuses it inside a chain without throwing', () => {
@@ -118,13 +118,18 @@ describe('the collaboration extension', () => {
     expect(editor.getBlocks()).toEqual([md('a', 'ello')]);
   });
 
-  it('leaves undo to the editor when the adapter keeps no history', () => {
-    const { adapter } = fakeAdapter();
+  it('leaves undo to the editor when the adapter keeps no history, and hands the adapter its undo and redo', () => {
+    const { adapter, local } = fakeAdapter();
     const { editor } = collaborating(adapter);
     editor.commands.setSelection(caret('a', 5));
     editor.insertText('!');
     expect(editor.commands.undo()).toBe(true);
     expect(editor.getBlocks()).toEqual([md('a', 'hello')]);
+    expect(editor.handleKey(mod('z', { shiftKey: true }))).toBe(true);
+    expect(editor.getBlocks()).toEqual([md('a', 'hello!')]);
+    const changes = local.filter((tr) => tr.docChanged);
+    expect(changes.map((tr) => tr.origin)).toEqual(['input', 'history', 'history']);
+    expect(changes[2].doc).toBe(editor.state.doc);
   });
 
   it('ignores blocks from the host once the shared document is connected, warning in development', () => {

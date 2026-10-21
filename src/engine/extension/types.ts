@@ -52,7 +52,7 @@ export type Extension = {
    */
   readonly filterTransaction?: (tr: Transaction, state: EditorState) => boolean;
   /** Returns false to refuse blocks the host supplies that differ from the document, which then stays as it is. */
-  readonly filterHostBlocks?: (blocks: readonly QuoinBlock[]) => boolean;
+  readonly filterHostBlocks?: (blocks: readonly QuoinBlock[], state: EditorState) => boolean;
   /** Runs on each `editor.mount()`; what it returns runs when that mount ends or the editor is destroyed. */
   readonly onMount?: (editor: Editor<CommandFactories>) => (() => void) | void;
   readonly ui?: unknown;

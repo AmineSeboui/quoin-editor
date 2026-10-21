@@ -15,7 +15,7 @@ describe('an extension that refuses the blocks the host supplies', () => {
     expect(editor.setBlocks([md('b', 'other')])).toBe(false);
     expect(editor.getBlocks()).toEqual([md('a', 'x')]);
     expect(onChange).not.toHaveBeenCalled();
-    expect(filter).toHaveBeenCalledWith([md('b', 'other')]);
+    expect(filter).toHaveBeenCalledWith([md('b', 'other')], editor.state);
   });
 
   it('is not asked about the blocks the editor emitted or already holds', () => {

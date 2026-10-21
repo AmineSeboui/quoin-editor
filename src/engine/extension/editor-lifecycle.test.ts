@@ -59,6 +59,23 @@ describe('an extension mounted with its editor', () => {
     expect(stop).toHaveBeenCalledTimes(2);
   });
 
+  it('ends what earlier extensions mounted when a later one throws, and throws its error', () => {
+    const stop = vi.fn();
+    const early = defineExtension({ name: 'early', priority: 500, onMount: () => stop });
+    const failing = defineExtension({
+      name: 'failing',
+      priority: 10,
+      onMount: () => {
+        throw new Error('broken');
+      },
+    });
+    const { editor } = startEditor([md('a', 'x')], { extensions: [...coreExtensions(), early, failing] });
+    expect(() => editor.mount()).toThrow('broken');
+    expect(stop).toHaveBeenCalledTimes(1);
+    editor.destroy();
+    expect(stop).toHaveBeenCalledTimes(1);
+  });
+
   it('mounts nothing on a destroyed editor', () => {
     const onMount = vi.fn();
     const { editor } = mountedWith(onMount);

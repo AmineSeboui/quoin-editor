@@ -95,7 +95,8 @@ export function createInternalEditor<F extends CommandFactories = CoreCommands>(
     state: () => state,
     dispatch,
     onChange: options.onChange,
-    accepts: (incoming) => resolved.extensions.every((extension) => extension.filterHostBlocks?.(incoming) !== false),
+    accepts: (incoming) =>
+      resolved.extensions.every((extension) => extension.filterHostBlocks?.(incoming, state) !== false),
   });
   const { getBlocks } = controlled;
 
@@ -161,11 +162,17 @@ export function createInternalEditor<F extends CommandFactories = CoreCommands>(
     getBlocks,
     setBlocks: (incoming) => !destroyed && controlled.setBlocks(incoming),
     mount() {
-      const stops = destroyed ? [] : resolved.extensions.map((extension) => extension.onMount?.(editor));
+      const stops: ((() => void) | void)[] = [];
       const unmount = () => {
         if (mounts.delete(unmount)) for (const stop of stops) stop?.();
       };
       mounts.add(unmount);
+      try {
+        if (!destroyed) for (const extension of resolved.extensions) stops.push(extension.onMount?.(editor));
+      } catch (error) {
+        unmount();
+        throw error;
+      }
       return unmount;
     },
     decorations: () => resolved.decorations(state),

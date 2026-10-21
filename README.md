@@ -99,6 +99,12 @@ export function AutosavingEditor({ initial }: { initial: QuoinBlock[] }) {
 
 `save` may return anything, so a mutation, an axios call or a `fetch` that resolves to a body goes straight in with no wrapper to discard the value. A save fails by rejecting, or by resolving to an explicit `{ ok: false }`; everything else, `undefined` included, is a success. `status` moves `idle` to `saving` to `saved`, or to `retrying` while it backs off, and `retry()` tries again at once. Since 0.4.1 one save runs at a time, with the newest payload queued behind it, and a pending edit is saved at once when the component unmounts or the page is hidden (`flush()` does the same on demand). Retries stop after `maxRetries` (default 8) or when `isRetryable(error)` returns false; `status` is then `failed` and `error` holds the reason.
 
+### A collaborative canvas
+
+A canvas given a collaboration extension takes its content from the shared document, so it is uncontrolled: pass the starting blocks, or the shared document's, once, and keep echoing `onChange` as above. The canvas still recognises its own output, but while the shared document is connected it ignores any other array you hand to `blocks`, and says so in development. The connection opens when the canvas mounts and closes when it unmounts.
+
+An editor with no canvas, such as one made with `createEditor` from `quoin-editor/engine`, connects when you call `editor.mount()`. Call the function it returns to disconnect; `editor.destroy()` disconnects too.
+
 ### Loading, undoing and discarding
 
 You can hand the canvas a new `blocks` array at any time to load, undo or merge a document. A new array replaces what the canvas shows when it differs from the last array you supplied.

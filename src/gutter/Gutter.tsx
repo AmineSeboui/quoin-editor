@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useRef, type PointerEvent } from 'react';
+import { useEffect, useRef } from 'react';
 import { GripVertical, Plus } from 'lucide-react';
 import { useCanvasUi, type CanvasUiStore } from '../canvas/ui-store';
 import { DragOverlay, type DragOverlayHandle } from '../drag/DragOverlay';
 import { useBlockDrag } from '../drag/use-block-drag';
 import { useLabels } from '../i18n/use-labels';
+import { keepFocus } from '../menus/floating/keep-focus';
 import { Button } from '../ui/button';
 import { cn } from '../ui/cn';
 import { SQUARE_TAP_TARGET_FLOOR } from '../ui/touch-target';
@@ -23,11 +24,6 @@ import { useGutterTarget } from './use-gutter-target';
 const GUTTER = 'absolute top-0 left-0 z-10 flex items-center gap-0.5 pointer-coarse:not-data-current:hidden';
 const ADD_BELOW = 'text-muted-foreground pointer-coarse:hidden';
 
-// A mouse press would move focus from the text to the control; the menu takes focus when it opens and gives it back on
-// close. A touch moves no focus, and WebKit drops the click of a tap whose pointerdown was cancelled.
-const keepFocus = (event: PointerEvent) => {
-  if (event.pointerType !== 'touch') event.preventDefault();
-};
 
 type GutterProps = { controller: ViewController; store: CanvasUiStore; actions: readonly BlockMenuAction[] };
 

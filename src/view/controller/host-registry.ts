@@ -4,7 +4,7 @@ export type HostRegistry = {
   register(block: string, region: string, element: HTMLElement): () => void;
   get(block: string, region: string): HTMLElement | undefined;
   locate(node: Node | null): HostEntry | null;
-  all(): Iterable<HostEntry>;
+  all(): IterableIterator<HostEntry>;
 };
 
 export function hostKey(block: string, region: string): string {

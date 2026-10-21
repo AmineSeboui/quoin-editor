@@ -32,11 +32,6 @@ export type ViewControllerOptions = {
 
 const runNow = (fn: () => void): void => fn();
 
-function first<T>(items: Iterable<T>): T | undefined {
-  for (const item of items) return item;
-  return undefined;
-}
-
 export class ViewController {
   readonly editor: Editor;
   readonly registry: HostRegistry = createHostRegistry((element) => {
@@ -273,16 +268,16 @@ export class ViewController {
   }
 
   private ownerDocument(): Document | null {
-    return (this.binding?.root ?? first(this.registry.all())?.element)?.ownerDocument ?? null;
+    return (this.binding?.root ?? this.registry.all().next().value?.element)?.ownerDocument ?? null;
   }
 
   // React replaces a host whose block changes kind, which drops focus, and Firefox does not move focus into another
   // host when a script selects inside it.
-  private keepFocus(preventScroll = false): void {
+  private keepFocus(preventScroll?: boolean): void {
     if (this.composingKey === null) this.takeFocus(preventScroll);
   }
 
-  private takeFocus(preventScroll = false): void {
+  private takeFocus(preventScroll?: boolean): void {
     const element = this.drawn.focusElement();
     if (!element || element.ownerDocument.activeElement === element) return;
     if (element === this.sink) focusSink(this);

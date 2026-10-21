@@ -13,7 +13,7 @@ import { preventDefault } from '../../ui/prevent-default';
 import type { ViewController } from '../../view';
 import { isComposingKey } from '../../view/input/keydown';
 import { onBlock } from '../../view/react/block-command';
-import { str } from '../str';
+import { str } from '../../engine/blocks/data-fields';
 import { useOutsidePress } from './use-outside-press';
 
 type AltTextPopoverProps = {

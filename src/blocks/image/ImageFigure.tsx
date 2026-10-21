@@ -5,7 +5,7 @@ import { Image } from 'lucide-react';
 import { useQuoin } from '../../context';
 import { optionalNumber } from '../../engine/blocks/data-fields';
 import { EditableRegion, type BlockRenderProps } from '../../view';
-import { str } from '../str';
+import { str } from '../../engine/blocks/data-fields';
 import { focusNode } from '../void/select-node';
 import { imageSource } from './image-source';
 import { ResizeHandles } from './ResizeHandles';

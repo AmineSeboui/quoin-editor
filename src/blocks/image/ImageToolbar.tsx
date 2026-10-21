@@ -5,7 +5,7 @@ import { useQuoin } from '../../context';
 import { blockById } from '../../engine/model/doc';
 import type { ViewController } from '../../view';
 import { useEditorState, wholeState } from '../../view/react/use-editor-state';
-import { str } from '../str';
+import { str } from '../../engine/blocks/data-fields';
 import { useReplacePicker } from '../upload/use-replace-picker';
 import { usePartAnchor } from '../void/block-part';
 import { NodeToolbar } from '../void/NodeToolbar';

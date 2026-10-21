@@ -5,7 +5,7 @@ import { useLabels } from '../../i18n/use-labels';
 import type { BlockRenderer } from '../../view';
 import { FOCUS_RING } from '../../ui/focus';
 import { useReadOnly } from '../../view/react/use-read-only';
-import { str } from '../str';
+import { str } from '../../engine/blocks/data-fields';
 import { languageName } from './code-languages';
 import { CodeEditor } from './CodeEditor';
 import { CopyCodeButton } from './CopyCodeButton';

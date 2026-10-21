@@ -1,4 +1,4 @@
-import { str } from '../../blocks/str';
+import { str } from '../../engine/blocks/data-fields';
 import { atom, setAttrsStep, Transaction, type AtomNode, type EditorState } from '../../engine';
 import { caretMarks } from '../../engine/commands/caret-marks';
 import { blockById } from '../../engine/model/doc';

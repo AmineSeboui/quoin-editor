@@ -6,7 +6,7 @@ import type { BlockPreviewProps } from '../types';
 import { captionText } from './caption-markdown';
 import { HighlightOverlay } from './code/HighlightOverlay';
 import { imageSource } from './image/image-source';
-import { str } from './str';
+import { str } from '../engine/blocks/data-fields';
 
 const HINT = 'text-sm text-muted-foreground';
 

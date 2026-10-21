@@ -17,10 +17,33 @@ describe('replaceDocStep', () => {
     expect(step.invert(before).apply(doc).doc).toBe(before);
   });
 
-  it('keeps the region of a surviving block and clamps the offset to its new length', () => {
+  it('keeps the region of a surviving block and maps the offset through the change to its text', () => {
     const { map } = replaceDocStep(after).apply(before);
     expect(map(pos('a', 1))).toEqual(pos('a', 1));
+    expect(map(pos('a', 3))).toEqual(pos('a', 1));
     expect(map(pos('a', 5))).toEqual(pos('a', 2));
+  });
+
+  it('moves a position after an insertion by its length, and one at the insertion by its side', () => {
+    const { map } = replaceDocStep(createDoc([para('a', 'say hello')])).apply(before);
+    expect(map(pos('a', 2))).toEqual(pos('a', 6));
+    expect(map(pos('a', 0))).toEqual(pos('a', 4));
+    expect(map(pos('a', 0), -1)).toEqual(pos('a', 0));
+  });
+
+  it('collapses a position inside deleted text to where the deletion was', () => {
+    const { map } = replaceDocStep(createDoc([para('a', 'ho')])).apply(before);
+    expect(map(pos('a', 1))).toEqual(pos('a', 1));
+    expect(map(pos('a', 3))).toEqual(pos('a', 1));
+    expect(map(pos('a', 4))).toEqual(pos('a', 1));
+    expect(map(pos('a', 5))).toEqual(pos('a', 2));
+  });
+
+  it('leaves a position alone when only the marks of its text change, and clamps one past the end', () => {
+    const bold = createDoc([para('a', 'x', { regions: { text: [text('hello', [{ type: 'bold' }])] } })]);
+    const { map } = replaceDocStep(bold).apply(before);
+    expect(map(pos('a', 3))).toEqual(pos('a', 3));
+    expect(map(pos('a', 9))).toEqual(pos('a', 5));
   });
 
   it('moves a position whose region is gone to the start of the block, in region order', () => {

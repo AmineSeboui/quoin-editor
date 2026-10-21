@@ -36,4 +36,16 @@ describe('a foreign document', () => {
     expect(editor.setBlocks(structuredClone(early))).toBe(true);
     expect(editor.getBlocks()).toEqual([md('a', 'x1')]);
   });
+
+  it('maps the caret through a change the host made to its block instead of clamping it', () => {
+    const { editor } = startEditor([md('a', 'Hello world'), md('b', 'below')]);
+    editor.commands.setSelection(caret('a', 6));
+    editor.setBlocks([md('a', 'XXXX Hello world'), md('b', 'below')]);
+    expect(editor.state.selection).toEqual(caret('a', 11));
+    editor.setBlocks([md('a', 'XXXX Hello'), md('b', 'below')]);
+    expect(editor.state.selection).toEqual(caret('a', 10));
+    editor.commands.setSelection(caret('a', 7));
+    editor.setBlocks([md('a', 'XXXX o'), md('b', 'below')]);
+    expect(editor.state.selection).toEqual(caret('a', 5));
+  });
 });

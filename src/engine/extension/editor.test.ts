@@ -44,7 +44,7 @@ describe('createEditor', () => {
     expect(editor.setBlocks([md('a', 'loaded'), md('b', 'two')])).toBe(true);
     expect(editor.getBlocks().map((b) => b.data.markdown)).toEqual(['loaded', 'two']);
     expect(editor.can().undo()).toBe(false);
-    expect(editor.state.selection).toMatchObject({ kind: 'text', head: { block: 'a', offset: 2 } });
+    expect(editor.state.selection).toMatchObject({ kind: 'text', head: { block: 'a', offset: 6 } });
   });
 
   it('round trips copy and paste', () => {

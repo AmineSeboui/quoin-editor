@@ -42,7 +42,8 @@ describe('changes the controller did not make', () => {
     expect(controller.editor.state.selection).toEqual(textSelection(at('b', 8)));
     expect(domSelection()).toEqual(textSelection(at('b', 8)));
     rewrite('b', (old) => `XX${old}`);
-    expect(domSelection()).toEqual(controller.editor.state.selection);
+    expect(controller.editor.state.selection).toEqual(textSelection(at('b', 10)));
+    expect(domSelection()).toEqual(textSelection(at('b', 10)));
     expect(document.activeElement).toBe(hostOf(container, 'b'));
   });
 

@@ -1,6 +1,5 @@
 'use client';
 
-import { cva } from 'class-variance-authority';
 import { useLabels } from '../../i18n/use-labels';
 import { EditableRegion, type BlockRenderProps, type BlockRenderer } from '../../view';
 import { useRegionDomId } from '../../view/react/block-dom-id';
@@ -11,27 +10,16 @@ import { TaskCheckbox } from './TaskCheckbox';
 
 const REGION = 'text';
 
-const headingStyles = cva(
-  'quoin-heading mb-1 font-semibold leading-tight in-[[data-quoin-block]:first-child]:mt-0',
-  {
-    variants: {
-      level: {
-        1: 'mt-6 text-3xl',
-        2: 'mt-5 text-2xl',
-        3: 'mt-4 text-xl',
-        4: 'mt-3 text-lg',
-        5: 'mt-3 text-base',
-        6: 'mt-3 text-sm',
-      },
-    },
-  },
-);
+const HEADING_LEVELS = ['mt-6 text-3xl', 'mt-5 text-2xl', 'mt-4 text-xl', 'mt-3 text-lg', 'mt-3 text-base', 'mt-3 text-sm'];
+
+const headingStyles = (level: number) =>
+  `quoin-heading mb-1 font-semibold leading-tight in-[[data-quoin-block]:first-child]:mt-0 ${HEADING_LEVELS[level - 1]}`;
 
 function Heading({ block }: Pick<BlockRenderProps, 'block'>) {
   const labels = useLabels();
   const level = headingLevel(block.attrs.level);
   return (
-    <div role="heading" aria-level={level} className={headingStyles({ level })}>
+    <div role="heading" aria-level={level} className={headingStyles(level)}>
       <EditableRegion block={block.id} region={REGION} label={labels.heading(level)} />
     </div>
   );

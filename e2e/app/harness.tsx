@@ -5,6 +5,7 @@ import { emojiExtension } from 'quoin-editor/emoji';
 import { findExtension } from 'quoin-editor/find';
 import { mathExtension, type RenderMath } from 'quoin-editor/math';
 import { mentionExtension, type MentionResult } from 'quoin-editor/mention';
+import { statsExtension } from 'quoin-editor/stats';
 import { tableExtension } from 'quoin-editor/table';
 import { tocExtension } from 'quoin-editor/toc';
 import { bookmarkDemo } from './bookmark-demo';
@@ -49,6 +50,15 @@ const extensions = [
     : []),
   ...(params.get('emoji') === '1' ? [emojiExtension()] : []),
   ...(params.get('find') === '1' ? [findExtension()] : []),
+  ...(params.get('stats') === '1'
+    ? [
+        statsExtension({
+          limit: params.has('limit') ? Number(params.get('limit')) : undefined,
+          focusMode: params.get('focus') === '1',
+          typography: params.get('typography') === '1',
+        }),
+      ]
+    : []),
 ];
 
 // Each upload is kept as an object URL under its key, so the picture of an uploaded image loads.

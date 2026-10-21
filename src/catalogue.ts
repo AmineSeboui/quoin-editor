@@ -8,6 +8,7 @@ import { emojiExtension } from './emoji';
 import { findExtension } from './find';
 import { mathExtension } from './math';
 import { mentionExtension } from './mention';
+import { statsExtension } from './stats';
 import { tableExtension } from './table';
 import { tocExtension } from './toc';
 
@@ -19,6 +20,7 @@ const features = {
   mention: mentionExtension,
   emoji: emojiExtension,
   find: findExtension,
+  stats: statsExtension,
 };
 
 export type CatalogueOptions = CatalogueOptionsOf<typeof features>;

@@ -147,6 +147,16 @@
         "default": "./dist/find.cjs"
       }
     },
+    "./stats": {
+      "import": {
+        "types": "./dist/stats.d.ts",
+        "default": "./dist/stats.js"
+      },
+      "require": {
+        "types": "./dist/stats.d.cts",
+        "default": "./dist/stats.cjs"
+      }
+    },
     "./catalogue": {
       "import": {
         "types": "./dist/catalogue.d.ts",

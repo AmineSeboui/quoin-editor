@@ -26,6 +26,7 @@
 @import "./extensions/toc/toc-block.css" layer(quoin.components);
 @import "./extensions/mention/mention.css" layer(quoin.components);
 @import "./extensions/find/find.css" layer(quoin.components);
+@import "./extensions/stats/stats.css" layer(quoin.components);
 @import "./ui/palette.css" layer(quoin.components);
 
 /* Tailwind's default dark: variant keys on prefers-color-scheme, while the --quoin- variables

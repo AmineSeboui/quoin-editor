@@ -29,6 +29,7 @@ export const featureEntries = [
   { name: 'mention', source: 'src/mention.ts', client: true, added: incrementalBudget(2_837) },
   { name: 'emoji', source: 'src/emoji.ts', client: true, added: incrementalBudget(3_149) },
   { name: 'find', source: 'src/find.ts', client: true, added: incrementalBudget(4_020) },
+  { name: 'stats', source: 'src/stats.ts', client: true, added: incrementalBudget(1_339) },
 ];
 
 /**
@@ -45,5 +46,5 @@ export const packageEntries = [
   { name: 'headless', source: 'src/headless.ts', client: true, total: 70_000 },
   { name: 'engine', source: 'src/engine/index.ts', client: false, total: 52_000 },
   ...featureEntries,
-  { name: 'catalogue', source: 'src/catalogue.ts', client: true, added: incrementalBudget(27_702) },
+  { name: 'catalogue', source: 'src/catalogue.ts', client: true, added: incrementalBudget(28_865) },
 ];

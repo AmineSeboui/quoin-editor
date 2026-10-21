@@ -624,6 +624,22 @@ const extensions = [findExtension({ labels: { findAndReplace: 'Rechercher et rem
 
 `findMatches(doc, query, { caseSensitive, wholeWord, regex })` returns `{ matches }`, each `{ block, region, from, to }` in document order, or `{ error }` for a pattern that cannot be read, and never throws. `replaceMatches(search, matches, replacement)` is the command that replaces them in one transaction.
 
+### Stats, a character limit, focus mode and typography
+
+`quoin-editor/stats` shows the words, characters and blocks of the document under it, counted again at most once per animation frame and each block only when it changed. Its other parts are off until asked for:
+
+- `limit`: the most characters the document may hold, counted as `countText` counts them. An edit that would leave more than the limit, and more than there were, is refused whole, a paste, a drop or a composition included, and the reason is announced once; a deletion always goes through, so a document loaded over the limit can still be edited down. The footer then shows the count against the limit, as a polite live region from 90 percent of it. Undo, redo and the blocks the host supplies are never refused.
+- `focusMode`: dims every block but those the selection touches, and the blocks they are nested in, to 40 percent while the canvas is editable and holds focus. Nothing is hidden from assistive technology.
+- `typography`: turns quotes, ellipses, arrows and the like into their typographic forms as they are typed; `{ dashes: 'em' }` or `'en'` turns a double hyphen into a dash too.
+
+```tsx
+import { statsExtension, useEditorStats } from 'quoin-editor/stats';
+
+const extensions = [statsExtension({ limit: 280, focusMode: true, typography: { dashes: 'em' } })];
+```
+
+`footer: false` leaves the footer out and keeps the rest. `useEditorStats(controller)` returns `{ characters, words, blocks }` for a count of your own, with the controller of a `BlockCanvas` handle or, inside the canvas, of `useViewController()`.
+
 ## Read-only
 
 ```tsx
@@ -859,6 +875,8 @@ From `quoin-editor/mention`: `mentionExtension`, its `MentionOptions`, `MentionL
 From `quoin-editor/emoji`: `emojiExtension`, its `EmojiOptions`, `EmojiLabels` and `englishEmojiLabels`, `loadEmojiData` with its `EmojiData`, and the `Emoji` and `EmojiGroup` types.
 
 From `quoin-editor/find`: `findExtension`, its `FindOptions`, `FindLabels` and `englishFindLabels`, `findMatches` and `replaceMatches`, and the `SearchOptions`, `FindQuery`, `FindMatch` and `FindResult` types.
+
+From `quoin-editor/stats`: `statsExtension`, its `StatsOptions`, `StatsLabels` and `englishStatsLabels`, and `useEditorStats` with its `EditorStats` type.
 
 From `quoin-editor/catalogue`: `catalogue`, every opt-in feature at once.
 

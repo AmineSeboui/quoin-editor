@@ -1,4 +1,4 @@
-import type { Command, Decoration, Editor, Pos, Selection, Transaction } from '../../engine';
+import type { Command, Decoration, Editor, EditorState, Pos, Selection, Transaction } from '../../engine';
 import { detectMac } from '../../engine/extension/detect-mac';
 import { sameSelection } from '../../engine/state/selection';
 import type { RenderOptions } from '../dom/render-inline';
@@ -44,7 +44,7 @@ export class ViewController {
   });
   readonly keyInterceptors = new Set<KeyInterceptor>();
   readonly nodeReveal = createNodeReveal((id) => this.blockElement(id));
-  readonly announcer = createAnnouncer(() => this.editor.state);
+  readonly announcer = createAnnouncer(() => this.said);
   readonly isMac: boolean;
   readonly onFiles: ViewControllerOptions['onFiles'];
   goalX: number | null = null;
@@ -61,6 +61,7 @@ export class ViewController {
   );
   private binding: RootBinding | null = null;
   private quiet = false;
+  private said?: EditorState;
   private detachRoot: (() => void) | null = null;
   private readonly readOnlyState: ReadOnly;
 
@@ -93,7 +94,8 @@ export class ViewController {
   attach(root: HTMLElement): () => void {
     this.detachRoot?.();
     const binding = bindRoot(this, root, this.cross, (_, tr) => {
-      this.quiet ||= tr?.origin === 'remote';
+      if (tr?.origin === 'remote') this.quiet = true;
+      else this.said = this.editor.state;
       this.outside.committed(tr);
       this.nodeReveal.follow(this.editor.state.selection);
       this.drawn.syncTabStop();

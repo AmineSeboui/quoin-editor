@@ -5,6 +5,9 @@ import { mapSelection } from './selection';
 
 export type TransactionOrigin = 'input' | 'command' | 'paste' | 'drop' | 'remote' | 'reconcile' | 'ai' | 'history';
 
+/** Where a change was not made by this editor's user: kept out of the history and never filtered. */
+export const foreignOrigins: readonly TransactionOrigin[] = ['remote', 'reconcile', 'history'];
+
 export class Transaction {
   readonly before: EditorState;
   readonly time: number;

@@ -43,6 +43,11 @@ export type Extension = {
   readonly plugins?: readonly PluginSpec<unknown>[];
   readonly decorations?: (state: EditorState) => readonly Decoration[];
   readonly onTransaction?: (tr: Transaction, state: EditorState) => void;
+  /**
+   * Refuses a transaction before it applies by returning false: the editor drops it whole. Undo and redo, the blocks the
+   * host supplies and remote transactions are never filtered.
+   */
+  readonly filterTransaction?: (tr: Transaction, state: EditorState) => boolean;
   readonly ui?: unknown;
 };
 
@@ -55,4 +60,5 @@ export type ResolvedExtensions = {
   readonly commands: CommandFactories;
   readonly plugins: readonly PluginSpec<unknown>[];
   decorations(state: EditorState): readonly Decoration[];
+  filterTransaction(tr: Transaction, state: EditorState): boolean;
 };

@@ -13,7 +13,7 @@ import { countDoc } from '../render/count-text';
 import type { TextStats } from '../render/count-block';
 import type { Schema } from '../schema/types';
 import { applyTransaction, createState, type EditorState } from '../state/editor-state';
-import { Transaction } from '../state/transaction';
+import { foreignOrigins, Transaction } from '../state/transaction';
 import { createControlledBlocks } from './controlled-blocks';
 import { coreExtensions, type CoreCommands } from './core-extensions';
 import { detectMac } from './detect-mac';
@@ -96,6 +96,7 @@ export function createInternalEditor<F extends CommandFactories = CoreCommands>(
   const { getBlocks } = controlled;
 
   function commit(tr: Transaction): void {
+    if (!foreignOrigins.includes(tr.origin) && !resolved.filterTransaction(tr, state)) return;
     state = applyTransaction(state, tr);
     for (const listener of [...listeners]) listener(state, tr);
     for (const extension of resolved.extensions) extension.onTransaction?.(tr, state);

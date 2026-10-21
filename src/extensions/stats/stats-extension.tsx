@@ -11,7 +11,10 @@ import { StatsOverlay } from './StatsOverlay';
 export type StatsOptions = {
   /** Shows the counts under the document. On by default. */
   footer?: boolean;
-  /** The most characters the document may hold, counted as `countText` counts them. */
+  /**
+   * The most characters the document may hold, counted as `countText` counts them. Anything but a finite number of zero
+   * or more is no limit.
+   */
   limit?: number;
   /** Dims every block but those the selection touches, while the canvas is editable and holds focus. */
   focusMode?: boolean;
@@ -23,7 +26,8 @@ export type StatsOptions = {
 
 /** Counts of the document under it, and optionally a character limit, focus mode and typographic input rules. */
 export function statsExtension(options: StatsOptions = {}): Extension {
-  const { footer = true, limit, focusMode = false, typography = false } = options;
+  const { footer = true, focusMode = false, typography = false, limit: given } = options;
+  const limit = given !== undefined && Number.isFinite(given) && given >= 0 ? given : undefined;
   const labels = resolveStatsLabels(options.labels);
   const guard = limit === undefined ? null : createLimit(limit);
   const Overlay = ({ controller }: { controller: ViewController }) => (

@@ -79,6 +79,8 @@ test('focus mode dims every other block while the canvas holds focus', async ({ 
 test('focus mode leaves a read-only canvas as it is', async ({ page }) => {
   await openEditor(page, 'sample', 'stats=1&focus=1&readonly=1');
   await host(page, 'b').click();
+  await expect(page.getByRole('group', { name: 'Document' })).not.toHaveAttribute('data-quoin-focus-mode');
+  await page.evaluate(() => Promise.allSettled(document.getAnimations().map((animation) => animation.finished)));
   const opacity = await page.locator('[data-block-id="a"]').evaluate((shell) => getComputedStyle(shell).opacity);
   expect(opacity).toBe('1');
 });

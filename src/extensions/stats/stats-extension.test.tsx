@@ -1,4 +1,4 @@
-import { act, cleanup, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, screen } from '@testing-library/react';
 import type { QuoinBlock } from '../../engine';
 import { mountTypingCanvas } from '../typing-test-canvas';
 import { statsExtension, type StatsOptions } from './stats-extension';
@@ -94,6 +94,40 @@ describe('a character limit', () => {
     const announce = vi.spyOn(handle().controller, 'announce');
     type('h');
     expect(announce).not.toHaveBeenCalled();
+  });
+
+  it('lets a Backspace typed in the line undo an input rule at the limit, then delete', () => {
+    const { caret, type, handle } = mountStats([md('a', 'abc'), md('b', '')], { limit: 5, typography: true });
+    const backspace = () => {
+      const event = new InputEvent('beforeinput', { inputType: 'deleteContentBackward', bubbles: true, cancelable: true });
+      act(() => void fireEvent(document.activeElement!, event));
+    };
+    const text = () => handle().editor.getBlocks().map((block) => block.data.markdown);
+    caret('a', 3);
+    type('...');
+    expect(text()[0]).toBe('abc\u2026');
+    backspace();
+    expect(text()[0]).toBe('abc...');
+    backspace();
+    expect(text()[0]).toBe('abc..');
+    backspace();
+    caret('b', 0);
+    type('- ');
+    expect(handle().editor.state.doc.blocks[1].attrs.kind).toBe('bullet');
+    backspace();
+    expect(handle().editor.stats().characters).toBe(6);
+    backspace();
+    expect(handle().editor.stats().characters).toBe(5);
+  });
+
+  it('is no limit when it is not a finite number of zero or more', () => {
+    for (const limit of [Number.NaN, -1, Number.POSITIVE_INFINITY]) {
+      expect(statsExtension({ limit }).filterTransaction).toBeUndefined();
+      const { parts } = mountStats([md('a', 'abc')], { limit });
+      expect(parts()[1]).toBe('3 characters');
+      cleanup();
+    }
+    expect(statsExtension({ limit: 0 }).filterTransaction).toBeDefined();
   });
 
   it('lets a deletion through at the limit', () => {

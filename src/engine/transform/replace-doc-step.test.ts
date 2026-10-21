@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createDoc } from '../model/doc';
+import { commonPrefix, commonSuffix } from '../model/common-ends';
 import { text } from '../model/inline';
 import { replaceDocStep } from './replace-doc-step';
 import { StepError } from './step';
@@ -74,5 +75,33 @@ describe('replaceDocStep', () => {
 
   it('builds a frozen step', () => {
     expect(Object.isFrozen(replaceDocStep(after))).toBe(true);
+  });
+
+  it('maps every position of every changed region as a position mapped on its own through its text would be', () => {
+    const pairs: [string, string][] = [
+      ['hello world', 'XXXX hello world'],
+      ['hello world', 'hello'],
+      ['abcabc', 'abXcabc'],
+      ['aaaa', 'aa'],
+      ['', 'new'],
+      ['same', 'same'],
+    ];
+    const old = createDoc(pairs.map(([before], index) => para(`p${index}`, before)));
+    const { map } = replaceDocStep(createDoc(pairs.map(([, after], index) => para(`p${index}`, after)))).apply(old);
+    const alone = (before: string, after: string, offset: number, assoc: -1 | 1) => {
+      const from = commonPrefix(before, after);
+      const insertion = from + commonSuffix(before, after) >= before.length;
+      const mapped = offset > from || (offset === from && insertion && assoc > 0) ? Math.max(offset + after.length - before.length, from) : offset;
+      return Math.min(mapped, after.length);
+    };
+    for (let round = 0; round < 3; round++) {
+      pairs.forEach(([before, after], index) => {
+        for (let offset = 0; offset <= before.length; offset++) {
+          for (const assoc of [-1, 1] as const) {
+            expect(map(pos(`p${index}`, offset), assoc)).toEqual(pos(`p${index}`, alone(before, after, offset, assoc)));
+          }
+        }
+      });
+    }
   });
 });

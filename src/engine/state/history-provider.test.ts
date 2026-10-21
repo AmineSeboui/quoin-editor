@@ -44,4 +44,15 @@ describe('undo and redo with a history kept elsewhere', () => {
     expect(editor.handleKey(mod('z'))).toBe(false);
     expect(editor.getBlocks()).toEqual([md('a', 'xy')]);
   });
+
+  it('refuse to run inside a chain, in either order, and leave the editor as it was', () => {
+    const { editor, provider } = provided(true);
+    const before = editor.state;
+    expect(editor.chain().undo().selectAll().run()).toBe(false);
+    expect(editor.chain().selectAll().redo().run()).toBe(false);
+    expect(editor.chain().undo().run()).toBe(false);
+    expect(editor.state).toBe(before);
+    expect(provider.undo).not.toHaveBeenCalled();
+    expect(provider.redo).not.toHaveBeenCalled();
+  });
 });

@@ -3,6 +3,9 @@ import { sameSelection } from '../state/selection';
 import { Transaction, UNFILTERED, type TransactionOrigin } from '../state/transaction';
 import type { Command } from './command';
 
+/** The dispatch a chain hands its commands, so a command that applies its change elsewhere can refuse a chain. */
+export const chainDispatches = new WeakSet<(tr: Transaction) => void>();
+
 const movesHistory = (tr: Transaction) => tr.getMeta('history') !== undefined;
 
 // An undo or redo item only fits a transaction of its own, so it can share a chain with nothing but selection changes.
@@ -37,12 +40,13 @@ export function runCommands(
 ): { ok: boolean; tr: Transaction | null } {
   let current = state;
   const parts: Transaction[] = [];
+  const collect = (tr: Transaction) => {
+    parts.push(tr);
+    current = applyTransaction(current, tr);
+  };
+  chainDispatches.add(collect);
   for (const command of commands) {
-    const ok = command(current, (tr) => {
-      parts.push(tr);
-      current = applyTransaction(current, tr);
-    });
-    if (!ok) return { ok: false, tr: null };
+    if (!command(current, collect)) return { ok: false, tr: null };
   }
   if (!mergeable(parts)) return { ok: false, tr: null };
   return { ok: true, tr: parts.length === 0 ? null : combine(state, parts, current) };

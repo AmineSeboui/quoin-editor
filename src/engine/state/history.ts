@@ -1,5 +1,6 @@
 import { caretMarks } from '../commands/caret-marks';
 import type { Command } from '../commands/command';
+import { chainDispatches } from '../commands/run-commands';
 import { text } from '../model/inline';
 import type { Mark, Pos, Selection } from '../model/types';
 import { isPositionNeutral } from '../transform/position-neutral';
@@ -39,7 +40,7 @@ export const historyKey = createPluginKey<HistoryState>('history');
 /**
  * A history kept outside the editor, as the state of a plugin named `HISTORY_PROVIDER`: undo and redo run it in place
  * of their own, asking it only whether they could when they are given no dispatch. It applies what it undoes itself, so
- * an undo or redo it runs is not part of a chain's transaction.
+ * they refuse to run inside a chain, whose later commands would be built on the state before it.
  */
 export type HistoryProvider = Readonly<Record<Direction, (dryRun: boolean) => boolean>>;
 export const HISTORY_PROVIDER = 'historyProvider';
@@ -130,7 +131,7 @@ export function historyPlugin(options: { depth?: number; groupDelay?: number } =
 function travel(direction: Direction): Command {
   return (state, dispatch) => {
     const provider = state.pluginState.get(HISTORY_PROVIDER) as HistoryProvider | undefined;
-    if (provider) return provider[direction](!dispatch);
+    if (provider) return !(dispatch && chainDispatches.has(dispatch)) && provider[direction](!dispatch);
     const history = historyOf(state);
     const items = (direction === 'undo' ? history?.done : history?.undone) ?? [];
     for (let i = items.length - 1; i >= 0; i--) {

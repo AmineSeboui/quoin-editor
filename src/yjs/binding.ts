@@ -18,6 +18,7 @@ export type Origins = {
 };
 
 export type Binding = {
+  readonly editor: Editor<CommandFactories>;
   readonly history: UndoHistory;
   local(tr: Transaction): void;
   travel(direction: 'undo' | 'redo'): boolean;
@@ -37,6 +38,7 @@ export function bind(editor: Editor<CommandFactories>, blocks: YBlocks, origins:
   };
   blocks.observeDeep(observer);
   return {
+    editor,
     history,
     local(tr) {
       history.record(tr);

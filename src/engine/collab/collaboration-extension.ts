@@ -19,7 +19,7 @@ function providing(history: CollaborationHistory): PluginSpec<HistoryProvider> {
 /**
  * Ties the editor to a shared document through `adapter` while it is mounted: a canvas mounts it from a layout effect,
  * and a host without one calls `editor.mount()`. Each editor connects once however many times it is mounted, so one
- * value may serve several editors. While connected the shared document is the source of truth: blocks the host
+ * value may serve several editors when its adapter can (a Yjs collaboration connects one). While connected the shared document is the source of truth: blocks the host
  * supplies are ignored, so a collaborative editor is fed its starting blocks once and then left to emit.
  */
 export function collaborationExtension(adapter: CollaborationAdapter): Extension {

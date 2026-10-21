@@ -24,6 +24,8 @@ export type YjsCollaborationOptions = {
   user: CollaborationUser;
   /** Whether an empty shared document takes the editor's blocks on connect. */
   seed?: Seed;
+  /** Hears about a second editor connected while one already is; it stays unconnected. Logged when absent. */
+  onError?: (error: Error) => void;
 };
 
 export type YjsCollaboration = CollaborationAdapter & {
@@ -38,10 +40,11 @@ export type YjsCollaboration = CollaborationAdapter & {
 
 /**
  * Syncs an editor through `doc.getArray(field)`, one block per `Y.Map`, with an undo that takes back only this
- * client's changes. Pass it to `collaborationExtension`; one editor is connected at a time.
+ * client's changes. Pass it to `collaborationExtension`; it connects one editor at a time.
  */
 export function yjsCollaboration(options: YjsCollaborationOptions): YjsCollaboration {
   const { doc, field = 'quoin', awareness, user, seed = 'if-empty' } = options;
+  const onError = options.onError ?? ((error: Error) => console.error(error));
   const blocks: YBlocks = doc.getArray(field);
   const origins = { local: { user }, untracked: {} };
   let binding: Binding | null = null;
@@ -52,7 +55,10 @@ export function yjsCollaboration(options: YjsCollaborationOptions): YjsCollabora
     user,
     origin: origins.local,
     connect(editor) {
-      if (binding !== null) throw new Error('This Yjs collaboration is already connected to an editor.');
+      if (binding !== null) {
+        onError(new Error('A Yjs collaboration connects one editor at a time; this editor stays unconnected.'));
+        return () => undefined;
+      }
       const current = bind(editor, blocks, origins, seed);
       binding = current;
       return () => {
@@ -60,7 +66,9 @@ export function yjsCollaboration(options: YjsCollaborationOptions): YjsCollabora
         if (binding === current) binding = null;
       };
     },
-    onLocalTransaction: (tr) => binding?.local(tr),
+    onLocalTransaction: (tr, state) => {
+      if (binding?.editor.state === state) binding.local(tr);
+    },
     history: {
       undo: () => binding?.travel('undo') ?? false,
       redo: () => binding?.travel('redo') ?? false,

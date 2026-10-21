@@ -78,10 +78,4 @@ describe('connecting an editor to a shared document', () => {
     expect(doc.getArray('notes').length).toBe(1);
     expect(doc.getArray('quoin').length).toBe(0);
   });
-
-  it('refuses a second editor while one is connected', () => {
-    const doc = new Y.Doc();
-    const { collaboration, editor } = peer(doc, 'a', [md('a', 'hello')]);
-    expect(() => collaboration.connect(editor)).toThrow(/already connected/);
-  });
 });

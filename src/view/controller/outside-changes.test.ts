@@ -74,4 +74,23 @@ describe('outside changes', () => {
     outside.committed(insertion());
     expect(outside.takeMoved()).toEqual(caret(3));
   });
+
+  it('reads the browser selection at most once before the next draw, so a second change never reads a stale caret', () => {
+    const models: (Selection | null)[] = [];
+    const outside = createOutsideChanges(
+      () => true,
+      (model) => {
+        models.push(model);
+        return null;
+      },
+    );
+    const first = insertion();
+    outside.committed(first);
+    const after = { ...state, doc: first.doc, selection: caret(7) };
+    outside.committed(new Transaction(after));
+    expect(models).toEqual([caret(5)]);
+    expect(outside.takeMoved()).toBeNull();
+    outside.committed(new Transaction(after));
+    expect(models).toEqual([caret(5), caret(7)]);
+  });
 });

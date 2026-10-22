@@ -30,6 +30,12 @@ function mounted() {
 }
 
 describe('ending a thread', () => {
+  it('keeps an ended thread out of the list until the store of the host catches up', async () => {
+    const { editor, link } = mounted();
+    await endThread(editor, link, () => Promise.resolve(), 't1');
+    expect(getPluginState(editor.state, commentsKey).ended).toEqual(['t1']);
+  });
+
   it('tells the host, then takes its marks off in one undo step and closes it', async () => {
     const { editor, link } = mounted();
     const onResolve = vi.fn(() => Promise.resolve());
@@ -68,7 +74,7 @@ describe('ending a thread', () => {
 });
 
 describe('an open thread', () => {
-  it('closes once none of its text is left, so it never comes back on its own', () => {
+  it('stays open once none of its text is left, until the writer closes it', () => {
     const { editor } = mounted();
     editor.commands.setSelection({
       kind: 'text',
@@ -76,7 +82,7 @@ describe('an open thread', () => {
       head: { block: 'b', region: 'text', offset: 1 },
     });
     editor.commands.deleteSelection();
-    expect(getPluginState(editor.state, commentsKey)).toMatchObject({ active: null, open: null });
+    expect(getPluginState(editor.state, commentsKey).open).toEqual({ ids: ['t1'], focus: true });
   });
 
   it('stays open while some of its text is', () => {

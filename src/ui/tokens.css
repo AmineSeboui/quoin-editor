@@ -23,10 +23,12 @@
   --quoin-success: oklch(0.55 0.14 155);
   --quoin-warning: oklch(0.65 0.16 65);
   --quoin-selection: oklch(0.62 0.17 250 / 28%);
-  /* The tint of text a comment thread is anchored to, painted translucent so overlapping anchors stack, and the
-     stronger, opaque tint of the anchor whose thread is open. Body text reads at 4.5:1 on both. */
-  --quoin-comment: oklch(0.86 0.16 92);
-  --quoin-comment-active: oklch(0.8 0.16 80);
+  /* The tint of text a comment thread is anchored to, painted translucent so overlapping anchors stack, the opaque tint
+     of the anchor whose thread is open, and the rule under both, thicker when open. Body and palette text read at
+     4.5:1 on either tint, so the tints stay pale and the rule carries the difference. */
+  --quoin-comment: oklch(0.975 0.06 90);
+  --quoin-comment-active: oklch(0.98 0.06 85);
+  --quoin-comment-edge: oklch(0.62 0.14 70);
   --quoin-radius: 0.625rem;
   /* The palette a writer colours text and backgrounds with. Each text colour reaches 4.5:1 on the page, and body text
      reaches 4.5:1 on each background. */
@@ -73,8 +75,9 @@
   --quoin-success: oklch(0.74 0.15 155);
   --quoin-warning: oklch(0.79 0.15 65);
   --quoin-selection: oklch(0.72 0.14 250 / 35%);
-  --quoin-comment: oklch(0.52 0.1 85);
-  --quoin-comment-active: oklch(0.46 0.1 75);
+  --quoin-comment: oklch(0.35 0.08 90);
+  --quoin-comment-active: oklch(0.3 0.08 85);
+  --quoin-comment-edge: oklch(0.72 0.14 75);
   --quoin-radius: 0.625rem;
   --quoin-color-default: oklch(0.985 0 0);
   --quoin-color-gray: oklch(0.72 0 0);

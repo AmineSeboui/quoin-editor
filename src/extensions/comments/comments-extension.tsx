@@ -1,7 +1,7 @@
 'use client';
 
 import { MessageSquarePlus } from 'lucide-react';
-import { defineExtension, type Extension } from '../../engine';
+import { defineExtension, getPluginState, type Extension } from '../../engine';
 import type { ViewController } from '../../view';
 import type { ExtensionUI, ToolbarItem } from '../ui-types';
 import { hasCommentableText, requestComment, watchCreates, type CreateThread } from './comment-create';
@@ -11,7 +11,7 @@ import { resolveCommentsLabels, type CommentsLabels } from './comments-labels';
 import { linkOf } from './comments-link';
 import { CommentsOverlay } from './CommentsOverlay';
 import { commentsDecorations } from './comments-decorations';
-import { commentsPlugin } from './comments-plugin';
+import { commentsKey, commentsPlugin } from './comments-plugin';
 
 export type CommentsOptions = {
   /** The host's threads, from `createCommentThreads`, which the host sets again as they change. */
@@ -34,7 +34,7 @@ const commentItem = (labels: CommentsLabels): ToolbarItem => ({
   title: labels.comment,
   icon: MessageSquarePlus,
   shortcut: 'Mod-Alt-m',
-  available: hasCommentableText,
+  available: (state) => hasCommentableText(state) && getPluginState(state, commentsKey).pending.length === 0,
   run: (controller) => void controller.run(requestComment),
 });
 
@@ -55,13 +55,14 @@ export function commentsExtension(options: CommentsOptions): Extension {
     plugins: [commentsPlugin],
     decorations: commentsDecorations,
     keymap: { 'Mod-Alt-m': commentCommand(host.threads) },
+    // One watcher per editor however many views mount it at once, so the host is asked once per thread.
     onMount(editor) {
       const link = linkOf(editor);
-      link.mounts++;
-      const stop = watchCreates(editor, host.onCreate, link);
+      if (link.mounts++ === 0) link.stopWatching = watchCreates(editor, host.onCreate, link);
       return () => {
-        stop();
-        link.mounts--;
+        if (--link.mounts > 0) return;
+        link.stopWatching?.();
+        link.stopWatching = null;
       };
     },
     ui,

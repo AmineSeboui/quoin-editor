@@ -42,7 +42,8 @@ const FIELD_BORDERS = [{ field: 'input', token: fieldBorder(inputSource) }];
 const FIELD_SURFACES = ['background', 'popover', 'accent'];
 
 /** How opaque the comments stylesheet paints the tint of an anchor. */
-const ANCHOR_ALPHA = Number(/var\(--quoin-comment\) (\d+)%, transparent\);\n\}/.exec(commentsCss)![1]) / 100;
+const ANCHOR_TINT = /\[data-comment\] \{\s*background: color-mix\(in oklch, var\(--quoin-comment\) (\d+)%/;
+const ANCHOR_ALPHA = Number(ANCHOR_TINT.exec(commentsCss)![1]) / 100;
 
 /** The surface behind a highlighted row in a menu, a select and the palette. */
 const HIGHLIGHT = 'accent';
@@ -103,11 +104,26 @@ describe.each<Theme>(['light', 'dark'])('%s theme', (theme) => {
     expect(contrast(theme, 'foreground', 'comment-active')).toBeGreaterThanOrEqual(4.5);
   });
 
+  it.each([...PALETTE.map((name) => `color-${name}`), 'muted-foreground'])(
+    'writes %s text at 4.5:1 or more on a comment anchor, on two stacked, and on the active one',
+    (name) => {
+      const [text, wash, page] = [token(theme, name), token(theme, 'comment'), token(theme, 'background')];
+      expect(contrastOnWash(text, wash, ANCHOR_ALPHA, page)).toBeGreaterThanOrEqual(4.5);
+      expect(contrastOnWash(text, wash, 1 - (1 - ANCHOR_ALPHA) ** 2, page)).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(theme, name, 'comment-active')).toBeGreaterThanOrEqual(4.5);
+    },
+  );
+
   it('draws the active anchor stronger than the others, and two stacked anchors stronger than one', () => {
     const [wash, page] = [token(theme, 'comment'), token(theme, 'background')];
     const one = contrastOnWash(page, wash, ANCHOR_ALPHA, page);
     expect(contrastOnWash(page, wash, 1 - (1 - ANCHOR_ALPHA) ** 2, page)).toBeGreaterThan(one);
-    expect(contrast(theme, 'comment-active', 'background')).toBeGreaterThan(one * 1.1);
+    expect(contrast(theme, 'comment-active', 'background')).toBeGreaterThan(one);
+  });
+
+  it('draws the rule under comment anchors at 3:1 or more against the page and the tints', () => {
+    expect(contrast(theme, 'comment-edge', 'background')).toBeGreaterThanOrEqual(3);
+    expect(contrast(theme, 'comment-edge', 'comment-active')).toBeGreaterThanOrEqual(3);
   });
 
   it('draws the highlight bar at 3:1 or more against the row and its popover', () => {

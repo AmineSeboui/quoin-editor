@@ -16,5 +16,7 @@ declare global {
     };
     /** Tells the other pages this one has gone, as a provider does when it disconnects. */
     __quoinLeave?: () => void;
+    /** Lets every answer the harness's comments host is holding go. */
+    __quoinAnswerComments?: () => void;
   }
 }

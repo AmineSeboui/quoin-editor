@@ -37,7 +37,7 @@ export function CommentsOverlay({ controller, host, labels }: CommentsOverlayPro
   const threads = useThreads(host.threads);
   const value = useEditorState(controller, commentsOf);
   const doc = useEditorState(controller, docOf);
-  const entries = useMemo(() => railEntries(doc, threads), [doc, threads]);
+  const entries = useMemo(() => railEntries(doc, threads, value.ended), [doc, threads, value.ended]);
   const box = useRef<HTMLDivElement>(null);
   const wide = useCanvasWide(box);
   const [sheet, setSheet] = useState(false);

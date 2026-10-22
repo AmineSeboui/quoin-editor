@@ -9,6 +9,9 @@ function topOf(controller: ViewController, root: HTMLElement, block: string): nu
   return shell.getBoundingClientRect().top - root.getBoundingClientRect().top - root.clientTop + root.scrollTop;
 }
 
+// The canvas grows to the last thread beside it, so the list never runs out over the page below.
+const HEIGHT = '--quoin-comments-height';
+
 function place(controller: ViewController, box: HTMLElement, gap: number): void {
   const root = box.parentElement;
   if (root === null) return;
@@ -18,6 +21,8 @@ function place(controller: ViewController, box: HTMLElement, gap: number): void 
     gap,
   );
   items.forEach((item, i) => (item.style.transform = `translateY(${tops[i]}px)`));
+  const bottom = Math.max(0, ...items.map((item, i) => tops[i] + item.offsetHeight));
+  root.style.setProperty(HEIGHT, `${bottom}px`);
 }
 
 /**
@@ -49,6 +54,7 @@ export function useBlockAligned(
       view.cancelAnimationFrame(frame);
       unsubscribe();
       observer.disconnect();
+      element.parentElement?.style.removeProperty(HEIGHT);
     };
   }, [controller, box, gap, key]);
 }

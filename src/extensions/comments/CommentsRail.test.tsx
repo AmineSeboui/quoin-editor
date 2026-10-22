@@ -68,6 +68,18 @@ describe('the rail of a wide canvas', () => {
     expect(canvas.changes).toEqual([]);
   });
 
+  it('drops a resolved thread at once, before the store of the host says so, never as text removed', async () => {
+    const canvas = mountComments(blocks(), threads());
+    act(() => void fireEvent.click(screen.getByRole('button', { name: /^late/ })));
+    act(() => void fireEvent.click(screen.getByRole('button', { name: 'Resolve' })));
+    await canvas.settle();
+    const cards = within(screen.getByRole('list', { name: 'Comments' })).getAllByRole('button');
+    expect(cards.map((card) => card.textContent)).toEqual([
+      'earlyAda Lovelace On early1 comment',
+      'Text removedAda Lovelace Its text was deleted1 comment',
+    ]);
+  });
+
   it('follows the threads the host sets, without a remount', () => {
     const canvas = mountComments(blocks(), threads());
     act(() => canvas.store.set([{ ...thread('t1', 'On late'), resolved: true }, thread('t2', 'On early', 'Agreed')]));

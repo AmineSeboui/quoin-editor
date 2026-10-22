@@ -4,6 +4,7 @@ import { commentAnchors } from './comment-anchors';
 import { requestComment } from './comment-create';
 import { createCommentThreads } from './comment-threads';
 import { commentsExtension } from './comments-extension';
+import type { ExtensionUI } from '../ui-types';
 import { linkOf } from './comments-link';
 import { commentsKey } from './comments-plugin';
 
@@ -38,6 +39,7 @@ function commenting(...lines: string[]) {
   return { ...host, editor, unmount, report };
 }
 
+const span = (id: string, inner: string) => `<span data-comment="${id}">${inner}</span>`;
 const request = (editor: Editor) => requestComment(editor.state, (tr) => editor.dispatch(tr));
 const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
 const texts = (editor: Editor) => editor.getBlocks().map((block) => block.data.markdown);
@@ -133,8 +135,8 @@ describe('commenting on the selected text', () => {
     expect(pendingClasses(editor)).toEqual([]);
   });
 
-  it('keeps a thread whose text was deleted meanwhile out of the document', async () => {
-    const { editor, answers } = commenting('say a word here');
+  it('tells onError of a thread whose text was all deleted meanwhile, so the host can delete it', async () => {
+    const { editor, answers, report } = commenting('say a word here');
     editor.commands.setSelection(range('p0', 3, 11));
     request(editor);
     editor.commands.deleteSelection();
@@ -142,6 +144,39 @@ describe('commenting on the selected text', () => {
     await settle();
     expect(texts(editor)).toEqual(['sayhere']);
     expect(pendingClasses(editor)).toEqual([]);
+    expect(report).toHaveBeenCalledTimes(1);
+    expect(report.mock.calls[0][0].message).toContain('t1');
+  });
+
+  it('marks each part of a pending text that Enter split into two blocks', async () => {
+    const { editor, answers, report } = commenting('plain words here');
+    editor.commands.setSelection(range('p0', 0, 11));
+    request(editor);
+    editor.commands.setSelection(range('p0', 3, 3));
+    editor.commands.splitBlock();
+    answers[0].resolve('t1');
+    await settle();
+    expect(texts(editor)).toEqual([span('t1', 'pla'), `${span('t1', 'in words')} here`]);
+    expect(report).not.toHaveBeenCalled();
+  });
+
+  it('asks the host once for an editor mounted twice at a time', async () => {
+    const { editor, onCreate } = commenting('say a word here');
+    const second = editor.mount();
+    editor.commands.setSelection(range('p0', 4, 10));
+    request(editor);
+    await settle();
+    expect(onCreate).toHaveBeenCalledTimes(1);
+    second();
+  });
+
+  it('takes the toolbar button away while a thread is being asked for', () => {
+    const { editor, extension } = commenting('say a word here');
+    const [item] = (extension.ui as ExtensionUI).bubbleItems ?? [];
+    editor.commands.setSelection(range('p0', 4, 10));
+    expect(item.available?.(editor.state)).toBe(true);
+    request(editor);
+    expect(item.available?.(editor.state)).toBe(false);
   });
 
   it('does nothing once the editor is unmounted', async () => {

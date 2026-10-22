@@ -23,9 +23,9 @@ export function useAnchorClicks(controller: ViewController, threads: CommentThre
     const onClick = (event: MouseEvent) => {
       const root = controller.root;
       if (root === null || event.defaultPrevented || !root.ownerDocument.getSelection()?.isCollapsed) return;
-      const ids = openIds(threads, idsUnder(root, event.target));
-      if (ids.length === 0) return;
       const { editor } = controller;
+      const ids = openIds(editor.state, threads, idsUnder(root, event.target));
+      if (ids.length === 0) return;
       editor.dispatch(commentsTransaction(editor.state, { type: 'open', open: { ids, focus: false } }));
     };
     document.addEventListener('click', onClick);

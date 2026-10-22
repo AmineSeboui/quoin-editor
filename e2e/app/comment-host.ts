@@ -2,8 +2,16 @@ import { commentsExtension, createCommentThreads, type CommentThread } from 'quo
 
 const params = new URLSearchParams(location.search);
 // Stands in for a host's comments service, answering after a delay as a server would.
-const DELAY = Number(params.get('commentdelay') ?? 0);
-const later = <T>(value: () => T) => new Promise<T>((resolve) => setTimeout(() => resolve(value()), DELAY));
+// `commentdelay=hold` keeps each answer until the page calls window.__quoinAnswerComments().
+const DELAY = params.get('commentdelay') ?? '0';
+const held: (() => void)[] = [];
+window.__quoinAnswerComments = () => held.splice(0).forEach((answer) => answer());
+const later = <T>(value: () => T) =>
+  new Promise<T>((resolve) => {
+    const answer = () => resolve(value());
+    if (DELAY === 'hold') held.push(answer);
+    else setTimeout(answer, Number(DELAY));
+  });
 
 const byAda = (id: string, body: string) => ({
   id,

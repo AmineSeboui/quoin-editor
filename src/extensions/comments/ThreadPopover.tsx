@@ -40,11 +40,12 @@ export function ThreadPopover({ env, open, threads, onChoose, onClose }: ThreadP
   const { controller, labels } = env;
   const doc = useEditorState(controller, docOf);
   const anchors = commentAnchors(doc);
-  const ids = open.ids.filter((id) => anchors.has(id));
-  const first: AnchorRange | undefined = anchors.get(ids[0] ?? '')?.[0];
+  const { ids } = open;
+  const first: AnchorRange | undefined = ids.map((id) => anchors.get(id)?.[0]).find(Boolean);
+  // Once its text is gone the popover stays where the text last was, with whatever is being written in it.
   const latest = useRef(first);
   useIsomorphicLayoutEffect(() => {
-    latest.current = first;
+    if (first) latest.current = first;
   });
   const anchor = useMemo(
     () => ({
@@ -56,16 +57,25 @@ export function ThreadPopover({ env, open, threads, onChoose, onClose }: ThreadP
     [controller],
   );
   const content = useRef<HTMLDivElement>(null);
-  if (first === undefined) return null;
+  const focusField = () => {
+    const target = content.current?.querySelector<HTMLElement>(`[${REPLY_FIELD}], button`);
+    if (focusIsOurs(content.current) && !content.current?.contains(content.current.ownerDocument.activeElement)) {
+      target?.focus();
+    }
+  };
+  // A popover a click opened takes focus when the keyboard command asks for it again.
+  useIsomorphicLayoutEffect(() => {
+    if (open.focus) focusField();
+  }, [open]);
+  if (first === undefined && latest.current === undefined) return null;
 
-  const textOf = (id: string) => anchorText(doc, anchors.get(id) ?? []);
+  const textOf = (id: string) => anchorText(doc, anchors.get(id) ?? []) || labels.textRemoved;
   const single = ids.length === 1;
+  const gone = single && !anchors.has(ids[0]);
   const backToText = () => controller.focus();
   const focusInside = (event: Event) => {
     event.preventDefault();
-    if (!open.focus || !focusIsOurs(content.current)) return;
-    const target = content.current?.querySelector<HTMLElement>(`[${REPLY_FIELD}], button`);
-    target?.focus();
+    if (open.focus) focusField();
   };
   const onEscape = (event: KeyboardEvent) => {
     event.preventDefault();
@@ -89,7 +99,7 @@ export function ThreadPopover({ env, open, threads, onChoose, onClose }: ThreadP
       <PopoverContent
         key={ids.join(' ')}
         ref={content}
-        aria-label={single ? labels.thread(textOf(ids[0])) : labels.threadsHere}
+        aria-label={gone ? labels.textRemoved : single ? labels.thread(textOf(ids[0])) : labels.threadsHere}
         side="bottom"
         align="start"
         className="w-80 p-3"
@@ -97,6 +107,7 @@ export function ThreadPopover({ env, open, threads, onChoose, onClose }: ThreadP
         onCloseAutoFocus={(event) => event.preventDefault()}
         onEscapeKeyDown={onEscape}
       >
+        {gone && <p className="mb-2 text-xs text-muted-foreground italic">{labels.textRemoved}</p>}
         {single ? (
           <ThreadView env={env} id={ids[0]} thread={threads.find(ids[0])} onEnded={backToText} />
         ) : (

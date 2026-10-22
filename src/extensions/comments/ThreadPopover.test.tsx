@@ -1,7 +1,7 @@
 import { act, fireEvent, screen, within } from '@testing-library/react';
 import { axe } from 'vitest-axe';
 import { paragraph } from '../../blocks/void/test-canvas';
-import { textSelection } from '../../engine';
+import { replaceInlineStep, textSelection } from '../../engine';
 import { mountComments, span, thread } from './comments-test-canvas';
 
 const blocks = () => [paragraph('a', `Say ${span('t1', 'hello')} to ${span('t2', `the ${span('t3', 'world')}`)}`)];
@@ -38,6 +38,33 @@ describe('the thread popover', () => {
     expect(canvas.popover('Comment on "hello"')).toBeNull();
     expect(document.activeElement).toBe(canvas.host('a'));
     expect(canvas.handle().editor.state.selection).toMatchObject({ head: { block: 'a', offset: 6 } });
+  });
+
+  it('takes focus into a thread a click opened once Mod+Alt+M is pressed', () => {
+    const canvas = mountComments(blocks(), threads());
+    canvas.caret('a', 6);
+    canvas.click(canvas.anchor('t1'));
+    expect(document.activeElement).toBe(canvas.host('a'));
+    canvas.commentKey();
+    expect(document.activeElement).toBe(screen.getByRole('textbox', { name: 'Reply' }));
+  });
+
+  it('keeps a thread open, its draft and focus, when a collaborator deletes its text', () => {
+    const canvas = mountComments(blocks(), threads());
+    canvas.caret('a', 6);
+    canvas.commentKey();
+    const field = screen.getByRole<HTMLTextAreaElement>('textbox', { name: 'Reply' });
+    act(() => void fireEvent.change(field, { target: { value: 'draft' } }));
+    const { editor } = canvas.handle();
+    const removal = editor.createTransaction().setOrigin('remote').step(replaceInlineStep('a', 'text', 4, 9, []));
+    act(() => editor.dispatch(removal));
+    const popover = canvas.popover('Text removed')!;
+    expect(popover).not.toBeNull();
+    expect(within(popover).getByRole('textbox', { name: 'Reply' })).toBe(field);
+    expect(field.value).toBe('draft');
+    expect(document.activeElement).toBe(field);
+    act(() => void fireEvent.keyDown(field, { key: 'Escape' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 
   it('lists the threads of overlapping anchors to choose from', async () => {

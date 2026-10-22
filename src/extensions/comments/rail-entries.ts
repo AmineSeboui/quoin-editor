@@ -12,11 +12,18 @@ export type RailEntry = {
 
 const NONE: readonly AnchorRange[] = [];
 
-/** The open threads, those anchored in the order their text comes in the document, then those whose text is gone. */
-export function railEntries(doc: EngineDoc, threads: readonly CommentThread[]): RailEntry[] {
+/**
+ * The open threads but those this canvas ended: those anchored in the order their text comes in the document, then
+ * those whose text is gone.
+ */
+export function railEntries(
+  doc: EngineDoc,
+  threads: readonly CommentThread[],
+  ended: readonly string[] = [],
+): RailEntry[] {
   const anchors = commentAnchors(doc);
   const entries = threads
-    .filter(({ resolved }) => !resolved)
+    .filter(({ id, resolved }) => !resolved && !ended.includes(id))
     .map((thread): RailEntry => {
       const ranges = anchors.get(thread.id) ?? NONE;
       return { thread, ranges, anchorText: anchorText(doc, ranges) };

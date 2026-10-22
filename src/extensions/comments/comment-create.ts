@@ -48,8 +48,10 @@ function create(editor: CommentsEditor, pending: PendingAnchor, onCreate: Create
   const input = { anchorText: anchorText(editor.state.doc, pending.ranges), blockId: pending.ranges[0].block };
   const settle = (id: string | null, error?: unknown) => {
     if (link.mounts === 0) return;
-    editor.dispatch(settledTransaction(editor, pending.key, id));
+    const tr = settledTransaction(editor, pending.key, id);
+    editor.dispatch(tr);
     if (id === null) link.report(toError(error));
+    else if (!tr.docChanged) link.report(new Error(`Comment thread ${id} has no text: it was deleted meanwhile`));
   };
   new Promise<string>((resolve) => resolve(onCreate(input))).then(
     (id) => (typeof id === 'string' && id !== '' ? settle(id) : settle(null, new Error('onCreate gave no thread id'))),

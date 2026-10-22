@@ -21,6 +21,12 @@ describe('the threads beside the document', () => {
     expect(gone).toMatchObject({ anchorText: '', ranges: [] });
   });
 
+  it('leave out a thread this canvas resolved or deleted while the host has not yet said so', () => {
+    expect(railEntries(doc, [thread('late'), thread('gone')], ['gone']).map(({ thread: { id } }) => id)).toEqual([
+      'late',
+    ]);
+  });
+
   it('leave out an anchor whose thread the host does not know yet', () => {
     expect(railEntries(doc, [thread('first')]).map(({ thread: { id } }) => id)).toEqual(['first']);
   });

@@ -2,6 +2,7 @@ import { act, fireEvent, screen } from '@testing-library/react';
 import type { mountCanvas } from '../../blocks/void/test-canvas';
 import type { QuoinBlock } from '../../engine';
 import { mountTypingCanvas } from '../typing-test-canvas';
+import type { ExtensionUI } from '../ui-types';
 import { createCommentThreads, type CommentThread } from './comment-threads';
 import { commentsExtension, type CommentsOptions } from './comments-extension';
 
@@ -42,5 +43,6 @@ export function mountComments(
   const commentKey = () => mounted.key('m', { code: 'KeyM', altKey: true, ...mod() });
   const popover = (name: string | RegExp) => screen.queryByRole('dialog', { name });
   const settle = () => act(() => new Promise((resolve) => setTimeout(resolve, 0)));
-  return { ...mounted, store, calls, onError, anchor, click, mod, commentKey, popover, settle };
+  const ui = () => extension.ui as ExtensionUI;
+  return { ...mounted, store, calls, onError, anchor, click, mod, commentKey, popover, settle, ui };
 }

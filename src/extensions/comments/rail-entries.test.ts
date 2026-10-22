@@ -22,9 +22,14 @@ describe('the threads beside the document', () => {
   });
 
   it('leave out a thread this canvas resolved or deleted while the host has not yet said so', () => {
-    expect(railEntries(doc, [thread('late'), thread('gone')], ['gone']).map(({ thread: { id } }) => id)).toEqual([
-      'late',
-    ]);
+    const gone = thread('gone');
+    const ended = [{ id: 'gone', seen: gone }];
+    expect(railEntries(doc, [thread('late'), gone], ended).map(({ thread: { id } }) => id)).toEqual(['late']);
+  });
+
+  it('follow the host again once it sets that thread anew, as when it reopens it', () => {
+    const ended = [{ id: 'gone', seen: thread('gone') }];
+    expect(railEntries(doc, [thread('gone')], ended).map(({ thread: { id } }) => id)).toEqual(['gone']);
   });
 
   it('leave out an anchor whose thread the host does not know yet', () => {

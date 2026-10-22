@@ -67,6 +67,50 @@ describe('the thread popover', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
+  it('closes a thread a click opened, once its text is gone, on the next move of the caret', () => {
+    const canvas = mountComments(blocks(), threads());
+    canvas.caret('a', 6);
+    canvas.click(canvas.anchor('t1'));
+    const { editor } = canvas.handle();
+    const removal = editor.createTransaction().setOrigin('remote').step(replaceInlineStep('a', 'text', 4, 9, []));
+    act(() => editor.dispatch(removal));
+    expect(canvas.popover('Text removed')).not.toBeNull();
+    canvas.caret('a', 1);
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('keeps a thread a click opened while a reply is written in it, whatever happens to its text', () => {
+    const canvas = mountComments(blocks(), threads());
+    canvas.caret('a', 6);
+    canvas.click(canvas.anchor('t1'));
+    const field = screen.getByRole<HTMLTextAreaElement>('textbox', { name: 'Reply' });
+    field.focus();
+    act(() => void fireEvent.change(field, { target: { value: 'draft' } }));
+    const { editor } = canvas.handle();
+    const removal = editor.createTransaction().setOrigin('remote').step(replaceInlineStep('a', 'text', 4, 9, []));
+    act(() => editor.dispatch(removal));
+    expect(canvas.popover('Text removed')).not.toBeNull();
+    expect(document.activeElement).toBe(field);
+    expect(field.value).toBe('draft');
+  });
+
+  it('keeps focus in the text when the toolbar asks for a thread, whether the host answers or refuses', async () => {
+    const onCreate = () => Promise.reject(new Error('no'));
+    const canvas = mountComments([paragraph('p', 'plain words')], [], { onCreate });
+    canvas.caret('p', 0);
+    act(() => canvas.handle().controller.dispatch(canvas.handle().editor.createTransaction().setSelection(wordOne)));
+    const button = document.body.appendChild(document.createElement('button'));
+    button.className = 'quoin';
+    button.focus();
+    const [item] = canvas.ui().bubbleItems ?? [];
+    act(() => item.run(canvas.handle().controller));
+    expect(document.activeElement).toBe(canvas.host('p'));
+    await canvas.settle();
+    expect(canvas.onError).toHaveBeenCalledWith(new Error('no'));
+    expect(document.activeElement).toBe(canvas.host('p'));
+    button.remove();
+  });
+
   it('lists the threads of overlapping anchors to choose from', async () => {
     const canvas = mountComments(blocks(), threads());
     canvas.caret('a', 20);

@@ -2,6 +2,7 @@ import { indexOfBlock } from '../../engine/model/doc';
 import type { EngineDoc } from '../../engine/model/types';
 import { anchorText, commentAnchors, type AnchorRange } from './comment-anchors';
 import type { CommentThread } from './comment-threads';
+import { isEnded, type EndedThread } from './comments-plugin';
 
 /** An open thread as the rail and the sheet list it: with no ranges once all of its text has been deleted. */
 export type RailEntry = {
@@ -19,11 +20,11 @@ const NONE: readonly AnchorRange[] = [];
 export function railEntries(
   doc: EngineDoc,
   threads: readonly CommentThread[],
-  ended: readonly string[] = [],
+  ended: readonly EndedThread[] = [],
 ): RailEntry[] {
   const anchors = commentAnchors(doc);
   const entries = threads
-    .filter(({ id, resolved }) => !resolved && !ended.includes(id))
+    .filter((thread) => !thread.resolved && !isEnded(ended, thread.id, thread))
     .map((thread): RailEntry => {
       const ranges = anchors.get(thread.id) ?? NONE;
       return { thread, ranges, anchorText: anchorText(doc, ranges) };

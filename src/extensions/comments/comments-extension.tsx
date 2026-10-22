@@ -35,7 +35,11 @@ const commentItem = (labels: CommentsLabels): ToolbarItem => ({
   icon: MessageSquarePlus,
   shortcut: 'Mod-Alt-m',
   available: (state) => hasCommentableText(state) && getPluginState(state, commentsKey).pending.length === 0,
-  run: (controller) => void controller.run(requestComment),
+  // Focus goes back to the text first: the button leaves the toolbar while the thread is being asked for.
+  run: (controller) => {
+    controller.focus();
+    controller.run(requestComment);
+  },
 });
 
 /**

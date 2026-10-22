@@ -5,6 +5,11 @@
   box-shadow: inset 0 -1px var(--quoin-comment-edge);
 }
 
+/* The tints of two threads on the same text add up too little to see in the light theme, so a second line marks it. */
+.quoin.quoin-editor:has(> .quoin-comments-rail, > .quoin-comments-markers) [data-comment] [data-comment] {
+  border-bottom: 3px double var(--quoin-comment-edge);
+}
+
 .quoin .quoin-comment-active {
   background: var(--quoin-comment-active);
   box-shadow: inset 0 -3px var(--quoin-comment-edge);

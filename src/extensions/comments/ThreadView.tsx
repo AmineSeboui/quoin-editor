@@ -35,7 +35,7 @@ export function ThreadView({ env, id, thread, onEnded }: ThreadViewProps) {
   const end = async (call: (threadId: string) => Promise<void>) => {
     if (busy) return;
     setBusy(true);
-    const ended = await endThread(controller.editor, link, call, id);
+    const ended = await endThread(controller.editor, link, call, id, host.threads);
     if (alive.current) setBusy(false);
     // Focus follows only from the thread, or from nowhere once the thread closed under it.
     const active = document.activeElement;

@@ -80,6 +80,23 @@ describe('the rail of a wide canvas', () => {
     ]);
   });
 
+  it('lists a resolved thread again, and opens it, once the host reopens it after an undo', async () => {
+    const canvas = mountComments(blocks(), threads());
+    act(() => void fireEvent.click(screen.getByRole('button', { name: /^late/ })));
+    act(() => void fireEvent.click(screen.getByRole('button', { name: 'Resolve' })));
+    await canvas.settle();
+    const gone = thread('gone', 'Its text was deleted');
+    act(() => canvas.store.set([gone, { ...thread('t1', 'On late'), resolved: true }]));
+    canvas.undo();
+    expect(canvas.markdown('b')).toBe(`Then ${span('t1', 'late')}`);
+    act(() => canvas.store.set([gone, thread('t1', 'On late')]));
+    const rail = screen.getByRole('list', { name: 'Comments' });
+    expect(within(rail).getByRole('button', { name: /^late/ })).toBeInTheDocument();
+    canvas.caret('b', 6);
+    canvas.commentKey();
+    expect(canvas.popover('Comment on "late"')).not.toBeNull();
+  });
+
   it('follows the threads the host sets, without a remount', () => {
     const canvas = mountComments(blocks(), threads());
     act(() => canvas.store.set([{ ...thread('t1', 'On late'), resolved: true }, thread('t2', 'On early', 'Agreed')]));

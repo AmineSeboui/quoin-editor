@@ -1,5 +1,7 @@
 import { createPluginKey, type EditorState, type PluginSpec, type Selection, type Transaction } from '../../engine';
-import type { AnchorRange } from './comment-anchors';
+import { commentAnchors, type AnchorRange } from './comment-anchors';
+import type { CommentThread } from './comment-threads';
+import { foreignOrigins } from '../../engine/state/transaction';
 import { mapPendingRanges } from './pending-ranges';
 
 /** Text a thread is being created for, drawn as a pending anchor until the host answers. */
@@ -9,6 +11,13 @@ export type PendingAnchor = {
   readonly selection: Selection;
 };
 
+/** A thread this canvas ended, and the host's copy of it then: once the host sets another, the host is followed. */
+export type EndedThread = { readonly id: string; readonly seen: CommentThread | undefined };
+
+/** Whether a thread is one this canvas ended that the host has not set anew since. */
+export const isEnded = (ended: readonly EndedThread[], id: string, current: CommentThread | undefined): boolean =>
+  ended.some((thread) => thread.id === id && thread.seen === current);
+
 /** The thread popover: the threads to choose from, and whether it takes focus as it opens. */
 export type OpenThreads = { readonly ids: readonly string[]; readonly focus: boolean };
 
@@ -16,8 +25,8 @@ export type CommentsState = {
   readonly pending: readonly PendingAnchor[];
   readonly active: string | null;
   readonly open: OpenThreads | null;
-  /** Threads this canvas resolved or deleted, kept out of the lists whatever the host's store still says. */
-  readonly ended: readonly string[];
+  /** Threads this canvas resolved or deleted, kept out of the lists until the host's store sets them anew. */
+  readonly ended: readonly EndedThread[];
 };
 
 export type CommentsAction =
@@ -26,7 +35,7 @@ export type CommentsAction =
   | { readonly type: 'activate'; readonly id: string | null }
   | { readonly type: 'open'; readonly open: OpenThreads }
   | { readonly type: 'close' }
-  | { readonly type: 'forget'; readonly id: string };
+  | { readonly type: 'forget'; readonly id: string; readonly seen?: CommentThread };
 
 export const commentsKey = createPluginKey<CommentsState>('comments');
 
@@ -52,7 +61,8 @@ function act(value: CommentsState, action: CommentsAction): CommentsState {
     case 'forget': {
       const active = value.active === action.id ? null : value.active;
       const open = value.open?.ids.includes(action.id) ? null : value.open;
-      return { ...value, active, open, ended: [...value.ended, action.id] };
+      const ended = [...value.ended.filter(({ id }) => id !== action.id), { id: action.id, seen: action.seen }];
+      return { ...value, active, open, ended };
     }
   }
 }
@@ -63,11 +73,20 @@ function afterEdit(tr: Transaction, value: CommentsState, state: EditorState): C
   return { ...value, pending };
 }
 
+// A thread a click opened, focus left in the text, whose text is gone closes when the writer next moves the caret: a
+// collaborator's change never closes it, nor does anything while focus is in it.
+function afterMove(tr: Transaction, value: CommentsState, state: EditorState): CommentsState {
+  const { open } = value;
+  if (open === null || open.focus || !tr.selectionSet || foreignOrigins.includes(tr.origin)) return value;
+  const anchors = commentAnchors(state.doc);
+  return open.ids.some((id) => anchors.has(id)) ? value : { ...value, active: null, open: null };
+}
+
 export const commentsPlugin: PluginSpec<CommentsState> = {
   key: commentsKey,
   init: () => IDLE,
   apply(tr, value, _oldState, newState) {
-    const edited = afterEdit(tr, value, newState);
+    const edited = afterMove(tr, afterEdit(tr, value, newState), newState);
     const action = tr.getMeta<CommentsAction>(COMMENTS);
     return action === undefined ? edited : act(edited, action);
   },

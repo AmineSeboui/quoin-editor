@@ -32,8 +32,9 @@ function mounted() {
 describe('ending a thread', () => {
   it('keeps an ended thread out of the list until the store of the host catches up', async () => {
     const { editor, link } = mounted();
-    await endThread(editor, link, () => Promise.resolve(), 't1');
-    expect(getPluginState(editor.state, commentsKey).ended).toEqual(['t1']);
+    const seen = { id: 't1', resolved: false, comments: [] };
+    await endThread(editor, link, () => Promise.resolve(), 't1', createCommentThreads([seen]));
+    expect(getPluginState(editor.state, commentsKey).ended).toEqual([{ id: 't1', seen }]);
   });
 
   it('tells the host, then takes its marks off in one undo step and closes it', async () => {

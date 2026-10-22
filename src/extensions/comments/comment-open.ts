@@ -3,12 +3,15 @@ import { isCollapsed } from '../../engine/state/selection';
 import { commentIdsAt } from './comment-anchors';
 import { requestComment } from './comment-create';
 import type { CommentThreads } from './comment-threads';
-import { COMMENTS, commentsKey, type CommentsAction } from './comments-plugin';
+import { COMMENTS, commentsKey, isEnded, type CommentsAction } from './comments-plugin';
 
 /** The threads to show for anchors: those the host knows and has not resolved, nor this canvas ended, in order. */
 export function openIds(state: EditorState, threads: CommentThreads, ids: readonly string[]): string[] {
   const { ended } = getPluginState(state, commentsKey);
-  return ids.filter((id) => threads.find(id)?.resolved === false && !ended.includes(id));
+  return ids.filter((id) => {
+    const thread = threads.find(id);
+    return thread?.resolved === false && !isEnded(ended, id, thread);
+  });
 }
 
 export function commentsTransaction(state: EditorState, action: CommentsAction): Transaction {

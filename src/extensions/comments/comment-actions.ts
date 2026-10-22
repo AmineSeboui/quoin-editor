@@ -1,5 +1,6 @@
 import { toError } from '../../to-error';
 import { threadRemoval } from './comment-anchors';
+import type { CommentThreads } from './comment-threads';
 import type { CommentsEditor, CommentsLink } from './comments-link';
 import { COMMENTS, type CommentsAction } from './comments-plugin';
 
@@ -22,9 +23,10 @@ export async function endThread(
   link: CommentsLink,
   call: (threadId: string) => Promise<void>,
   id: string,
+  threads?: CommentThreads,
 ): Promise<boolean> {
   if (!(await called(link, () => call(id))) || link.mounts === 0) return false;
-  const action: CommentsAction = { type: 'forget', id };
+  const action: CommentsAction = { type: 'forget', id, seen: threads?.find(id) };
   editor.dispatch(threadRemoval(editor.state, id).setMeta(COMMENTS, action));
   return true;
 }

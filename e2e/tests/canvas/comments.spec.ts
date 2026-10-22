@@ -87,6 +87,20 @@ test('opens the thread at the caret with Mod+Alt+M, and Escape gives focus back 
   await expect(hostOf(page, 'q')).toBeFocused();
 });
 
+test('marks text two threads share apart from text one thread has', async ({ page }) => {
+  await openComments(page);
+  const style = (id: string) =>
+    hostOf(page, 'r')
+      .locator(`[data-comment="${id}"]`)
+      .first()
+      .evaluate((element) => {
+        const { borderBottomStyle, borderBottomWidth } = getComputedStyle(element);
+        return `${borderBottomStyle} ${borderBottomWidth}`;
+      });
+  expect(await style('x1')).toBe('solid 0px');
+  expect(await style('x2')).toBe('double 3px');
+});
+
 test('Mod+Alt+M moves focus into a thread a click opened', async ({ page }) => {
   await openComments(page);
   await hostOf(page, 'q').locator('[data-comment="seeded"]').click();

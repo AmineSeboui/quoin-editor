@@ -9,6 +9,9 @@ const BROWSER_GLOBAL =
 
 const withoutComments = (code: string) => code.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
 
+// A quoted string naming a file such as 'word/document.xml' reads no global.
+const withoutStrings = (code: string) => code.replace(/'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"/g, "''");
+
 function resolveImport(from: string, specifier: string): string {
   const base = resolve(dirname(from), specifier);
   const found = EXTENSIONS.map((extension) => base + extension).find((path) => existsSync(path));
@@ -16,11 +19,16 @@ function resolveImport(from: string, specifier: string): string {
   return found;
 }
 
-/** The source files an entry under `src` reaches through runtime imports, relative to `src`, and the packages it loads. */
-export function importGraph(entry: string): { files: string[]; packages: Set<string> } {
+/**
+ * The source files an entry under `src` reaches through runtime imports, relative to `src`, and the packages it loads;
+ * the files in `skip` are not followed.
+ */
+export function importGraph(entry: string, skip: readonly string[] = []): { files: string[]; packages: Set<string> } {
   const files = new Set([resolve(src, entry)]);
+  const skipped = new Set(skip.map((path) => resolve(src, path)));
   const packages = new Set<string>();
   for (const file of files) {
+    if (skipped.has(file)) continue;
     for (const [, specifier] of readFileSync(file, 'utf8').matchAll(RUNTIME_IMPORT)) {
       if (specifier.startsWith('.')) files.add(resolveImport(file, specifier));
       else packages.add(specifier);
@@ -35,7 +43,7 @@ export function clientOnlyFiles(files: readonly string[]): { client: string[]; h
   return {
     client: files.filter((file) => /^\s*['"]use client['"]/.test(code(file))),
     hooks: files.filter((file) => /\buse[A-Z]\w*\s*\(/.test(withoutComments(code(file)))),
-    browser: files.filter((file) => BROWSER_GLOBAL.test(withoutComments(code(file)))),
+    browser: files.filter((file) => BROWSER_GLOBAL.test(withoutStrings(withoutComments(code(file))))),
   };
 }
 

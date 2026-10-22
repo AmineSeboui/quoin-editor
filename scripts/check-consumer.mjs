@@ -62,8 +62,8 @@ const probes = JSON.stringify(['quoin-editor/package.json', ...packageEntries.ma
 const probe = `const probe = require('node:module').createRequire(${resolver}); ${probes}.forEach((id) => probe.resolve(id));`;
 run(process.execPath, ['-e', probe], work);
 
-// The view and diff entries render in a plain Node process, with no DOM, on either React.
-for (const script of ['server-view.mjs', 'server-diff.mjs']) {
+// The view and diff render, and docx writes a file, in a plain Node process with no DOM, on either React.
+for (const script of ['server-view.mjs', 'server-diff.mjs', 'server-docx.mjs']) {
   cpSync(join(root, 'consumer-check', script), join(work, script));
   run(process.execPath, [script], work);
 }

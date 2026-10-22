@@ -25,7 +25,7 @@ Quoin needs React 18.2 or later (React 19 is supported) and TypeScript 5.4 or la
 
 **Tailwind is not required, and either major version works.** See [Tailwind, or no Tailwind](#tailwind-or-no-tailwind) for the one thing a v4 host has to do.
 
-Quoin depends on five Radix primitives, `lucide-react` for its icons, and `clsx` for class composition. A page downloads only the entries it imports: the canvas, `quoin-editor`, is held under 155 kB gzip, `quoin-editor/headless` under 70 kB and `quoin-editor/engine` under 52 kB. Each opt-in feature adds between about 1.7 kB (stats, or the table of contents) and 9.5 kB (tables) to the canvas, all of them together about 29 kB, and the emoji dataset, about 42 kB, loads only when the `:` menu or the emoji picker first opens. Collaboration, `quoin-editor/yjs`, adds about 8 kB and needs `yjs` installed beside it, an optional peer dependency; showing collaborators, `quoin-editor/presence`, adds about 4 kB more, comments, `quoin-editor/comments`, about 6 kB, and AI actions, `quoin-editor/ai`, about 8 kB. The read-only view for a server, `quoin-editor/view`, is about 21 kB on its own, most of it the markdown parser it shares with the engine, and the diff of two versions, `quoin-editor/diff`, about 26 kB. The npm tarball is larger, about 1.6 MB, because it carries ESM and CommonJS builds with their sourcemaps. If you want the text editing and none of the UI, [`quoin-editor/headless`](#headless) has no component or UI library dependency at all.
+Quoin depends on five Radix primitives, `lucide-react` for its icons, and `clsx` for class composition. A page downloads only the entries it imports: the canvas, `quoin-editor`, is held under 155 kB gzip, `quoin-editor/headless` under 70 kB and `quoin-editor/engine` under 52 kB. Each opt-in feature adds between about 1.7 kB (stats, or the table of contents) and 9.5 kB (tables) to the canvas, all of them together about 29 kB, and the emoji dataset, about 42 kB, loads only when the `:` menu or the emoji picker first opens. Collaboration, `quoin-editor/yjs`, adds about 8 kB and needs `yjs` installed beside it, an optional peer dependency; showing collaborators, `quoin-editor/presence`, adds about 4 kB more, comments, `quoin-editor/comments`, about 6 kB, and AI actions, `quoin-editor/ai`, about 8 kB. The read-only view for a server, `quoin-editor/view`, is about 21 kB on its own, most of it the markdown parser it shares with the engine, the diff of two versions, `quoin-editor/diff`, about 26 kB, and the Word export, `quoin-editor/docx`, about 25 kB on its own, about 7 kB beside the engine. The npm tarball is larger, about 1.6 MB, because it carries ESM and CommonJS builds with their sourcemaps. If you want the text editing and none of the UI, [`quoin-editor/headless`](#headless) has no component or UI library dependency at all.
 
 ## Quickstart
 
@@ -835,6 +835,26 @@ Nesting follows the newer version. List items and quote lines stay inside their 
 
 Words are found by the engine's `diffBlocks`, which splits text at spaces and punctuation, so a run of Chinese or Japanese text with no spaces counts as one word: a change to one character marks the whole run as deleted and inserted. Every string comes from `DiffLabels`, English by default, and the `labels` prop overrides any of them; `changed` takes the names of the attributes that changed and returns the label.
 
+### Exporting to Word
+
+`quoin-editor/docx` writes a document as a Word file with no dependency, in a browser, a worker or Node 18 and later. It needs no DOM, carries no `'use client'` banner and loads no React.
+
+```ts
+import type { QuoinBlock } from 'quoin-editor/engine';
+import { toDocx } from 'quoin-editor/docx';
+
+export async function downloadDocx(blocks: QuoinBlock[]): Promise<void> {
+  const blob = await toDocx(blocks, { title: 'Release notes', resolveAssetUrl: (key) => `/files/${key}` });
+  const link = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'notes.docx' });
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+```
+
+Headings take Word's Heading 1 to Heading 6 styles and the table of contents links to them. Bullet and numbered lists are Word lists, nested by their indent, each numbered list starting at its own first number; a task is a checkbox character and its text. Quotes take the Quote style, code a monospace style with its line breaks, and math its source in a monospace run. A callout is a shaded table of one cell, a divider a paragraph with a bottom border, and a toggle its summary followed by what it holds. Bold, italic, underline, strike, inline code, subscript, superscript, text colour, highlight and background become run properties; links become hyperlinks, an unsafe address (such as `javascript:`) staying plain text as `toHTML` leaves it. Comments export as their plain text: the file holds no Word comments. Files, embeds and bookmarks become links. A block type Quoin does not know is written as its type in brackets and its plain text, when its spec gives one.
+
+Pictures are fetched from the address `resolveAssetUrl` gives (or their own `url`) through `fetchAsset`, the global `fetch` by default, four at a time (`imageConcurrency`), and drawn at the size their PNG, JPEG, GIF or WebP header gives, shrunk to the page width or set to their width percent. One that fails, answers with an error status, is no such picture or takes longer than `imageTimeout` milliseconds (10,000 by default) is replaced by its alt text, and the export goes on. Parts are deflated through `CompressionStream` where the runtime offers it and stored otherwise; either way the archive is a standard zip.
+
 ## Theming
 
 `quoin-editor/styles.css` is compiled Tailwind CSS v4. Every colour and every radius it draws with comes from a custom property under a `--quoin-` prefix. It ships a default for all of them, on `:root` for light and on `.dark` for dark:
@@ -1067,6 +1087,8 @@ From `quoin-editor/ai`: `aiExtension` with its `AiOptions` and `AiLabels` types,
 From `quoin-editor/view`: `QuoinView` with its `QuoinViewProps` type. Like the engine entry it has no `'use client'` banner and needs no DOM.
 
 From `quoin-editor/diff`: `QuoinDiff` with its `QuoinDiffProps` and `DiffLabels` types, and `englishDiffLabels`. Like the view entry it has no `'use client'` banner and needs no DOM.
+
+From `quoin-editor/docx`: `toDocx` with its `DocxOptions` and `FetchAsset` types. It has no `'use client'` banner, needs no DOM and loads no React.
 
 From `quoin-editor/catalogue`: `catalogue`, every opt-in feature at once.
 

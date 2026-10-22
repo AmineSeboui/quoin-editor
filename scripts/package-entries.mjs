@@ -49,6 +49,8 @@ export const packageEntries = [
   { name: 'view', source: 'src/view-static/index.ts', client: false, total: 22_214 },
   // The changes between two versions, drawn with the view's node tree: loaded alone, like the view.
   { name: 'diff', source: 'src/diff/index.ts', client: false, total: 26_961 },
+  // Word documents written in a browser, a worker or Node, loaded alone like the view: most of it is the block reading.
+  { name: 'docx', source: 'src/docx/index.ts', client: false, total: 25_891 },
   // Measured as what it adds to the main entry, like a feature: the engine entry it loads is a part of the main entry.
   { name: 'yjs', source: 'src/yjs.ts', client: false, added: incrementalBudget(8_044) },
   // Collaborators drawn in the canvas: a client entry, apart from the adapter, which a worker or a server can load alone.

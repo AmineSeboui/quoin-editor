@@ -97,6 +97,16 @@
         "default": "./dist/diff.cjs"
       }
     },
+    "./docx": {
+      "import": {
+        "types": "./dist/docx.d.ts",
+        "default": "./dist/docx.js"
+      },
+      "require": {
+        "types": "./dist/docx.d.cts",
+        "default": "./dist/docx.cjs"
+      }
+    },
     "./yjs": {
       "import": {
         "types": "./dist/yjs.d.ts",

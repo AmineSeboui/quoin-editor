@@ -2,9 +2,9 @@ import { optionalNumber, str } from '../blocks/data-fields';
 import { sanitizeAssetUrl, sanitizeHref } from '../markdown/urls';
 import type { EngineBlock } from '../model/types';
 import { alignAttr, indentAttr } from './block-attrs';
-import { EMBED_FRAME, embedSource } from './embed-provider';
+import { EMBED_FRAME, embedFrame } from './embed-provider';
 import { inlineOf, type BlockView, type HtmlEnv } from './html-env';
-import { element, type HtmlNode } from './html-node';
+import { element, type Attr, type HtmlNode } from './html-node';
 
 const numberAttr = (value: unknown): string | undefined => {
   const number = optionalNumber(value);
@@ -35,6 +35,8 @@ export function imageNode(block: EngineBlock, view: BlockView, env: HtmlEnv): Ht
     ['alt', str(attrs.alt)],
     ['width', numberAttr(attrs.width)],
     ['height', numberAttr(attrs.height)],
+    ['loading', 'lazy'],
+    ['decoding', 'async'],
   ]);
   const caption = block.regions.caption ?? [];
   const figcaption = caption.length > 0 ? [element('figcaption', [], inlineOf(caption, env))] : [];
@@ -50,8 +52,11 @@ export function fileNode(block: EngineBlock, view: BlockView, env: HtmlEnv): Htm
 export function embedNode(block: EngineBlock, view: BlockView, env: HtmlEnv): HtmlNode {
   const href = sanitizeHref(str(block.attrs.url));
   if (!href) return '';
-  const frame = env.embeds === 'iframe' ? embedSource(href, env.embedProviders) : null;
-  if (frame) return element('iframe', [['src', frame], ['title', href], ...Object.entries(EMBED_FRAME), indentAttr(view.excess)]);
+  const frame = env.embeds === 'iframe' ? embedFrame(href, env.embedProviders) : null;
+  if (frame) {
+    const attrs: Attr[] = [['src', frame.src], ['title', env.frameTitle(frame.name)], ...Object.entries(EMBED_FRAME)];
+    return element('iframe', [...attrs, indentAttr(view.excess)]);
+  }
   return paragraph(view, link(href, href));
 }
 

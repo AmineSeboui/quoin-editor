@@ -25,6 +25,10 @@ export type QuoinViewProps = {
   embeds?: HTMLOptions['embeds'];
   /** Tried before the built in providers, in order. Only used when `embeds` is `'iframe'`. */
   embedProviders?: HTMLOptions['embedProviders'];
+  /** The title of a frame given its provider's name, the name itself by default. */
+  frameTitle?: HTMLOptions['frameTitle'];
+  /** The accessible name of a task checkbox whose item has no text, `'Task'` by default. */
+  taskLabel?: HTMLOptions['taskLabel'];
   className?: string;
 };
 

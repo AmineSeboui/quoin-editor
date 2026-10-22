@@ -38,13 +38,14 @@ function plainWebUrl(address: string, protocols: ReadonlySet<string>): URL | nul
   return url && protocols.has(url.protocol) && url.username === '' && url.password === '' && url.port === '' ? url : null;
 }
 
-export function embedSource(href: string, providers: readonly EmbedProvider[]): string | null {
+/** The https frame of a page and the name of the provider that frames it, or null when none does. */
+export function embedFrame(href: string, providers: readonly EmbedProvider[]): { src: string; name: string } | null {
   const page = plainWebUrl(href, WEB);
   if (!page) return null;
   for (const provider of providers) {
     const result = provider.match(page);
     const frame = typeof result === 'string' ? plainWebUrl(result, SECURE) : null;
-    if (frame) return frame.href;
+    if (frame) return { src: frame.href, name: provider.name };
   }
   return null;
 }

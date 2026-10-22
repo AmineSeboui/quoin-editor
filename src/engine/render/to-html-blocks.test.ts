@@ -32,9 +32,20 @@ describe('toHTML text blocks', () => {
     expect(toHTML([md('0. a'), md('2. b')])).toBe('<ol start="0"><li>a</li><li>b</li></ol>');
   });
 
-  it('names a task checkbox with the text of its item, and leaves an empty item unnamed', () => {
+  it('names a task checkbox with the text of its item, line breaks as spaces and math as its source', () => {
     expect(toHTML([md('- [x] **a** [b](https://x.y) <c>')])).toContain('<input type="checkbox" disabled checked aria-label="a b &lt;c&gt;">');
-    expect(toHTML([md('- [ ] ')])).toBe('<ul data-type="task"><li data-checked="false"><input type="checkbox" disabled> </li></ul>');
+    const item = md('- [ ] line1  \nline2 $x^2$ ');
+    expect(toHTML([item])).toContain('aria-label="line1 line2 x^2"');
+    expect(toHTML([item], { renderMath: () => '<k></k>' })).toContain('aria-label="line1 line2 x^2"');
+  });
+
+  it('names a task with no text Task, or with the name a host gives', () => {
+    expect(toHTML([md('- [ ] ')])).toBe(
+      '<ul data-type="task"><li data-checked="false"><input type="checkbox" disabled aria-label="Task"> </li></ul>',
+    );
+    const emoji = md('- [ ] <span data-atom="emoji" data-attr-name="tada"></span>');
+    expect(toHTML([emoji])).toContain('aria-label="Task"');
+    expect(toHTML([emoji], { taskLabel: 'T\u00e2che' })).toContain('aria-label="T\u00e2che"');
   });
 
   it('nests blocks inside the list item or toggle they follow', () => {
@@ -107,10 +118,10 @@ describe('toHTML structure blocks', () => {
 describe('toHTML media blocks', () => {
   it('writes an image from its url, with alignment, and nothing without a source', () => {
     expect(html(b('IMAGE', { url: 'https://x.y/a.png', alt: 'say "hi"' }))).toBe(
-      '<figure><img src="https://x.y/a.png" alt="say &quot;hi&quot;"></figure>',
+      '<figure><img src="https://x.y/a.png" alt="say &quot;hi&quot;" loading="lazy" decoding="async"></figure>',
     );
     expect(html(b('IMAGE', { url: '/a.png', alt: '', align: 'center' }))).toBe(
-      '<figure style="text-align:center"><img src="/a.png" alt=""></figure>',
+      '<figure style="text-align:center"><img src="/a.png" alt="" loading="lazy" decoding="async"></figure>',
     );
     expect(html(b('IMAGE', { storageKey: '', alt: 'x' }))).toBe('');
     expect(html(b('IMAGE', { url: 'javascript:alert(1)', alt: 'x' }))).toBe('');
@@ -133,13 +144,13 @@ describe('toHTML media blocks', () => {
     expect(html(b('FILE', { storageKey: 'https://x.y/f.pdf', filename: 'f' }))).toBe(
       '<p><a href="https://x.y/f.pdf" download>f</a></p>',
     );
-    expect(html(b('IMAGE', { storageKey: 'a/b.png', alt: 'x' }))).toBe('<figure><img src="a/b.png" alt="x"></figure>');
+    expect(html(b('IMAGE', { storageKey: 'a/b.png', alt: 'x' }))).toBe('<figure><img src="a/b.png" alt="x" loading="lazy" decoding="async"></figure>');
   });
 
   it('keeps an http, https, blob, data or relative address a host resolver returns, and writes no other', () => {
     for (const kept of ['https://a.b/k', 'http://a.b/k', 'blob:https://a.b/1', 'data:image/png;base64,AA', '/a/k']) {
       const resolveAssetUrl = () => kept;
-      expect(html(b('IMAGE', { storageKey: 'k', alt: 'x' }), { resolveAssetUrl })).toBe(`<figure><img src="${kept}" alt="x"></figure>`);
+      expect(html(b('IMAGE', { storageKey: 'k', alt: 'x' }), { resolveAssetUrl })).toBe(`<figure><img src="${kept}" alt="x" loading="lazy" decoding="async"></figure>`);
       expect(html(b('FILE', { storageKey: 'k', filename: 'f' }), { resolveAssetUrl })).toBe(`<p><a href="${kept}" download>f</a></p>`);
     }
     for (const dropped of ['javascript:alert(1)', 'vbscript:x', 'file:///etc/passwd', 'mailto:a@b.c', 'app:k']) {
@@ -153,14 +164,14 @@ describe('toHTML media blocks', () => {
     const resolveAssetUrl = (key: string) => (key === 'gone' ? '' : `/a/${key}`);
     expect(html(b('IMAGE', { storageKey: 'gone', alt: 'x' }), { resolveAssetUrl })).toBe('');
     expect(html(b('FILE', { storageKey: 'gone', filename: 'f' }), { resolveAssetUrl })).toBe('');
-    expect(html(b('IMAGE', { storageKey: 'k', alt: 'x' }), { resolveAssetUrl })).toBe('<figure><img src="/a/k" alt="x"></figure>');
+    expect(html(b('IMAGE', { storageKey: 'k', alt: 'x' }), { resolveAssetUrl })).toBe('<figure><img src="/a/k" alt="x" loading="lazy" decoding="async"></figure>');
   });
 
   it('writes an embed as a link or a sandboxed iframe, only for an allowlisted provider as an iframe', () => {
     const link = '<p><a href="https://youtu.be/dQw4w9WgXcQ" rel="noopener noreferrer">https://youtu.be/dQw4w9WgXcQ</a></p>';
     expect(html(b('EMBED', { url: 'https://youtu.be/dQw4w9WgXcQ' }))).toBe(link);
     expect(html(b('EMBED', { url: 'https://youtu.be/dQw4w9WgXcQ' }), { embeds: 'iframe' })).toBe(
-      '<iframe src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ" title="https://youtu.be/dQw4w9WgXcQ" ' +
+      '<iframe src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ" title="youtube" ' +
         'sandbox="allow-scripts allow-same-origin allow-presentation allow-popups" loading="lazy" ' +
         'referrerpolicy="strict-origin-when-cross-origin"></iframe>',
     );

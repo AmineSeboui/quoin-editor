@@ -6,7 +6,9 @@ const SANDBOX = 'sandbox="allow-scripts allow-same-origin allow-presentation all
 const FRAME_ATTRS = `${SANDBOX} loading="lazy" referrerpolicy="strict-origin-when-cross-origin"`;
 const embed = (url: string, provider = ''): QuoinBlock => ({ id: 'e', type: 'EMBED', data: { url, provider } });
 const framed = (url: string, options: HTMLOptions = {}) => toHTML([embed(url)], { embeds: 'iframe', ...options });
-const frame = (src: string, page: string) => `<iframe src="${src}" title="${page.replace(/&/g, '&amp;')}" ${FRAME_ATTRS}></iframe>`;
+const frame = (src: string, title: string) => `<iframe src="${src}" title="${title}" ${FRAME_ATTRS}></iframe>`;
+const PROVIDERS = ['youtube', 'vimeo', 'loom', 'codepen', 'spotify', 'soundcloud', 'figma'];
+const providerOf = (src: string) => PROVIDERS.find((name) => src.includes(name)) ?? '';
 const link = (href: string) => `<p><a href="${href}" rel="noopener noreferrer">${href}</a></p>`;
 
 describe('embed providers', () => {
@@ -30,12 +32,12 @@ describe('embed providers', () => {
       `https://w.soundcloud.com/player/?url=${encodeURIComponent('https://soundcloud.com/forss/flickermood')}`,
     ],
   ])('frames %s as %s', (url, src) => {
-    expect(framed(url)).toBe(frame(src, url));
+    expect(framed(url)).toBe(frame(src, providerOf(src)));
   });
 
   it.each(['file', 'design', 'proto', 'board'])('frames a Figma %s link through the Figma embed page', (kind) => {
     const url = `https://www.figma.com/${kind}/AbC123/Name?node-id=1-2`;
-    expect(framed(url)).toBe(frame(`https://www.figma.com/embed?embed_host=quoin&amp;url=${encodeURIComponent(url)}`, url));
+    expect(framed(url)).toBe(frame(`https://www.figma.com/embed?embed_host=quoin&amp;url=${encodeURIComponent(url)}`, 'figma'));
   });
 
   it('renders a link for an address no provider recognises, whatever the provider field says', () => {
@@ -104,7 +106,7 @@ describe('embed providers', () => {
   it('indents a framed embed', () => {
     const block: QuoinBlock = { ...embed('https://youtu.be/dQw4w9WgXcQ'), indent: 2 };
     expect(toHTML([block], { embeds: 'iframe' })).toBe(
-      '<iframe src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ" title="https://youtu.be/dQw4w9WgXcQ" ' +
+      '<iframe src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ" title="youtube" ' +
         `${FRAME_ATTRS} data-indent="2"></iframe>`,
     );
   });
@@ -114,7 +116,7 @@ describe('host embed providers', () => {
   const acme = { name: 'acme', match: (url: URL) => (url.hostname === 'video.acme.test' ? `https://embed.acme.test${url.pathname}` : null) };
 
   it('frames an address a host provider recognises', () => {
-    expect(framed('https://video.acme.test/clip-1', { embedProviders: [acme] })).toBe(frame('https://embed.acme.test/clip-1', 'https://video.acme.test/clip-1'));
+    expect(framed('https://video.acme.test/clip-1', { embedProviders: [acme] })).toBe(frame('https://embed.acme.test/clip-1', 'acme'));
   });
 
   it('keeps the built in providers beside the host ones', () => {
@@ -123,7 +125,7 @@ describe('host embed providers', () => {
 
   it('lets a host provider take an address before the built in ones', () => {
     const proxy = { name: 'proxy', match: () => 'https://proxy.example/frame' };
-    expect(framed('https://youtu.be/dQw4w9WgXcQ', { embedProviders: [proxy] })).toBe(frame('https://proxy.example/frame', 'https://youtu.be/dQw4w9WgXcQ'));
+    expect(framed('https://youtu.be/dQw4w9WgXcQ', { embedProviders: [proxy] })).toBe(frame('https://proxy.example/frame', 'proxy'));
   });
 
   it('still renders a link when no host provider recognises the address', () => {
@@ -149,7 +151,13 @@ describe('host embed providers', () => {
   it('falls through to the next provider when one returns an unusable address', () => {
     const bad = { name: 'bad', match: () => 'javascript:alert(1)' };
     expect(framed('https://video.acme.test/clip-1', { embedProviders: [bad, acme] })).toBe(
-      frame('https://embed.acme.test/clip-1', 'https://video.acme.test/clip-1'),
+      frame('https://embed.acme.test/clip-1', 'acme'),
+    );
+  });
+
+  it('titles a frame with what the host makes of its provider name', () => {
+    expect(framed('https://video.acme.test/clip-1', { embedProviders: [acme], frameTitle: (name) => `${name} player` })).toBe(
+      frame('https://embed.acme.test/clip-1', 'acme player'),
     );
   });
 

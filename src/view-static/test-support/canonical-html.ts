@@ -13,8 +13,7 @@ function attributes(source: string): string[] {
 
 /**
  * The HTML in one spelling: attributes sorted and quoted, entities written one way, void tags without a slash, text
- * runs joined, comments dropped. React writes the resource hints it hoists as preload links, which are not the
- * document's, so those are dropped too.
+ * runs joined, comments dropped.
  */
 export function canonicalHtml(html: string): string {
   const out: string[] = [];
@@ -27,7 +26,6 @@ export function canonicalHtml(html: string): string {
       continue;
     }
     const written = attributes(attrs);
-    if (name.toLowerCase() === 'link' && written.includes('rel="preload"')) continue;
     out.push(closing ? `</${name.toLowerCase()}>` : `<${[name.toLowerCase(), ...written].join(' ')}>`);
   }
   return out.join('');

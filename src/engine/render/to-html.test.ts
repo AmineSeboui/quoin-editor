@@ -45,7 +45,7 @@ describe('toHTML', () => {
       { resolveAssetUrl: (key) => `/a/${key}`, renderMath: (latex) => `<k>${latex}</k>` },
     );
     expect(html).toBe(
-      '<figure><img src="/a/k" alt="A" width="2" height="1"><figcaption>C</figcaption></figure>' +
+      '<figure><img src="/a/k" alt="A" width="2" height="1" loading="lazy" decoding="async"><figcaption>C</figcaption></figure>' +
         '<pre><code class="language-ts">a &lt; b</code></pre>' +
         '<details><summary>More</summary><p>inside</p></details>' +
         '<table><thead><tr><th>h1</th><th style="text-align:right">h2</th></tr></thead><tbody><tr><td>1</td><td style="text-align:right">2</td></tr></tbody></table>' +

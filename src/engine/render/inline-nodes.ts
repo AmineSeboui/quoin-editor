@@ -41,7 +41,7 @@ function atomNode(node: AtomNode, options: InlineHtmlOptions): HtmlNode {
     const latex = attrs.latex ?? '';
     const math: [string, string] = ['data-math', ''];
     return options.renderMath
-      ? element('span', [math], [], options.renderMath(latex, { displayMode: false }))
+      ? element('span', [math], [latex], options.renderMath(latex, { displayMode: false }))
       : element('span', [math], [latex]);
   }
   return element('span', [['data-atom', node.type], ...dataAttributes(attrs)]);

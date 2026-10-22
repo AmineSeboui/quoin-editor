@@ -12,6 +12,10 @@ export type HTMLOptions = {
   embeds?: 'iframe' | 'link';
   /** Tried before the built in providers, in order. Only used when `embeds` is `'iframe'`. */
   embedProviders?: readonly EmbedProvider[];
+  /** The title of a frame given its provider's name, the name itself by default. */
+  frameTitle?: (provider: string) => string;
+  /** The accessible name of a task checkbox whose item has no text, `'Task'` by default. */
+  taskLabel?: string;
 };
 
 export const toHTML = (blocks: readonly QuoinBlock[], options: HTMLOptions = {}): string =>

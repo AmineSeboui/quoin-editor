@@ -24,7 +24,7 @@ function lineNode(block: EngineBlock, view: BlockView, env: HtmlEnv): HtmlNode {
         ['type', 'checkbox'],
         ['disabled', true],
         ['checked', checked || undefined],
-        ['aria-label', nodeText(body) || undefined],
+        ['aria-label', nodeText(body) || env.taskLabel],
       ]);
       return element('li', [['data-checked', String(checked)], ...style], [box, ' ', ...body, ...view.children]);
     }

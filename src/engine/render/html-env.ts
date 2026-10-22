@@ -10,6 +10,8 @@ export type HtmlEnv = {
   readonly embeds: 'iframe' | 'link';
   readonly embedProviders: readonly EmbedProvider[];
   readonly headings: readonly Heading[];
+  readonly taskLabel: string;
+  readonly frameTitle: (provider: string) => string;
 };
 
 export type BlockView = {

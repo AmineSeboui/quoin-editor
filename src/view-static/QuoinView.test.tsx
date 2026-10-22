@@ -41,6 +41,14 @@ describe('QuoinView', () => {
     );
   });
 
+  it('loads its pictures lazily, so a server render hoists no preload for any of them', () => {
+    const blocks = Array.from({ length: 14 }, (_, at) => ({ id: `i${at}`, type: 'IMAGE', data: { url: `/p${at}.png`, alt: '' } }));
+    const html = renderToString(<QuoinView blocks={blocks} />);
+    expect(html).not.toContain('<link');
+    expect(html.match(/<img [^>]*loading="lazy" decoding="async"/g)).toHaveLength(14);
+    expect(canonicalHtml(html)).toBe(canonicalHtml(`<div>${toHTML(blocks)}</div>`));
+  });
+
   it('calls no hook, so it renders as a server component outside any React renderer', () => {
     expect(() => QuoinView({ blocks: everyBlockDocument, ...everyBlockOptions })).not.toThrow();
   });
@@ -83,6 +91,16 @@ describe('QuoinView', () => {
     const misspelt = () => [[{ text: 'nope' }]];
     expect(renderToStaticMarkup(<QuoinView blocks={blocks} highlight={misspelt} />)).toBe(
       `<div>${toHTML(blocks)}</div>`,
+    );
+  });
+
+  it('keeps a token colour only when it is one colour value', () => {
+    const blocks = [{ id: 'c', type: 'CODE', data: { language: '', code: 'abcd' } }];
+    const colours = ['red;background-image:url(https://t.example/x)', '#0a0B0c', 'var(--shiki-token-keyword)', 'rgb(1 2 3 / 50%)'];
+    const highlight = (code: string) => [[...code].map((text, at) => ({ text, color: colours[at] }))];
+    expect(renderToStaticMarkup(<QuoinView blocks={blocks} highlight={highlight} />)).toBe(
+      '<div><pre><code><span>a</span><span style="color:#0a0B0c">b</span>' +
+        '<span style="color:var(--shiki-token-keyword)">c</span><span style="color:rgb(1 2 3 / 50%)">d</span></code></pre></div>',
     );
   });
 

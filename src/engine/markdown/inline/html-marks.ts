@@ -19,10 +19,11 @@ function escapeAttribute(value: string, escapePipes: boolean): string {
   return escapePipes ? escaped.replace(/\|/g, '&#124;') : escaped;
 }
 
-export function dataAttributes(attrs: Attrs): [string, string][] {
-  return Object.keys(attrs)
+/** The attributes, sorted by name, each named with `prefix`. */
+export function dataAttributes(attrs: Attrs | undefined, prefix = ATTR_PREFIX): [string, string][] {
+  return Object.keys(attrs ?? {})
     .sort(compareCodeUnits)
-    .map((key) => [`${ATTR_PREFIX}${key}`, attrs[key]]);
+    .map((key) => [`${prefix}${key}`, (attrs as Attrs)[key]]);
 }
 
 export function htmlTag(name: string, attributes: readonly [string, string][], escapePipes: boolean): Wrapper {

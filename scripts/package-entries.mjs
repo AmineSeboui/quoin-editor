@@ -47,6 +47,8 @@ export const packageEntries = [
   { name: 'engine', source: 'src/engine/index.ts', client: false, total: 52_000 },
   // Read-only React for a server, which loads it alone: the markdown parser it shares with the engine is most of it.
   { name: 'view', source: 'src/view-static/index.ts', client: false, total: 22_214 },
+  // The changes between two versions, drawn with the view's node tree: loaded alone, like the view.
+  { name: 'diff', source: 'src/diff/index.ts', client: false, total: 26_055 },
   // Measured as what it adds to the main entry, like a feature: the engine entry it loads is a part of the main entry.
   { name: 'yjs', source: 'src/yjs.ts', client: false, added: incrementalBudget(8_044) },
   // Collaborators drawn in the canvas: a client entry, apart from the adapter, which a worker or a server can load alone.

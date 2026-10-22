@@ -25,7 +25,7 @@ Quoin needs React 18.2 or later (React 19 is supported) and TypeScript 5.4 or la
 
 **Tailwind is not required, and either major version works.** See [Tailwind, or no Tailwind](#tailwind-or-no-tailwind) for the one thing a v4 host has to do.
 
-Quoin depends on five Radix primitives, `lucide-react` for its icons, and `clsx` for class composition. A page downloads only the entries it imports: the canvas, `quoin-editor`, is held under 155 kB gzip, `quoin-editor/headless` under 70 kB and `quoin-editor/engine` under 52 kB. Each opt-in feature adds between about 1.7 kB (stats, or the table of contents) and 9.5 kB (tables) to the canvas, all of them together about 29 kB, and the emoji dataset, about 42 kB, loads only when the `:` menu or the emoji picker first opens. Collaboration, `quoin-editor/yjs`, adds about 8 kB and needs `yjs` installed beside it, an optional peer dependency; showing collaborators, `quoin-editor/presence`, adds about 4 kB more, comments, `quoin-editor/comments`, about 6 kB, and AI actions, `quoin-editor/ai`, about 8 kB. The read-only view for a server, `quoin-editor/view`, is about 21 kB on its own, most of it the markdown parser it shares with the engine. The npm tarball is larger, about 1.6 MB, because it carries ESM and CommonJS builds with their sourcemaps. If you want the text editing and none of the UI, [`quoin-editor/headless`](#headless) has no component or UI library dependency at all.
+Quoin depends on five Radix primitives, `lucide-react` for its icons, and `clsx` for class composition. A page downloads only the entries it imports: the canvas, `quoin-editor`, is held under 155 kB gzip, `quoin-editor/headless` under 70 kB and `quoin-editor/engine` under 52 kB. Each opt-in feature adds between about 1.7 kB (stats, or the table of contents) and 9.5 kB (tables) to the canvas, all of them together about 29 kB, and the emoji dataset, about 42 kB, loads only when the `:` menu or the emoji picker first opens. Collaboration, `quoin-editor/yjs`, adds about 8 kB and needs `yjs` installed beside it, an optional peer dependency; showing collaborators, `quoin-editor/presence`, adds about 4 kB more, comments, `quoin-editor/comments`, about 6 kB, and AI actions, `quoin-editor/ai`, about 8 kB. The read-only view for a server, `quoin-editor/view`, is about 21 kB on its own, most of it the markdown parser it shares with the engine, and the diff of two versions, `quoin-editor/diff`, about 25 kB. The npm tarball is larger, about 1.6 MB, because it carries ESM and CommonJS builds with their sourcemaps. If you want the text editing and none of the UI, [`quoin-editor/headless`](#headless) has no component or UI library dependency at all.
 
 ## Quickstart
 
@@ -816,6 +816,23 @@ In a Server Component, `blockTypes` has to be a real array, so define it in a mo
 
 `toHTML` titles a frame with its provider's name and names the checkbox of a task with no text `Task`. Pass `frameTitle` and `taskLabel` to name them in the reader's language, for example `frameTitle={(provider) => titles[provider] ?? provider}`. The canvas's English frame titles are `englishEmbedLabels.frameTitle` in `quoin-editor/embed`, a client entry, so a Server Component keeps a copy of its own.
 
+### Comparing two versions
+
+`quoin-editor/diff` draws the changes between two versions of a document, read-only, and like `quoin-editor/view` it uses no hook, effect or browser API, so it renders in a React Server Component and in plain Node.
+
+```tsx
+import type { QuoinBlock } from 'quoin-editor/engine';
+import { QuoinDiff } from 'quoin-editor/diff';
+
+export function Changes({ before, after }: { before: QuoinBlock[]; after: QuoinBlock[] }) {
+  return <QuoinDiff before={before} after={after} className="article" />;
+}
+```
+
+Blocks are drawn as `QuoinView` draws them, with `blockTypes`, `resolveAssetUrl`, `renderMath` and `highlight` working the same way. A block only the newer version has is labelled "Added" with a green rule, one only the older version has "Removed" with a red rule, and a moved block "Moved" where it went and "Moved away" where it was. In a changed block, inserted words are underlined in an `ins` and deleted words struck through in a `del`, each led by a visually hidden "inserted" or "deleted" for screen readers, so no change is told by colour alone. A block that moved and was edited shows its word changes where it went. A change to anything but the text, such as a heading level, a checkbox or a picture's alt text, is labelled "Changed" with what changed when Quoin can name it. List items and quote lines stay inside their list or quote, each marked on its own. The rules and colours come from `quoin-editor/styles.css` and its tokens, in both themes; the markup reads the same without it.
+
+Words are found by the engine's `diffBlocks`, which splits text at spaces and punctuation, so a run of Chinese or Japanese text with no spaces counts as one word: a change to one character marks the whole run as deleted and inserted. Every string comes from `DiffLabels`, English by default, and the `labels` prop overrides any of them; `changed` takes the names of the attributes that changed and returns the label.
+
 ## Theming
 
 `quoin-editor/styles.css` is compiled Tailwind CSS v4. Every colour and every radius it draws with comes from a custom property under a `--quoin-` prefix. It ships a default for all of them, on `:root` for light and on `.dark` for dark:
@@ -1046,6 +1063,8 @@ From `quoin-editor/comments`: `commentsExtension` with its `CommentsOptions` and
 From `quoin-editor/ai`: `aiExtension` with its `AiOptions` and `AiLabels` types, `englishAiLabels`, and the `AiAction`, `AiRequest` and `AiStream` types.
 
 From `quoin-editor/view`: `QuoinView` with its `QuoinViewProps` type. Like the engine entry it has no `'use client'` banner and needs no DOM.
+
+From `quoin-editor/diff`: `QuoinDiff` with its `QuoinDiffProps` and `DiffLabels` types, and `englishDiffLabels`. Like the view entry it has no `'use client'` banner and needs no DOM.
 
 From `quoin-editor/catalogue`: `catalogue`, every opt-in feature at once.
 

@@ -40,3 +40,14 @@ export function describeBuilt(name: string, files: readonly string[], body: () =
     });
   }
 }
+
+/** The built files an entry loads, itself first, following its static imports of other chunks. */
+export function reachedChunks(entry: string): string[] {
+  const files = new Set([entry]);
+  for (const file of files) {
+    for (const [, from, bare] of readFileSync(resolve(dist, file), 'utf8').matchAll(/from\s*"\.\/([^"]+)"|import\s*"\.\/([^"]+)"/g)) {
+      files.add(from ?? bare);
+    }
+  }
+  return [...files];
+}

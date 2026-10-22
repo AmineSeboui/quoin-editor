@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { expect, it } from 'vitest';
-import { describeBuilt, dist } from '../../test/support/built-dist';
+import { describeBuilt, dist, reachedChunks } from '../../test/support/built-dist';
 
 const RENDER = `
   const { createElement } = await import('react');
@@ -17,16 +17,6 @@ const RENDER = `
     { id: 'c', type: 'CALLOUT', data: { tone: 'info', body: 'Read **this**' } },
   ];
   process.stdout.write(JSON.stringify({ view: renderToString(createElement(QuoinView, { blocks })), html: toHTML(blocks) }));`;
-
-function reachedChunks(entry: string): string[] {
-  const files = new Set([entry]);
-  for (const file of files) {
-    for (const [, chunk] of readFileSync(resolve(dist, file), 'utf8').matchAll(/from\s*"\.\/([^"]+)"|import\s*"\.\/([^"]+)"/g)) {
-      files.add(chunk);
-    }
-  }
-  return [...files];
-}
 
 describeBuilt('the built view entry', ['view.js', 'engine.js'], () => {
   it('renders a document in Node without a DOM, as toHTML writes it', () => {

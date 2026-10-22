@@ -61,15 +61,17 @@ describe('the package entry list', () => {
     expect(lazyChunks.every(({ total }) => Number.isInteger(total) && total > 0)).toBe(true);
   });
 
-  it('keeps the absolute budgets of the main, headless and engine entries, and of the view a server loads alone', () => {
+  it('keeps the absolute budgets of the main, headless and engine entries, and of the view and the diff a server loads alone', () => {
     const totals = packageEntries.filter((entry) => entry.total !== undefined).map(({ name, total }) => [name, total]);
     expect(totals).toEqual([
       ['index', 155_000],
       ['headless', 70_000],
       ['engine', 52_000],
       ['view', 22_214],
+      ['diff', 26_055],
     ]);
     expect(packageEntries[3]).toMatchObject({ source: 'src/view-static/index.ts', client: false });
+    expect(packageEntries[4]).toMatchObject({ source: 'src/diff/index.ts', client: false });
   });
 
   it('sets an incremental budget at the measure plus 4 percent, and never less than 256 B above it', () => {
@@ -80,7 +82,7 @@ describe('the package entry list', () => {
   });
 
   it('publishes the Yjs adapter, presence, comments, AI, every feature, then the catalogue, held to what they add', () => {
-    const optIn = packageEntries.slice(4);
+    const optIn = packageEntries.slice(5);
     expect(optIn.map(({ name }) => name)).toEqual([
       'yjs',
       'presence',

@@ -87,6 +87,16 @@
         "default": "./dist/view.cjs"
       }
     },
+    "./diff": {
+      "import": {
+        "types": "./dist/diff.d.ts",
+        "default": "./dist/diff.js"
+      },
+      "require": {
+        "types": "./dist/diff.d.cts",
+        "default": "./dist/diff.cjs"
+      }
+    },
     "./yjs": {
       "import": {
         "types": "./dist/yjs.d.ts",

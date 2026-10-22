@@ -52,6 +52,9 @@
   --quoin-bg-purple: oklch(0.955 0.025 305);
   --quoin-bg-pink: oklch(0.955 0.025 350);
   --quoin-bg-red: oklch(0.95 0.022 20);
+  /* The words a diff marks as inserted and deleted, at 4.5:1 or more on their wash, which the palette colours miss. */
+  --quoin-diff-inserted: oklch(0.48 0.11 155);
+  --quoin-diff-deleted: oklch(0.5 0.19 27);
 }
 
 .dark {
@@ -99,4 +102,6 @@
   --quoin-bg-purple: oklch(0.29 0.055 305);
   --quoin-bg-pink: oklch(0.29 0.055 355);
   --quoin-bg-red: oklch(0.29 0.06 25);
+  --quoin-diff-inserted: oklch(0.76 0.13 155);
+  --quoin-diff-deleted: oklch(0.74 0.15 25);
 }

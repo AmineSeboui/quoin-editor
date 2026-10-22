@@ -25,7 +25,7 @@ Quoin needs React 18.2 or later (React 19 is supported) and TypeScript 5.4 or la
 
 **Tailwind is not required, and either major version works.** See [Tailwind, or no Tailwind](#tailwind-or-no-tailwind) for the one thing a v4 host has to do.
 
-Quoin depends on five Radix primitives, `lucide-react` for its icons, and `clsx` for class composition. A page downloads only the entries it imports: the canvas, `quoin-editor`, is held under 155 kB gzip, `quoin-editor/headless` under 70 kB and `quoin-editor/engine` under 52 kB. Each opt-in feature adds between about 1.7 kB (stats, or the table of contents) and 9.5 kB (tables) to the canvas, all of them together about 29 kB, and the emoji dataset, about 42 kB, loads only when the `:` menu or the emoji picker first opens. Collaboration, `quoin-editor/yjs`, adds about 8 kB and needs `yjs` installed beside it, an optional peer dependency; showing collaborators, `quoin-editor/presence`, adds about 4 kB more, and comments, `quoin-editor/comments`, about 6 kB. The npm tarball is larger, about 1.6 MB, because it carries ESM and CommonJS builds with their sourcemaps. If you want the text editing and none of the UI, [`quoin-editor/headless`](#headless) has no component or UI library dependency at all.
+Quoin depends on five Radix primitives, `lucide-react` for its icons, and `clsx` for class composition. A page downloads only the entries it imports: the canvas, `quoin-editor`, is held under 155 kB gzip, `quoin-editor/headless` under 70 kB and `quoin-editor/engine` under 52 kB. Each opt-in feature adds between about 1.7 kB (stats, or the table of contents) and 9.5 kB (tables) to the canvas, all of them together about 29 kB, and the emoji dataset, about 42 kB, loads only when the `:` menu or the emoji picker first opens. Collaboration, `quoin-editor/yjs`, adds about 8 kB and needs `yjs` installed beside it, an optional peer dependency; showing collaborators, `quoin-editor/presence`, adds about 4 kB more, comments, `quoin-editor/comments`, about 6 kB, and AI actions, `quoin-editor/ai`, about 7 kB. The npm tarball is larger, about 1.6 MB, because it carries ESM and CommonJS builds with their sourcemaps. If you want the text editing and none of the UI, [`quoin-editor/headless`](#headless) has no component or UI library dependency at all.
 
 ## Quickstart
 
@@ -752,6 +752,34 @@ On a canvas 800 px wide or more the open threads are listed beside the text, eac
 
 Resolve and Delete call `onResolve` or `onDelete`, then take the thread's marks off in one undo step. Undo puts the marks back, and the thread stays as your host left it: a resolved thread's anchor comes back as a plain tint. A thread resolved or deleted here leaves the lists at once, before your store says so, and comes back as soon as your store sets it anew, as when you reopen it. A failed call goes to `onError` and leaves the document unchanged. A read-only canvas shows threads and takes replies but has no Resolve or Delete, since those change the document. Bodies are drawn as plain text with their line breaks, never as markdown or HTML; Mod+Enter or Send sends a reply. With `quoin-editor/yjs`, anchors reach collaborators like any other mark, and their threads come from each client's own store. Strings come from `CommentsLabels` (English in `englishCommentsLabels`), overridden through `commentsExtension({ labels })`.
 
+### AI actions
+
+`quoin-editor/ai` streams your model's answers into the document. Quoin never calls a model itself: `aiExtension({ stream })` takes a function that answers each request with an async iterable of markdown chunks and stops when the signal aborts, so any provider, proxy or SDK fits behind it.
+
+```tsx
+import { BlockCanvas, type QuoinBlock } from 'quoin-editor';
+import { aiExtension, type AiStream } from 'quoin-editor/ai';
+import { useState } from 'react';
+
+// Your server relays the request to a model and streams its text back.
+const stream: AiStream = async function* (request, signal) {
+  const response = await fetch('/api/ai', { method: 'POST', body: JSON.stringify(request), signal });
+  const reader = response.body!.pipeThrough(new TextDecoderStream()).getReader();
+  for (let next = await reader.read(); !next.done; next = await reader.read()) yield next.value;
+};
+
+export function AssistedEditor({ blocks, onChange }: { blocks: QuoinBlock[]; onChange: (next: QuoinBlock[]) => void }) {
+  const [extensions] = useState(() => [aiExtension({ stream })]);
+  return <BlockCanvas blocks={blocks} onChange={onChange} extensions={extensions} />;
+}
+```
+
+Each request is `{ action, prompt?, selection, context, language? }`. `action` is one of `continue`, `improve`, `fix`, `shorten`, `lengthen`, `simplify`, `tone`, `translate`, `summarize`, `explain` and `custom`; `prompt` is what the writer typed, the request itself for `custom`, the tone for `tone` and the language to translate to for `translate`. `selection` is the markdown of the selected text, or of the block the caret is in; `context` is the document's markdown, cut to 8,000 characters around the selection at block boundaries; `language` is the `lang` of the closest element around the canvas that has one.
+
+The AI menu opens from Ask AI in the bubble toolbar and in the block menu, from Ask AI and Continue writing in the slash menu's AI group, and from a Space on an empty paragraph that has held no text since the caret arrived; a second Space, or Escape, then types the space. The writer types a request or picks an action, and the answer streams in as it comes: below its text for Continue writing, Summarize, Explain and a request typed with nothing selected, after its text, which shows as struck through, for the actions that rewrite it. It is drawn at most once a frame, with unfinished markdown closed for display, and it is never part of the document: it is not saved, copied or read by assistive technology until it is complete, when it is announced once. Under it, Writing and Stop while it streams, then Accept, Discard, Retry and a field for a follow-up, which asks for a change to the answer and replaces it. Escape in the text takes focus to that bar.
+
+Accept applies the answer in one undo step, a transaction whose origin is `ai`, read with the engine's markdown parser as a paste is, so its HTML stays text and unsafe links are dropped. Edits made while it streams, a collaborator's among them, move its target with them; if its text was deleted meanwhile, Accept puts the answer where the text was and says so, and if its block was deleted the stream stops. Stop aborts the signal and keeps what streamed. A stream that rejects, throws or yields something other than a string goes to `onError` and shows inline with Retry. A new request, Discard and unmounting the canvas abort the signal too. A read-only canvas shows no AI entry points. Strings come from `AiLabels` (English in `englishAiLabels`), overridden through `aiExtension({ labels })`.
+
 ## Read-only
 
 ```tsx
@@ -995,6 +1023,8 @@ From `quoin-editor/yjs`: `yjsCollaboration` with its `YjsCollaborationOptions`, 
 From `quoin-editor/presence`: `presenceExtension` with its `PresenceOptions` and `PresenceLabels` types, and `englishPresenceLabels`.
 
 From `quoin-editor/comments`: `commentsExtension` with its `CommentsOptions` and `CommentsLabels` types, `englishCommentsLabels`, and `createCommentThreads` with the `CommentThreads`, `CommentThread`, `ThreadComment`, `CommentAuthor` and `CommentUser` types.
+
+From `quoin-editor/ai`: `aiExtension` with its `AiOptions` and `AiLabels` types, `englishAiLabels`, and the `AiAction`, `AiRequest` and `AiStream` types.
 
 From `quoin-editor/catalogue`: `catalogue`, every opt-in feature at once.
 

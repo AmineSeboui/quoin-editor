@@ -113,6 +113,11 @@ const docs: Record<string, QuoinBlock[]> = {
       data: { markdown: 'The <span data-comment="x1">last <span data-comment="x2">para</span></span>graph.' },
     },
   ],
+  ai: [
+    { id: 'p', type: 'MARKDOWN', data: { markdown: 'Make this sentence better.' } },
+    { id: 'q', type: 'MARKDOWN', data: { markdown: '' } },
+    { id: 'r', type: 'MARKDOWN', data: { markdown: 'Another paragraph after.' } },
+  ],
   sample: [
     { id: 'a', type: 'MARKDOWN', data: { markdown: '# Title' } },
     { id: 'b', type: 'MARKDOWN', data: { markdown: 'First paragraph.' } },

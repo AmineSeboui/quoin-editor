@@ -107,6 +107,16 @@
         "default": "./dist/comments.cjs"
       }
     },
+    "./ai": {
+      "import": {
+        "types": "./dist/ai.d.ts",
+        "default": "./dist/ai.js"
+      },
+      "require": {
+        "types": "./dist/ai.d.cts",
+        "default": "./dist/ai.cjs"
+      }
+    },
     "./table": {
       "import": {
         "types": "./dist/table.d.ts",

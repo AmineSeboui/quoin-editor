@@ -84,8 +84,9 @@ test.describe('collaboration, presence, comments and AI together on two pages', 
     await expect(bar(bea).getByRole('button', { name: 'Accept' })).toBeFocused();
     const before = await changes(page);
     await bea.keyboard.press('Enter');
+    await expect(bar(bea)).toHaveCount(0);
     await expect.poll(() => markdown(page, 'r')).toBe('One **more** paragraph after.');
-    expect(await changes(page)).toBe(before + 1);
+    await expect.poll(() => changes(page)).toBe(before + 1);
     expect(await markdown(page, 'p')).toBe(anchored);
     expect(await markdown(bea, 'r')).toBe('One **more** paragraph after.');
 
@@ -94,6 +95,7 @@ test.describe('collaboration, presence, comments and AI together on two pages', 
     await expect.poll(() => caretWhereItIs(bea, 'Ada Lovelace', page)).toBe(true);
     expect(await axeViolations(page, 'all', '.quoin')).toEqual([]);
     expect(await axeViolations(bea, 'all', '.quoin')).toEqual([]);
+    expect(await changes(page)).toBe(before + 1);
   });
 
   test('one undo takes an accepted answer back from both pages, and keeps the comment the other page made', async ({
@@ -117,5 +119,31 @@ test.describe('collaboration, presence, comments and AI together on two pages', 
     expect(await markdown(bea, 'r')).toBe(anchored);
     await expect(caretOf(bea, 'Ada Lovelace')).toBeVisible();
     await expect.poll(() => caretWhereItIs(bea, 'Ada Lovelace', page)).toBe(true);
+  });
+
+  // The thread is portalled out of the canvas, so presence stops sharing the selection while it has focus and a
+  // collaborator reading a comment looks to the others as if they had left.
+  test.fixme('keeps showing the caret of a page whose focus is in a comment thread it opened', async ({ page }) => {
+    const bea = await twoPages(page);
+    await commentOnFirstWord(page, 'p', 'Sharper?');
+    await expect(page.getByRole('textbox', { name: 'Reply' })).toBeFocused();
+    await expect(caretOf(bea, 'Ada Lovelace')).toBeVisible();
+    await expect.poll(() => caretWhereItIs(bea, 'Ada Lovelace', page)).toBe(true);
+    await page.keyboard.press('Escape');
+    await expect(hostOf(page, 'p')).toBeFocused();
+    await expect(caretOf(bea, 'Ada Lovelace')).toBeVisible();
+  });
+
+  test('keeps showing the caret of a page whose focus is in the bar of an answer it streams', async ({ page }) => {
+    const bea = await twoPages(page);
+    await askToImprove(page, 'p');
+    await expect(caretOf(bea, 'Ada Lovelace')).toBeVisible();
+    await ai.push(page, 'Get');
+    await ai.end(page);
+    await expect(bar(page).getByRole('button', { name: 'Accept' })).toBeFocused();
+    await expect(caretOf(bea, 'Ada Lovelace')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(hostOf(page, 'p')).toBeFocused();
+    await expect(caretOf(bea, 'Ada Lovelace')).toBeVisible();
   });
 });

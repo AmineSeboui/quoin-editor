@@ -11,7 +11,8 @@ const budgetOf = (name: string) => {
   return { total, added };
 };
 
-// The collaboration adapter and the presence drawn with it, which a host loads together.
+// The collaboration adapter and the presence drawn with it, which a host loads together. The plan's figure rather than a
+// measure plus 4 percent: about 2 percent above the 11,765 B they added together when they landed.
 const COLLABORATION = 12_000;
 
 describe('the budgets of the platform entries', () => {

@@ -4,7 +4,8 @@ type Message = { type: 'hello' } | { type: 'threads'; threads: readonly CommentT
 
 /**
  * A comments service in miniature: the pages of one browser context keep one list of threads through a
- * BroadcastChannel, each page sending the whole list when it changes it, and a page that opens asks for it.
+ * BroadcastChannel, each page sending the whole list when it changes it, and a page that opens asks for it. The last
+ * page to write wins, so two pages that change threads at the same moment lose one change: tests change them in turn.
  */
 export function sharedCommentThreads(name: string): CommentThreads {
   const threads = createCommentThreads();

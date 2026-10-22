@@ -43,6 +43,12 @@ describe('the incremental size of a feature entry', () => {
   it('is next to nothing for a feature that only reuses what the main entry has', async () => {
     expect(await addedGzip(root, 'lean')).toBeLessThan(60);
   });
+
+  it('counts the code two features share once when they are loaded together', async () => {
+    const [feature, together] = [await addedGzip(root, 'feature'), await addedGzip(root, ['feature', 'lazy'])];
+    expect(together).toBeLessThan(feature + 200);
+    expect(together).toBeGreaterThan(feature);
+  });
 });
 
 describe('measureEntries', () => {

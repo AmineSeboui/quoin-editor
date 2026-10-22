@@ -3,7 +3,9 @@ import { changeBetween, sameContent, type BlockChange } from '../engine/diff/blo
 import { diffBlocks, type BlockDiff } from '../engine/diff/diff-blocks';
 import type { QuoinBlock } from '../engine/model/quoin-block';
 import type { Schema } from '../engine/schema/types';
+import { listKind } from '../engine/render/block-groups';
 import { changedAttributes } from './changed-attributes';
+import { withoutAdoptedBlocks } from './older-owners';
 
 export type DiffStatus = 'added' | 'removed' | 'moved' | 'moved-away' | 'changed';
 
@@ -60,7 +62,14 @@ const isOlder = (mark: DiffMark | undefined) => mark?.status === 'removed' || ma
 export function diffDocument(before: readonly QuoinBlock[], after: readonly QuoinBlock[], schema: Schema): DiffDocument {
   let next = 0;
   const codec = createBlockCodec(schema, { newId: () => `diff-${next++}` });
-  const shown = shownOf(diffBlocks(before, after, { schema }), schema, codec).flatMap((item) => pieces(item, codec));
+  const laid = shownOf(diffBlocks(before, after, { schema }), schema, codec).flatMap((item) => pieces(item, codec));
+  const shown = withoutAdoptedBlocks(
+    laid.map((item) => {
+      const [engine] = codec.toEngineBlocks(item.block);
+      const owner = listKind(engine) !== undefined || engine.type === 'TOGGLE';
+      return { item, older: isOlder(item.mark), owner, indent: engine.indent };
+    }),
+  );
   const taken = new Set(shown.filter(({ mark }) => !isOlder(mark)).map(({ block }) => block.id));
   const used = new Set<string>();
   const marks = new Map<string, DiffMark>();

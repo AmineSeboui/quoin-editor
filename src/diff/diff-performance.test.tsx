@@ -38,3 +38,21 @@ it('renders a diff of a 1,000 block document with a handful of changes in a time
   expect(diff).toBeLessThan(1_000);
   expect(diff / view).toBeLessThan(6);
 });
+
+const REWRITES: Record<string, (blocks: QuoinBlock[]) => QuoinBlock[]> = {
+  'every block edited': (blocks) => blocks.map((block) => ({ ...block, data: { markdown: `${block.data.markdown} terms` } })),
+  'every id new, the text the same': (blocks) => blocks.map((block, at) => ({ ...block, id: `n${at}` })),
+  'every id and text new': (blocks) => blocks.map((_, at) => ({ id: `n${at}`, type: 'MARKDOWN', data: { markdown: `Different ${at} line` } })),
+  'the order reversed': (blocks) => [...blocks].reverse(),
+  'half moved': (blocks) => [...blocks.slice(500), ...blocks.slice(0, 500)],
+};
+
+// The diff of a rewrite draws both versions, so it is held against the view of both.
+it.each(Object.keys(REWRITES))('renders a diff of a 1,000 block document with %s in a bounded time', (name) => {
+  const before = document(1_000);
+  const after = REWRITES[name](before);
+  const diff = fastest(() => renderToStaticMarkup(<QuoinDiff before={before} after={after} />));
+  const view = fastest(() => renderToStaticMarkup(<QuoinView blocks={[...before, ...after]} />));
+  expect(diff).toBeLessThan(3_000);
+  expect(diff / view).toBeLessThan(40);
+});

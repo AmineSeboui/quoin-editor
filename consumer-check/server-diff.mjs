@@ -22,10 +22,11 @@ const after = [
 const html = renderToString(createElement(QuoinDiff, { before, after, className: 'doc' }));
 const expected = [
   '<div class="quoin-diff doc"><h1 id="h-title">Server diff</h1>',
-  `<span data-diff-label="">${englishDiffLabels.changed([])}</span>`,
-  '<span data-diff-label="">Removed</span>',
-  '<div data-diff="added"><span data-diff-label="">Added</span><p>A new line</p></div>',
-  '>inserted </span>any</ins>',
+  `<span data-diff-label="">${englishDiffLabels.changed([])}<span class="quoin-diff-hidden"`,
+  '<span data-diff-label="">Removed<span',
+  '<p>A new line</p></div>',
+  '>inserted </span>any<span',
+  '> end inserted </span></ins>',
   '<del><span class="quoin-diff-hidden"',
 ];
 for (const part of expected) if (!html.includes(part)) errors.push(`QuoinDiff wrote\n${html}\nwithout\n${part}`);

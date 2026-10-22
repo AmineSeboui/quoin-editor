@@ -3,6 +3,8 @@ import { element, type HtmlNode } from '../engine/render/html-node';
 import { changedNode } from './changed-node';
 import type { DiffMark } from './diff-document';
 import type { DiffLabels } from './diff-labels';
+import { hiddenText } from './hidden-text';
+import { diffToc } from './toc-marks';
 
 function markLabels({ status, change, attributes }: DiffMark, labels: DiffLabels): string[] {
   switch (status) {
@@ -19,18 +21,21 @@ function markLabels({ status, change, attributes }: DiffMark, labels: DiffLabels
   }
 }
 
-// A list item stays the list's own child, so it carries the mark itself; any other block is wrapped.
+// A list item stays the list's own child, so it carries the mark itself, its labels set apart from its text by a space
+// that a stylesheet laying the labels out as blocks collapses; any other block is wrapped.
 function markedNode(node: HtmlNode, mark: DiffMark, labels: DiffLabels): HtmlNode {
-  const shown = markLabels(mark, labels).map((text) => element('span', [['data-diff-label', '']], [text]));
+  const shown = markLabels(mark, labels).map((text) => element('span', [['data-diff-label', '']], [text, hiddenText(': ')]));
   if (typeof node !== 'string' && node.tag === 'li') {
-    return element('li', [...node.attrs, ['data-diff', mark.status]], [...shown, ...node.children]);
+    return element('li', [...node.attrs, ['data-diff', mark.status]], [...shown, ' ', ...node.children]);
   }
   return element('div', [['data-diff', mark.status]], [...shown, node]);
 }
 
 /** Draws each block with `render`, and a block that differs between the versions with its mark and its word changes. */
-export function diffRenderer(marks: ReadonlyMap<string, DiffMark>, labels: DiffLabels, render: BlockRenderer): BlockRenderer {
+export function diffRenderer(marks: ReadonlyMap<string, DiffMark>, labels: DiffLabels, blocks: BlockRenderer): BlockRenderer {
+  const toc = diffToc(marks, labels, blocks);
   return (block, view, env) => {
+    const render = block.type === 'TOC' ? toc : blocks;
     const mark = marks.get(block.id);
     if (!mark) return render(block, view, env);
     const node = mark.change ? changedNode(block, view, env, mark.change, render, labels) : render(block, view, env);

@@ -9,7 +9,9 @@ describe('the diff labels', () => {
     expect(labels.moved).toBe('Moved');
     expect(labels.movedAway).toBe('Moved away');
     expect(labels.inserted).toBe('inserted');
+    expect(labels.insertedEnd).toBe('end inserted');
     expect(labels.deleted).toBe('deleted');
+    expect(labels.deletedEnd).toBe('end deleted');
     expect(labels.emptyTask).toBe('Task');
   });
 

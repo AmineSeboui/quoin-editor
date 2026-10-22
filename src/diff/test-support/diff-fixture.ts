@@ -41,3 +41,48 @@ export const diffAfter: QuoinBlock[] = [
   md('mover', 'This block moves down.'),
   { id: 'code', type: 'CODE', data: { language: 'ts', code: 'let a = 2;' } },
 ];
+
+const toggle = (id: string, markdown: string, indent = 0): QuoinBlock => ({
+  id,
+  type: 'TOGGLE',
+  data: { markdown, open: false },
+  indent,
+});
+
+/** Two versions with nesting: indented list items, closed toggles inside closed toggles, a table and numbered items. */
+export const nestedBefore: QuoinBlock[] = [
+  { id: 'toc', type: 'TOC', data: {} },
+  md('kept-h', '## Kept heading'),
+  md('gone-h', '## Removed heading'),
+  md('moved-h', '## Moved heading'),
+  md('p1', '- Parent one'),
+  md('c1', '- Child kept', 1),
+  md('c2', '- Child removed', 1),
+  md('p2', '- Parent removed'),
+  md('g1', '- Grandchild kept', 1),
+  toggle('outer', 'Closed toggle'),
+  md('inside', 'Inside old', 1),
+  toggle('inner', 'Inner toggle', 1),
+  md('deep', 'Deep text', 2),
+  { id: 'grid', type: 'TABLE', data: { rows: [['h1', 'h2', 'h3'], ['a', 'b', 'c'], ['gone', 'row', 'here']] } },
+  md('n1', '1. first'),
+  md('n2', '2. second'),
+  md('n3', '3. third'),
+];
+
+export const nestedAfter: QuoinBlock[] = [
+  { id: 'toc', type: 'TOC', data: {} },
+  md('kept-h', '## Kept heading'),
+  md('p1', '- Parent one'),
+  md('c1', '- Child kept', 1),
+  md('c3', '- Brand new entry', 1),
+  md('g1', '- Grandchild kept', 1),
+  toggle('outer', 'Closed toggle'),
+  md('inside', 'Inside new', 1),
+  toggle('inner', 'Inner toggle', 1),
+  md('deep', 'Deep text changed', 2),
+  { id: 'grid', type: 'TABLE', data: { rows: [['h1', 'h2'], ['a', 'b']] } },
+  md('n1', '1. first'),
+  md('n3', '2. third'),
+  md('moved-h', '## Moved heading'),
+];

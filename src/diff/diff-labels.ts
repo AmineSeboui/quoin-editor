@@ -12,8 +12,12 @@ export type DiffLabels = {
   changed(attributes: readonly string[]): string;
   /** Spoken before inserted words, and never shown. */
   inserted: string;
+  /** Spoken after inserted words, and never shown. */
+  insertedEnd: string;
   /** Spoken before deleted words, and never shown. */
   deleted: string;
+  /** Spoken after deleted words, and never shown. */
+  deletedEnd: string;
   /** The accessible name of a task checkbox whose item has no text. */
   emptyTask: string;
 };
@@ -58,7 +62,9 @@ export const englishDiffLabels: DiffLabels = {
   movedAway: 'Moved away',
   changed: changedLabel,
   inserted: 'inserted',
+  insertedEnd: 'end inserted',
   deleted: 'deleted',
+  deletedEnd: 'end deleted',
   emptyTask: 'Task',
 };
 

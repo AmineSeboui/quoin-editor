@@ -68,7 +68,7 @@ describe('the package entry list', () => {
       ['headless', 70_000],
       ['engine', 52_000],
       ['view', 22_214],
-      ['diff', 26_055],
+      ['diff', 26_961],
     ]);
     expect(packageEntries[3]).toMatchObject({ source: 'src/view-static/index.ts', client: false });
     expect(packageEntries[4]).toMatchObject({ source: 'src/diff/index.ts', client: false });

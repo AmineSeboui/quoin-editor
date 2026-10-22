@@ -11,6 +11,7 @@ import { viewRenderer } from '../view-static/view-renderer';
 import { diffRenderer } from './diff-block';
 import { diffDocument } from './diff-document';
 import { resolveDiffLabels, type DiffLabels } from './diff-labels';
+import { settledDiff } from './diff-tree';
 
 export type QuoinDiffProps = {
   /** The older version. */
@@ -42,5 +43,5 @@ export function QuoinDiff({ before, after, blockTypes, labels, highlight, classN
   const slots = new Map<HtmlElement, ReactNode>();
   const render = diffRenderer(marks, words, viewRenderer({ blockTypes, highlight }, slots));
   const nodes = documentNodes(blocks, { ...options, schema, taskLabel: words.emptyTask }, render);
-  return createElement('div', { className: className ? `quoin-diff ${className}` : 'quoin-diff' }, ...reactNodes(nodes, slots));
+  return createElement('div', { className: className ? `quoin-diff ${className}` : 'quoin-diff' }, ...reactNodes(settledDiff(nodes), slots));
 }

@@ -5,14 +5,9 @@ import type { QuoinBlock } from '../engine/model/quoin-block';
 import { toHTML } from '../engine/render/to-html';
 import { QuoinDiff } from './QuoinDiff';
 import { diffAfter, diffBefore } from './test-support/diff-fixture';
+import { del, ins, label } from './test-support/diff-markup';
 
 const md = (id: string, markdown: string): QuoinBlock => ({ id, type: 'MARKDOWN', data: { markdown } });
-
-const HIDDEN =
-  'class="quoin-diff-hidden" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap"';
-const ins = (html: string) => `<ins><span ${HIDDEN}>inserted </span>${html}</ins>`;
-const del = (html: string) => `<del><span ${HIDDEN}>deleted </span>${html}</del>`;
-const label = (text: string) => `<span data-diff-label="">${text}</span>`;
 
 const diff = (before: QuoinBlock[], after: QuoinBlock[]) =>
   renderToStaticMarkup(<QuoinDiff before={before} after={after} />);
@@ -69,9 +64,9 @@ describe('QuoinDiff', () => {
     const after = [md('a', '- one'), md('b', '- two more'), md('d', '- brand new entry')];
     expect(diff(before, after)).toBe(
       '<div class="quoin-diff"><ul><li>one</li>' +
-        `<li data-diff="changed">${label('Changed')}two${ins(' more')}</li>` +
-        `<li data-diff="removed">${label('Removed')}three</li>` +
-        `<li data-diff="added">${label('Added')}brand new entry</li></ul></div>`,
+        `<li data-diff="changed">${label('Changed')} two${ins(' more')}</li>` +
+        `<li data-diff="removed">${label('Removed')} three</li>` +
+        `<li data-diff="added">${label('Added')} brand new entry</li></ul></div>`,
     );
   });
 
@@ -89,7 +84,7 @@ describe('QuoinDiff', () => {
       `<div class="quoin-diff"><div data-diff="changed">${label('Changed heading level')}<h3 id="h-a">Section</h3></div></div>`,
     );
     expect(diff([md('t', '- [ ] Ship')], [md('t', '- [x] Ship')])).toContain(
-      `<li data-checked="true" data-diff="changed">${label('Changed checkbox')}<input type="checkbox" disabled="" aria-label="Ship" checked=""/> Ship</li>`,
+      `<li data-checked="true" data-diff="changed">${label('Changed checkbox')} <input type="checkbox" disabled="" aria-label="Ship" checked=""/> Ship</li>`,
     );
     const image = (alt: string): QuoinBlock => ({ id: 'i', type: 'IMAGE', data: { url: '/c.png', alt } });
     expect(diff([image('A cat')], [image('A sleeping cat')])).toContain(label('Changed alt text'));
@@ -175,6 +170,7 @@ describe('QuoinDiff', () => {
     expect(html).toContain(label('Ajout\u00e9'));
     expect(html).toContain(label('Modifi\u00e9'));
     expect(html).toContain('>ins\u00e9r\u00e9 </span>');
+    expect(html).toContain('> end inserted </span>');
   });
 
   it('calls no hook, so it renders as a server component outside any React renderer', () => {

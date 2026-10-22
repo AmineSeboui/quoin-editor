@@ -2,17 +2,20 @@ import type { InlineChange } from '../engine/diff/diff-inline';
 import { inlineOf, type HtmlEnv } from '../engine/render/html-env';
 import { element, type HtmlNode } from '../engine/render/html-node';
 import type { DiffLabels } from './diff-labels';
+import { hiddenText } from './hidden-text';
 
-// Inline, so the words stay hidden on a page that does not load the stylesheet.
-const VISUALLY_HIDDEN = 'position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap';
+/** Nodes in `del`, led and closed by words a reader hears, so a deletion next to an insertion reads apart from it. */
+export const deletedNodes = (nodes: HtmlNode[], labels: DiffLabels): HtmlNode =>
+  element('del', [], [hiddenText(`${labels.deleted} `), ...nodes, hiddenText(` ${labels.deletedEnd} `)]);
 
-const spoken = (word: string): HtmlNode => element('span', [['class', 'quoin-diff-hidden'], ['style', VISUALLY_HIDDEN]], [`${word} `]);
+const insertedNodes = (nodes: HtmlNode[], labels: DiffLabels): HtmlNode =>
+  element('ins', [], [hiddenText(`${labels.inserted} `), ...nodes, hiddenText(` ${labels.insertedEnd} `)]);
 
-/** The nodes of a region's words, those inserted in `ins` and those deleted in `del`, each led by a word a reader hears. */
+/** The nodes of a region's words, those inserted in `ins` and those deleted in `del`. */
 export function wordNodes(changes: readonly InlineChange[], env: HtmlEnv, labels: DiffLabels): HtmlNode[] {
   return changes.flatMap(({ op, inline }) => {
     const nodes = inlineOf(inline, env);
     if (op === 'equal') return nodes;
-    return [op === 'insert' ? element('ins', [], [spoken(labels.inserted), ...nodes]) : element('del', [], [spoken(labels.deleted), ...nodes])];
+    return [op === 'insert' ? insertedNodes(nodes, labels) : deletedNodes(nodes, labels)];
   });
 }

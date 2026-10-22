@@ -21,7 +21,8 @@ export type AiLink = {
   run: AiRun | null;
   last: AiRequest | null;
   report(error: Error): void;
-  written(output: string): void;
+  /** Says how an answer ended, given what it wrote: once, when it is complete or stopped. */
+  ended(phase: 'done' | 'stopped', output: string): void;
   stopWatching: (() => void) | null;
 };
 
@@ -30,7 +31,7 @@ const links = new WeakMap<object, AiLink>();
 export function linkOf(editor: object): AiLink {
   let link = links.get(editor);
   if (link === undefined) {
-    link = { mounts: 0, run: null, last: null, report: (error) => console.error(error), written: () => {}, stopWatching: null };
+    link = { mounts: 0, run: null, last: null, report: (error) => console.error(error), ended: () => {}, stopWatching: null };
     links.set(editor, link);
   }
   return link;

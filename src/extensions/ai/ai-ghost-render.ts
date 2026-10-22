@@ -1,4 +1,4 @@
-import { createBlockCodec, createSchema, fromMarkdown, toPlainText, type Decoration, type Schema } from '../../engine';
+import { createBlockCodec, createSchema, fromMarkdown, toPlainText, type Schema } from '../../engine';
 import type { BlockCodec } from '../../engine/blocks/codec';
 import { primaryRegion } from '../../engine/state/selection';
 import { renderInline } from '../../view';
@@ -14,17 +14,14 @@ function readerOf(): { schema: Schema; codec: BlockCodec } {
 }
 
 /**
- * The answer as it streams, drawn from the engine's own reading of its markdown, inline content by the view's own
- * renderer, so nothing the host wrote is ever parsed as HTML. It is a widget of the document, not a part of it: the
- * view reads none of it back, and it takes no selection and no pointer.
+ * Draws the answer as it streams into `ghost`, from the engine's own reading of its markdown, inline content by the
+ * view's own renderer, so nothing the host wrote is ever parsed as HTML.
  */
-export function renderGhost(decoration: Extract<Decoration, { kind: 'widget' }>, doc: Document): HTMLElement {
-  const ghost = doc.createElement('div');
-  ghost.className = 'quoin-ai-ghost';
-  ghost.setAttribute('aria-hidden', 'true');
-  ghost.setAttribute('data-phase', decoration.attrs.phase ?? '');
+export function fillGhost(ghost: HTMLElement, markdown: string): void {
+  const doc = ghost.ownerDocument;
   const { schema, codec } = readerOf();
-  for (const block of fromMarkdown(decoration.attrs.markdown ?? '')) {
+  const drawn: HTMLElement[] = [];
+  for (const block of fromMarkdown(markdown)) {
     for (const piece of codec.toEngineBlocks(block)) {
       const element = doc.createElement('div');
       element.className = 'quoin-ai-ghost-block';
@@ -34,8 +31,8 @@ export function renderGhost(decoration: Extract<Decoration, { kind: 'widget' }>,
       const region = primaryRegion(schema, piece);
       if (region === null) element.textContent = toPlainText([codec.toQuoin(piece)], { schema });
       else renderInline(element, piece.regions[region], []);
-      ghost.append(element);
+      drawn.push(element);
     }
   }
-  return ghost;
+  ghost.replaceChildren(...drawn);
 }

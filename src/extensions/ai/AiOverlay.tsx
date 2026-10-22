@@ -13,13 +13,18 @@ import type { AiLabels } from './ai-labels';
 import { linkOf } from './ai-link';
 import { aiState } from './ai-plugin';
 import { targetGone } from './ai-target';
+import { PRIMARY } from './AiBar';
+import { discard, noteFocus } from './ai-flow';
+import { endRun } from './ai-session';
 import { AiGhost } from './AiGhost';
 import { AiMenu } from './AiMenu';
 
 const goneOf = (state: EditorState) => {
   const { target, ghost } = aiState(state);
-  return target !== null && ghost !== null && (ghost.lost || targetGone(state.doc, target));
+  return target !== null && ghost !== null && targetGone(state.doc, target);
 };
+
+const plainText = (markdown: string) => toPlainText(fromMarkdown(markdown));
 
 type AiOverlayProps = { controller: ViewController; stream: AiStream; labels: AiLabels };
 
@@ -29,7 +34,8 @@ export function AiOverlay({ controller, stream, labels }: AiOverlayProps) {
   const link = linkOf(controller.editor);
   useIsomorphicLayoutEffect(() => {
     link.report = onError;
-    link.written = (output) => controller.announce(labels.written(toPlainText(fromMarkdown(output))));
+    link.ended = (phase, output) =>
+      controller.announce((phase === 'done' ? labels.written : labels.halted)(plainText(output)));
   }, [link, onError, controller, labels]);
   const value = useEditorState(controller, aiState);
   const gone = useEditorState(controller, goneOf);
@@ -38,20 +44,50 @@ export function AiOverlay({ controller, stream, labels }: AiOverlayProps) {
   const barId = useId();
   const showing = value.ghost !== null;
 
-  // The bar takes an Escape pressed in the text to bring focus to itself, so the canvas does not act on it as well.
+  // Escape in the text while an answer is shown takes focus to its bar, the way back to Accept and Discard.
   useEffect(() => {
     if (!showing) return;
-    const toBar = (event: KeyboardEvent) =>
-      event.key === 'Escape' && controller.root?.ownerDocument.getElementById(barId) != null;
+    const toBar = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) return false;
+      const bar = controller.root?.ownerDocument.getElementById(barId);
+      bar?.querySelector<HTMLElement>(`[${PRIMARY}]`)?.focus();
+      return bar != null;
+    };
     controller.keyInterceptors.add(toBar);
     return () => void controller.keyInterceptors.delete(toBar);
   }, [controller, showing, barId]);
+
+  // Focus arriving in the canvas makes every empty line one a Space opens the menu on again.
+  useEffect(() => {
+    const root = controller.root;
+    if (!root) return;
+    const arrived = (event: FocusEvent) => {
+      if (!root.contains(event.relatedTarget as Node | null)) noteFocus(controller.editor);
+    };
+    root.addEventListener('focusin', arrived);
+    return () => root.removeEventListener('focusin', arrived);
+  }, [controller]);
+
+  // A canvas made read-only ends the answer: its stream is aborted at once, and the answer goes once the change is in.
+  useEffect(
+    () =>
+      controller.subscribeReadOnly(() => {
+        if (!controller.readOnly) return;
+        endRun(link);
+        queueMicrotask(() => {
+          if (link.mounts > 0 && aiState(controller.editor.state).target !== null) discard(controller.editor);
+        });
+      }),
+    [controller, link],
+  );
 
   if (readOnly || value.target === null) return null;
   return (
     <>
       {value.menu !== null && <AiMenu env={env} target={value.target} fromSpace={value.menu.fromSpace} />}
-      {value.ghost !== null && <AiGhost env={env} ghost={value.ghost} gone={gone} barId={barId} />}
+      {value.ghost !== null && (
+        <AiGhost env={env} ghost={value.ghost} target={value.target} gone={gone} barId={barId} />
+      )}
     </>
   );
 }

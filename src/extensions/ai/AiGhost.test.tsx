@@ -18,7 +18,9 @@ describe('an answer streaming into the document', () => {
     canvas.last().push('one **ter');
     await canvas.frame();
     const ghost = canvas.ghost()!;
-    expect(canvas.host('a').contains(ghost)).toBe(true);
+    expect(canvas.host('a').contains(ghost)).toBe(false);
+    expect(canvas.shell('a')).toHaveAttribute('data-quoin-ai-room');
+    expect(ghost).toHaveAttribute('inert');
     expect(ghost.textContent).toBe('one ter');
     expect(ghost.querySelector('strong')?.textContent).toBe('ter');
     expect(canvas.host('a').querySelector('.quoin-ai-replaced')?.textContent).toBe('a word');
@@ -38,6 +40,9 @@ describe('an answer streaming into the document', () => {
     expect(canvas.last().signal.aborted).toBe(true);
     expect(canvas.bar()).toHaveTextContent('Stopped');
     expect(document.activeElement).toBe(canvas.button('Accept'));
+    const announced = canvas.container.querySelector('[aria-live="polite"]')?.textContent ?? '';
+    expect(announced).toContain('Stopped');
+    expect(announced).toContain('one');
   });
 
   it('is said once when it is complete, and Accept applies it in one undo step, focus back in the text', async () => {
@@ -133,5 +138,28 @@ describe('an answer streaming into the document', () => {
     canvas.last().fail(new Error('late'));
     await act(() => new Promise((resolve) => setTimeout(resolve, 40)));
     expect(canvas.onError).not.toHaveBeenCalled();
+  });
+
+  it('keeps a link in it out of reach of focus, and axe finds nothing', async () => {
+    const canvas = improving();
+    canvas.last().push('See [docs](https://quoin.test) now');
+    await canvas.frame();
+    expect(canvas.ghost()!.querySelector('a')).not.toBeNull();
+    expect(canvas.ghost()).toHaveAttribute('inert');
+    expect(await act(() => axe(canvas.container))).toHaveNoViolations();
+  });
+
+  it('ends the stream and goes when the canvas turns read-only, leaving the document as it was', async () => {
+    const canvas = improving();
+    canvas.last().push('one');
+    await canvas.frame();
+    act(() => canvas.handle().controller.setReadOnly(true));
+    await act(() => Promise.resolve());
+    expect(canvas.last().signal.aborted).toBe(true);
+    expect(canvas.ghost()).toBeNull();
+    expect(canvas.bar()).toBeNull();
+    expect(canvas.shell('a')).not.toHaveAttribute('data-quoin-ai-room');
+    expect(canvas.host('a').querySelector('.quoin-ai-replaced')).toBeNull();
+    expect(canvas.markdown('a')).toBe('Say a word here');
   });
 });

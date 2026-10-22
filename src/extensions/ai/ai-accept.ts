@@ -1,17 +1,39 @@
-import { fromMarkdown, type CommandFactories, type Editor, type EngineBlock, type Pos } from '../../engine';
+import {
+  fromMarkdown,
+  insertBlocksStep,
+  type CommandFactories,
+  type Editor,
+  type EngineBlock,
+  type Pos,
+  type Schema,
+  type Transaction,
+} from '../../engine';
 import { pasteAtCaret } from '../../engine/clipboard/paste-at-caret';
-import { regionLength } from '../../engine/commands/block-helpers';
+import { freshBlocks } from '../../engine/clipboard/slice-blocks';
+import { capIndents } from '../../engine/commands/cap-indents';
+import { descendantsEnd, regionLength } from '../../engine/commands/block-helpers';
+import { endOf } from '../../engine/state/selection';
 import { deleteRange } from '../../engine/commands/delete-range';
 import type { InternalEditor } from '../../engine/extension/editor';
 import { parseLine } from '../../engine/markdown/line-kind';
 import type { QuoinBlock } from '../../engine/model/quoin-block';
 import { AI, aiState, type AiAct } from './ai-plugin';
-import { targetGone } from './ai-target';
+import { targetGone, type AiTarget } from './ai-target';
 
 const isParagraph = (block: QuoinBlock | undefined) =>
   block?.type === 'MARKDOWN' && parseLine(String(block.data.markdown ?? '')).kind === 'paragraph';
 
 const DISCARD: AiAct = { type: 'discard' };
+
+// The answer to a target whose block was deleted goes as blocks of their own beside the block left at its edge.
+function insertBeside(tr: Transaction, schema: Schema, target: AiTarget, pieces: EngineBlock[], makeId: () => string) {
+  const index = tr.doc.index.get(target.to.block)!;
+  const at = target.lost?.after ? descendantsEnd(tr.doc, index) : index;
+  const fresh = freshBlocks(pieces, tr.doc.blocks[index].indent, makeId);
+  tr.step(insertBlocksStep(at, fresh));
+  capIndents(tr, at, at + fresh.length);
+  tr.setSelection(endOf(tr.doc, schema, fresh[fresh.length - 1].id));
+}
 
 /**
  * Applies the answer shown, read with the engine's markdown parser as a paste is, in one transaction from `ai`: in
@@ -27,8 +49,10 @@ export function acceptAnswer(editor: Editor<CommandFactories>): { gone: boolean 
   const blocks = fromMarkdown(ghost.output, { newId: makeId });
   const pieces: EngineBlock[] = blocks.flatMap((block) => codec.toEngineBlocks(block));
   const tr = editor.createTransaction().setOrigin('ai').setMeta(AI, DISCARD);
-  const gone = targetGone(state.doc, target) || ghost.lost;
-  if (pieces.length > 0) {
+  const gone = targetGone(state.doc, target);
+  if (pieces.length > 0 && target.lost !== undefined) {
+    insertBeside(tr, state.schema, target, pieces, makeId);
+  } else if (pieces.length > 0) {
     const { schema } = state;
     const open = { openStart: isParagraph(blocks[0]), openEnd: isParagraph(blocks[blocks.length - 1]) };
     if (ghost.replace || gone) {

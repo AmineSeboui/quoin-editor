@@ -1,4 +1,4 @@
-import { createBlockCodec, textSelection, toMarkdown, type EditorState, type QuoinBlock } from '../../engine';
+import { createBlockCodec, textSelection, toMarkdown, type EditorState, type Pos, type QuoinBlock } from '../../engine';
 import { sliceFromSelection } from '../../engine/clipboard/extract-slice';
 import type { AiAction, AiRequest } from './ai-actions';
 import type { AiTarget } from './ai-target';
@@ -31,28 +31,35 @@ export function aroundSelection(text: string, start: number, end: number, limit 
   return text.slice(from, to);
 }
 
+// The engine writes a space or tab it must keep as an entity; a model reads plain markdown. A typed entity is escaped
+// with a backslash, so it stays.
+const WHITESPACE_ENTITY = /(?<!\\)&#(32|9);/g;
+
+const plain = (markdown: string) => markdown.replace(WHITESPACE_ENTITY, (_, code) => (code === '32' ? ' ' : '\t'));
+
 const markdownOf = (state: EditorState, blocks: readonly QuoinBlock[]) =>
   toMarkdown(blocks, { schema: state.schema, comments: false });
 
-function selectionMarkdown(state: EditorState, target: AiTarget): string {
-  const codec = createBlockCodec(state.schema);
-  const slice = sliceFromSelection({ ...state, selection: textSelection(target.from, target.to) }, codec);
+function rangeMarkdown(state: EditorState, from: Pos, to: Pos): string {
+  const slice = sliceFromSelection({ ...state, selection: textSelection(from, to) }, createBlockCodec(state.schema));
   return slice === null ? '' : markdownOf(state, slice.blocks).replace(/\n$/, '');
 }
 
 function documentContext(state: EditorState, target: AiTarget, selection: string): string {
   const blocks = createBlockCodec(state.schema).blocksFromDoc(state.doc);
-  const full = markdownOf(state, blocks);
+  const full = plain(markdownOf(state, blocks));
   if (full.length <= CONTEXT_LIMIT) return full;
   const index = state.doc.index.get(target.from.block) ?? 0;
-  const start = index === 0 ? 0 : markdownOf(state, blocks.slice(0, index)).length + 1;
+  const blockStart = index === 0 ? 0 : plain(markdownOf(state, blocks.slice(0, index))).length + 1;
+  const lead = { ...target.from, offset: 0 };
+  const start = blockStart + plain(rangeMarkdown(state, lead, target.from)).length;
   return aroundSelection(full, start, start + selection.length);
 }
 
 export type RequestInput = { action: AiAction; prompt?: string; language?: string };
 
 export function buildRequest(state: EditorState, target: AiTarget, input: RequestInput): AiRequest {
-  const selection = selectionMarkdown(state, target);
+  const selection = plain(rangeMarkdown(state, target.from, target.to));
   const request: AiRequest = { action: input.action, selection, context: documentContext(state, target, selection) };
   if (input.prompt !== undefined) request.prompt = input.prompt;
   if (input.language !== undefined) request.language = input.language;

@@ -20,7 +20,7 @@ function writing(...lines: string[]) {
   const report = vi.fn();
   const written = vi.fn();
   link.report = report;
-  link.written = written;
+  link.ended = written;
   const acts: AiAct[] = [];
   editor.subscribe((_, tr) => {
     const act = tr?.getMeta<AiAct>(AI);
@@ -63,7 +63,7 @@ describe('streaming an answer from the host', () => {
     await nextFrame();
     expect(ghost(editor)).toMatchObject({ phase: 'done', replace: false, output: 'More words.' });
     expect(written).toHaveBeenCalledTimes(1);
-    expect(written).toHaveBeenCalledWith('More words.');
+    expect(written).toHaveBeenCalledWith('done', 'More words.');
   });
 
   it('aborts the signal on Stop and keeps what streamed for Accept or Discard', async () => {
@@ -80,7 +80,8 @@ describe('streaming an answer from the host', () => {
     await nextFrame();
     expect(ghost(editor)).toMatchObject({ phase: 'stopped', output: 'Partial' });
     expect(last().returned).toBe(true);
-    expect(written).not.toHaveBeenCalled();
+    expect(written).toHaveBeenCalledTimes(1);
+    expect(written).toHaveBeenCalledWith('stopped', 'Partial');
   });
 
   it('keeps chunks that arrived before Stop but were not drawn yet', async () => {
@@ -179,15 +180,21 @@ describe('streaming an answer from the host', () => {
   });
 
   it('stops the stream when the block it is about is deleted, keeping what it wrote', async () => {
-    const { editor, stream, last } = writing('First', 'Second');
+    const { editor, stream, last, written } = writing('First', 'Second');
     editor.commands.setSelection(caret('p1', 0));
     askAbout(editor, stream, 'continue');
     last().push('Kept');
     await nextFrame();
     editor.commands.setSelection({ kind: 'blocks', anchor: 'p1', head: 'p1' });
+    last().push(' and this');
+    await Promise.resolve();
+    await Promise.resolve();
     deleteBlocks(editor.state, (tr) => editor.dispatch(tr));
     expect(last().signal.aborted).toBe(true);
-    expect(ghost(editor)).toMatchObject({ phase: 'stopped', lost: true, output: 'Kept' });
+    await Promise.resolve();
+    expect(ghost(editor)).toMatchObject({ phase: 'stopped', output: 'Kept and this' });
+    expect(aiState(editor.state).target?.lost).toBeDefined();
+    expect(written).toHaveBeenCalledWith('stopped', 'Kept and this');
   });
 });
 

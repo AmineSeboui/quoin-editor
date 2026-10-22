@@ -151,3 +151,116 @@ test('opens the AI menu about a block from its block menu, with focus in the fie
   ]);
   await expect(bar(page).getByRole('button', { name: 'Stop' })).toBeFocused();
 });
+
+const caretOffset = (page: Page) =>
+  page.evaluate(() => {
+    const selection = window.__quoin.controller!.editor.state.selection;
+    return selection?.kind === 'text' ? selection.head.offset : -1;
+  });
+
+async function walk(page: Page, key: string, times: number): Promise<number[]> {
+  const offsets: number[] = [];
+  for (let i = 0; i < times; i++) {
+    await page.keyboard.press(key);
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 20))));
+    offsets.push(await caretOffset(page));
+  }
+  return offsets;
+}
+
+test('moves the caret one character a press across a word an answer would replace', async ({ page }) => {
+  await askAboutFirstWord(page, 'improve');
+  await ai.push(page, 'Get');
+  await ai.end(page);
+  await expect(ghost(page)).toHaveText('Get');
+  await hostOf(page, 'p').click({ position: { x: 1, y: 8 } });
+  await caretSettled(page, hostOf(page, 'p'));
+  expect(await caretOffset(page)).toBe(0);
+  expect(await walk(page, 'ArrowRight', 6)).toEqual([1, 2, 3, 4, 5, 6]);
+  expect(await walk(page, 'ArrowLeft', 4)).toEqual([5, 4, 3, 2]);
+  expect(await walk(page, 'Shift+ArrowRight', 4)).toEqual([3, 4, 5, 6]);
+});
+
+test('moves the caret one character a press at the end of a line an answer is written below', async ({ page }) => {
+  await openEditor(page, 'ai', 'ai=1');
+  await hostOf(page, 'p').click();
+  await caretSettled(page, hostOf(page, 'p'));
+  await page.keyboard.press('ControlOrMeta+ArrowRight');
+  await page.keyboard.type(' /continue');
+  await page.keyboard.press('Enter');
+  await ai.push(page, 'Ghost words here');
+  await expect(ghost(page)).toHaveText('Ghost words here');
+  await hostOf(page, 'p').click();
+  await caretSettled(page, hostOf(page, 'p'));
+  const end = (await markdown(page, 'p')).replace('&#32;', ' ').length;
+  await page.evaluate((offset) => window.__quoin.controller!.focus({ block: 'p', region: 'text', offset }), end);
+  expect(await walk(page, 'ArrowLeft', 2)).toEqual([end - 1, end - 2]);
+  expect(await walk(page, 'ArrowRight', 2)).toEqual([end - 1, end]);
+  const box = await ghost(page).boundingBox();
+  const text = await hostOf(page, 'p').boundingBox();
+  expect(box!.y).toBeGreaterThanOrEqual(text!.y + text!.height - 1);
+  const next = await hostOf(page, 'q').boundingBox();
+  expect(next!.y).toBeGreaterThanOrEqual(box!.y + box!.height);
+});
+
+test('keeps a link in the answer out of the tab order, and axe finds nothing', async ({ page }) => {
+  await askAboutFirstWord(page, 'improve');
+  await ai.push(page, 'See [docs](https://quoin.test) now');
+  await expect(ghost(page).locator('a')).toHaveCount(1);
+  expect(await ghost(page).locator('a').evaluate((link) => (link as HTMLElement).closest('[inert]') !== null)).toBe(true);
+  expect(await axeViolations(page, 'all', '.quoin')).toEqual([]);
+});
+
+test('types a plain space on a line cleared in one step, or typed in, emptied, left and returned to', async ({
+  page,
+}) => {
+  await openEditor(page, 'ai', 'ai=1');
+  await hostOf(page, 'r').click();
+  await caretSettled(page, hostOf(page, 'r'));
+  await page.keyboard.press('ControlOrMeta+a');
+  await expect.poll(() => page.evaluate(() => window.__quoin.controller!.editor.state.selection?.kind)).toBe('text');
+  await page.keyboard.press('Backspace');
+  await expect.poll(() => markdown(page, 'r')).toBe('');
+  await page.keyboard.press('Space');
+  await expect.poll(() => markdown(page, 'r')).toBe('&#32;');
+  await expect(field(page)).toHaveCount(0);
+
+  await hostOf(page, 'q').click();
+  await caretSettled(page, hostOf(page, 'q'));
+  await page.keyboard.type('ab');
+  await page.keyboard.press('Backspace');
+  await page.keyboard.press('Backspace');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowUp');
+  await page.keyboard.press('Space');
+  await expect.poll(() => markdown(page, 'q')).toBe('&#32;');
+  await expect(field(page)).toHaveCount(0);
+});
+
+for (const retried of [false, true]) {
+  test(`puts the answer between the neighbours of a block deleted while it streamed${retried ? ', after a Retry' : ''}`, async ({
+    page,
+  }) => {
+    await openEditor(page, 'ai', 'ai=1');
+    await hostOf(page, 'q').click();
+    await caretSettled(page, hostOf(page, 'q'));
+    await page.keyboard.type('Middle words /ai');
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('improve');
+    await page.keyboard.press('Enter');
+    await ai.push(page, 'Better words');
+    await expect(ghost(page)).toHaveText('Better words');
+    await page.evaluate(() => window.__quoin.removeRemotely?.('q'));
+    await expect(bar(page)).toContainText('Stopped');
+    if (retried) {
+      await bar(page).getByRole('button', { name: 'Retry' }).click();
+      await ai.push(page, 'Retried words');
+      await ai.end(page);
+    }
+    await expect(bar(page)).toContainText('removed');
+    await bar(page).getByRole('button', { name: 'Accept' }).click();
+    await expect
+      .poll(async () => (await blocks(page)).map((block) => block.data.markdown))
+      .toEqual(['Make this sentence better.', retried ? 'Retried words' : 'Better words', 'Another paragraph after.']);
+  });
+}

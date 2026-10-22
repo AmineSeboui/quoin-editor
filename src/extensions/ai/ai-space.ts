@@ -4,7 +4,7 @@ import { isCollapsed } from '../../engine/state/selection';
 import { aiState, aiTransaction } from './ai-plugin';
 
 /**
- * A Space on an empty paragraph that has held no text since the caret arrived opens the AI menu about that line; any
+ * A Space on an empty paragraph that has held no text since focus arrived opens the AI menu about that line; any
  * other Space types.
  */
 export const openOnSpace: Command = (state, dispatch) => {
@@ -14,7 +14,7 @@ export const openOnSpace: Command = (state, dispatch) => {
   const { head } = selection;
   const block = doc.blocks[doc.index.get(head.block)!];
   const paragraph = block.type === 'MARKDOWN' && block.attrs.kind === 'paragraph';
-  if (!paragraph || regionLength(block, head.region) > 0 || ai.held === block.id) return false;
+  if (!paragraph || regionLength(block, head.region) > 0 || ai.held.includes(block.id)) return false;
   dispatch?.(aiTransaction(state, { type: 'open', target: { from: head, to: head, selected: false }, fromSpace: true }));
   return true;
 };

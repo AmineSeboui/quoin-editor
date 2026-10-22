@@ -58,4 +58,15 @@ describe('closing markdown that is still streaming, for display', () => {
     expect(closeStreaming('a snake_case name')).toBe('a snake_case name');
     expect(closeStreaming('an _emphasis')).toBe('an _emphasis_');
   });
+
+  it('closes inline syntax opened before a soft line break of the same paragraph', () => {
+    expect(closeStreaming('Some **bold\nand more')).toBe('Some **bold\nand more**');
+    expect(closeStreaming('Done.\n\nA `code\nspan')).toBe('Done.\n\nA `code\nspan`');
+  });
+
+  it('never closes syntax across list items, blocks or a fence', () => {
+    expect(closeStreaming('- a **b\n- c')).toBe('- a **b\n- c');
+    expect(closeStreaming('A **b\n\nNext')).toBe('A **b\n\nNext');
+    expect(closeStreaming('```\na\n```\nThen **b')).toBe('```\na\n```\nThen **b**');
+  });
 });

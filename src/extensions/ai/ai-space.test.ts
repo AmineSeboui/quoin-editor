@@ -1,6 +1,7 @@
 import { coreExtensions, insertText, type Editor } from '../../engine';
-import { caret, key, md, startEditor } from '../../engine/test-support/editor-fixtures';
+import { caret, key, md, range, startEditor } from '../../engine/test-support/editor-fixtures';
 import { aiExtension } from './ai-extension';
+import { noteFocus } from './ai-flow';
 import { aiState } from './ai-plugin';
 import { fakeAiHost } from './ai-test-host';
 
@@ -56,5 +57,26 @@ describe('a Space on an empty line', () => {
     expect(space(editor)).toBe(true);
     editor.commands.setSelection(caret('p3', 0));
     expect(space(editor)).toBe(false);
+  });
+
+  it('types a space on a line cleared in one change', () => {
+    const editor = writing('Text', 'Gone');
+    editor.commands.setSelection(range('p1', 0, 4));
+    editor.commands.deleteBackward();
+    expect(editor.getBlocks()[1].data.markdown).toBe('');
+    expect(space(editor)).toBe(false);
+  });
+
+  it('types a space on a line typed in, emptied, left and returned to, until focus arrives again', () => {
+    const editor = writing('Text', '');
+    editor.commands.setSelection(caret('p1', 0));
+    type(editor, 'ab');
+    editor.commands.deleteBackward();
+    editor.commands.deleteBackward();
+    editor.commands.setSelection(caret('p0', 2));
+    editor.commands.setSelection(caret('p1', 0));
+    expect(space(editor)).toBe(false);
+    noteFocus(editor);
+    expect(space(editor)).toBe(true);
   });
 });

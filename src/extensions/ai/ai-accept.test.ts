@@ -1,8 +1,17 @@
-import { coreExtensions, insertText, replaceInlineStep, text, Transaction, undo, type Editor } from '../../engine';
+import {
+  coreExtensions,
+  insertText,
+  removeBlocksStep,
+  replaceInlineStep,
+  text,
+  Transaction,
+  undo,
+  type Editor,
+} from '../../engine';
 import { caret, md, range, startEditor } from '../../engine/test-support/editor-fixtures';
 import { acceptAnswer } from './ai-accept';
 import { aiExtension } from './ai-extension';
-import { ask, openMenu } from './ai-flow';
+import { ask, openMenu, retry } from './ai-flow';
 import { aiState } from './ai-plugin';
 import { targetOfSelection } from './ai-target';
 import { fakeAiHost, nextFrame } from './ai-test-host';
@@ -117,5 +126,43 @@ describe('accepting an answer', () => {
     openMenu(editor, targetOfSelection(editor.state)!, false);
     ask(editor, host.stream, { action: 'continue' });
     expect(acceptAnswer(editor)).toBeNull();
+  });
+
+  it('puts the answer as blocks of their own between the neighbours of a block deleted while it streamed', async () => {
+    for (const retried of [false, true]) {
+      const host = writing('First', 'Middle words', 'Last');
+      const { editor } = host;
+      editor.commands.setSelection(caret('p1', 3));
+      openMenu(editor, targetOfSelection(editor.state)!, false);
+      ask(editor, host.stream, { action: 'improve' });
+      host.last().push('Better words');
+      await nextFrame();
+      editor.dispatch(new Transaction(editor.state).setOrigin('remote').step(removeBlocksStep(1, 1)));
+      await nextFrame();
+      if (retried) {
+        retry(editor, host.stream);
+        host.last().push('Retried words');
+        host.last().end();
+        await nextFrame();
+      }
+      expect(acceptAnswer(editor)).toEqual({ gone: true });
+      expect(texts(editor)).toEqual(['First', retried ? 'Retried words' : 'Better words', 'Last']);
+      back(editor);
+      expect(texts(editor)).toEqual(['First', 'Last']);
+    }
+  });
+
+  it('puts it before the next block when the deleted block was the first', async () => {
+    const host = writing('Only words', 'Next');
+    const { editor } = host;
+    editor.commands.setSelection(caret('p0', 2));
+    openMenu(editor, targetOfSelection(editor.state)!, false);
+    ask(editor, host.stream, { action: 'continue' });
+    host.last().push('New');
+    await nextFrame();
+    editor.dispatch(new Transaction(editor.state).setOrigin('remote').step(removeBlocksStep(0, 1)));
+    await nextFrame();
+    expect(acceptAnswer(editor)).toEqual({ gone: true });
+    expect(texts(editor)).toEqual(['New', 'Next']);
   });
 });

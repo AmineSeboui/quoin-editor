@@ -9,7 +9,7 @@ import { ASKS_FOR_PROMPT, EMPTY_LINE_ACTIONS, MENU_ACTIONS, type AiAction } from
 import { askFrom, type AiEnv } from './ai-env';
 import { closeMenu } from './ai-flow';
 import type { AiTarget } from './ai-target';
-import { useTargetAnchor } from './use-ai-anchors';
+import { useTargetAnchor } from './use-target-anchor';
 
 type Choice = { readonly action: AiAction; readonly label: string };
 

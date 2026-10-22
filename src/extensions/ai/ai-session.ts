@@ -48,7 +48,7 @@ async function read(editor: AiEditor, link: AiLink, run: AiRun, stream: AiStream
     }
     if (!live()) return;
     end('done');
-    link.written(run.output);
+    link.ended('done', run.output);
   } catch (error) {
     if (!live()) return;
     end('error');
@@ -67,23 +67,37 @@ export function startStream(editor: AiEditor, link: AiLink, stream: AiStream, re
   void read(editor, link, run, stream, request);
 }
 
+function stopped(editor: AiEditor, link: AiLink, key: number, output: string): void {
+  const { ghost } = aiState(editor.state);
+  if (link.mounts === 0 || ghost?.key !== key || ghost.phase !== 'streaming') return;
+  send(editor, { type: 'end', key, phase: 'stopped', output });
+  link.ended('stopped', output);
+}
+
 /**
  * Aborts the stream and keeps what it wrote, chunks not drawn yet among it. An answer still shown as streaming that no
  * stream feeds any more, as after the canvas was unmounted and mounted again, is stopped as it stands.
  */
 export function stopStream(editor: AiEditor, link: AiLink): void {
-  if (link.mounts === 0) return;
   const run = endRun(link);
-  const ghost = aiState(editor.state).ghost;
-  const stopped = run ?? (ghost?.phase === 'streaming' ? { key: ghost.key, output: ghost.output } : null);
-  if (stopped !== null) send(editor, { type: 'end', key: stopped.key, phase: 'stopped', output: stopped.output });
+  const { ghost } = aiState(editor.state);
+  if (run !== null) stopped(editor, link, run.key, run.output);
+  else if (ghost !== null) stopped(editor, link, ghost.key, ghost.output);
 }
 
-/** Aborts the stream once its answer is no longer streaming: discarded, accepted, replaced or its target deleted. */
+/**
+ * Aborts the stream once its answer is no longer streaming: discarded, accepted or replaced. When the target's block is
+ * deleted the stream is aborted at once and the answer stopped with all it wrote, once the change has been committed.
+ */
 export function watchGhost(editor: AiEditor, link: AiLink): () => void {
-  return editor.subscribe((state) => {
+  return editor.subscribe((state, tr) => {
     const { run } = link;
-    const ghost = aiState(state).ghost;
-    if (run !== null && (ghost?.key !== run.key || ghost.phase !== 'streaming')) endRun(link);
+    const { ghost, target } = aiState(state);
+    if (run === null) return;
+    if (ghost?.key !== run.key || ghost.phase !== 'streaming') endRun(link);
+    else if (target?.lost !== undefined && tr !== null && aiState(tr.before).target?.lost === undefined) {
+      endRun(link);
+      queueMicrotask(() => stopped(editor, link, run.key, run.output));
+    }
   });
 }

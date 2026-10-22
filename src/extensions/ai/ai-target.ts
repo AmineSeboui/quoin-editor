@@ -7,7 +7,16 @@ import { primaryRegion, selectedBlockIds } from '../../engine/state/selection';
  * The text an AI request is about, from `from` to `to`. `selected` is false when it is the whole block the caret was
  * in, whose edges then take what is typed at them.
  */
-export type AiTarget = { readonly from: Pos; readonly to: Pos; readonly selected: boolean };
+export type AiTarget = {
+  readonly from: Pos;
+  readonly to: Pos;
+  readonly selected: boolean;
+  /**
+   * Set once a block of the target is deleted: the target is then the edge of the block before it (`after`) or after
+   * it, where the answer goes as blocks of its own.
+   */
+  readonly lost?: { readonly after: boolean };
+};
 
 /** One block's part of a target. */
 export type TargetRange = { readonly block: string; readonly region: string; readonly from: number; readonly to: number };
@@ -36,19 +45,40 @@ export function targetOfSelection(state: EditorState): AiTarget | null {
   return { from: { ...whole, offset: 0 }, to: { ...whole, offset: regionLength(block, from.region) }, selected: false };
 }
 
-/** The target where the transaction moved it, or null when nothing of the document it was in is left. */
+// The edge of the nearest block left on either side of the target's blocks, from the document before the change.
+function edgeOf(tr: Transaction, target: AiTarget): AiTarget | null {
+  const { doc, schema } = tr.before;
+  const first = doc.index.get(target.from.block);
+  const last = doc.index.get(target.to.block);
+  if (first === undefined || last === undefined) return null;
+  const sides = [
+    { block: doc.blocks[first - 1], after: true },
+    { block: doc.blocks[last + 1], after: false },
+  ];
+  for (const { block, after } of sides) {
+    const kept = block && tr.doc.blocks[tr.doc.index.get(block.id) ?? -1];
+    if (!kept) continue;
+    const region = primaryRegion(schema, kept) ?? '';
+    const at = { block: kept.id, region, offset: after && region !== '' ? regionLength(kept, region) : 0 };
+    return { from: at, to: at, selected: true, lost: { after } };
+  }
+  return null;
+}
+
+/** The target where the transaction moved it, or null when nothing of the document around it is left. */
 export function mapTarget(tr: Transaction, target: AiTarget): AiTarget | null {
+  if (!tr.doc.index.has(target.from.block) || !tr.doc.index.has(target.to.block)) return edgeOf(tr, target);
   const inside = target.selected ? 1 : -1;
   const from = tr.mapPos(target.from, inside);
   const mapped = tr.mapPos(target.to, -inside as -1 | 1);
-  if (!tr.doc.index.has(from.block) || !tr.doc.index.has(mapped.block)) return null;
+  if (!tr.doc.index.has(from.block) || !tr.doc.index.has(mapped.block)) return edgeOf(tr, target);
   const to = comparePos(tr.doc, from, mapped) > 0 ? from : mapped;
   return from === target.from && to === target.to ? target : { ...target, from, to };
 }
 
 /** Whether the target's text has all been deleted. */
 export const targetGone = (doc: EngineDoc, target: AiTarget): boolean =>
-  target.selected && comparePos(doc, target.from, target.to) === 0;
+  target.lost !== undefined || (target.selected && comparePos(doc, target.from, target.to) === 0);
 
 /** The parts of a target, block by block, in the region of each it covers. */
 export function targetRanges(state: EditorState, { from, to }: AiTarget): TargetRange[] {

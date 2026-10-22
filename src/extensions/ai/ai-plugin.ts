@@ -15,8 +15,6 @@ export type AiGhost = {
   readonly output: string;
   /** The same, closed so it can be drawn while it streams. */
   readonly shown: string;
-  /** Whether the target's block was deleted, which ends the stream. */
-  readonly lost: boolean;
 };
 
 export type AiState = {
@@ -24,8 +22,8 @@ export type AiState = {
   /** The AI menu, and whether a Space on an empty line opened it. */
   readonly menu: { readonly fromSpace: boolean } | null;
   readonly ghost: AiGhost | null;
-  /** The block the caret is in, once it has held text since the caret arrived. */
-  readonly held: string | null;
+  /** The blocks the caret was in while they held text, since focus last arrived in the canvas. */
+  readonly held: readonly string[];
 };
 
 export type AiAct =
@@ -34,13 +32,14 @@ export type AiAct =
   | { readonly type: 'start'; readonly key: number; readonly replace: boolean }
   | { readonly type: 'stream'; readonly key: number; readonly output: string }
   | { readonly type: 'end'; readonly key: number; readonly phase: AiPhase; readonly output: string }
-  | { readonly type: 'discard' };
+  | { readonly type: 'discard' }
+  | { readonly type: 'focus' };
 
 export const aiKey = createPluginKey<AiState>('ai');
 
 export const AI = 'ai';
 
-const IDLE: AiState = { target: null, menu: null, ghost: null, held: null };
+const IDLE: AiState = { target: null, menu: null, ghost: null, held: [] };
 
 export const aiState = (state: EditorState): AiState => getPluginState(state, aiKey);
 
@@ -59,7 +58,7 @@ function act(value: AiState, action: AiAct): AiState {
     case 'close':
       return value.ghost === null ? { ...value, target: null, menu: null } : { ...value, menu: null };
     case 'start': {
-      const ghost: AiGhost = { key: action.key, replace: action.replace, phase: 'streaming', output: '', shown: '', lost: false };
+      const ghost: AiGhost = { key: action.key, replace: action.replace, phase: 'streaming', output: '', shown: '' };
       return value.target === null ? value : { ...value, menu: null, ghost };
     }
     case 'stream':
@@ -71,6 +70,8 @@ function act(value: AiState, action: AiAct): AiState {
     }
     case 'discard':
       return { ...value, target: null, menu: null, ghost: null };
+    case 'focus':
+      return value.held.length === 0 ? value : { ...value, held: [] };
   }
 }
 
@@ -79,25 +80,29 @@ function caretBlock(state: EditorState): string | null {
   return selection?.kind === 'text' ? selection.head.block : null;
 }
 
-function heldText(tr: Transaction, value: AiState, before: EditorState, after: EditorState): string | null {
-  const block = caretBlock(after);
-  const held = block === caretBlock(before) ? value.held : null;
-  if (!tr.docChanged || block === null || after.selection?.kind !== 'text') return held;
-  const engineBlock = after.doc.blocks[after.doc.index.get(block)!];
-  return regionLength(engineBlock, after.selection.head.region) > 0 ? block : held;
+function hasText(state: EditorState, id: string): boolean {
+  const block = state.doc.blocks[state.doc.index.get(id) ?? -1];
+  return block !== undefined && Object.keys(block.regions).some((region) => regionLength(block, region) > 0);
 }
 
-// The target follows every change, a collaborator's among them. Once its block is gone, the stream ends with what it
-// wrote so far, which Accept puts where the target was.
+// A change to the block the caret is in counts once that block has held text, before or after it, even when the
+// change empties it in one step.
+function heldText(tr: Transaction, value: AiState, before: EditorState, after: EditorState): readonly string[] {
+  if (!tr.docChanged) return value.held;
+  const touched = [caretBlock(before), caretBlock(after)].filter(
+    (id): id is string => id !== null && !value.held.includes(id) && (hasText(before, id) || hasText(after, id)),
+  );
+  return touched.length === 0 ? value.held : [...value.held, ...new Set(touched)];
+}
+
+// The target follows every change, a collaborator's among them. Once one of its blocks is gone it is the edge of a
+// block beside it, and an answer that was streaming is stopped by the session with all it wrote.
 function mapped(tr: Transaction, value: AiState): AiState {
   const { target, ghost } = value;
   if (!tr.docChanged || target === null) return value;
-  const lost = !tr.doc.index.has(target.from.block) || !tr.doc.index.has(target.to.block);
   const moved = mapTarget(tr, target);
-  if (moved === null || (lost && ghost === null)) return { ...value, target: null, menu: null, ghost: null };
-  const next = { ...value, target: moved };
-  if (!lost || ghost === null || ghost.lost) return next;
-  return { ...next, ghost: { ...ghost, lost, phase: ghost.phase === 'streaming' ? 'stopped' : ghost.phase } };
+  if (moved === null || (moved.lost && ghost === null)) return { ...value, target: null, menu: null, ghost: null };
+  return moved === target ? value : { ...value, target: moved };
 }
 
 export const aiPlugin: PluginSpec<AiState> = {

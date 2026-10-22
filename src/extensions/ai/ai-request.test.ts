@@ -73,6 +73,30 @@ describe('the request sent to the host', () => {
   });
 });
 
+describe('the markdown sent to the host', () => {
+  it('has no whitespace entities, only the spaces they stand for', () => {
+    const state = stateOf([md('a', 'Middle words&#32;'), md('b', '&#32;Lead')], range('a', 0, 13));
+    const { selection, context } = request(state);
+    expect(selection).toBe('Middle words ');
+    expect(context).toBe('Middle words \n\n Lead\n');
+  });
+
+  it('keeps an escaped entity the writer typed', () => {
+    const state = stateOf([md('a', 'Write \\&#32; here')], range('a', 0, 5));
+    expect(request(state).context).toBe('Write \\&#32; here\n');
+  });
+
+  it('centres the context on the selection inside a long block, not on the block', () => {
+    const before = Array.from({ length: 60 }, (_, i) => md(`b${i}`, `Before ${i} ${'words '.repeat(15).trim()}`));
+    const long = md('long', `${'filler '.repeat(850)}TARGET ${'filler '.repeat(10)}`.trim());
+    const after = Array.from({ length: 60 }, (_, i) => md(`a${i}`, `After ${i} ${'words '.repeat(15).trim()}`));
+    const state = stateOf([...before, long, ...after], range('long', 5_950, 5_956));
+    const { context } = request(state);
+    expect(context).toContain('TARGET');
+    expect(context).toContain('After 20 ');
+  });
+});
+
 describe('the context window', () => {
   it('never splits a surrogate pair where no block boundary is near', () => {
     const smile = '\ud83d\ude00';

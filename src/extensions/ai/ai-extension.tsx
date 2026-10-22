@@ -4,8 +4,7 @@ import { defineExtension, type Extension } from '../../engine';
 import type { ViewController } from '../../view';
 import type { ExtensionUI } from '../ui-types';
 import type { AiStream } from './ai-actions';
-import { GHOST_WIDGET, aiDecorations } from './ai-decorations';
-import { renderGhost } from './ai-ghost-render';
+import { aiDecorations } from './ai-decorations';
 import { aiBlockMenuItem, aiBubbleItem, aiSlashItems } from './ai-items';
 import { resolveAiLabels, type AiLabels } from './ai-labels';
 import { linkOf } from './ai-link';
@@ -36,7 +35,6 @@ export function aiExtension(options: AiOptions): Extension {
     slashItems: aiSlashItems(labels, stream),
     bubbleItems: [aiBubbleItem(labels)],
     blockMenuItems: [aiBlockMenuItem(labels)],
-    render: { widgets: { [GHOST_WIDGET]: renderGhost } },
     overlays: [Overlay],
   };
   return defineExtension({

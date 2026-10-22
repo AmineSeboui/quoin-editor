@@ -49,6 +49,11 @@ export function stop(editor: AiEditor): void {
   stopStream(editor, linkOf(editor));
 }
 
+/** Focus arrived in the canvas: every line counts as having held no text again. */
+export function noteFocus(editor: AiEditor): void {
+  if (aiState(editor.state).held.length > 0) editor.dispatch(aiTransaction(editor.state, { type: 'focus' }));
+}
+
 export function discard(editor: AiEditor): void {
   editor.dispatch(aiTransaction(editor.state, { type: 'discard' }));
 }

@@ -32,6 +32,8 @@ export type AiLabels = {
   failed: string;
   /** Said once an answer is complete, given its text. */
   written(text: string): string;
+  /** Said once an answer is stopped, given what it wrote. */
+  halted(text: string): string;
   /** Shown when the text the answer was for was deleted meanwhile. */
   targetGone: string;
 };
@@ -67,6 +69,7 @@ export const englishAiLabels: AiLabels = {
   followUp: 'Tell AI what to do next',
   failed: 'AI could not answer',
   written: (text) => `AI response ready: ${text}`,
+  halted: (text) => `Stopped. AI response so far: ${text}`,
   targetGone: 'The text this was for was removed, so Accept inserts it where that text was',
 };
 

@@ -1,6 +1,7 @@
 const FENCE = /^ {0,3}(`{3,}|~{3,})/;
 const MARKER_ONLY = /^\s*(?:[-*+]|\d+[.)]|#{1,6}|>)\s*$/;
 const LINE_PREFIX = /^\s*(?:>\s?)*(?:(?:[-*+]|\d+[.)])\s+(?:\[[ xX]\]\s+)?|#{1,6}\s+)?/;
+const BLOCK_START = /^\s*(?:[-*+]\s|\d+[.)]\s|#{1,6}\s|>)/;
 const OPEN_ADDRESS = /\[([^\]]*)\]\(([^)\s]*)$/;
 const OPEN_TEXT = /\[([^\]]*)$/;
 const DOUBLE = ['**', '__', '~~'];
@@ -95,8 +96,14 @@ export function closeStreaming(markdown: string): string {
   const fence = openFence(lines);
   if (fence !== null) return `${markdown}${markdown.endsWith('\n') ? '' : '\n'}${fence[0].repeat(fence.length)}`;
   const last = lines[lines.length - 1];
-  const head = markdown.slice(0, markdown.length - last.length);
-  if (last.trim() !== '' && MARKER_ONLY.test(last)) return head;
-  const prefix = LINE_PREFIX.exec(last)?.[0] ?? '';
-  return head + prefix + closeInline(last.slice(prefix.length));
+  if (last.trim() !== '' && MARKER_ONLY.test(last)) return markdown.slice(0, markdown.length - last.length);
+  // Inline syntax runs on across the soft line breaks of a paragraph, back to the line its block starts on.
+  let first = lines.length - 1;
+  while (first > 0 && lines[first - 1].trim() !== '' && !FENCE.test(lines[first - 1]) && !BLOCK_START.test(lines[first])) {
+    first--;
+  }
+  const block = lines.slice(first).join('\n');
+  const head = markdown.slice(0, markdown.length - block.length);
+  const prefix = LINE_PREFIX.exec(block)?.[0] ?? '';
+  return head + prefix + closeInline(block.slice(prefix.length));
 }

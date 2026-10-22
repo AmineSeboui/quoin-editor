@@ -34,6 +34,7 @@ describe('the AI labels', () => {
     expect(labels.followUp).toBe('Tell AI what to do next');
     expect(labels.failed).toBe('AI could not answer');
     expect(labels.written('Hello there')).toBe('AI response ready: Hello there');
+    expect(labels.halted('Hello')).toBe('Stopped. AI response so far: Hello');
     expect(labels.targetGone).toBe('The text this was for was removed, so Accept inserts it where that text was');
   });
 

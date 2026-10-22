@@ -1,4 +1,5 @@
 import { commentsExtension, createCommentThreads, type CommentThread } from 'quoin-editor/comments';
+import { sharedCommentThreads } from './shared-threads';
 
 const params = new URLSearchParams(location.search);
 // Stands in for a host's comments service, answering after a delay as a server would.
@@ -24,8 +25,16 @@ const seeded: CommentThread[] = [
   { id: 'orphan', resolved: false, comments: [byAda('o1', 'On deleted text')] },
 ];
 
+// `comments=shared` keeps the threads with the other pages of the collaboration, each page naming its own threads.
+const SHARED = params.get('comments') === 'shared';
+const threadsOf = () =>
+  SHARED
+    ? sharedCommentThreads(params.get('collab') ?? 'quoin')
+    : createCommentThreads(params.get('comments') === 'seeded' ? seeded : []);
+const PREFIX = SHARED ? `${(params.get('user') ?? 'Ada').split(' ')[0].toLowerCase()}-` : '';
+
 export function commentHost() {
-  const threads = createCommentThreads(params.get('comments') === 'seeded' ? seeded : []);
+  const threads = threadsOf();
   let next = 0;
   const update = (id: string, change: (thread: CommentThread) => CommentThread | null) =>
     threads.set(threads.get().flatMap((thread) => (thread.id === id ? (change(thread) ?? []) : [thread])));
@@ -34,7 +43,7 @@ export function commentHost() {
     currentUser: { id: 'grace', name: 'Grace Hopper' },
     onCreate: () =>
       later(() => {
-        const id = `t${++next}`;
+        const id = `${PREFIX}t${++next}`;
         threads.set([...threads.get(), { id, resolved: false, comments: [] }]);
         return id;
       }),

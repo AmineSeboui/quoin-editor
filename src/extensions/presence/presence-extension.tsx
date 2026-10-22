@@ -1,5 +1,6 @@
 'use client';
 
+import { devWarn } from '../../dev-warn';
 import { defineExtension, type Extension } from '../../engine';
 import type { ViewController } from '../../view';
 import { sharedOf } from '../../yjs/bound';
@@ -14,6 +15,8 @@ import { startPresence } from './presence-session';
 import { RemoteCarets } from './RemoteCarets';
 import { usePresenceActivity } from './use-presence-activity';
 import { usePresenceAnnouncements } from './use-presence-announcements';
+
+const UNBOUND = 'presenceExtension shares nothing without collaborationExtension.';
 
 export type PresenceOptions = {
   /** Every string presence shows or speaks, English by default. A key left out stays English. */
@@ -49,6 +52,7 @@ export function presenceExtension(collaboration: YjsCollaboration, options: Pres
     decorations: presenceDecorations,
     onMount(editor) {
       const link = linkOf(editor);
+      if (sharedOf(collaboration, editor) === null) devWarn(UNBOUND);
       const session = startPresence(editor, collaboration, awareness, link, () => sharedOf(collaboration, editor));
       link.session = session;
       return () => {

@@ -7,6 +7,7 @@ import type { Transaction } from '../engine/state/transaction';
 import { replaceDocStep } from '../engine/transform/replace-doc-step';
 import { holdSelection, restoreSelection, type HeldSelection } from './carets';
 import { writeLocalSteps } from './local-to-yjs';
+import { ownChange } from './own-change';
 import { readShared } from './read-shared';
 import { requiredRegions } from './required-regions';
 import { seedOrLoad, type Seed } from './seed';
@@ -43,15 +44,19 @@ export function bind(
   const history = undoHistory(text, origins.local);
   const ours = (origin: unknown) => origin === origins.local || origin === origins.untracked;
   let held: HeldSelection = null;
+  const written = new WeakSet<Transaction>();
   const hold = (transaction: Y.Transaction) => {
     if (!ours(transaction.origin)) held = holdSelection(text, shared.layout, editor.state.selection);
   };
   const observer = (events: Y.YEvent<Y.AbstractType<unknown>>[], transaction: Y.Transaction) => {
     if (ours(transaction.origin)) return;
     const { steps, structural } = readRemote(shared, events, editor.state.doc);
-    const undoing = transaction.origin === history.manager;
-    const hint = undoing ? history.hint() : structural ? restoreSelection(text, shared.layout, held) : null;
-    if (steps.length > 0) applyRemote(editor, steps, hint);
+    if (steps.length === 0) return;
+    if (transaction.origin !== history.manager)
+      return applyRemote(editor, steps, structural ? restoreSelection(text, shared.layout, held) : null);
+    const tr = ownChange(editor, steps, history.hint());
+    written.add(tr);
+    editor.dispatch(tr);
   };
   // A change written over a text that is out of shape can read back as another document: the editor takes that one.
   const settle = () => {
@@ -67,6 +72,7 @@ export function bind(
     history,
     shared,
     local(tr) {
+      if (written.has(tr)) return;
       history.record(tr);
       if (!tr.docChanged) return;
       const docs = [...tr.docs, tr.doc];

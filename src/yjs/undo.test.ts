@@ -116,6 +116,24 @@ describe('undo through the shared document', () => {
     expect(one.editor.can().undo()).toBe(false);
   });
 
+  it("reaches the editor as this client's own history, not as a collaborator's change, and is not written back", () => {
+    const { one, two, flush } = twoPeers();
+    one.editor.commands.setSelection(caret('a', 5));
+    one.editor.insertText('!');
+    flush();
+    const origins: (string | undefined)[] = [];
+    one.editor.subscribe((_, tr) => origins.push(tr?.origin));
+    one.editor.commands.undo();
+    one.editor.commands.redo();
+    one.editor.commands.undo();
+    flush();
+    expect(origins).toEqual(['history', 'history', 'history']);
+    expect(one.editor.getBlocks()).toEqual([md('a', 'hello'), md('b', 'world')]);
+    expect(two.editor.getBlocks()).toEqual(one.editor.getBlocks());
+    expect(one.editor.can().redo()).toBe(true);
+    expect(one.editor.state.selection).toEqual(caret('a', 5));
+  });
+
   it('has nothing to undo while disconnected', () => {
     const { one } = twoPeers();
     one.editor.commands.setSelection(caret('a', 5));

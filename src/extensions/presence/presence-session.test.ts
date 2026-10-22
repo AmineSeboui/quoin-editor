@@ -72,6 +72,18 @@ describe('the local selection written to awareness', () => {
     });
   });
 
+  it('shares the caret an undo of this client puts back, as its own move', () => {
+    const peer = presencePeer(new Y.Doc(), 1, [md('a', 'hello world')], ada);
+    peer.activate();
+    peer.editor.commands.setSelection(caret('a', 5));
+    peer.editor.insertText('!');
+    peer.editor.commands.setSelection(caret('a', 2));
+    vi.advanceTimersByTime(60);
+    peer.editor.commands.undo();
+    vi.advanceTimersByTime(60);
+    expect(peer.awareness.getLocalState()?.selection).toMatchObject({ head: at(5) });
+  });
+
   it('clears the selection and stops listening when unmounted, with no timer left behind', () => {
     const peer = presencePeer(new Y.Doc(), 1, [md('a', 'hello world')], ada);
     peer.activate();

@@ -53,6 +53,24 @@ describe('QuoinDiff with nesting', () => {
     );
   });
 
+  it('keeps a removed child of a kept item under that item, not under the removed item before it', () => {
+    const html = diff([md('a', '- A'), md('b', '- B'), md('c', '- C', 1), md('c1', '- C1', 2)], [md('a', '- A'), md('c', '- C', 1)]);
+    expect(html).toBe(
+      `<div class="quoin-diff"><ul><li>A<ul><li>C<ul><li data-diff="removed">${label('Removed')} C1</li></ul></li></ul></li>` +
+        `<li data-diff="removed">${label('Removed')} B</li></ul></div>`,
+    );
+  });
+
+  it('keeps the depth of kept blocks nested more than one level under a removed toggle or item', () => {
+    const toggled = diff([toggle('t', 'T'), md('c', 'child', 1), md('g', 'grandchild', 2)], [md('c', 'child', 1), md('g', 'grandchild', 2)]);
+    expect(toggled).toMatch(/^<div class="quoin-diff"><p data-indent="1">child<\/p><p data-indent="2">grandchild<\/p><div data-diff="removed">/);
+    const listed = diff(
+      [md('a', '- A'), md('b', '- B'), md('c', '- C', 1), md('d', '- D', 2)],
+      [md('a', '- A'), md('c', '- C', 1), md('d', '- D', 2)],
+    );
+    expect(listed).toMatch(/^<div class="quoin-diff"><ul><li>A<ul><li>C<ul><li>D<\/li><\/ul><\/li><\/ul><\/li><li data-diff="removed">/);
+  });
+
   it('shows the deleted rows and columns of a table as deleted words, as it shows added ones as inserted', () => {
     const removed = diff([table([['a', 'b', 'x'], ['one', 'two', 'y'], ['secret', 'row', 'z']])], [table([['a', 'b'], ['one', 'two']])]);
     expect(removed).toContain(`<th>${del('x')}</th>`);

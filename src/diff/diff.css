@@ -40,3 +40,8 @@
   background-color: var(--quoin-bg-red);
   text-decoration: line-through;
 }
+
+.quoin-diff ins a[href],
+.quoin-diff del a[href] {
+  color: inherit;
+}

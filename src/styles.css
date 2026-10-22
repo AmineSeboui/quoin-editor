@@ -30,6 +30,7 @@
 @import "./extensions/presence/presence.css" layer(quoin.components);
 @import "./extensions/ai/ai.css" layer(quoin.components);
 @import "./extensions/comments/comments.css" layer(quoin.components);
+@import "./view-static/static-links.css" layer(quoin.components);
 @import "./diff/diff.css" layer(quoin.components);
 @import "./ui/palette.css" layer(quoin.components);
 

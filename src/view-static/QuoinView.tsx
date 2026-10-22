@@ -40,5 +40,5 @@ export type QuoinViewProps = {
 export function QuoinView({ blocks, blockTypes, highlight, className, ...options }: QuoinViewProps) {
   const slots = new Map<HtmlElement, ReactNode>();
   const nodes = documentNodes(blocks, options, viewRenderer({ blockTypes, highlight }, slots));
-  return createElement('div', { className }, ...reactNodes(nodes, slots));
+  return createElement('div', { className: className ? `quoin-view ${className}` : 'quoin-view' }, ...reactNodes(nodes, slots));
 }

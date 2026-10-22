@@ -26,7 +26,7 @@ export const diffBefore: QuoinBlock[] = [
 export const diffAfter: QuoinBlock[] = [
   md('title', '# Release notes'),
   md('edited-mover', 'This one moved and changed.'),
-  md('intro', 'The **slow** brown fox jumps high.'),
+  md('intro', 'The **slow** brown fox jumps [high](https://quoin.dev).'),
   md('added', 'A brand new paragraph.'),
   md('b1', '- first item'),
   md('b2', '- second entry'),

@@ -30,7 +30,7 @@ describeBuilt('the built view entry', ['view.js', 'engine.js'], () => {
       },
     });
     const { view, html } = JSON.parse(output);
-    expect(view).toBe(`<div>${html}</div>`);
+    expect(view).toBe(`<div class="quoin-view">${html}</div>`);
   });
 
   it('loads no module of the canvas, the client view or React DOM', () => {

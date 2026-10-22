@@ -23,7 +23,7 @@ const blockTypes = [
 const html = renderToString(createElement(QuoinView, { blocks, blockTypes, className: 'doc' }));
 const expected = toHTML(blocks).replace('<div data-type="CHART"></div>', '<div data-type="CHART"><output>3</output></div>');
 const written = html.replace(/<input ([^>]*)\/>/g, '<input $1>').replace(/ (disabled|open)=""/g, ' $1');
-if (written !== `<div class="doc">${expected}</div>`) errors.push(`QuoinView wrote\n${html}\ninstead of\n${expected}`);
+if (written !== `<div class="quoin-view doc">${expected}</div>`) errors.push(`QuoinView wrote\n${html}\ninstead of\n${expected}`);
 if (errors.length > 0) {
   process.stderr.write(`${errors.join('\n\n')}\n`);
   process.exit(1);

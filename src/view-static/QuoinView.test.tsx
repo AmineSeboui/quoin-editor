@@ -8,13 +8,13 @@ import { QuoinView } from './QuoinView';
 import { canonicalHtml } from './test-support/canonical-html';
 import { everyBlockDocument, everyBlockOptions } from './test-support/every-block-document';
 
-const wrapped = (html: string, className = 'doc') => canonicalHtml(`<div class="${className}">${html}</div>`);
+const wrapped = (html: string, className = 'doc') => canonicalHtml(`<div class="quoin-view ${className}">${html}</div>`);
 
 describe('QuoinView', () => {
   it('renders where no document or window exists', () => {
     expect(typeof document).toBe('undefined');
     expect(typeof window).toBe('undefined');
-    expect(renderToString(<QuoinView blocks={[]} />)).toBe('<div></div>');
+    expect(renderToString(<QuoinView blocks={[]} />)).toBe('<div class="quoin-view"></div>');
   });
 
   it('renders the HTML toHTML writes for a document of every block, mark and atom', () => {
@@ -46,7 +46,7 @@ describe('QuoinView', () => {
     const html = renderToString(<QuoinView blocks={blocks} />);
     expect(html).not.toContain('<link');
     expect(html.match(/<img [^>]*loading="lazy" decoding="async"/g)).toHaveLength(14);
-    expect(canonicalHtml(html)).toBe(canonicalHtml(`<div>${toHTML(blocks)}</div>`));
+    expect(canonicalHtml(html)).toBe(canonicalHtml(`<div class="quoin-view">${toHTML(blocks)}</div>`));
   });
 
   it('calls no hook, so it renders as a server component outside any React renderer', () => {
@@ -66,18 +66,18 @@ describe('QuoinView', () => {
       },
     ];
     expect(renderToStaticMarkup(<QuoinView blocks={blocks} blockTypes={blockTypes} />)).toBe(
-      '<div><div data-type="CHART" data-indent="1"><figure data-chart="chart">1,2</figure></div></div>',
+      '<div class="quoin-view"><div data-type="CHART" data-indent="1"><figure data-chart="chart">1,2</figure></div></div>',
     );
     const noPreview = [{ type: 'CHART', label: 'Chart', icon: () => null, editor: () => null }];
     expect(renderToStaticMarkup(<QuoinView blocks={blocks} blockTypes={noPreview} />)).toBe(
-      `<div>${toHTML(blocks)}</div>`,
+      `<div class="quoin-view">${toHTML(blocks)}</div>`,
     );
   });
 
   it('keeps drawing the blocks Quoin renders itself when a definition shares their type', () => {
     const blocks = [{ id: 'd', type: 'DIVIDER', data: {} }];
     const blockTypes = [{ type: 'DIVIDER', label: 'Rule', icon: () => null, preview: () => <b>rule</b> }];
-    expect(renderToStaticMarkup(<QuoinView blocks={blocks} blockTypes={blockTypes} />)).toBe('<div><hr/></div>');
+    expect(renderToStaticMarkup(<QuoinView blocks={blocks} blockTypes={blockTypes} />)).toBe('<div class="quoin-view"><hr/></div>');
   });
 
   it('highlights code with the tokens of the highlighter, and draws plain code when they misspell it', () => {
@@ -85,12 +85,12 @@ describe('QuoinView', () => {
     const highlight = (code: string) =>
       code.split('\n').map((line) => [{ text: line.slice(0, 1), color: 'red' }, { text: line.slice(1), className: 'k' }]);
     expect(renderToStaticMarkup(<QuoinView blocks={blocks} highlight={highlight} />)).toBe(
-      '<div><pre><code class="language-ts"><span style="color:red">l</span><span class="k">et a</span>\n' +
+      '<div class="quoin-view"><pre><code class="language-ts"><span style="color:red">l</span><span class="k">et a</span>\n' +
         '<span style="color:red">&lt;</span><span class="k">b&gt;</span></code></pre></div>',
     );
     const misspelt = () => [[{ text: 'nope' }]];
     expect(renderToStaticMarkup(<QuoinView blocks={blocks} highlight={misspelt} />)).toBe(
-      `<div>${toHTML(blocks)}</div>`,
+      `<div class="quoin-view">${toHTML(blocks)}</div>`,
     );
   });
 
@@ -99,7 +99,7 @@ describe('QuoinView', () => {
     const colours = ['red;background-image:url(https://t.example/x)', '#0a0B0c', 'var(--shiki-token-keyword)', 'rgb(1 2 3 / 50%)'];
     const highlight = (code: string) => [[...code].map((text, at) => ({ text, color: colours[at] }))];
     expect(renderToStaticMarkup(<QuoinView blocks={blocks} highlight={highlight} />)).toBe(
-      '<div><pre><code><span>a</span><span style="color:#0a0B0c">b</span>' +
+      '<div class="quoin-view"><pre><code><span>a</span><span style="color:#0a0B0c">b</span>' +
         '<span style="color:var(--shiki-token-keyword)">c</span><span style="color:rgb(1 2 3 / 50%)">d</span></code></pre></div>',
     );
   });
@@ -111,7 +111,7 @@ describe('QuoinView', () => {
     ];
     const renderMath = (latex: string, { displayMode }: { displayMode: boolean }) => `<k data-d="${displayMode}">${latex}</k>`;
     expect(renderToStaticMarkup(<QuoinView blocks={blocks} renderMath={renderMath} />)).toBe(
-      '<div><div data-math=""><k data-d="true">x</k></div><p>a <span data-math=""><k data-d="false">y</k></span> b</p></div>',
+      '<div class="quoin-view"><div data-math=""><k data-d="true">x</k></div><p>a <span data-math=""><k data-d="false">y</k></span> b</p></div>',
     );
   });
 });

@@ -1,6 +1,6 @@
 import { createSchema, type EngineDoc, type Schema } from '../../engine';
 import { headingId } from '../../engine/render/headings';
-import { collectHeadings } from '../../engine/render/toc-html';
+import { collectHeadings } from '../../engine/render/toc-node';
 
 /** A heading of the document, as a table of contents lists it. */
 export type TocHeading = {

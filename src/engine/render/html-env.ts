@@ -1,7 +1,8 @@
-import type { Inline } from '../model/types';
+import type { EngineBlock, Inline } from '../model/types';
 import type { EmbedProvider } from './embed-provider';
 import type { Heading } from './headings';
-import { inlineToHTML } from './inline-to-html';
+import type { HtmlNode } from './html-node';
+import { inlineNodes } from './inline-nodes';
 
 export type HtmlEnv = {
   readonly resolveAssetUrl: (storageKey: string) => string | null;
@@ -13,8 +14,11 @@ export type HtmlEnv = {
 
 export type BlockView = {
   readonly excess: number;
-  readonly children: string;
+  readonly children: HtmlNode[];
 };
 
-export const inlineHTML = (inline: Inline | undefined, env: HtmlEnv): string =>
-  inlineToHTML(inline ?? [], { renderMath: env.renderMath });
+/** Draws one block; the nodes of the blocks it owns arrive as `view.children`. */
+export type BlockRenderer = (block: EngineBlock, view: BlockView, env: HtmlEnv) => HtmlNode;
+
+export const inlineOf = (inline: Inline | undefined, env: HtmlEnv): HtmlNode[] =>
+  inlineNodes(inline ?? [], { renderMath: env.renderMath });

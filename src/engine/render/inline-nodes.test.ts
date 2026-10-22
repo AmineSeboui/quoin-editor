@@ -1,8 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import { atom, text } from '../model/inline';
-import type { Mark } from '../model/types';
+import type { Inline, Mark } from '../model/types';
 import { escapeAttr, escapeHtml } from './escape-html';
-import { inlineToHTML } from './inline-to-html';
+import { inlineNodes, type InlineHtmlOptions } from './inline-nodes';
+import { serializeHtml } from './serialize-html';
+
+const inlineToHTML = (inline: Inline, options?: InlineHtmlOptions) => serializeHtml(inlineNodes(inline, options));
 
 const bold: Mark = { type: 'bold' };
 const italic: Mark = { type: 'italic' };
@@ -14,7 +17,7 @@ describe('escaping', () => {
   });
 });
 
-describe('inlineToHTML', () => {
+describe('inline nodes written as HTML', () => {
   it('escapes text and turns line breaks into br', () => {
     expect(inlineToHTML([text('a<b & "c"\nd')])).toBe('a&lt;b &amp; "c"<br>d');
     expect(inlineToHTML([])).toBe('');

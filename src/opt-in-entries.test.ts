@@ -3,6 +3,10 @@ import { packageEntries } from '../scripts/package-entries.mjs';
 const PINNED: Readonly<Record<string, { load: () => Promise<object>; exports: readonly string[] }>> = {
   yjs: { load: () => import('./yjs'), exports: ['yjsCollaboration', 'collaborationExtension', 'applyRemote'] },
   presence: { load: () => import('./presence'), exports: ['presenceExtension', 'englishPresenceLabels'] },
+  comments: {
+    load: () => import('./comments'),
+    exports: ['commentsExtension', 'createCommentThreads', 'englishCommentsLabels'],
+  },
   table: {
     load: () => import('./table'),
     exports: [

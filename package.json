@@ -97,6 +97,16 @@
         "default": "./dist/presence.cjs"
       }
     },
+    "./comments": {
+      "import": {
+        "types": "./dist/comments.d.ts",
+        "default": "./dist/comments.js"
+      },
+      "require": {
+        "types": "./dist/comments.d.cts",
+        "default": "./dist/comments.cjs"
+      }
+    },
     "./table": {
       "import": {
         "types": "./dist/table.d.ts",

@@ -104,6 +104,11 @@ const docs: Record<string, QuoinBlock[]> = {
     ...section('setup', 2, 'Setting up'),
     ...section('usage', 3, 'Using it'),
   ],
+  comments: [
+    { id: 'p', type: 'MARKDOWN', data: { markdown: 'A first paragraph to comment on.' } },
+    { id: 'q', type: 'MARKDOWN', data: { markdown: 'Ask <span data-comment="seeded">about this</span> here.' } },
+    { id: 'r', type: 'MARKDOWN', data: { markdown: 'The last paragraph.' } },
+  ],
   sample: [
     { id: 'a', type: 'MARKDOWN', data: { markdown: '# Title' } },
     { id: 'b', type: 'MARKDOWN', data: { markdown: 'First paragraph.' } },

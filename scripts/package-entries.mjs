@@ -49,6 +49,8 @@ export const packageEntries = [
   { name: 'yjs', source: 'src/yjs.ts', client: false, added: incrementalBudget(8_044) },
   // Collaborators drawn in the canvas: a client entry, apart from the adapter, which a worker or a server can load alone.
   { name: 'presence', source: 'src/presence.ts', client: true, added: incrementalBudget(4_305) },
+  // Threads the host keeps, which no catalogue option could carry, so it stays out of the catalogue as presence does.
+  { name: 'comments', source: 'src/comments.ts', client: true, added: incrementalBudget(6_162) },
   ...featureEntries,
   { name: 'catalogue', source: 'src/catalogue.ts', client: true, added: incrementalBudget(28_865) },
 ];

@@ -25,7 +25,7 @@ Quoin needs React 18.2 or later (React 19 is supported) and TypeScript 5.4 or la
 
 **Tailwind is not required, and either major version works.** See [Tailwind, or no Tailwind](#tailwind-or-no-tailwind) for the one thing a v4 host has to do.
 
-Quoin depends on five Radix primitives, `lucide-react` for its icons, and `clsx` for class composition. A page downloads only the entries it imports: the canvas, `quoin-editor`, is held under 155 kB gzip, `quoin-editor/headless` under 70 kB and `quoin-editor/engine` under 52 kB. Each opt-in feature adds between about 1.7 kB (stats, or the table of contents) and 9.5 kB (tables) to the canvas, all of them together about 29 kB, and the emoji dataset, about 42 kB, loads only when the `:` menu or the emoji picker first opens. Collaboration, `quoin-editor/yjs`, adds about 8 kB and needs `yjs` installed beside it, an optional peer dependency; showing collaborators, `quoin-editor/presence`, adds about 4 kB more. The npm tarball is larger, about 1.6 MB, because it carries ESM and CommonJS builds with their sourcemaps. If you want the text editing and none of the UI, [`quoin-editor/headless`](#headless) has no component or UI library dependency at all.
+Quoin depends on five Radix primitives, `lucide-react` for its icons, and `clsx` for class composition. A page downloads only the entries it imports: the canvas, `quoin-editor`, is held under 155 kB gzip, `quoin-editor/headless` under 70 kB and `quoin-editor/engine` under 52 kB. Each opt-in feature adds between about 1.7 kB (stats, or the table of contents) and 9.5 kB (tables) to the canvas, all of them together about 29 kB, and the emoji dataset, about 42 kB, loads only when the `:` menu or the emoji picker first opens. Collaboration, `quoin-editor/yjs`, adds about 8 kB and needs `yjs` installed beside it, an optional peer dependency; showing collaborators, `quoin-editor/presence`, adds about 4 kB more, and comments, `quoin-editor/comments`, about 6 kB. The npm tarball is larger, about 1.6 MB, because it carries ESM and CommonJS builds with their sourcemaps. If you want the text editing and none of the UI, [`quoin-editor/headless`](#headless) has no component or UI library dependency at all.
 
 ## Quickstart
 
@@ -704,6 +704,54 @@ export function useSharedExtensions(doc: Y.Doc, awareness: YjsAwareness) {
 
 Each client writes `{ user: { name, color }, selection }` to its awareness state, the selection's ends given by block id, region and offset with a Yjs relative position beside them, so a caret stays on its character while others type before it. The selection is written at most every 50 ms, and only while the canvas is focused and editable: on blur or in read-only it is cleared, so others stop showing it. Carets are drawn over the text rather than in it, so they never change how your own caret moves, what you select, copy or compose; they are hidden from assistive technology and take no pointer or focus. A collaborator's name fades after 2 seconds without a move, and a long name is cut short with an ellipsis (the avatars' accessible name keeps it whole). The avatars' gutter takes 24 px at the end of every line of a canvas with presence, whether or not anyone else is there, so the text never reflows as people come and go; leave room for it in a narrow layout. A name label that reaches the canvas's side is cut off there, and a caret in a part of the document that scrolls on its own, such as a wide table, stays inside it and scrolls with it. Nothing a collaborator does scrolls the page or moves the focus, and an announcement stays in the live region until you, not a collaborator, change something. Strings come from `PresenceLabels` (English in `englishPresenceLabels`), overridden through `presenceExtension(collaboration, { labels })`.
 
+### Comments
+
+`quoin-editor/comments` anchors comment threads to text. The threads are yours: Quoin stores only the anchor, a `comment` mark whose `id` is the thread's (`<span data-comment="t1">` in markdown), and asks your callbacks for everything else. Keep the threads in a store from `createCommentThreads(initial)` and call its `set(threads)` whenever your copy changes, after a reply is saved or when a collaborator resolves a thread; the canvas follows without a remount.
+
+```tsx
+import { BlockCanvas, type QuoinBlock } from 'quoin-editor';
+import { commentsExtension, createCommentThreads, type CommentThread } from 'quoin-editor/comments';
+import { useState } from 'react';
+
+type Props = {
+  blocks: QuoinBlock[];
+  onChange: (next: QuoinBlock[]) => void;
+  initial: CommentThread[];
+  saveReply: (threadId: string, body: string) => Promise<CommentThread[]>;
+};
+
+export function ReviewedEditor({ blocks, onChange, initial, saveReply }: Props) {
+  const [threads] = useState(() => createCommentThreads(initial));
+  const [extensions] = useState(() => [
+    commentsExtension({
+      threads,
+      currentUser: { id: 'u1', name: 'Ada Lovelace' },
+      onCreate: async () => {
+        const thread: CommentThread = { id: crypto.randomUUID(), resolved: false, comments: [] };
+        threads.set([...threads.get(), thread]);
+        return thread.id;
+      },
+      onReply: async (threadId, body) => threads.set(await saveReply(threadId, body)),
+      onResolve: async (threadId) => {
+        threads.set(threads.get().map((t) => (t.id === threadId ? { ...t, resolved: true } : t)));
+      },
+      onDelete: async (threadId) => {
+        threads.set(threads.get().filter((t) => t.id !== threadId));
+      },
+    }),
+  ]);
+  return <BlockCanvas blocks={blocks} onChange={onChange} extensions={extensions} />;
+}
+```
+
+The bubble toolbar's Comment button, or Mod+Alt+M, calls `onCreate({ anchorText, blockId })` for the selected text (`blockId` is the first block of a selection across blocks). While it is pending the text is drawn as a pending anchor, which follows any edits made meanwhile; when it resolves with an id, the `comment` mark is added over that text in one undo step, a part in each block of a selection across blocks, and, if the selection has not moved since, the new thread opens with focus in its field for the first comment, which goes to `onReply`. When it rejects, the pending anchor goes and the canvas's `onError` hears why.
+
+Anchors are tinted with `--quoin-comment`, translucent so that overlapping threads stack deeper, and the anchor of the open thread with the stronger `--quoin-comment-active`; body text reads at 4.5:1 on both in the light and dark themes. Clicking an anchor opens its thread in a popover beside it, or a list to choose from where several threads overlap, without taking focus from the text, so typing goes on where the click put the caret. Mod+Alt+M with the caret in an anchor opens it with focus in its reply field. The popover is a dialog that leaves the canvas editable; Escape closes it and, when focus was inside, gives focus back to the text. An anchor whose thread your store does not know, or has resolved, is drawn as a plain tint and opens nothing.
+
+On a canvas 800 px wide or more the open threads are listed beside the text, each level with the block its text starts in and pushed down when they would overlap; positions follow edits, resizes and loading images, and nothing scrolls the page. A thread opens in place in the list, and Escape folds it back. On a narrower canvas a small button beside each block with threads, and one after them, opens a sheet over the foot of the page that lists them. The room is reserved at the end of every line whenever comments are on, so the threads never cover the text: 272 px on a wide canvas, 36 px on a narrow one, and presence's 24 px gutter sits inside it. Threads whose text has all been deleted are listed after the others as "Text removed", and can still be resolved or deleted.
+
+Resolve and Delete call `onResolve` or `onDelete`, then take the thread's marks off in one undo step. Undo puts the marks back, and the thread stays as your host left it: a resolved thread's anchor comes back as a plain tint. A failed call goes to `onError` and leaves the document unchanged. A read-only canvas shows threads and takes replies but has no Resolve or Delete, since those change the document. Bodies are drawn as plain text with their line breaks, never as markdown or HTML; Mod+Enter or Send sends a reply. With `quoin-editor/yjs`, anchors reach collaborators like any other mark, and their threads come from each client's own store. Strings come from `CommentsLabels` (English in `englishCommentsLabels`), overridden through `commentsExtension({ labels })`.
+
 ## Read-only
 
 ```tsx
@@ -814,7 +862,7 @@ Point the prefixed names at your own in one block on `.quoin`. The canvas root c
 }
 ```
 
-`--quoin-info`, `--quoin-success` and `--quoin-warning` arrived in 0.4.0 and are read only by the callout block, for its rule and the wash behind it, never for type. If your own theme has no equivalent, leave those three out of the block and the defaults above stand; the rest of the editor does not touch them.
+`--quoin-info`, `--quoin-success` and `--quoin-warning` arrived in 0.4.0 and are read only by the callout block, for its rule and the wash behind it, never for type. If your own theme has no equivalent, leave those three out of the block and the defaults above stand; the rest of the editor does not touch them. `--quoin-comment` and `--quoin-comment-active` arrived with comments and tint the text threads are anchored to; give them washes your body text reads well on.
 
 `--quoin-ring` colours the keyboard focus outline, which is solid and drawn at full strength, so it should reach 3:1 against both `--quoin-background` and `--quoin-popover`. A pale value, such as the grey many shadcn themes keep for `--ring`, fails that, so give `--quoin-ring` a value of its own that does.
 
@@ -945,6 +993,8 @@ From `quoin-editor/stats`: `statsExtension`, its `StatsOptions`, `StatsLabels` a
 From `quoin-editor/yjs`: `yjsCollaboration` with its `YjsCollaborationOptions`, `YjsCollaboration`, `CollaborationUser`, `YjsAwareness` and `Seed` types, and `collaborationExtension`, `applyRemote` and the `CollaborationAdapter` and `CollaborationHistory` types for an adapter of your own. Like the engine entry it has no `'use client'` banner and needs no DOM.
 
 From `quoin-editor/presence`: `presenceExtension` with its `PresenceOptions` and `PresenceLabels` types, and `englishPresenceLabels`.
+
+From `quoin-editor/comments`: `commentsExtension` with its `CommentsOptions` and `CommentsLabels` types, `englishCommentsLabels`, and `createCommentThreads` with the `CommentThreads`, `CommentThread`, `ThreadComment`, `CommentAuthor` and `CommentUser` types.
 
 From `quoin-editor/catalogue`: `catalogue`, every opt-in feature at once.
 

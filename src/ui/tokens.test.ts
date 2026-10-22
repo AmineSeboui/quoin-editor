@@ -2,6 +2,7 @@ import css from './tokens.css?raw';
 import viewCss from '../view/view.css?raw';
 import stylesCss from '../styles.css?raw';
 import inputSource from './input.tsx?raw';
+import commentsCss from '../extensions/comments/comments.css?raw';
 import { TONE } from '../blocks/previews';
 import { PALETTE } from '../engine/markdown/palette';
 import { contrastOnWash, contrastRatio, tokenReader, type Theme } from './oklch-contrast';
@@ -39,6 +40,9 @@ function fieldBorder(source: string): string {
 const FIELD_BORDERS = [{ field: 'input', token: fieldBorder(inputSource) }];
 
 const FIELD_SURFACES = ['background', 'popover', 'accent'];
+
+/** How opaque the comments stylesheet paints the tint of an anchor. */
+const ANCHOR_ALPHA = Number(/var\(--quoin-comment\) (\d+)%, transparent\);\n\}/.exec(commentsCss)![1]) / 100;
 
 /** The surface behind a highlighted row in a menu, a select and the palette. */
 const HIGHLIGHT = 'accent';
@@ -90,6 +94,20 @@ describe.each<Theme>(['light', 'dark'])('%s theme', (theme) => {
   it.each(WASHES)('writes a placeholder at 4.5:1 or more on the $name wash of a callout', ({ name, alpha }) => {
     const ratio = contrastOnWash(token(theme, PLACEHOLDER), token(theme, name), alpha, token(theme, 'background'));
     expect(ratio).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('keeps body text at 4.5:1 or more on a comment anchor, on two stacked, and on the active one', () => {
+    const [text, wash, page] = [token(theme, 'foreground'), token(theme, 'comment'), token(theme, 'background')];
+    expect(contrastOnWash(text, wash, ANCHOR_ALPHA, page)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastOnWash(text, wash, 1 - (1 - ANCHOR_ALPHA) ** 2, page)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(theme, 'foreground', 'comment-active')).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('draws the active anchor stronger than the others, and two stacked anchors stronger than one', () => {
+    const [wash, page] = [token(theme, 'comment'), token(theme, 'background')];
+    const one = contrastOnWash(page, wash, ANCHOR_ALPHA, page);
+    expect(contrastOnWash(page, wash, 1 - (1 - ANCHOR_ALPHA) ** 2, page)).toBeGreaterThan(one);
+    expect(contrast(theme, 'comment-active', 'background')).toBeGreaterThan(one * 1.1);
   });
 
   it('draws the highlight bar at 3:1 or more against the row and its popover', () => {

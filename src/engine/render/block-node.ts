@@ -3,7 +3,7 @@ import type { EngineBlock } from '../model/types';
 import { alignAttr, colorAttrs, indentAttr } from './block-attrs';
 import { headingId, headingLevel } from './headings';
 import { inlineOf, type BlockView, type HtmlEnv } from './html-env';
-import { element, type Attr, type HtmlNode } from './html-node';
+import { element, nodeText, type Attr, type HtmlNode } from './html-node';
 import { bookmarkNode, embedNode, fileNode, imageNode } from './media-nodes';
 import { tableNode } from './table-node';
 import { tocNode } from './toc-node';
@@ -20,7 +20,12 @@ function lineNode(block: EngineBlock, view: BlockView, env: HtmlEnv): HtmlNode {
       return element('li', style, [...body, ...view.children]);
     case 'task': {
       const checked = block.attrs.checked === true;
-      const box = element('input', [['type', 'checkbox'], ['disabled', true], ['checked', checked || undefined]]);
+      const box = element('input', [
+        ['type', 'checkbox'],
+        ['disabled', true],
+        ['checked', checked || undefined],
+        ['aria-label', nodeText(body) || undefined],
+      ]);
       return element('li', [['data-checked', String(checked)], ...style], [box, ' ', ...body, ...view.children]);
     }
     default:
@@ -32,7 +37,8 @@ function calloutNode(block: EngineBlock, view: BlockView, env: HtmlEnv): HtmlNod
   const icon = str(block.attrs.icon);
   const mark = icon === '' ? [] : [element('span', [['data-icon', '']], [icon])];
   const body = element('p', [], inlineOf(block.regions.body, env));
-  return element('aside', [['data-tone', str(block.attrs.tone)], indentAttr(view.excess)], [...mark, body]);
+  const attrs: Attr[] = [['role', 'note'], ['data-tone', str(block.attrs.tone)], indentAttr(view.excess)];
+  return element('aside', attrs, [...mark, body]);
 }
 
 function codeNode(block: EngineBlock, view: BlockView): HtmlNode {

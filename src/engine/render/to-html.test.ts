@@ -25,7 +25,7 @@ describe('toHTML', () => {
 
   it('renders task lists, quotes, headings and alignment', () => {
     expect(toHTML([md('- [x] done'), md('> q1'), md('> q2'), md('## Head', { id: 'h' }), md('mid', { data: { markdown: 'mid', align: 'center' } })])).toBe(
-      '<ul data-type="task"><li data-checked="true"><input type="checkbox" disabled checked> done</li></ul>' +
+      '<ul data-type="task"><li data-checked="true"><input type="checkbox" disabled checked aria-label="done"> done</li></ul>' +
         '<blockquote><p>q1</p><p>q2</p></blockquote>' +
         '<h2 id="h-h">Head</h2>' +
         '<p style="text-align:center">mid</p>',

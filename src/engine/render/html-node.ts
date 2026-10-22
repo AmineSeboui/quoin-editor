@@ -17,6 +17,10 @@ const ATTRIBUTE_NAME = /^[A-Za-z][A-Za-z0-9_.:-]*$/;
 export const writtenAttrs = (attrs: readonly Attr[]) =>
   attrs.filter((attr): attr is readonly [string, string | true] => attr[1] !== undefined && ATTRIBUTE_NAME.test(attr[0]));
 
+/** The text of nodes, without their markup. */
+export const nodeText = (nodes: readonly HtmlNode[]): string =>
+  nodes.map((node) => (typeof node === 'string' ? node : nodeText(node.children))).join('');
+
 export const element = (tag: string, attrs: readonly Attr[] = [], children: HtmlNode[] = [], html?: string): HtmlElement => ({
   tag,
   attrs,

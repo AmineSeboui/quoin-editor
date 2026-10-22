@@ -51,7 +51,7 @@ export function embedNode(block: EngineBlock, view: BlockView, env: HtmlEnv): Ht
   const href = sanitizeHref(str(block.attrs.url));
   if (!href) return '';
   const frame = env.embeds === 'iframe' ? embedSource(href, env.embedProviders) : null;
-  if (frame) return element('iframe', [['src', frame], ...Object.entries(EMBED_FRAME), indentAttr(view.excess)]);
+  if (frame) return element('iframe', [['src', frame], ['title', href], ...Object.entries(EMBED_FRAME), indentAttr(view.excess)]);
   return paragraph(view, link(href, href));
 }
 

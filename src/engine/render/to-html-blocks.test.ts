@@ -10,9 +10,9 @@ const html = (block: QuoinBlock, options?: HTMLOptions) => toHTML([block], optio
 describe('toHTML text blocks', () => {
   it('writes callouts with an optional icon', () => {
     expect(html(b('CALLOUT', { tone: 'warning', icon: '!', body: '**x**' }))).toBe(
-      '<aside data-tone="warning"><span data-icon="">!</span><p><strong>x</strong></p></aside>',
+      '<aside role="note" data-tone="warning"><span data-icon="">!</span><p><strong>x</strong></p></aside>',
     );
-    expect(html(b('CALLOUT', { tone: 'info', body: 'hi' }))).toBe('<aside data-tone="info"><p>hi</p></aside>');
+    expect(html(b('CALLOUT', { tone: 'info', body: 'hi' }))).toBe('<aside role="note" data-tone="info"><p>hi</p></aside>');
   });
 
   it('writes alignment and block colours on the element, and ignores values outside the palette', () => {
@@ -27,14 +27,19 @@ describe('toHTML text blocks', () => {
 
   it('opens a new list when the kind of item changes at one indent', () => {
     expect(toHTML([md('- a'), md('1. b'), md('0. c'), md('- [ ] d')])).toBe(
-      '<ul><li>a</li></ul><ol><li>b</li><li>c</li></ol><ul data-type="task"><li data-checked="false"><input type="checkbox" disabled> d</li></ul>',
+      '<ul><li>a</li></ul><ol><li>b</li><li>c</li></ol><ul data-type="task"><li data-checked="false"><input type="checkbox" disabled aria-label="d"> d</li></ul>',
     );
     expect(toHTML([md('0. a'), md('2. b')])).toBe('<ol start="0"><li>a</li><li>b</li></ol>');
   });
 
+  it('names a task checkbox with the text of its item, and leaves an empty item unnamed', () => {
+    expect(toHTML([md('- [x] **a** [b](https://x.y) <c>')])).toContain('<input type="checkbox" disabled checked aria-label="a b &lt;c&gt;">');
+    expect(toHTML([md('- [ ] ')])).toBe('<ul data-type="task"><li data-checked="false"><input type="checkbox" disabled> </li></ul>');
+  });
+
   it('nests blocks inside the list item or toggle they follow', () => {
     expect(toHTML([md('- [ ] t'), md('child', { indent: 1 })])).toBe(
-      '<ul data-type="task"><li data-checked="false"><input type="checkbox" disabled> t<p>child</p></li></ul>',
+      '<ul data-type="task"><li data-checked="false"><input type="checkbox" disabled aria-label="t"> t<p>child</p></li></ul>',
     );
     expect(toHTML([b('TOGGLE', { markdown: 'T', open: true }), md('- in', { indent: 1 })])).toBe(
       '<details open><summary>T</summary><ul><li>in</li></ul></details>',
@@ -155,7 +160,7 @@ describe('toHTML media blocks', () => {
     const link = '<p><a href="https://youtu.be/dQw4w9WgXcQ" rel="noopener noreferrer">https://youtu.be/dQw4w9WgXcQ</a></p>';
     expect(html(b('EMBED', { url: 'https://youtu.be/dQw4w9WgXcQ' }))).toBe(link);
     expect(html(b('EMBED', { url: 'https://youtu.be/dQw4w9WgXcQ' }), { embeds: 'iframe' })).toBe(
-      '<iframe src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ" ' +
+      '<iframe src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ" title="https://youtu.be/dQw4w9WgXcQ" ' +
         'sandbox="allow-scripts allow-same-origin allow-presentation allow-popups" loading="lazy" ' +
         'referrerpolicy="strict-origin-when-cross-origin"></iframe>',
     );

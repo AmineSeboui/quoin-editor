@@ -7,6 +7,7 @@ import type { QuoinEditorHandle } from '../../canvas/canvas-props';
 import type { QuoinBlock } from '../../types';
 import { yjsCollaboration } from '../../yjs/index';
 import { FakeAwareness } from '../../yjs/test-support/fake-awareness';
+import { portalledMenu } from '../test-support/portalled-menu';
 import { presenceExtension } from './presence-extension';
 
 const md = (id: string, markdown: string): QuoinBlock => ({
@@ -21,14 +22,14 @@ const at = (block: string, offset: number) => ({
   offset,
 });
 
-function setup({ readOnly = false } = {}) {
+function setup({ readOnly = false, otherCanvas = false } = {}) {
   const awareness = new FakeAwareness(1);
   const collaboration = yjsCollaboration({
     doc: new Y.Doc(),
     user: { name: 'Me', color: '#2563eb' },
     awareness,
   });
-  const extensions = [collaborationExtension(collaboration), presenceExtension(collaboration)];
+  const extensions = [collaborationExtension(collaboration), presenceExtension(collaboration), portalledMenu('Menu')];
   const handle: { current: QuoinEditorHandle | null } = { current: null };
   let setReadOnly: (value: boolean) => void = () => undefined;
   function Host() {
@@ -40,6 +41,9 @@ function setup({ readOnly = false } = {}) {
   const view = render(
     <StrictMode>
       <Host />
+      {otherCanvas && (
+        <BlockCanvas blocks={[md('c', 'other')]} onChange={() => {}} extensions={[portalledMenu('Their menu')]} />
+      )}
       <button type="button">Elsewhere</button>
     </StrictMode>,
   );
@@ -93,6 +97,17 @@ describe('presence on a canvas', () => {
       head: at('a', 4),
     });
     setReadOnly(true);
+    expect(awareness.getLocalState()?.selection).toBeNull();
+  });
+
+  it("keeps writing its selection while focus is in the canvas's own portalled menu, not in another canvas's", () => {
+    const { awareness, handle } = setup({ otherCanvas: true });
+    act(() => handle.current!.focus({ block: 'a', region: 'text', offset: 3 }));
+    settle();
+    act(() => screen.getByRole('button', { name: 'Menu' }).focus());
+    settle();
+    expect(awareness.getLocalState()?.selection).toMatchObject({ head: at('a', 3) });
+    act(() => screen.getByRole('button', { name: 'Their menu' }).focus());
     expect(awareness.getLocalState()?.selection).toBeNull();
   });
 

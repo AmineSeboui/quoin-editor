@@ -171,14 +171,14 @@ describe('the thread popover', () => {
     expect(document.activeElement).toBe(canvas.host('a'));
   });
 
-  it('opens a new thread without taking focus from a control of the page focused while the host answered', async () => {
+  it('opens a new thread without taking focus from a control of the page, even a .quoin one, focused while the host answered', async () => {
     let answer = (_: string) => {};
     const onCreate = () => new Promise<string>((resolve) => (answer = resolve));
     const canvas = mountComments([paragraph('p', 'plain words')], [], { onCreate });
     canvas.caret('p', 0);
     act(() => canvas.handle().controller.dispatch(canvas.handle().editor.createTransaction().setSelection(wordOne)));
     canvas.commentKey();
-    const elsewhere = document.body.appendChild(document.createElement('button'));
+    const elsewhere = document.body.appendChild(Object.assign(document.createElement('button'), { className: 'quoin' }));
     elsewhere.focus();
     answer('new');
     await canvas.settle();

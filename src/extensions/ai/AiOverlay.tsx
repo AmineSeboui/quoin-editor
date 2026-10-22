@@ -7,6 +7,7 @@ import type { ViewController } from '../../view';
 import { useEditorState } from '../../view/react/use-editor-state';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
 import { useReadOnly } from '../../view/react/use-read-only';
+import { watchCanvasFocus } from '../canvas-focus';
 import type { AiStream } from './ai-actions';
 import type { AiEnv } from './ai-env';
 import type { AiLabels } from './ai-labels';
@@ -58,34 +59,18 @@ export function AiOverlay({ controller, stream, labels }: AiOverlayProps) {
   }, [controller, showing, barId]);
 
   // Focus arriving in the canvas from outside it makes every empty line one a Space opens the menu on again. The
-  // canvas's own menus and toolbars, portaled out of it but marked `.quoin`, are not outside it, even when focus falls
-  // from one to the body as it closes.
+  // canvas's own menus and toolbars, portaled out of it, are not outside it.
   useEffect(() => {
     const root = controller.root;
     if (!root) return;
-    const ours = (node: EventTarget | null) =>
-      node instanceof Element &&
-      (root.contains(node) || (node.closest('.quoin') !== null && !node.closest('.quoin-editor')));
     let away = true;
-    const moved = (event: FocusEvent) => {
-      if (!ours(event.target)) away = true;
-    };
-    const left = (event: FocusEvent) => {
-      if (event.relatedTarget === null) away = true;
-    };
-    const arrived = () => {
-      if (away) noteFocus(controller.editor);
-      away = false;
-    };
-    const { ownerDocument } = root;
-    ownerDocument.addEventListener('focusin', moved);
-    root.addEventListener('focusout', left);
-    root.addEventListener('focusin', arrived);
-    return () => {
-      ownerDocument.removeEventListener('focusin', moved);
-      root.removeEventListener('focusout', left);
-      root.removeEventListener('focusin', arrived);
-    };
+    return watchCanvasFocus(controller, root.ownerDocument, (inside, node) => {
+      if (!inside) away = true;
+      else if (root.contains(node as Node)) {
+        if (away) noteFocus(controller.editor);
+        away = false;
+      }
+    });
   }, [controller]);
 
   // A canvas made read-only ends the answer: its stream is aborted at once, and the answer goes once the change is in.

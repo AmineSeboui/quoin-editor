@@ -43,6 +43,13 @@ async function caretWhereItIs(page: Page, name: string, of: Page) {
   return onCharacter(page, name, at.block, at.offset);
 }
 
+// Awareness reaches the other page within a few milliseconds, so a caret still drawn well after focus moved stays.
+async function stillShown(bea: Page, page: Page) {
+  await bea.waitForTimeout(300);
+  await expect(caretOf(bea, 'Ada Lovelace')).toBeVisible();
+  await expect.poll(() => caretWhereItIs(bea, 'Ada Lovelace', page)).toBe(true);
+}
+
 async function askToImprove(page: Page, block: string) {
   await selectFirstWord(page, block);
   await toolbar(page).getByRole('button', { name: 'Ask AI' }).click();
@@ -121,17 +128,51 @@ test.describe('collaboration, presence, comments and AI together on two pages', 
     await expect.poll(() => caretWhereItIs(bea, 'Ada Lovelace', page)).toBe(true);
   });
 
-  // The thread is portalled out of the canvas, so presence stops sharing the selection while it has focus and a
-  // collaborator reading a comment looks to the others as if they had left.
-  test.fixme('keeps showing the caret of a page whose focus is in a comment thread it opened', async ({ page }) => {
+  test('keeps showing the caret of a page whose focus is in a comment thread it opened', async ({ page }) => {
     const bea = await twoPages(page);
     await commentOnFirstWord(page, 'p', 'Sharper?');
     await expect(page.getByRole('textbox', { name: 'Reply' })).toBeFocused();
-    await expect(caretOf(bea, 'Ada Lovelace')).toBeVisible();
-    await expect.poll(() => caretWhereItIs(bea, 'Ada Lovelace', page)).toBe(true);
+    await stillShown(bea, page);
     await page.keyboard.press('Escape');
     await expect(hostOf(page, 'p')).toBeFocused();
     await expect(caretOf(bea, 'Ada Lovelace')).toBeVisible();
+  });
+
+  test('keeps showing the caret of a page whose focus is in the Ask AI prompt, the block menu or the link popover', async ({
+    page,
+  }) => {
+    const bea = await twoPages(page);
+    await selectFirstWord(page, 'p');
+    await toolbar(page).getByRole('button', { name: 'Ask AI' }).click();
+    await expect(page.getByRole('combobox')).toBeFocused();
+    await stillShown(bea, page);
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('combobox')).toHaveCount(0);
+
+    await hostOf(page, 'p').click();
+    await page.keyboard.press('ControlOrMeta+/');
+    await expect(page.getByRole('menuitem', { name: 'Turn into' })).toBeFocused();
+    await stillShown(bea, page);
+    await page.keyboard.press('Escape');
+    await expect(hostOf(page, 'p')).toBeFocused();
+
+    await selectFirstWord(page, 'p');
+    await page.keyboard.press('ControlOrMeta+k');
+    await expect(page.getByRole('dialog', { name: 'Link' }).getByRole('textbox')).toBeFocused();
+    await stillShown(bea, page);
+  });
+
+  test('keeps showing the caret of a page whose focus is in the comments sheet of a narrow canvas', async ({ page }) => {
+    const bea = await twoPages(page);
+    await commentOnFirstWord(bea, 'r', 'Why another?');
+    await page.setViewportSize({ width: 600, height: 800 });
+    await hostOf(page, 'p').click();
+    await expect(caretOf(bea, 'Ada Lovelace')).toBeVisible();
+    await page.locator('.quoin-comments-marker[data-block="r"]').click();
+    const sheet = page.getByRole('dialog', { name: 'Comments' });
+    await expect(sheet).toBeVisible();
+    await expect.poll(() => page.evaluate(() => document.activeElement?.closest('[role="dialog"]') !== null)).toBe(true);
+    await stillShown(bea, page);
   });
 
   test('keeps showing the caret of a page whose focus is in the bar of an answer it streams', async ({ page }) => {

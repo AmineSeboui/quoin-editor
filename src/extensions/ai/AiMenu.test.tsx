@@ -1,6 +1,7 @@
 import { act, cleanup, screen, within } from '@testing-library/react';
 import { axe } from 'vitest-axe';
 import { paragraph } from '../../blocks/void/test-canvas';
+import { portalledMenu } from '../test-support/portalled-menu';
 import { mountAi } from './ai-test-canvas';
 
 describe('the AI menu', () => {
@@ -132,14 +133,13 @@ describe('a Space on an empty line', () => {
   });
 
   it('types a plain space on an emptied line after focus went to the canvas\u2019s own menus, not after it left', () => {
-    const canvas = mountAi([paragraph('a', 'Text'), paragraph('b', '')]);
-    const menu = Object.assign(document.createElement('div'), { className: 'quoin', tabIndex: -1 });
-    const page = document.createElement('input');
-    document.body.append(menu, page);
+    const canvas = mountAi([paragraph('a', 'Text'), paragraph('b', '')], {}, { extensions: [portalledMenu('Menu')] });
+    const page = Object.assign(document.createElement('button'), { className: 'quoin', textContent: 'Page' });
+    document.body.append(page);
     canvas.caret('b', 0);
     canvas.type('a');
     canvas.key('Backspace');
-    act(() => menu.focus());
+    act(() => screen.getByRole('button', { name: 'Menu' }).focus());
     canvas.caret('b', 0);
     canvas.key(' ');
     expect(screen.queryByRole('combobox')).toBeNull();
@@ -147,7 +147,6 @@ describe('a Space on an empty line', () => {
     canvas.caret('b', 0);
     canvas.key(' ');
     expect(screen.queryByRole('combobox')).not.toBeNull();
-    menu.remove();
     page.remove();
   });
 });

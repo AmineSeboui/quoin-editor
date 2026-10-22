@@ -1,23 +1,23 @@
 import { useEffect } from 'react';
 import type { ViewController } from '../../view';
+import { ownsNode, watchCanvasFocus } from '../canvas-focus';
 import { setActive, type PresenceLink } from './presence-link';
 
-/** Tells presence whether the canvas is focused and editable, the only time its selection is shared. */
+/** Tells presence whether focus is in the canvas or its menus and the canvas is editable, when its selection is shared. */
 export function usePresenceActivity(controller: ViewController, link: PresenceLink): void {
   useEffect(() => {
-    const root = controller.root;
-    if (root === null) return undefined;
-    const update = (focused: boolean) => setActive(link, focused && !controller.readOnly);
-    const holdsFocus = () => update(root.contains(root.ownerDocument.activeElement));
-    const focusIn = () => update(true);
-    const focusOut = (event: FocusEvent) => update(root.contains(event.relatedTarget as Node | null));
-    root.addEventListener('focusin', focusIn);
-    root.addEventListener('focusout', focusOut);
-    const stopReadOnly = controller.subscribeReadOnly(holdsFocus);
-    holdsFocus();
+    const doc = controller.root?.ownerDocument;
+    if (!doc) return undefined;
+    let focused = ownsNode(controller, doc.activeElement);
+    const update = () => setActive(link, focused && !controller.readOnly);
+    const stopFocus = watchCanvasFocus(controller, doc, (inside) => {
+      focused = inside;
+      update();
+    });
+    const stopReadOnly = controller.subscribeReadOnly(update);
+    update();
     return () => {
-      root.removeEventListener('focusin', focusIn);
-      root.removeEventListener('focusout', focusOut);
+      stopFocus();
       stopReadOnly();
       setActive(link, false);
     };

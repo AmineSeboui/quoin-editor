@@ -6,7 +6,9 @@ import { rangeRect } from '../../menus/floating/range-rect';
 import { virtualAnchor } from '../../menus/floating/virtual-anchor';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
 import { useEditorState } from '../../view/react/use-editor-state';
+import type { ViewController } from '../../view';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
+import { ownsNode } from '../canvas-focus';
 import { anchorText, commentAnchors, type AnchorRange } from './comment-anchors';
 import type { CommentThreads } from './comment-threads';
 import type { CommentsEnv } from './comments-env';
@@ -17,11 +19,11 @@ import { ThreadView } from './ThreadView';
 
 const docOf = (state: EditorState) => state.doc;
 
-// Focus is taken only from the canvas and its own menus and toolbars, all marked `.quoin`, or from nowhere: never from
-// a control of the page the person moved to while the host was answering.
-function focusIsOurs(content: HTMLElement | null): boolean {
+// Focus is taken only from the canvas and its own menus and toolbars, or from nowhere: never from a control of the page,
+// or of another canvas, the person moved to while the host was answering.
+function focusIsOurs(controller: ViewController, content: HTMLElement | null): boolean {
   const active = content?.ownerDocument.activeElement ?? null;
-  return active === null || active === active.ownerDocument.body || active.closest('.quoin') !== null;
+  return active === null || active === active.ownerDocument.body || ownsNode(controller, active);
 }
 
 type ThreadPopoverProps = {
@@ -59,7 +61,7 @@ export function ThreadPopover({ env, open, threads, onChoose, onClose }: ThreadP
   const content = useRef<HTMLDivElement>(null);
   const focusField = () => {
     const target = content.current?.querySelector<HTMLElement>(`[${REPLY_FIELD}], button`);
-    if (focusIsOurs(content.current) && !content.current?.contains(content.current.ownerDocument.activeElement)) {
+    if (focusIsOurs(controller, content.current) && !content.current?.contains(content.current.ownerDocument.activeElement)) {
       target?.focus();
     }
   };

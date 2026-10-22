@@ -15,7 +15,8 @@ export function mountAi(
   const host = fakeAiHost();
   const onError = vi.fn();
   const extension = aiExtension({ stream: host.stream, ...options });
-  const mounted = mountTypingCanvas(blocks, { extensions: [extension], onError, ...canvas });
+  const extensions = [extension, ...(canvas.extensions ?? [])];
+  const mounted = mountTypingCanvas(blocks, { onError, ...canvas, extensions });
   const ui = () => extension.ui as ExtensionUI;
   const select = (block: string, from: number, to: number) =>
     act(() => {

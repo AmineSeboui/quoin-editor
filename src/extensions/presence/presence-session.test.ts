@@ -84,6 +84,17 @@ describe('the local selection written to awareness', () => {
     expect(peer.awareness.getLocalState()?.selection).toMatchObject({ head: at(5) });
   });
 
+  it('leaves awareness when unmounted, so the others see the person leave, but not when mounted again at once', async () => {
+    const peer = presencePeer(new Y.Doc(), 1, [md('a', 'hello world')], ada);
+    peer.unmount();
+    const unmount = peer.editor.mount();
+    await Promise.resolve();
+    expect(peer.awareness.getLocalState()?.user).toEqual(ada);
+    unmount();
+    await Promise.resolve();
+    expect(peer.awareness.getLocalState()).toEqual({ user: null, selection: null });
+  });
+
   it('clears the selection and stops listening when unmounted, with no timer left behind', () => {
     const peer = presencePeer(new Y.Doc(), 1, [md('a', 'hello world')], ada);
     peer.activate();

@@ -22,6 +22,9 @@ const userOf = (state: Record<string, unknown>): User | null => {
   return typeof user === 'object' && user !== null && typeof (user as User).name === 'string' ? (user as User) : null;
 };
 
+// The session that last named its user in each awareness, which alone takes the user out of it.
+const namedBy = new WeakMap<YjsAwareness, object>();
+
 type Seen = { name: string; key: string; idle: boolean; timer?: ReturnType<typeof setTimeout> };
 
 export type PresenceSession = { activeChanged(): void; stop(): void };
@@ -122,7 +125,7 @@ export function startPresence(
   doc.on('afterTransaction', afterTransaction);
   refresh();
   if (link.active) schedule();
-  return {
+  const session: PresenceSession = {
     activeChanged() {
       if (link.active) return schedule();
       clearTimeout(timer);
@@ -136,6 +139,12 @@ export function startPresence(
       clearTimeout(timer);
       for (const { timer: idle } of seen.values()) clearTimeout(idle);
       write(null);
+      // Left in place by a mount that follows in the same task, as StrictMode's, rather than leaving and coming back.
+      queueMicrotask(() => {
+        if (namedBy.get(awareness) === session) put('user', null);
+      });
     },
   };
+  namedBy.set(awareness, session);
+  return session;
 }

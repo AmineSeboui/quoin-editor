@@ -77,6 +77,16 @@
         "default": "./dist/engine.cjs"
       }
     },
+    "./view": {
+      "import": {
+        "types": "./dist/view.d.ts",
+        "default": "./dist/view.js"
+      },
+      "require": {
+        "types": "./dist/view.d.cts",
+        "default": "./dist/view.cjs"
+      }
+    },
     "./yjs": {
       "import": {
         "types": "./dist/yjs.d.ts",

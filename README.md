@@ -25,7 +25,7 @@ Quoin needs React 18.2 or later (React 19 is supported) and TypeScript 5.4 or la
 
 **Tailwind is not required, and either major version works.** See [Tailwind, or no Tailwind](#tailwind-or-no-tailwind) for the one thing a v4 host has to do.
 
-Quoin depends on five Radix primitives, `lucide-react` for its icons, and `clsx` for class composition. A page downloads only the entries it imports: the canvas, `quoin-editor`, is held under 155 kB gzip, `quoin-editor/headless` under 70 kB and `quoin-editor/engine` under 52 kB. Each opt-in feature adds between about 1.7 kB (stats, or the table of contents) and 9.5 kB (tables) to the canvas, all of them together about 29 kB, and the emoji dataset, about 42 kB, loads only when the `:` menu or the emoji picker first opens. Collaboration, `quoin-editor/yjs`, adds about 8 kB and needs `yjs` installed beside it, an optional peer dependency; showing collaborators, `quoin-editor/presence`, adds about 4 kB more, comments, `quoin-editor/comments`, about 6 kB, and AI actions, `quoin-editor/ai`, about 8 kB. The npm tarball is larger, about 1.6 MB, because it carries ESM and CommonJS builds with their sourcemaps. If you want the text editing and none of the UI, [`quoin-editor/headless`](#headless) has no component or UI library dependency at all.
+Quoin depends on five Radix primitives, `lucide-react` for its icons, and `clsx` for class composition. A page downloads only the entries it imports: the canvas, `quoin-editor`, is held under 155 kB gzip, `quoin-editor/headless` under 70 kB and `quoin-editor/engine` under 52 kB. Each opt-in feature adds between about 1.7 kB (stats, or the table of contents) and 9.5 kB (tables) to the canvas, all of them together about 29 kB, and the emoji dataset, about 42 kB, loads only when the `:` menu or the emoji picker first opens. Collaboration, `quoin-editor/yjs`, adds about 8 kB and needs `yjs` installed beside it, an optional peer dependency; showing collaborators, `quoin-editor/presence`, adds about 4 kB more, comments, `quoin-editor/comments`, about 6 kB, and AI actions, `quoin-editor/ai`, about 8 kB. The read-only view for a server, `quoin-editor/view`, is about 21 kB on its own, most of it the markdown parser it shares with the engine. The npm tarball is larger, about 1.6 MB, because it carries ESM and CommonJS builds with their sourcemaps. If you want the text editing and none of the UI, [`quoin-editor/headless`](#headless) has no component or UI library dependency at all.
 
 ## Quickstart
 
@@ -797,6 +797,21 @@ export function Reader({ blocks }: { blocks: QuoinBlock[] }) {
 
 Because it draws previews and never editors, a block type registered without a `preview` has nothing to show here but its own label. Quoin warns once per type in the console when that happens, so give every type you render read-only a `preview`. It is not an error channel: `onError` is for the document, this is for the registration, so it goes to the developer and not to the reader.
 
+### On the server
+
+`quoin-editor/view` draws a document read-only with no hook, effect or browser API, so it renders in a React Server Component, in a static export and in plain Node. It carries no `'use client'` banner and loads none of the canvas.
+
+```tsx
+import type { QuoinBlock } from 'quoin-editor/engine';
+import { QuoinView } from 'quoin-editor/view';
+
+export function Article({ blocks }: { blocks: QuoinBlock[] }) {
+  return <QuoinView blocks={blocks} className="article" resolveAssetUrl={(key) => `/files/${key}`} />;
+}
+```
+
+`QuoinView` writes the same HTML as `toHTML` with the same options (`resolveAssetUrl`, `renderMath`, `embeds` and `embedProviders`), inside a `div` that takes `className`. Toggles are native `details`, open as their blocks are. `highlight` takes the canvas's code highlighter and draws its tokens on the server. A block type of your own is drawn by the `preview` of its definition in `blockTypes`, inside the `div` `toHTML` writes for it; a preview rendered inside a Server Component must use no client hook, so keep it to plain markup or mark it as a client component. A definition of a type Quoin draws itself is ignored here. A `BlockCanvas` with `readOnly` stays the way to show a document the reader interacts with in the browser.
+
 ## Theming
 
 `quoin-editor/styles.css` is compiled Tailwind CSS v4. Every colour and every radius it draws with comes from a custom property under a `--quoin-` prefix. It ships a default for all of them, on `:root` for light and on `.dark` for dark:
@@ -1025,6 +1040,8 @@ From `quoin-editor/presence`: `presenceExtension` with its `PresenceOptions` and
 From `quoin-editor/comments`: `commentsExtension` with its `CommentsOptions` and `CommentsLabels` types, `englishCommentsLabels`, and `createCommentThreads` with the `CommentThreads`, `CommentThread`, `ThreadComment`, `CommentAuthor` and `CommentUser` types.
 
 From `quoin-editor/ai`: `aiExtension` with its `AiOptions` and `AiLabels` types, `englishAiLabels`, and the `AiAction`, `AiRequest` and `AiStream` types.
+
+From `quoin-editor/view`: `QuoinView` with its `QuoinViewProps` type. Like the engine entry it has no `'use client'` banner and needs no DOM.
 
 From `quoin-editor/catalogue`: `catalogue`, every opt-in feature at once.
 

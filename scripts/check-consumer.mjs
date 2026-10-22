@@ -62,6 +62,10 @@ const probes = JSON.stringify(['quoin-editor/package.json', ...packageEntries.ma
 const probe = `const probe = require('node:module').createRequire(${resolver}); ${probes}.forEach((id) => probe.resolve(id));`;
 run(process.execPath, ['-e', probe], work);
 
+// The view entry renders in a plain Node process, with no DOM, on either React.
+cpSync(join(root, 'consumer-check', 'server-view.mjs'), join(work, 'server-view.mjs'));
+run(process.execPath, ['server-view.mjs'], work);
+
 // Only React 18 reports a layout effect reaching a server render, through console.error.
 if (react === '18') {
   cpSync(join(root, 'consumer-check', 'server-render.mjs'), join(work, 'server-render.mjs'));

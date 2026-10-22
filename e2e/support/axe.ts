@@ -13,7 +13,7 @@ function settleAnimations(page: Page) {
   );
 }
 
-type Scope = '.quoin-editor' | '.quoin' | `[role="${'menu' | 'listbox' | 'dialog' | 'toolbar'}"]`;
+type Scope = '.quoin-editor' | '.quoin' | 'main' | `[role="${'menu' | 'listbox' | 'dialog' | 'toolbar'}"]`;
 
 // The ids of the rules the editor breaks, so a failing spec says which. Only the editor is scanned by default: the page
 // around it is the harness's. '.quoin' also takes in the menus, toolbars and dialogs the canvas portals out of it, and

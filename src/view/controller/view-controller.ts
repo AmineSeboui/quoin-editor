@@ -202,7 +202,7 @@ export class ViewController {
   }
 
   run(command: Command): boolean {
-    return command(this.editor.state, (tr) => this.dispatch(tr));
+    return this.edit(() => command(this.editor.state, this.editor.dispatch));
   }
 
   announce(message: string): void {

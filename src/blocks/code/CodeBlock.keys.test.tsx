@@ -1,6 +1,9 @@
 import { act, fireEvent, screen } from '@testing-library/react';
+import * as Y from 'yjs';
 import { blockRangeSelection, nodeSelection, textSelection } from '../../engine';
+import { collaborationExtension } from '../../engine/collab/collaboration-extension';
 import type { QuoinBlock } from '../../types';
+import { yjsCollaboration } from '../../yjs/index';
 import { mountCanvas, paragraph } from '../void/test-canvas';
 
 const code = (id: string, value: string): QuoinBlock => ({ id, type: 'CODE', data: { language: 'ts', code: value } });
@@ -109,6 +112,20 @@ describe('undo and redo in the code', () => {
     expect(fireEvent.keyDown(area(), { key: 'Z', code: 'KeyZ', shiftKey: true, ...modifier(canvas) })).toBe(false);
     expect(canvas.last()[1].data.code).toBe('let a;\nle');
     expect(area().selectionStart).toBe(9);
+  });
+
+  it.each([
+    ['its own history', () => undefined],
+    ['a collaboration', () => [collaborationExtension(yjsCollaboration({ doc: new Y.Doc(), user: { name: 'Ada' } }))]],
+  ])('leave the caret after the undone text inside the code with %s', (_, extensions) => {
+    const canvas = mountCanvas(around('let a;'), { extensions: extensions() });
+    caret(2);
+    fireEvent.change(area(), { target: { value: 'leXt a;' } });
+    fireEvent.keyDown(area(), { key: 'z', ...modifier(canvas) });
+    expect(area().value).toBe('let a;');
+    expect(area().selectionStart).toBe(2);
+    act(() => undefined);
+    expect(area().selectionStart).toBe(2);
   });
 
   it('follow an undo out of the block to the text it changes', () => {

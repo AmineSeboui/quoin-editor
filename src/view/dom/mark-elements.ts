@@ -2,9 +2,9 @@ import { sanitizeHref, type Mark } from '../../engine';
 import { writtenAttrs, type HtmlElement } from '../../engine/render/html-node';
 import { markElement as markNode } from '../../engine/render/mark-node';
 
-function create(doc: Document, tag: string, attributes: readonly (readonly [string, string | true])[] = []): HTMLElement {
+function create(doc: Document, tag: string, attributes: readonly (readonly [string, string | true])[]): HTMLElement {
   const element = doc.createElement(tag);
-  for (const [name, value] of attributes) element.setAttribute(name, value === true ? '' : value);
+  for (const [name, value] of attributes) element.setAttribute(name, value as string);
   return element;
 }
 

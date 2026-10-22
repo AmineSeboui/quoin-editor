@@ -1,6 +1,6 @@
 import { memo, useRef, type CSSProperties } from 'react';
 import type { EngineBlock } from '../../engine';
-import { alignOrUndefined, paletteOrUndefined } from '../../engine/blocks/data-fields';
+import { alignOrUndefined, optionalString, paletteOrUndefined } from '../../engine/blocks/data-fields';
 import { hostDecorations, sameDecorations } from '../controller/host-decorations';
 import { useBlockDomId } from './block-dom-id';
 import type { BlockRenderer } from './block-renderer-types';
@@ -46,7 +46,7 @@ export const BlockShell = memo(function BlockShell({ block, renderers }: BlockSh
       data-quoin-block=""
       data-block-id={block.id}
       data-type={block.type}
-      data-kind={typeof kind === 'string' ? kind : undefined}
+      data-kind={optionalString(kind)}
       data-indent={block.indent}
       data-color={paletteOrUndefined(color)}
       data-bg={paletteOrUndefined(background)}

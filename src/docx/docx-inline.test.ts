@@ -56,6 +56,19 @@ describe('the runs of a Word document', () => {
     expect(sneaky.paragraphs[0].runs.filter((run) => run.link !== undefined)).toEqual([]);
   });
 
+  it('link only absolute web, mail and phone addresses, writing any other target as its text and marks', async () => {
+    const targets = ['\\\\\\\\host\\\\share', '//host.test/x', 'notes/a.pdf', '/files/a.pdf', '#top', 'mention:user:1'];
+    const markdown = targets.map((target, at) => `[**t${at}**](<${target}>)`).join(' ');
+    const doc = await exportDocument([line(markdown), line('[w](https://a.test) [m](mailto:a@b.test) [p](tel:+1555) [h](HTTP://A.test)')]);
+    const [others, kept] = doc.paragraphs;
+    expect(others.runs.filter(({ text }) => /^t\d$/.test(text)).map(({ link, props }) => [link, props])).toEqual(
+      targets.map(() => [undefined, { b: '' }]),
+    );
+    expect(kept.runs.filter(({ link }) => link !== undefined).map(({ text }) => text)).toEqual(['w', 'm', 'p', 'h']);
+    const external = doc.relationships.filter((rel) => rel.getAttribute('TargetMode') === 'External');
+    expect(external.map((rel) => rel.getAttribute('Target'))).toEqual(['https://a.test', 'mailto:a@b.test', 'tel:+1555', 'HTTP://A.test']);
+  });
+
   it('share one relationship between links to the same address, and keep the runs of a link together', async () => {
     const doc = await exportDocument([line('[one **two**](https://a.test) and [three](https://a.test)')]);
     const runs = doc.paragraphs[0].runs;

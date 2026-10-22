@@ -1,16 +1,16 @@
 import { str } from '../engine/blocks/data-fields';
-import { sanitizeHref } from '../engine/markdown/urls';
 import type { EngineBlock } from '../engine/model/types';
 import { assetUrl, pictureUrl } from './asset-source';
 import type { DocxContext } from './docx-context';
 import { drawingXml } from './drawing-xml';
 import { indentOf, paragraphXml } from './paragraph-xml';
 import { runsXml, runXml } from './runs-xml';
+import { wordLink } from './word-link';
 import { xmlElement } from './xml';
 
-/** A paragraph of `text`, linked to `href` when it is safe. */
+/** A paragraph of `text`, linked to `href` when Word can open it safely. */
 export function linkParagraphXml(href: string | null, text: string, ctx: DocxContext, indent: number): string {
-  const safe = href === null ? null : sanitizeHref(href);
+  const safe = href === null ? null : wordLink(href);
   const runs = safe ? xmlElement('w:hyperlink', { 'r:id': ctx.link(safe) }, runXml(text, { style: 'Hyperlink' })) : runXml(text);
   return paragraphXml({ indent: indentOf(indent) }, runs);
 }

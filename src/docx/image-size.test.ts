@@ -26,6 +26,11 @@ describe('imageFormat', () => {
     expect(imageFormat(bytes([0xff, 0xd8], app0, sof2))).toEqual({ extension: 'jpeg', type: 'image/jpeg', width: 640, height: 480 });
   });
 
+  it('reads a JPEG whose markers are padded with fill bytes', () => {
+    const sof0 = [0xff, 0xff, 0xff, 0xc0, ...be16(17), 8, ...be16(90), ...be16(120), 3];
+    expect(imageFormat(bytes([0xff, 0xd8, 0xff, 0xff], [0xe1, ...be16(4), 0, 0], sof0))).toMatchObject({ width: 120, height: 90 });
+  });
+
   it('reads the three kinds of WebP', () => {
     const lossy = riff('VP8 ', [0, 0, 0, 0x9d, 0x01, 0x2a, ...le16(400), ...le16(300)]);
     const width = 1000 - 1;

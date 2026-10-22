@@ -28,7 +28,10 @@ export type DocxOptions = {
   fetchAsset?: FetchAsset;
   /** The title written into the document's properties. */
   title?: string;
-  /** How long to wait for one picture, in milliseconds, before writing its alt text instead: 10,000 by default. */
+  /**
+   * How long to wait for one picture, in milliseconds, before writing its alt text instead: 10,000 by default. A value
+   * over 2,147,483,647 (about 24.8 days), `Infinity`, a negative number or NaN waits that longest time.
+   */
   imageTimeout?: number;
   /** How many pictures to fetch at a time, 4 by default. */
   imageConcurrency?: number;

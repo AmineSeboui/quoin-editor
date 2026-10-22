@@ -10,6 +10,11 @@ async function bytesOf(answer: Response | Blob | ArrayBuffer | Uint8Array): Prom
 
 const defaultFetch: FetchAsset = (url, init) => fetch(url, init);
 
+/** The longest wait a timer can hold, about 24.8 days; a longer, infinite, negative or NaN timeout waits this long. */
+const LONGEST_WAIT = 2_147_483_647;
+
+const waitOf = (timeout: number) => (timeout >= 0 && timeout <= LONGEST_WAIT ? timeout : LONGEST_WAIT);
+
 /** The bytes at `url`, or null when the fetch fails or takes longer than `timeout` milliseconds. */
 export async function fetchBytes(
   url: string,
@@ -22,7 +27,7 @@ export async function fetchBytes(
     timer = setTimeout(() => {
       controller.abort();
       resolve(null);
-    }, timeout);
+    }, waitOf(timeout));
   });
   const read = (async () => bytesOf(await fetchAsset(url, { signal: controller.signal })))();
   try {

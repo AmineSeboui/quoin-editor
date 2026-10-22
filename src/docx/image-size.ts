@@ -23,9 +23,14 @@ function gifSize(view: DataView): Size {
 }
 
 // A frame header (SOF0 to SOF15 but DHT, JPG and DAC) holds the height then the width, after the sample precision.
+// Any marker may follow a run of 0xFF fill bytes.
 function jpegSize(view: DataView): Size {
   let at = 2;
   while (at + 9 <= view.byteLength && view.getUint8(at) === 0xff) {
+    if (view.getUint8(at + 1) === 0xff) {
+      at++;
+      continue;
+    }
     const marker = view.getUint8(at + 1);
     if (marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc) {
       return sized(view.getUint16(at + 7), view.getUint16(at + 5));

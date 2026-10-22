@@ -1,23 +1,23 @@
-import { sanitizeHref } from '../engine/markdown/urls';
 import type { Inline, InlineNode, Mark } from '../engine/model/types';
 import type { DocxContext } from './docx-context';
 import { propsOf, runPropertiesXml, type RunProps } from './run-properties';
 import { CODE_CHAR_STYLE } from './style-ids';
+import { wordLink } from './word-link';
 import { escapeXml, xmlElement } from './xml';
 
-const textXml = (text: string) =>
-  text
-    .split('\n')
-    .map((line) => (line === '' ? '' : xmlElement('w:t', { 'xml:space': 'preserve' }, escapeXml(line))))
-    .join('<w:br/>');
+const pieceXml = (piece: string) => (piece === '' ? '' : xmlElement('w:t', { 'xml:space': 'preserve' }, escapeXml(piece)));
 
-/** One run of `text`, its line breaks written as breaks; nothing for no text. */
+const lineXml = (line: string) => line.split('\t').map(pieceXml).join('<w:tab/>');
+
+const textXml = (text: string) => text.split(/\r\n|\r|\n/).map(lineXml).join('<w:br/>');
+
+/** One run of `text`, its line breaks and tabs written as breaks and tabs; nothing for no text. */
 export const runXml = (text: string, props: RunProps = {}): string =>
   text === '' ? '' : xmlElement('w:r', {}, runPropertiesXml(props) + textXml(text));
 
 function linkOf(marks: readonly Mark[]): string | null {
   const link = marks.find((mark) => mark.type === 'link');
-  return link ? sanitizeHref(link.attrs?.href ?? '') : null;
+  return link ? wordLink(link.attrs?.href ?? '') : null;
 }
 
 function nodeRun(node: InlineNode, ctx: DocxContext, base: RunProps, linked: boolean): string {

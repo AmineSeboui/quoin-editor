@@ -58,6 +58,20 @@ describe('zipArchive', () => {
     expect(read(await zipArchive(files)).map(({ method }) => method)).toEqual([0, 0, 0]);
   });
 
+  it('stores a file whose deflate stream fails while it is read', async () => {
+    vi.stubGlobal(
+      'CompressionStream',
+      class extends TransformStream<Uint8Array, Uint8Array> {
+        constructor() {
+          super({ transform: (_chunk, controller) => controller.error(new Error('broken stream')) });
+        }
+      },
+    );
+    const stored = read(await zipArchive(files));
+    expect(stored.map(({ method }) => method)).toEqual([0, 0, 0]);
+    expect(stored.map(({ text }) => text)).toEqual(files.map(({ data }) => [...data]));
+  });
+
   it('writes the same bytes for the same files', async () => {
     expect([...(await zipArchive(files))]).toEqual([...(await zipArchive(files))]);
   });

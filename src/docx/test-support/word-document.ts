@@ -39,7 +39,7 @@ function runOf(run: Element, link: string | undefined): WordRun {
   for (const prop of child(run, 'w:rPr')?.children ?? []) {
     props[prop.tagName.slice(2)] = prop.getAttribute('w:fill') ?? prop.getAttribute('w:val') ?? '';
   }
-  const text = [...run.children].map((part) => (part.tagName === 'w:t' ? part.textContent : part.tagName === 'w:br' ? '\n' : '')).join('');
+  const text = [...run.children].map((part) => (part.tagName === 'w:t' ? part.textContent : part.tagName === 'w:br' ? '\n' : part.tagName === 'w:tab' ? '\t' : '')).join('');
   return { text, props, link };
 }
 

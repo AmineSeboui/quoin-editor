@@ -9,7 +9,30 @@ const md = (id: string, markdown: string, indent = 0): QuoinBlock => ({ id, type
 
 const numbering = (doc: WordDocument) => textOf(doc.entries, 'word/numbering.xml');
 
+const MARKERS: Readonly<Record<string, (doc: WordDocument) => boolean>> = {
+  TOC: (doc) => doc.paragraphs.some(({ runs }) => runs[0]?.link?.startsWith('#_q') === true),
+  MARKDOWN: (doc) => doc.paragraphs.some(({ style }) => style === 'Heading1'),
+  DIVIDER: (doc) => doc.paragraphs.some(({ border }) => border),
+  CALLOUT: (doc) => doc.paragraphs.some(({ text, inTable }) => inTable && text === 'No icon'),
+  CODE: (doc) => doc.paragraphs.some(({ style }) => style === 'QuoinCode'),
+  TOGGLE: (doc) => doc.paragraphs.some(({ text }) => text === 'Closed toggle'),
+  IMAGE: (doc) => doc.xml.includes('<w:drawing>'),
+  FILE: (doc) => doc.paragraphs.some(({ text }) => text === 'notes <1>.pdf'),
+  TABLE: (doc) => doc.paragraphs.some(({ text, inTable }) => inTable && text === 'Author'),
+  EMBED: (doc) => doc.paragraphs.some(({ text }) => text === 'https://quoin.dev/page'),
+  BOOKMARK: (doc) => doc.paragraphs.some(({ text }) => text === 'Quoin & docs'),
+  MATH: (doc) => doc.paragraphs.some(({ text }) => text === 'e^{i\\pi} + 1 = 0'),
+  CHART: (doc) => doc.paragraphs.some(({ text }) => text === '[CHART]'),
+};
+
 describe('the blocks of a Word document', () => {
+  it('write every block type of the fixture', async () => {
+    const doc = await exportDocument(everyBlockDocument, { fetchAsset: () => Promise.resolve(new Uint8Array([0xff, 0xd8, 0xff])) });
+    const types = [...new Set(everyBlockDocument.map(({ type }) => type))];
+    expect(types.sort()).toEqual(Object.keys(MARKERS).sort());
+    expect(types.filter((type) => !MARKERS[type](doc))).toEqual([]);
+  });
+
   it('give headings their style, alignment, colours and a bookmark the contents link to', async () => {
     const doc = await exportDocument(everyBlockDocument);
     const heading = (text: string) => doc.paragraphs.find((paragraph) => paragraph.text === text && paragraph.style !== undefined)!;
@@ -40,9 +63,8 @@ describe('the blocks of a Word document', () => {
     expect(third).toMatchObject({ level: '1' });
     expect(doc.paragraph('fourth')).toMatchObject({ level: '1', numId: third.numId });
     expect(third.numId).not.toBe(bullet.numId);
-    expect(numbering(doc)).toContain(
-      `<w:num w:numId="${third.numId}"><w:abstractNumId w:val="1"/><w:lvlOverride w:ilvl="1"><w:startOverride w:val="3"/></w:lvlOverride></w:num>`,
-    );
+    const restarts = Array.from({ length: 9 }, (_, level) => `<w:lvlOverride w:ilvl="${level}"><w:startOverride w:val="${level === 1 ? 3 : 1}"/></w:lvlOverride>`);
+    expect(numbering(doc)).toContain(`<w:num w:numId="${third.numId}"><w:abstractNumId w:val="1"/>${restarts.join('')}</w:num>`);
     expect(doc.paragraph('deep')).toMatchObject({ numId: undefined, indent: '2160' });
   });
 
@@ -51,6 +73,15 @@ describe('the blocks of a Word document', () => {
     expect(doc.paragraph('one').numId).not.toBe(doc.paragraph('again').numId);
     expect(doc.paragraph('far').level).toBe('8');
     expect(numbering(doc).match(/<w:lvl w:ilvl=/g)).toHaveLength(18);
+  });
+
+  it('restart every level of an ordered list whose items start deeper than they go on', async () => {
+    const doc = await exportDocument([md('a', '1. one'), md('b', '2. two'), md('p', 'between'), md('c', '1. deep', 2), md('d', '1. back')]);
+    const back = doc.paragraph('back');
+    expect(back).toMatchObject({ level: '0', numId: doc.paragraph('deep').numId });
+    expect(numbering(doc)).toMatch(
+      new RegExp(`<w:num w:numId="${back.numId}"><w:abstractNumId w:val="1"/><w:lvlOverride w:ilvl="0"><w:startOverride w:val="1"/>`),
+    );
   });
 
   it('write tasks as a checkbox character and their text', async () => {
@@ -90,6 +121,13 @@ describe('the blocks of a Word document', () => {
     expect(doc.paragraph('plain').style).toBe('QuoinCode');
   });
 
+  it('break code at CRLF and lone CR as at LF, and write its tabs as tabs', async () => {
+    const doc = await exportDocument([{ id: 'c', type: 'CODE', data: { code: 'if (x) {\r\n\treturn;\r}\nend' } }]);
+    expect(doc.paragraphs[0].text).toBe('if (x) {\n\treturn;\n}\nend');
+    expect(doc.xml).not.toContain('\r');
+    expect(doc.xml).toContain('<w:br/><w:tab/><w:t xml:space="preserve">return;</w:t><w:br/>');
+  });
+
   it('write a toggle as its summary followed by its children, open or closed', async () => {
     const doc = await exportDocument(everyBlockDocument);
     const texts = doc.paragraphs.map(({ text }) => text);
@@ -123,6 +161,23 @@ describe('the blocks of a Word document', () => {
     expect(doc.run('notes <1>.pdf').link).toBe('https://assets.test/notes.pdf');
     expect(doc.run('https://www.youtube.com/watch?v=dQw4w9WgXcQ').link).toBe('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
     expect(doc.run('Quoin & docs').link).toBe('https://quoin.dev/docs');
+  });
+
+  it('write files, embeds and bookmarks whose address is relative or a network path as text, unlinked', async () => {
+    const doc = await exportDocument(
+      [
+        { id: 'f', type: 'FILE', data: { storageKey: 'k', filename: 'local.pdf' } },
+        { id: 'e', type: 'EMBED', data: { url: '//host.test/x' } },
+        { id: 'b', type: 'BOOKMARK', data: { url: '\\\\host\\share', title: 'Share' } },
+      ],
+      { resolveAssetUrl: (key) => `/files/${key}` },
+    );
+    expect(doc.paragraphs.map(({ text, runs }) => [text, runs[0].link])).toEqual([
+      ['local.pdf', undefined],
+      ['//host.test/x', undefined],
+      ['Share', undefined],
+    ]);
+    expect(doc.relationships.filter((rel) => rel.getAttribute('TargetMode') === 'External')).toEqual([]);
   });
 
   it('write a file whose address is unsafe as its name, unlinked', async () => {

@@ -32,11 +32,12 @@ const abstractXml = (id: number, ordered: boolean) =>
       Array.from({ length: LEVELS }, (_, level) => levelXml(level, ordered)).join(''),
   );
 
-// A num that points at an abstract numbering already used carries on its count unless a level starts over.
+// A num that points at an abstract numbering already used carries on its count unless a level starts over, and the
+// items of one list can sit at several levels, so an ordered list restarts them all.
 function numXml({ numId, ordered, level, start }: ListNumbering): string {
-  const restart = ordered
-    ? xmlElement('w:lvlOverride', { 'w:ilvl': level }, xmlElement('w:startOverride', { 'w:val': start }))
-    : '';
+  const override = (at: number) =>
+    xmlElement('w:lvlOverride', { 'w:ilvl': at }, xmlElement('w:startOverride', { 'w:val': at === level ? start : 1 }));
+  const restart = ordered ? Array.from({ length: LEVELS }, (_, at) => override(at)).join('') : '';
   const scheme = xmlElement('w:abstractNumId', { 'w:val': ordered ? ORDERED : BULLET });
   return xmlElement('w:num', { 'w:numId': numId }, scheme + restart);
 }

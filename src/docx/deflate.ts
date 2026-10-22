@@ -1,11 +1,9 @@
-/** The raw deflate of `bytes` through CompressionStream, or null where the runtime cannot write it. */
+/** The raw deflate of `bytes` through CompressionStream, or null where the runtime cannot write it or its stream fails. */
 export async function deflateRaw(bytes: Uint8Array): Promise<Uint8Array | null> {
-  let stream: CompressionStream;
   try {
-    stream = new CompressionStream('deflate-raw');
+    const compressed = new Blob([bytes as BlobPart]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+    return new Uint8Array(await new Response(compressed).arrayBuffer());
   } catch {
     return null;
   }
-  const compressed = new Blob([bytes as BlobPart]).stream().pipeThrough(stream);
-  return new Uint8Array(await new Response(compressed).arrayBuffer());
 }

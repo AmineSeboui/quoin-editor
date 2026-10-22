@@ -104,6 +104,12 @@ describe('the pictures of a Word document', () => {
     expect(signal?.aborted).toBe(true);
   });
 
+  it.each([Infinity, Number.NaN, -5, 2 ** 40])('wait for a picture with an imageTimeout of %s instead of giving up at once', async (imageTimeout) => {
+    const fetchAsset = () => new Promise<Uint8Array>((resolve) => setTimeout(() => resolve(fixture()), 30));
+    const doc = await exportDocument([image('late', { url: 'https://a.test/late' })], { imageTimeout, fetchAsset });
+    expect(extents(doc.xml)).toHaveLength(1);
+  });
+
   it('fetch at most a few pictures at a time', async () => {
     let inFlight = 0;
     let most = 0;

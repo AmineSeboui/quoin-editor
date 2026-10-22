@@ -1,5 +1,5 @@
 import type { Attrs } from '../../engine';
-import { dataAttributes } from '../../engine/markdown/inline/html-marks';
+import { dataAttributes } from '../../engine/markdown/inline/data-attributes';
 import { writtenAttrs } from '../../engine/render/html-node';
 
 export const sortedEntries = (attrs: Attrs | undefined): [string, string][] => dataAttributes(attrs, '');

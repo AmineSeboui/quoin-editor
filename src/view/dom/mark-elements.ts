@@ -1,6 +1,6 @@
 import { sanitizeHref, type Mark } from '../../engine';
 import { writtenAttrs, type HtmlElement } from '../../engine/render/html-node';
-import { markElement as markNode } from '../../engine/render/inline-nodes';
+import { markElement as markNode } from '../../engine/render/mark-node';
 
 function create(doc: Document, tag: string, attributes: readonly (readonly [string, string | true])[] = []): HTMLElement {
   const element = doc.createElement(tag);

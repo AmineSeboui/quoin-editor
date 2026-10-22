@@ -6,10 +6,7 @@ import { EMBED_FRAME, embedFrame } from './embed-provider';
 import { inlineOf, type BlockView, type HtmlEnv } from './html-env';
 import { element, type Attr, type HtmlNode } from './html-node';
 
-const numberAttr = (value: unknown): string | undefined => {
-  const number = optionalNumber(value);
-  return number === undefined ? undefined : String(number);
-};
+const numberAttr = (value: unknown): string | undefined => optionalNumber(value)?.toString();
 
 const paragraph = (view: BlockView, inner: HtmlNode): HtmlNode => element('p', [indentAttr(view.excess)], [inner]);
 

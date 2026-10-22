@@ -264,3 +264,102 @@ for (const retried of [false, true]) {
       .toEqual(['Make this sentence better.', retried ? 'Retried words' : 'Better words', 'Another paragraph after.']);
   });
 }
+
+test('keeps the answer when a deletion takes its block and both neighbours, and Accept puts it where they were', async ({
+  page,
+}) => {
+  await openEditor(page, 'ai', 'ai=1');
+  await hostOf(page, 'q').click();
+  await caretSettled(page, hostOf(page, 'q'));
+  await page.keyboard.type('Middle words');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('Target words /ai');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('improve');
+  await page.keyboard.press('Enter');
+  await ai.push(page, 'Better target');
+  await expect(ghost(page)).toHaveText('Better target');
+  await page.evaluate(() => {
+    const { controller } = window.__quoin;
+    const [first, , , last] = controller!.editor.getBlocks().map((block) => block.id);
+    const at = (block: string, offset: number) => ({ block, region: 'text', offset });
+    controller!.focus(at(first, 2));
+    const tr = controller!.editor.createTransaction();
+    controller!.dispatch(tr.setSelection({ kind: 'text', anchor: at(first, 2), head: at(last, 3) }));
+  });
+  await page.keyboard.press('Backspace');
+  await expect(bar(page)).toContainText('Stopped');
+  await expect(bar(page)).toContainText('removed');
+  await bar(page).getByRole('button', { name: 'Accept' }).click();
+  await expect
+    .poll(async () => (await blocks(page)).map((block) => block.data.markdown))
+    .toEqual(['Mather paragraph after.', 'Better target']);
+});
+
+test('grows the room under the block in the frame the answer grows, so it never covers the next line', async ({ page }) => {
+  await askAboutFirstWord(page, 'improve');
+  await ai.push(page, 'One');
+  await expect(ghost(page)).toHaveText('One');
+  await page.evaluate(() => {
+    const overlaps: number[] = [];
+    Object.assign(window, { __overlaps: overlaps });
+    const layer = document.querySelector('.quoin-ai-layer')!;
+    const next = document.querySelector('[data-block-id="q"]')!;
+    new MutationObserver(() =>
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() =>
+          overlaps.push(layer.getBoundingClientRect().bottom - next.getBoundingClientRect().top),
+        ),
+      ),
+    ).observe(document.querySelector('.quoin-ai-ghost')!, { childList: true });
+  });
+  for (const chunk of ['\n\nTwo', '\n\nThree', '\n\nFour']) {
+    await ai.push(page, chunk);
+    await expect(ghost(page)).toContainText(chunk.trim());
+  }
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __overlaps: number[] }).__overlaps.length)).toBe(3);
+  const overlaps = await page.evaluate(() => (window as unknown as { __overlaps: number[] }).__overlaps);
+  expect(overlaps.every((overlap) => overlap <= 0)).toBe(true);
+});
+
+test('types a plain space on an emptied line after a round trip through the block menu', async ({ page }) => {
+  await openEditor(page, 'ai', 'ai=1');
+  await hostOf(page, 'q').click();
+  await caretSettled(page, hostOf(page, 'q'));
+  await page.keyboard.type('ab');
+  await page.keyboard.press('Backspace');
+  await page.keyboard.press('Backspace');
+  await page.keyboard.press('ControlOrMeta+/');
+  await expect(page.getByRole('menu')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(hostOf(page, 'q')).toBeFocused();
+  await page.keyboard.press('Space');
+  await expect.poll(() => markdown(page, 'q')).toBe('&#32;');
+  await expect(field(page)).toHaveCount(0);
+});
+
+// A wide table scrolls its cells inside the canvas; this stands one in with a paragraph wider than its scrolling block.
+test('clips the answer to a scroller inside the canvas, as its text is', async ({ page }) => {
+  await askAboutFirstWord(page, 'improve');
+  await ai.push(page, 'Get');
+  await expect(ghost(page)).toHaveText('Get');
+  const layer = page.locator('.quoin-ai-layer');
+  await page.evaluate(() => {
+    const shell = document.querySelector<HTMLElement>('[data-block-id="p"]')!;
+    Object.assign(shell.style, { overflowX: 'auto', width: '300px' });
+    shell.querySelector<HTMLElement>('[data-quoin-host]')!.style.width = '1200px';
+  });
+  await expect.poll(() => layer.evaluate((element) => getComputedStyle(element).clipPath)).toMatch(/^inset\(/);
+  const clipped = async () => {
+    const box = await layer.boundingBox();
+    const view = await page.locator('[data-block-id="p"]').boundingBox();
+    const inset = await layer.evaluate((element) => getComputedStyle(element).clipPath.match(/[\d.]+/g)!.map(Number));
+    return { start: box!.x + inset[3], end: box!.x + box!.width - inset[1], from: view!.x, to: view!.x + view!.width };
+  };
+  for (const scrolled of [0, 600]) {
+    await page.locator('[data-block-id="p"]').evaluate((shell, left) => (shell.scrollLeft = left), scrolled);
+    await expect.poll(async () => (await clipped()).start).toBeGreaterThanOrEqual((await clipped()).from - 1);
+    const { end, to } = await clipped();
+    expect(end).toBeLessThanOrEqual(to + 1);
+  }
+});

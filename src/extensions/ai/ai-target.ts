@@ -1,4 +1,4 @@
-import type { EditorState, EngineDoc, Pos, Transaction } from '../../engine';
+import type { EditorState, EngineBlock, EngineDoc, Pos, Transaction } from '../../engine';
 import { regionLength } from '../../engine/commands/block-helpers';
 import { comparePos, orderedRange } from '../../engine/model/position';
 import { primaryRegion, selectedBlockIds } from '../../engine/state/selection';
@@ -45,24 +45,31 @@ export function targetOfSelection(state: EditorState): AiTarget | null {
   return { from: { ...whole, offset: 0 }, to: { ...whole, offset: regionLength(block, from.region) }, selected: false };
 }
 
-// The edge of the nearest block left on either side of the target's blocks, from the document before the change.
-function edgeOf(tr: Transaction, target: AiTarget): AiTarget | null {
-  const { doc, schema } = tr.before;
-  const first = doc.index.get(target.from.block);
-  const last = doc.index.get(target.to.block);
-  if (first === undefined || last === undefined) return null;
-  const sides = [
-    { block: doc.blocks[first - 1], after: true },
-    { block: doc.blocks[last + 1], after: false },
-  ];
-  for (const { block, after } of sides) {
-    const kept = block && tr.doc.blocks[tr.doc.index.get(block.id) ?? -1];
-    if (!kept) continue;
-    const region = primaryRegion(schema, kept) ?? '';
-    const at = { block: kept.id, region, offset: after && region !== '' ? regionLength(kept, region) : 0 };
-    return { from: at, to: at, selected: true, lost: { after } };
+// The nearest block on either side of the target's blocks that the change left, from the document before it.
+function nearestKept(tr: Transaction, target: AiTarget): EngineBlock | undefined {
+  const { doc } = tr.before;
+  const first = doc.index.get(target.from.block) ?? 0;
+  const last = doc.index.get(target.to.block) ?? first;
+  const kept = (block: EngineBlock | undefined) => block && tr.doc.blocks[tr.doc.index.get(block.id) ?? -1];
+  for (let step = 1; first - step >= 0 || last + step < doc.blocks.length; step++) {
+    const found = kept(doc.blocks[first - step]) ?? kept(doc.blocks[last + step]);
+    if (found) return found;
   }
-  return null;
+  return tr.doc.blocks[0];
+}
+
+// Where the deletion of a target's block collapsed, the target becomes the edge of the block it collapsed into: the
+// answer goes as blocks of their own after it, or before it from the start of a block with text.
+function edgeOf(tr: Transaction, target: AiTarget): AiTarget | null {
+  const point = tr.mapPos(target.from, -1);
+  const block = tr.doc.blocks[tr.doc.index.get(point.block) ?? -1] ?? nearestKept(tr, target);
+  if (block === undefined) return null;
+  const region = primaryRegion(tr.before.schema, block) ?? '';
+  const length = region === '' ? 0 : regionLength(block, region);
+  const offset = block.id === point.block ? Math.min(point.offset, length) : length;
+  const after = offset > 0 || length === 0;
+  const at = { block: block.id, region, offset: after ? length : 0 };
+  return { from: at, to: at, selected: true, lost: { after } };
 }
 
 /** The target where the transaction moved it, or null when nothing of the document around it is left. */

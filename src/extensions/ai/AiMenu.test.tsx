@@ -130,4 +130,24 @@ describe('a Space on an empty line', () => {
       cleanup();
     }
   });
+
+  it('types a plain space on an emptied line after focus went to the canvas\u2019s own menus, not after it left', () => {
+    const canvas = mountAi([paragraph('a', 'Text'), paragraph('b', '')]);
+    const menu = Object.assign(document.createElement('div'), { className: 'quoin', tabIndex: -1 });
+    const page = document.createElement('input');
+    document.body.append(menu, page);
+    canvas.caret('b', 0);
+    canvas.type('a');
+    canvas.key('Backspace');
+    act(() => menu.focus());
+    canvas.caret('b', 0);
+    canvas.key(' ');
+    expect(screen.queryByRole('combobox')).toBeNull();
+    act(() => page.focus());
+    canvas.caret('b', 0);
+    canvas.key(' ');
+    expect(screen.queryByRole('combobox')).not.toBeNull();
+    menu.remove();
+    page.remove();
+  });
 });

@@ -9,6 +9,7 @@ import {
   type Editor,
 } from '../../engine';
 import { caret, md, range, startEditor } from '../../engine/test-support/editor-fixtures';
+import { deleteRange } from '../../engine/commands/delete-range';
 import { acceptAnswer } from './ai-accept';
 import { aiExtension } from './ai-extension';
 import { ask, openMenu, retry } from './ai-flow';
@@ -34,6 +35,7 @@ async function answer(editor: Editor, host: ReturnType<typeof writing>, action: 
   await nextFrame();
 }
 
+const at = (block: string, offset: number) => ({ block, region: 'text', offset });
 const texts = (editor: Editor) => editor.getBlocks().map((block) => block.data.markdown);
 const back = (editor: Editor) => undo(editor.state, (tr) => editor.dispatch(tr));
 
@@ -164,5 +166,41 @@ describe('accepting an answer', () => {
     await nextFrame();
     expect(acceptAnswer(editor)).toEqual({ gone: true });
     expect(texts(editor)).toEqual(['New', 'Next']);
+  });
+
+  it('keeps the answer, stopped, and puts it where a deletion of its block and both neighbours collapsed', async () => {
+    for (const origin of ['input', 'remote'] as const) {
+      const host = writing('Keep', 'Above', 'Target words', 'Below', 'Tail');
+      const { editor } = host;
+      editor.commands.setSelection(caret('p2', 3));
+      openMenu(editor, targetOfSelection(editor.state)!, false);
+      ask(editor, host.stream, { action: 'improve' });
+      host.last().push('Better target');
+      await nextFrame();
+      const tr = new Transaction(editor.state).setOrigin(origin);
+      deleteRange(tr, editor.state.schema, at('p0', 2), at('p4', 2));
+      editor.dispatch(tr);
+      await nextFrame();
+      expect(host.last().signal.aborted).toBe(true);
+      expect(aiState(editor.state).ghost).toMatchObject({ phase: 'stopped', output: 'Better target' });
+      expect(acceptAnswer(editor)).toEqual({ gone: true });
+      expect(texts(editor)).toEqual(['Keil', 'Better target']);
+    }
+  });
+
+  it('keeps the answer when the whole document is deleted', async () => {
+    const host = writing('One', 'Target words', 'Three');
+    const { editor } = host;
+    editor.commands.setSelection(caret('p1', 3));
+    openMenu(editor, targetOfSelection(editor.state)!, false);
+    ask(editor, host.stream, { action: 'improve' });
+    host.last().push('Better');
+    await nextFrame();
+    editor.commands.setSelection({ kind: 'text', anchor: at('p0', 0), head: at('p2', 5) });
+    editor.commands.deleteBackward();
+    await nextFrame();
+    expect(aiState(editor.state).ghost).toMatchObject({ phase: 'stopped', output: 'Better' });
+    expect(acceptAnswer(editor)).toEqual({ gone: true });
+    expect(texts(editor)).toEqual(['', 'Better']);
   });
 });

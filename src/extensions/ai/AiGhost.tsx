@@ -19,13 +19,14 @@ type AiGhostProps = { env: AiEnv; ghost: Ghost; target: AiTarget; gone: boolean;
 export function AiGhost({ env, ghost, target, gone, barId }: AiGhostProps) {
   const layer = useRef<HTMLDivElement>(null);
   const drawn = useRef<HTMLDivElement>(null);
+  const place = useGhostPlace(env.controller, layer, target.to.block, target.to.region);
   useIsomorphicLayoutEffect(() => {
     const element = drawn.current;
     if (element === null) return;
     element.setAttribute('inert', '');
     fillGhost(element, ghost.shown);
-  }, [ghost.shown]);
-  useGhostPlace(env.controller, layer, target.to.block, target.to.region);
+    place();
+  }, [ghost.shown, ghost.phase, gone, place]);
 
   return (
     <div ref={layer} className="quoin-ai-layer">

@@ -52,7 +52,7 @@ export const packageEntries = [
   // Threads the host keeps, which no catalogue option could carry, so it stays out of the catalogue as presence does.
   { name: 'comments', source: 'src/comments.ts', client: true, added: incrementalBudget(6_547) },
   // The host's model streams through a callback no catalogue option could carry, so it stays out as comments do.
-  { name: 'ai', source: 'src/ai.ts', client: true, added: incrementalBudget(7_944) },
+  { name: 'ai', source: 'src/ai.ts', client: true, added: incrementalBudget(8_338) },
   ...featureEntries,
   { name: 'catalogue', source: 'src/catalogue.ts', client: true, added: incrementalBudget(28_865) },
 ];

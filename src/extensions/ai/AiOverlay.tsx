@@ -57,15 +57,35 @@ export function AiOverlay({ controller, stream, labels }: AiOverlayProps) {
     return () => void controller.keyInterceptors.delete(toBar);
   }, [controller, showing, barId]);
 
-  // Focus arriving in the canvas makes every empty line one a Space opens the menu on again.
+  // Focus arriving in the canvas from outside it makes every empty line one a Space opens the menu on again. The
+  // canvas's own menus and toolbars, portaled out of it but marked `.quoin`, are not outside it, even when focus falls
+  // from one to the body as it closes.
   useEffect(() => {
     const root = controller.root;
     if (!root) return;
-    const arrived = (event: FocusEvent) => {
-      if (!root.contains(event.relatedTarget as Node | null)) noteFocus(controller.editor);
+    const ours = (node: EventTarget | null) =>
+      node instanceof Element &&
+      (root.contains(node) || (node.closest('.quoin') !== null && !node.closest('.quoin-editor')));
+    let away = true;
+    const moved = (event: FocusEvent) => {
+      if (!ours(event.target)) away = true;
     };
+    const left = (event: FocusEvent) => {
+      if (event.relatedTarget === null) away = true;
+    };
+    const arrived = () => {
+      if (away) noteFocus(controller.editor);
+      away = false;
+    };
+    const { ownerDocument } = root;
+    ownerDocument.addEventListener('focusin', moved);
+    root.addEventListener('focusout', left);
     root.addEventListener('focusin', arrived);
-    return () => root.removeEventListener('focusin', arrived);
+    return () => {
+      ownerDocument.removeEventListener('focusin', moved);
+      root.removeEventListener('focusout', left);
+      root.removeEventListener('focusin', arrived);
+    };
   }, [controller]);
 
   // A canvas made read-only ends the answer: its stream is aborted at once, and the answer goes once the change is in.

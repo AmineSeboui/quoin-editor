@@ -8,11 +8,11 @@ import { FOCUS_RING } from "./focus";
 import { ICON_TAP_TARGET_FLOOR } from "./touch-target";
 
 function Dialog(props: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Root>) {
-  return <DialogPrimitive.Root data-slot="dialog" {...props} />;
+  return <DialogPrimitive.Root {...props} />;
 }
 
 function DialogPortal(props: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Portal>) {
-  return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />;
+  return <DialogPrimitive.Portal {...props} />;
 }
 
 const DialogTrigger = /* @__PURE__ */ React.forwardRef<

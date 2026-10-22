@@ -1,5 +1,6 @@
 import { getPluginState, type Pos } from '../../engine';
 import { domMapOf, type ViewController } from '../../view';
+import { clipOf } from '../overflow-clip';
 import { presenceKey } from './presence-plugin';
 
 // The box of the place at `pos` in `host`: a collapsed range there, or the character before or after it, or the host.
@@ -26,16 +27,6 @@ function caretBox(host: HTMLElement, offset: number): DOMRect | null {
   }
   const box = host.getBoundingClientRect();
   return new DOMRect(box.left, box.top, 0, box.height);
-}
-
-// The nearest element between the host and the canvas root that clips what overflows it, such as a wide table's.
-function clipOf(host: HTMLElement, root: HTMLElement): HTMLElement | null {
-  const view = host.ownerDocument.defaultView;
-  for (let element = host.parentElement; element && element !== root; element = element.parentElement) {
-    const { overflowX, overflowY } = view!.getComputedStyle(element);
-    if (overflowX !== 'visible' || overflowY !== 'visible') return element;
-  }
-  return null;
 }
 
 function inside(box: DOMRect, clip: HTMLElement | null): boolean {

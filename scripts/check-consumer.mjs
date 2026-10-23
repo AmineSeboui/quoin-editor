@@ -1,14 +1,14 @@
 import { execFileSync } from 'node:child_process';
-import { cpSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, mkdtempSync, readdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
+import { codeSamples, docsSources, readText, root } from './docs-sources.mjs';
 import { specifier } from './entry-outputs.mjs';
 import { packageEntries } from './package-entries.mjs';
 
 const react = process.env.QUOIN_REACT ?? '19';
 if (react !== '18' && react !== '19') throw new Error(`QUOIN_REACT must be 18 or 19, not ${react}.`);
 
-const root = resolve(import.meta.dirname, '..');
 const work = mkdtempSync(join(tmpdir(), 'quoin-consumer-'));
 const run = (cmd, args, cwd) => execFileSync(cmd, args, { cwd, stdio: 'inherit' });
 
@@ -38,11 +38,14 @@ writeFileSync(
   packageEntries.map((entry, i) => `export * as entry${i} from '${specifier(entry)}';\n`).join(''),
 );
 
-// The README is the package's front door, so its samples are typechecked against the packed build too.
-const readme = readFileSync(join(root, 'README.md'), 'utf8');
-[...readme.matchAll(/```(tsx?)\n([\s\S]*?)```/g)].forEach(([, lang, code], i) => {
-  writeFileSync(join(samples, `readme-${i + 1}.${lang}`), code);
-});
+// The README and the docs pages are what a consumer copies from, so their samples are typechecked against the packed
+// build too.
+const pages = [{ slug: 'readme', path: join(root, 'README.md') }, ...docsSources()];
+for (const { slug, path } of pages) {
+  codeSamples(readText(path)).forEach(({ lang, code }, i) => {
+    writeFileSync(join(samples, `${slug}-${i + 1}.${lang}`), code);
+  });
+}
 
 writeFileSync(
   join(work, 'tsconfig.json'),
@@ -74,4 +77,4 @@ if (react === '18') {
   run(process.execPath, ['server-render.mjs'], work);
 }
 
-console.log(`The packed package typechecks for a consumer on React ${react} and TypeScript 5.4, with every entry and README sample.`);
+console.log(`The packed package typechecks for a consumer on React ${react} and TypeScript 5.4, with every entry and every sample of the README and the docs.`);

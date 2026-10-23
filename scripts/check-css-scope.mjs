@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { docsSources } from './docs-sources.mjs';
 
 const file = process.argv[2] ?? 'dist/styles.css';
 const css = readFileSync(file, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
@@ -140,24 +141,26 @@ if (foreign.length) {
 }
 console.log(`${file}: every custom property it declares and reads is its own (--quoin-, --tw- or --radix-).`);
 
-// The README's collision example only means anything while the package does not emit the utility
-// it quotes. Tailwind reads whatever its source configuration points at, prose included, so the
-// package once shipped a .md\:block of its own and rescued the very element the README says it
+// The docs' collision example only means anything while the package does not emit the utility it
+// quotes. Tailwind reads whatever its source configuration points at, prose included, so the
+// package once shipped a .md\:block of its own and rescued the very element the docs say it
 // breaks. This pins the example to the build rather than to an argument about it.
-const prose = readFileSync(resolve(import.meta.dirname, '..', 'README.md'), 'utf8');
+const prose = [resolve(import.meta.dirname, '..', 'README.md'), ...docsSources().map(({ path }) => path)]
+  .map((path) => readFileSync(path, 'utf8'))
+  .join('\n');
 const quoted = [...new Set([...prose.matchAll(/hidden\s+(md:[a-z0-9-]+)/g)].map((m) => m[1]))];
 const shipped = quoted.filter((name) => css.includes(`.${name.replace(':', '\\:')}`));
 
 if (quoted.length === 0) {
-  console.error('README.md no longer shows a `hidden md:*` collision example, so nothing pins it.');
+  console.error('Neither the README nor the docs show a `hidden md:*` collision example any more, so nothing pins it.');
   process.exit(1);
 }
 if (shipped.length) {
-  console.error(`${file} ships the utility the README's collision example is written around:`);
+  console.error(`${file} ships the utility the docs' collision example is written around:`);
   for (const name of shipped) console.error(`  .${name} is emitted, so the host's element is rescued, not broken`);
   process.exit(1);
 }
-console.log(`${file}: the utility the README's collision example quotes (${quoted.join(', ')}) is not emitted.`);
+console.log(`${file}: the utility the docs' collision example quotes (${quoted.join(', ')}) is not emitted.`);
 
 // The editor offers five callout tones, so five of them have to be distinguishable. Until
 // 0.4.0 they were mapped onto whatever this palette already carried, and info, tip and

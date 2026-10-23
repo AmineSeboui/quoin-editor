@@ -21,6 +21,14 @@ describe('markElement', () => {
     expect(html({ type: 'link', attrs: { href: 'data:text/html,x' } })).toBe('<span data-quoin-link=""></span>');
   });
 
+  it("keeps a link's title on the editing anchor", () => {
+    expect(html({ type: 'link', attrs: { href: 'https://a.b', title: 'The \u201cdocs\u201d' } })).toBe(
+      '<a href="https://a.b" data-quoin-link="" title="The \u201cdocs\u201d"></a>',
+    );
+    expect(html({ type: 'link', attrs: { href: 'https://a.b', title: '' } })).toBe('<a href="https://a.b" data-quoin-link=""></a>');
+    expect(html({ type: 'link', attrs: { href: 'javascript:x', title: 'Run' } })).toBe('<span data-quoin-link=""></span>');
+  });
+
   it('renders comment, highlight, color and background marks with their data attributes', () => {
     expect(html({ type: 'comment', attrs: { id: 'c1' } })).toBe('<span data-comment="c1"></span>');
     expect(html({ type: 'highlight' })).toBe('<mark></mark>');

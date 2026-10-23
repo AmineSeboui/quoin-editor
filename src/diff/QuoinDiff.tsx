@@ -28,6 +28,14 @@ export type QuoinDiffProps = {
   renderMath?: HTMLOptions['renderMath'];
   /** Highlights the code of code blocks; without it their code is plain text. */
   highlight?: CodeHighlighter;
+  /** Embeds as links by default, or as sandboxed frames for the pages of known providers. */
+  embeds?: HTMLOptions['embeds'];
+  /** Tried before the built in providers, in order. Only used when `embeds` is `'iframe'`. */
+  embedProviders?: HTMLOptions['embedProviders'];
+  /** The title of a frame given its provider's name, the name itself by default. */
+  frameTitle?: HTMLOptions['frameTitle'];
+  /** The accessible name of a task checkbox whose item has no text, the `emptyTask` label by default. */
+  taskLabel?: HTMLOptions['taskLabel'];
   className?: string;
 };
 
@@ -42,6 +50,6 @@ export function QuoinDiff({ before, after, blockTypes, labels, highlight, classN
   const { blocks, marks } = diffDocument(before, after, schema);
   const slots = new Map<HtmlElement, ReactNode>();
   const render = diffRenderer(marks, words, viewRenderer({ blockTypes, highlight }, slots));
-  const nodes = documentNodes(blocks, { ...options, schema, taskLabel: words.emptyTask }, render);
+  const nodes = documentNodes(blocks, { ...options, schema, taskLabel: options.taskLabel ?? words.emptyTask }, render);
   return createElement('div', { className: className ? `quoin-diff ${className}` : 'quoin-diff' }, ...reactNodes(settledDiff(nodes), slots));
 }

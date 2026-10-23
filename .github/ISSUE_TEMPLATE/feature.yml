@@ -1,0 +1,29 @@
+name: Feature request
+description: A change to the canvas, an entry or the API.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What you are trying to do, and what stops you today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you would like
+      description: How it could look from your code or from the writer's side.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you tried
+      description: Workarounds, extensions or other editors you looked at.
+  - type: checkboxes
+    id: markdown
+    attributes:
+      label: Storage
+      options:
+        - label: This changes what is stored in a document, or how it is written as markdown.

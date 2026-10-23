@@ -1,0 +1,2 @@
+Notes attached to the every block page of the Quoin docs site.
+A file block links to its download.

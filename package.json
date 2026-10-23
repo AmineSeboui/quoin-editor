@@ -1,7 +1,7 @@
 {
   "name": "quoin-editor",
-  "version": "0.4.2",
-  "description": "Markdown-native block editor for React: Notion-style blocks, a slash palette, drag to reorder and your own block types. Typed JSON out, MIT.",
+  "version": "1.0.0",
+  "description": "Markdown-native block editor for React: live formatting, Notion-style menus, drag and drop, collaboration hooks and your own React blocks. MIT.",
   "license": "MIT",
   "author": {
     "name": "Amine Sboui",
@@ -11,7 +11,7 @@
     "type": "git",
     "url": "git+https://github.com/AmineSeboui/quoin-editor.git"
   },
-  "homepage": "https://amineseboui.github.io/quoin-editor",
+  "homepage": "https://amineseboui.github.io/quoin-editor/",
   "bugs": {
     "url": "https://github.com/AmineSeboui/quoin-editor/issues"
   },
@@ -25,9 +25,13 @@
     "notion-style",
     "markdown",
     "markdown-editor",
+    "wysiwyg",
+    "rich-text-editor",
     "slash-command",
     "slash-menu",
     "drag-and-drop",
+    "collaborative-editing",
+    "yjs",
     "typescript",
     "headless",
     "content-editor",
@@ -41,7 +45,11 @@
     "*.css"
   ],
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "MIGRATION.md"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -256,7 +264,9 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "prepublishOnly": "npm run build && npm run check:css && npm run check:directives"
+    "prepublishOnly": "npm run build && npm run check:css && npm run check:directives",
+    "record:demo": "node scripts/record-demo.mjs",
+    "render:og": "node scripts/render-og.mjs"
   },
   "peerDependencies": {
     "react": "^18.2.0 || ^19.0.0",
@@ -295,6 +305,7 @@
     "eslint": "^9.39.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "fast-check": "^4.10.2",
+    "gifenc": "1.0.3",
     "globals": "^15.15.0",
     "jsdom": "^26.0.0",
     "react": "^19.2.0",

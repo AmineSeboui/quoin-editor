@@ -1,14 +1,14 @@
 import { execFileSync } from 'node:child_process';
-import { cpSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, mkdtempSync, readdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
+import { codeSamples, readText, root, samplePages } from './docs-sources.mjs';
 import { specifier } from './entry-outputs.mjs';
 import { packageEntries } from './package-entries.mjs';
 
 const react = process.env.QUOIN_REACT ?? '19';
 if (react !== '18' && react !== '19') throw new Error(`QUOIN_REACT must be 18 or 19, not ${react}.`);
 
-const root = resolve(import.meta.dirname, '..');
 const work = mkdtempSync(join(tmpdir(), 'quoin-consumer-'));
 const run = (cmd, args, cwd) => execFileSync(cmd, args, { cwd, stdio: 'inherit' });
 
@@ -38,11 +38,13 @@ writeFileSync(
   packageEntries.map((entry, i) => `export * as entry${i} from '${specifier(entry)}';\n`).join(''),
 );
 
-// The README is the package's front door, so its samples are typechecked against the packed build too.
-const readme = readFileSync(join(root, 'README.md'), 'utf8');
-[...readme.matchAll(/```(tsx?)\n([\s\S]*?)```/g)].forEach(([, lang, code], i) => {
-  writeFileSync(join(samples, `readme-${i + 1}.${lang}`), code);
-});
+// The README, the migration guide and the docs pages are what a consumer copies from, so their samples are typechecked
+// against the packed build too.
+for (const { slug, path } of samplePages()) {
+  codeSamples(readText(path)).forEach(({ lang, code }, i) => {
+    writeFileSync(join(samples, `${slug}-${i + 1}.${lang}`), code);
+  });
+}
 
 writeFileSync(
   join(work, 'tsconfig.json'),
@@ -62,6 +64,10 @@ const probes = JSON.stringify(['quoin-editor/package.json', ...packageEntries.ma
 const probe = `const probe = require('node:module').createRequire(${resolver}); ${probes}.forEach((id) => probe.resolve(id));`;
 run(process.execPath, ['-e', probe], work);
 
+// Every entry that needs no DOM loads in a plain Node process, through import and require alike, with the same exports.
+cpSync(join(root, 'consumer-check', 'server-entries.mjs'), join(work, 'server-entries.mjs'));
+run(process.execPath, ['server-entries.mjs', ...packageEntries.filter(({ client }) => !client).map(specifier)], work);
+
 // The view and diff render, and docx writes a file, in a plain Node process with no DOM, on either React.
 for (const script of ['server-view.mjs', 'server-diff.mjs', 'server-docx.mjs']) {
   cpSync(join(root, 'consumer-check', script), join(work, script));
@@ -74,4 +80,4 @@ if (react === '18') {
   run(process.execPath, ['server-render.mjs'], work);
 }
 
-console.log(`The packed package typechecks for a consumer on React ${react} and TypeScript 5.4, with every entry and README sample.`);
+console.log(`The packed package typechecks for a consumer on React ${react} and TypeScript 5.4, with every entry and every sample of the README, the migration guide and the docs.`);

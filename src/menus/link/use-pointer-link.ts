@@ -26,7 +26,7 @@ export function usePointerLink(
   useEffect(() => {
     const onOver = (event: PointerEvent) => {
       if (event.pointerType === 'touch' || event.buttons > 0) return;
-      const onCard = event.target instanceof Node && card.current?.contains(event.target) === true;
+      const onCard = !!card.current?.contains(event.target as Node);
       const next = onCard ? shown.current : linkElementAt(controller, event.target);
       clearTimeout(timer.current);
       if (!sameLink(controller, next, shown.current)) timer.current = setTimeout(() => show(next), delay);

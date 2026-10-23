@@ -8,7 +8,7 @@ import { linkAtSelection } from './link-at-selection';
 function insertLinkedText(value: string, href: string, caret: Pos): Command {
   const safe = sanitizeHref(href);
   return (state, dispatch) => {
-    if (safe === null || safe === '') return false;
+    if (!safe) return false;
     const link = { type: 'link', attrs: { href: safe } };
     const marks = addMark(caretMarks(state.doc, state.schema, state.storedMarks, caret), link);
     const tr = new Transaction(state)

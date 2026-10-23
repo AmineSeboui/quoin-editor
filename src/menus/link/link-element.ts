@@ -26,8 +26,7 @@ const sameStart = (a: MarkRange, b: MarkRange) => a.block === b.block && a.regio
  * is drawn as several elements.
  */
 export function sameLink(controller: ViewController, a: Element | null, b: Element | null): boolean {
-  if (a === b) return true;
-  if (a === null || b === null) return false;
+  if (a === b || a === null || b === null) return a === b;
   const { state } = controller.editor;
   const first = linkAtElement(controller, state, a)?.range;
   const second = linkAtElement(controller, state, b)?.range;

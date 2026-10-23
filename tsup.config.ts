@@ -1,6 +1,8 @@
 import { readFile, writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import { defineConfig } from 'tsup';
 import { directiveFiles, tsupEntries } from './scripts/entry-outputs.mjs';
+import { makeMapsPortable } from './scripts/portable-maps.mjs';
 import { lazyChunks, packageEntries } from './scripts/package-entries.mjs';
 
 // esbuild keeps the directive in ESM output but buries it behind the CJS prelude. It is prepended
@@ -23,5 +25,6 @@ export default defineConfig({
   external: ['react', 'react-dom', 'yjs'],
   onSuccess: async () => {
     await Promise.all(directiveFiles(packageEntries, true).map(ensureDirective));
+    await makeMapsPortable(resolve('dist'));
   },
 });

@@ -14,5 +14,5 @@ export function linkAddress(typed: string): string | null {
   if (WHITESPACE.test(address)) return null;
   const completed = !SCHEME.test(address) && BARE_DOMAIN.test(address) ? `https://${address}` : address;
   const href = sanitizeHref(completed);
-  return href === '' ? null : href;
+  return href || null;
 }

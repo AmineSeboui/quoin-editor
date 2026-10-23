@@ -18,13 +18,20 @@ jobs:
           node-version: 22
           cache: npm
           registry-url: https://registry.npmjs.org
+      - name: Check the tag names the package version
+        run: test "$GITHUB_REF_NAME" = "v$(node -p "require('./package.json').version")"
       - run: npm ci
+      - run: npm run lint
       - run: npm run typecheck
       - run: npm run build
-      - run: npm test
+      - run: npm run test:coverage
+      - run: npm run check:css
       - run: npm run check:directives
       - run: npm run check:size
       - run: npm run check:consumer
+      - run: npm run check:consumer
+        env:
+          QUOIN_REACT: '18'
       - run: npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

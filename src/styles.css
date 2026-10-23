@@ -42,7 +42,7 @@
 /* Narrowed from the whole directory, and automatic detection turned off above, so the build
    scans this package's components and nothing else. Left wider, Tailwind reads the README as
    content and emits a utility for every class name the prose quotes, which is how .md\:block
-   shipped: the collision the README documents was then rescued by the package itself. Tests are
+   shipped: the collision demo/docs/styles-history.md documents was then rescued by the package itself. Tests are
    excluded for the same reason, a class named in an assertion is not a class we ship. */
 @source "./**/*.{ts,tsx}";
 @source not "./**/*.test.{ts,tsx}";

@@ -61,10 +61,7 @@ export function LinkPopover({ controller, labels, onClose }: LinkPopoverProps) {
   const apply = (event: FormEvent) => {
     event.preventDefault();
     const href = linkAddress(address);
-    if (href === null) {
-      setInvalid(true);
-      return;
-    }
+    if (href === null) return setInvalid(true);
     controller.run(applyLink(href, address.trim()));
     backToText();
   };

@@ -1,0 +1,74 @@
+/* The answer streams in over the canvas, under the block it is for, which keeps room for it below its text. */
+.quoin [data-quoin-block][data-quoin-ai-room] {
+  margin-bottom: var(--quoin-ai-room, 0px);
+}
+
+.quoin .quoin-ai-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.quoin .quoin-ai-ghost {
+  padding-inline-start: 0.75em;
+  border-inline-start: 2px solid var(--quoin-primary);
+  color: var(--quoin-foreground);
+  user-select: none;
+  white-space: pre-wrap;
+}
+
+.quoin .quoin-ai-ghost:empty {
+  min-height: 1.5em;
+}
+
+.quoin .quoin-ai-ghost-block {
+  margin-inline-start: calc(var(--quoin-ai-indent, 0) * 1.5em);
+}
+
+.quoin .quoin-ai-ghost-block + .quoin-ai-ghost-block {
+  margin-top: 0.25em;
+}
+
+.quoin .quoin-ai-ghost-block[data-kind="heading"] {
+  font-weight: 600;
+  font-size: 1.25em;
+}
+
+.quoin .quoin-ai-ghost-block[data-kind="heading"][data-level="1"] {
+  font-size: 1.5em;
+}
+
+.quoin .quoin-ai-ghost-block[data-kind="bullet"]::before {
+  content: "\2022\00a0";
+}
+
+.quoin .quoin-ai-ghost-block[data-kind="task"]::before {
+  content: "\2610\00a0";
+}
+
+.quoin .quoin-ai-ghost-block[data-kind="quote"] {
+  padding-inline-start: 0.75em;
+  border-inline-start: 2px solid var(--quoin-border);
+  color: var(--quoin-muted-foreground);
+}
+
+.quoin .quoin-ai-ghost-block[data-kind="code"] {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.875em;
+}
+
+.quoin .quoin-ai-replaced {
+  text-decoration: line-through;
+  text-decoration-color: var(--quoin-muted-foreground);
+  color: var(--quoin-muted-foreground);
+}
+
+@media (forced-colors: active) {
+  .quoin .quoin-ai-ghost {
+    border-inline-start-color: Highlight;
+  }
+}

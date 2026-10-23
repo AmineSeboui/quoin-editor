@@ -143,13 +143,13 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
                   <ExtensionBlockNames.Provider value={ui.blockNames}>
                     <Gutter controller={controller} store={uiStore} actions={actions} />
                     <BlockContextMenu controller={controller} store={uiStore} actions={actions} />
+                    <MobileToolbar controller={controller} />
                   </ExtensionBlockNames.Provider>
                 )}
                 {ui.overlays.map((Overlay, index) => (
                   <Overlay key={index} controller={controller} />
                 ))}
               </EditorView>
-              {!readOnly && <MobileToolbar controller={controller} />}
             </CanvasUiProvider>
           </BubbleItemsProvider>
         </SlashItemsProvider>

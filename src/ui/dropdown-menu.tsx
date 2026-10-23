@@ -19,21 +19,21 @@ import {
 // A modal menu hides everything around it from assistive technology, the editor's tab stop and links with it, which
 // leaves focusable content hidden. Radix keeps Tab inside an open menu either way.
 function DropdownMenu({ modal = false, ...props }: React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Root>) {
-  return <DropdownMenuPrimitive.Root data-slot="dropdown-menu" modal={modal} {...props} />;
+  return <DropdownMenuPrimitive.Root modal={modal} {...props} />;
 }
 
 function DropdownMenuSub(props: React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Sub>) {
-  return <DropdownMenuPrimitive.Sub data-slot="dropdown-menu-sub" {...props} />;
+  return <DropdownMenuPrimitive.Sub {...props} />;
 }
 
-const DropdownMenuTrigger = React.forwardRef<
+const DropdownMenuTrigger = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof DropdownMenuPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Trigger>
 >(function DropdownMenuTrigger(props, ref) {
   return <DropdownMenuPrimitive.Trigger ref={ref} data-slot="dropdown-menu-trigger" {...props} />;
 });
 
-const DropdownMenuContent = React.forwardRef<
+const DropdownMenuContent = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof DropdownMenuPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>
 >(function DropdownMenuContent({ className, sideOffset = 4, ...props }, ref) {
@@ -50,14 +50,14 @@ const DropdownMenuContent = React.forwardRef<
   );
 });
 
-const DropdownMenuGroup = React.forwardRef<
+const DropdownMenuGroup = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof DropdownMenuPrimitive.Group>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Group>
 >(function DropdownMenuGroup(props, ref) {
   return <DropdownMenuPrimitive.Group ref={ref} data-slot="dropdown-menu-group" {...props} />;
 });
 
-const DropdownMenuItem = React.forwardRef<
+const DropdownMenuItem = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof DropdownMenuPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item> & { inset?: boolean }
 >(function DropdownMenuItem({ className, inset, ...props }, ref) {
@@ -72,7 +72,7 @@ const DropdownMenuItem = React.forwardRef<
   );
 });
 
-const DropdownMenuCheckboxItem = React.forwardRef<
+const DropdownMenuCheckboxItem = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof DropdownMenuPrimitive.CheckboxItem>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.CheckboxItem>
 >(function DropdownMenuCheckboxItem({ className, children, ...props }, ref) {
@@ -93,14 +93,14 @@ const DropdownMenuCheckboxItem = React.forwardRef<
   );
 });
 
-const DropdownMenuRadioGroup = React.forwardRef<
+const DropdownMenuRadioGroup = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof DropdownMenuPrimitive.RadioGroup>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.RadioGroup>
 >(function DropdownMenuRadioGroup(props, ref) {
   return <DropdownMenuPrimitive.RadioGroup ref={ref} data-slot="dropdown-menu-radio-group" {...props} />;
 });
 
-const DropdownMenuRadioItem = React.forwardRef<
+const DropdownMenuRadioItem = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof DropdownMenuPrimitive.RadioItem>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.RadioItem> & { indicator?: React.ReactNode }
 >(function DropdownMenuRadioItem(
@@ -122,7 +122,7 @@ const DropdownMenuRadioItem = React.forwardRef<
   );
 });
 
-const DropdownMenuLabel = React.forwardRef<
+const DropdownMenuLabel = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof DropdownMenuPrimitive.Label>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Label> & { inset?: boolean }
 >(function DropdownMenuLabel({ className, inset, ...props }, ref) {
@@ -137,7 +137,7 @@ const DropdownMenuLabel = React.forwardRef<
   );
 });
 
-const DropdownMenuSeparator = React.forwardRef<
+const DropdownMenuSeparator = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof DropdownMenuPrimitive.Separator>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Separator>
 >(function DropdownMenuSeparator({ className, ...props }, ref) {
@@ -151,13 +151,13 @@ const DropdownMenuSeparator = React.forwardRef<
   );
 });
 
-const DropdownMenuShortcut = React.forwardRef<HTMLSpanElement, React.ComponentPropsWithoutRef<"span">>(
+const DropdownMenuShortcut = /* @__PURE__ */ React.forwardRef<HTMLSpanElement, React.ComponentPropsWithoutRef<"span">>(
   function DropdownMenuShortcut({ className, ...props }, ref) {
     return <span ref={ref} data-slot="dropdown-menu-shortcut" className={cn(MENU_SHORTCUT, className)} {...props} />;
   },
 );
 
-const DropdownMenuSubTrigger = React.forwardRef<
+const DropdownMenuSubTrigger = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof DropdownMenuPrimitive.SubTrigger>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubTrigger> & { inset?: boolean }
 >(function DropdownMenuSubTrigger({ className, inset, children, ...props }, ref) {
@@ -175,7 +175,7 @@ const DropdownMenuSubTrigger = React.forwardRef<
   );
 });
 
-const DropdownMenuSubContent = React.forwardRef<
+const DropdownMenuSubContent = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof DropdownMenuPrimitive.SubContent>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubContent>
 >(function DropdownMenuSubContent({ className, ...props }, ref) {

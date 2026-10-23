@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { str } from '../../blocks/str';
+import { str } from '../../engine/blocks/data-fields';
 import { useQuoin } from '../../context';
 import { setAttrsStep } from '../../engine';
 import { blockById } from '../../engine/model/doc';

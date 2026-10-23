@@ -45,6 +45,20 @@ export const packageEntries = [
   { name: MAIN_ENTRY, source: 'src/index.ts', client: true, total: 155_000 },
   { name: 'headless', source: 'src/headless.ts', client: true, total: 70_000 },
   { name: 'engine', source: 'src/engine/index.ts', client: false, total: 52_000 },
+  // Read-only React for a server, which loads it alone: the markdown parser it shares with the engine is most of it.
+  { name: 'view', source: 'src/view-static/index.ts', client: false, total: 22_214 },
+  // The changes between two versions, drawn with the view's node tree: loaded alone, like the view.
+  { name: 'diff', source: 'src/diff/index.ts', client: false, total: 26_961 },
+  // Word documents written in a browser, a worker or Node, loaded alone like the view: most of it is the block reading.
+  { name: 'docx', source: 'src/docx/index.ts', client: false, total: 25_891 },
+  // Measured as what it adds to the main entry, like a feature: the engine entry it loads is a part of the main entry.
+  { name: 'yjs', source: 'src/yjs.ts', client: false, added: incrementalBudget(8_111) },
+  // Collaborators drawn in the canvas: a client entry, apart from the adapter, which a worker or a server can load alone.
+  { name: 'presence', source: 'src/presence.ts', client: true, added: incrementalBudget(4_534) },
+  // Threads the host keeps, which no catalogue option could carry, so it stays out of the catalogue as presence does.
+  { name: 'comments', source: 'src/comments.ts', client: true, added: incrementalBudget(6_560) },
+  // The host's model streams through a callback no catalogue option could carry, so it stays out as comments do.
+  { name: 'ai', source: 'src/ai.ts', client: true, added: incrementalBudget(8_417) },
   ...featureEntries,
   { name: 'catalogue', source: 'src/catalogue.ts', client: true, added: incrementalBudget(28_865) },
 ];

@@ -1,9 +1,6 @@
+import { isRecord } from '../model/is-record';
 import type { QuoinBlock } from '../model/quoin-block';
 import type { Slice } from './slice';
-
-type Json = Record<string, unknown>;
-
-const isRecord = (value: unknown): value is Json => typeof value === 'object' && value !== null && !Array.isArray(value);
 
 function isBlock(value: unknown): value is QuoinBlock {
   if (!isRecord(value) || typeof value.id !== 'string' || typeof value.type !== 'string') return false;

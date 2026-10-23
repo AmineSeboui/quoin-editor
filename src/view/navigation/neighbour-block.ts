@@ -4,6 +4,7 @@ import { endOf, nodeSelection, startOf } from '../../engine/state/selection';
 import type { ViewController } from '../controller/view-controller';
 import { entersAsNode } from './node-entry';
 import { visibleBlockIndexes } from './visible-blocks';
+import { dispatchSelection } from '../controller/dispatch-selection';
 
 const anyBlock = () => true;
 
@@ -45,9 +46,8 @@ export function neighbourHead(controller: ViewController, from: string, directio
 }
 
 export function moveToNeighbour(controller: ViewController, from: string, direction: -1 | 1): boolean {
-  const { editor } = controller;
-  const target = neighbourBlock(editor.state.doc, from, direction);
+  const target = neighbourBlock(controller.editor.state.doc, from, direction);
   if (target === null) return false;
-  controller.dispatch(editor.createTransaction().setSelection(entryEdge(controller, target.id, direction)));
+  dispatchSelection(controller, entryEdge(controller, target.id, direction));
   return true;
 }

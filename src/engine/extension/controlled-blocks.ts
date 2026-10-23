@@ -24,8 +24,9 @@ export function createControlledBlocks(config: {
   state: () => EditorState;
   dispatch: (tr: Transaction) => void;
   onChange?: (blocks: QuoinBlock[]) => void;
+  accepts: (incoming: readonly QuoinBlock[]) => boolean;
 }): ControlledBlocks {
-  const { codec, state, dispatch, onChange } = config;
+  const { codec, state, dispatch, onChange, accepts } = config;
   const tracker = createEchoTracker();
   const quiet = new WeakSet<Transaction>();
   let supplied = config.initial;
@@ -39,7 +40,7 @@ export function createControlledBlocks(config: {
 
   function reconcile(incoming: readonly QuoinBlock[]): boolean {
     const doc = codec.docFromBlocks(incoming);
-    if (sameDoc(doc, state().doc)) return false;
+    if (sameDoc(doc, state().doc) || !accepts(incoming)) return false;
     tracker.forgetAll();
     const tr = new Transaction(state()).setOrigin('reconcile').setMeta('addToHistory', false);
     if (sameBlocks(codec.blocksFromDoc(doc), incoming)) quiet.add(tr);

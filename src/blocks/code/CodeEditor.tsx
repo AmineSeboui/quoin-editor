@@ -6,7 +6,7 @@ import { useLabels } from '../../i18n/use-labels';
 import type { ViewController } from '../../view';
 import { isComposingKey } from '../../view/input/keydown';
 import { NATIVE_INTERACTION } from '../../view/selection/native-interaction';
-import { str } from '../str';
+import { str } from '../../engine/blocks/data-fields';
 import { selectNode } from '../void/select-node';
 import { useVoidEditing } from '../void/use-void-editing';
 import { writeCode } from './code-actions';

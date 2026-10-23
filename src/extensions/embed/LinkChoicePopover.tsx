@@ -25,6 +25,7 @@ import type { SuggestionRange } from '../ui-types';
 import type { EmbedFeature } from './embed-feature';
 import { bookmarkOf, embedOf } from './link-blocks';
 import { linkChoice, replaceLink, type LinkChoice } from './link-choice';
+import { interceptKeys } from '../../view/input/intercept-keys';
 
 type Props = { controller: ViewController; feature: EmbedFeature };
 
@@ -63,8 +64,7 @@ function useEscapeInText(controller: ViewController, onEscape: () => void): void
       onEscape();
       return true;
     };
-    controller.keyInterceptors.add(intercept);
-    return () => void controller.keyInterceptors.delete(intercept);
+    return interceptKeys(controller, intercept);
   }, [controller, onEscape]);
 }
 

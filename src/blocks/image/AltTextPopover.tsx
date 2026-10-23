@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent, type RefObject } from 'react';
 import { setAttrs } from '../../engine/commands/block-style';
+import { blockById } from '../../engine/model/doc';
 import { useLabels } from '../../i18n/use-labels';
 import { bubblePart, isBubblePart } from '../../menus/bubble/bubble-part';
 import type { VirtualAnchor } from '../../menus/floating/virtual-anchor';
@@ -12,6 +13,7 @@ import { preventDefault } from '../../ui/prevent-default';
 import type { ViewController } from '../../view';
 import { isComposingKey } from '../../view/input/keydown';
 import { onBlock } from '../../view/react/block-command';
+import { str } from '../../engine/blocks/data-fields';
 import { useOutsidePress } from './use-outside-press';
 
 type AltTextPopoverProps = {
@@ -25,10 +27,12 @@ type AltTextPopoverProps = {
 
 // The text is also stored as the popover goes, whatever takes it down, such as the caret of a tap being read into the
 // text or a host moving the selection off the image: on the editor itself, since the canvas's flush is refused in an
-// effect. A canvas being taken down has let go of its root first, and takes no more writes.
-function storeAlt(controller: ViewController, blockId: string, alt: string): void {
+// effect. A canvas being taken down has let go of its root first, and takes no more writes. A host change that also
+// moved the selection takes the popover down before it is drawn with the new alt text, which the draft must not replace.
+function storeAlt(controller: ViewController, blockId: string, opened: string, alt: string): void {
   const { editor } = controller;
-  if (controller.readOnly || controller.root === null) return;
+  const current = blockById(editor.state.doc, blockId)?.attrs.alt;
+  if (controller.readOnly || controller.root === null || str(current) !== opened) return;
   onBlock(blockId, setAttrs({ alt }))(editor.state, (tr) => editor.dispatch(tr));
 }
 
@@ -51,7 +55,7 @@ export function AltTextPopover({ blockId, controller, anchor, opener, alt, onClo
   const finish = (store: boolean) => {
     if (closed.current) return false;
     closed.current = true;
-    if (store && draft !== alt) storeAlt(controller, blockId, draft);
+    if (store && draft !== alt) storeAlt(controller, blockId, opened, draft);
     return true;
   };
   const latestFinish = useRef(finish);

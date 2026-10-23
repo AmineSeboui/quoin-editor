@@ -1,21 +1,10 @@
 import { sanitizeHref, type Mark } from '../../engine';
-import { setAttributes } from './attributes';
+import { writtenAttrs, type HtmlElement } from '../../engine/render/html-node';
+import { markElement as markNode } from '../../engine/render/mark-node';
 
-const PLAIN_TAGS: Readonly<Record<string, string>> = {
-  bold: 'strong',
-  italic: 'em',
-  underline: 'u',
-  strike: 's',
-  sub: 'sub',
-  sup: 'sup',
-  code: 'code',
-};
-
-type Pair = readonly [name: string, value: string | undefined];
-
-function create(doc: Document, tag: string, attributes: readonly Pair[] = []): HTMLElement {
+function create(doc: Document, tag: string, attributes: readonly (readonly [string, string | true])[]): HTMLElement {
   const element = doc.createElement(tag);
-  for (const [name, value] of attributes) if (value !== undefined) element.setAttribute(name, value);
+  for (const [name, value] of attributes) element.setAttribute(name, value as string);
   return element;
 }
 
@@ -25,25 +14,9 @@ function linkElement(href: string, doc: Document): HTMLElement {
   return create(doc, 'a', [['href', safe], ['data-quoin-link', '']]);
 }
 
+// Every mark but a link is drawn with the element toHTML writes for it.
 export function markElement(mark: Mark, doc: Document): HTMLElement {
-  const attrs = mark.attrs ?? {};
-  const plain = Object.hasOwn(PLAIN_TAGS, mark.type) ? PLAIN_TAGS[mark.type] : undefined;
-  if (plain) return create(doc, plain);
-  switch (mark.type) {
-    case 'link':
-      return linkElement(attrs.href ?? '', doc);
-    case 'comment':
-      return create(doc, 'span', [['data-comment', attrs.id ?? '']]);
-    case 'highlight':
-      return create(doc, 'mark', [['data-color', attrs.color || undefined]]);
-    case 'color':
-      return create(doc, 'span', [['data-color', attrs.color ?? '']]);
-    case 'background':
-      return create(doc, 'span', [['data-bg', attrs.color ?? '']]);
-    default: {
-      const element = create(doc, 'span', [['data-mark', mark.type]]);
-      setAttributes(element, attrs, 'data-attr-');
-      return element;
-    }
-  }
+  if (mark.type === 'link') return linkElement(mark.attrs?.href ?? '', doc);
+  const { tag, attrs } = markNode(mark) as HtmlElement;
+  return create(doc, tag, writtenAttrs(attrs));
 }

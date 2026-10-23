@@ -6,7 +6,7 @@ import { useQuoin } from '../../context';
 import { optionalNumber } from '../../engine/blocks/data-fields';
 import { bubblePart } from '../../menus/bubble/bubble-part';
 import type { BlockRenderProps } from '../../view';
-import { str } from '../str';
+import { str } from '../../engine/blocks/data-fields';
 import { assetHref } from '../upload/resolved-asset';
 import { selectHandlers } from '../void/select-handlers';
 import { fileIcon } from './file-icon';

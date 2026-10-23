@@ -1,5 +1,6 @@
 import { sameAttrs } from './attrs';
 import { compareCodeUnits } from './compare';
+import { sameItems } from './same-items';
 import type { Mark } from './types';
 
 const RANK: Readonly<Record<string, number>> = {
@@ -44,7 +45,7 @@ export function sortMarks(marks: readonly Mark[]): Mark[] {
 }
 
 export function sameMarkSet(a: readonly Mark[], b: readonly Mark[]): boolean {
-  return a.length === b.length && a.every((m, i) => sameMark(m, b[i]));
+  return sameItems(a, b, sameMark);
 }
 
 export function addMark(set: readonly Mark[], mark: Mark): Mark[] {

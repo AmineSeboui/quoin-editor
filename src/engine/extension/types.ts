@@ -1,11 +1,13 @@
 import type { CommandFactories } from '../commands/chain';
 import type { Command } from '../commands/command';
+import type { QuoinBlock } from '../model/quoin-block';
 import type { Attrs } from '../model/types';
 import type { InputRule } from '../rules/input-rule';
 import type { AtomSpec, BlockSpec, MarkSpec, Schema } from '../schema/types';
 import type { EditorState } from '../state/editor-state';
 import type { PluginSpec } from '../state/plugin';
 import type { Transaction } from '../state/transaction';
+import type { Editor } from './editor';
 
 export type Decoration =
   | {
@@ -49,6 +51,10 @@ export type Extension = {
    * input rule, the blocks the host supplies and remote transactions are never filtered.
    */
   readonly filterTransaction?: (tr: Transaction, state: EditorState) => boolean;
+  /** Returns false to refuse blocks the host supplies that differ from the document, which then stays as it is. */
+  readonly filterHostBlocks?: (blocks: readonly QuoinBlock[], state: EditorState) => boolean;
+  /** Runs on each `editor.mount()`; what it returns runs when that mount ends or the editor is destroyed. */
+  readonly onMount?: (editor: Editor<CommandFactories>) => (() => void) | void;
   readonly ui?: unknown;
 };
 

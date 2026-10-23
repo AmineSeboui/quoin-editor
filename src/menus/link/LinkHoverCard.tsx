@@ -19,6 +19,7 @@ import { truncateMiddle } from './truncate-middle';
 import { unlinkRange } from './unlink-range';
 import { useCaretInLink } from './use-caret-in-link';
 import { usePointerLink } from './use-pointer-link';
+import { dispatchSelection } from '../../view/controller/dispatch-selection';
 
 const REST_MS = 300;
 const URL_LENGTH = 48;
@@ -53,7 +54,7 @@ function LinkCard({ controller, labels, store, cardRef, element, onUnlinked }: L
   const edit = () => {
     if (element !== null) {
       const selection = textSelection({ block, region, offset: from }, { block, region, offset: to });
-      controller.dispatch(controller.editor.createTransaction().setSelection(selection));
+      dispatchSelection(controller, selection);
     }
     store.set({ linkPopover: { open: true } });
   };

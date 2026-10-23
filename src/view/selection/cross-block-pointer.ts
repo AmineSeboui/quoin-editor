@@ -8,6 +8,7 @@ import { createAutoScroll } from './auto-scroll';
 import { blockAt, caretPosAt, hostAt } from './pointer-targets';
 import { NATIVE_INTERACTION } from './native-interaction';
 import { isCrossSelection } from './selection-decorations';
+import { dispatchSelection } from '../controller/dispatch-selection';
 
 export type CrossBlockPointer = { attach(root: HTMLElement): () => void };
 
@@ -41,7 +42,7 @@ export function createCrossBlockPointer(controller: ViewController): CrossBlockP
 
       function select(selection: Selection): void {
         if (sameSelection(selection, controller.editor.state.selection)) return;
-        controller.dispatch(controller.editor.createTransaction().setSelection(selection));
+        dispatchSelection(controller, selection);
       }
 
       function startDragging(): void {

@@ -6,6 +6,7 @@ import { BlockPlaceholderContext, headingPlaceholder, type BlockPlaceholder } fr
 import type { BlockRenderer } from './block-renderer-types';
 import { QuoinEditorContext } from './editor-context';
 import { EmptyDocumentHost } from './EmptyDocumentHost';
+import { focusOwners } from './focus-owners';
 import { LiveRegion } from './LiveRegion';
 import { SelectionSink } from './SelectionSink';
 import { SelectionWriter } from './SelectionWriter';
@@ -77,6 +78,7 @@ export function EditorView({
         role="group"
         aria-label={label}
         aria-describedby={hintId}
+        onFocus={(event) => focusOwners.set(event.target, controller)}
       >
         <BlockDomIdScope.Provider value={blockIdScope}>
           <UnsupportedBlockLabel.Provider value={unsupportedBlockLabel}>

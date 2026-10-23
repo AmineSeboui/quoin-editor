@@ -1,14 +1,15 @@
 import type { BlockRangeSelection, EngineBlock, Pos, Selection, TextSelection } from '../../engine';
 import { isTextFlow } from '../../engine/commands/block-helpers';
 import { blockRangeSelection, primaryRegion, textSelection } from '../../engine/state/selection';
-import { domToPos, posToDom } from '../controller/dom-selection';
+import { posToDom } from '../controller/dom-selection';
 import type { ViewController } from '../controller/view-controller';
 import { isCrossSelection } from '../selection/selection-decorations';
-import { caretFromPoint } from './caret-from-point';
+import { caretInHost } from './caret-in-host';
 import { collapseCross, crossHeadVertically } from './cross-moves';
 import { adjacentLineMiddle, caretClientRect, isOnFirstLine, isOnLastLine, lineEdgeRect } from './line-edges';
 import { entryEdge, holdsTextHead, moveToNeighbour, neighbourBlock, ownNode } from './neighbour-block';
 import { stayOnLine } from './stay-on-line';
+import { dispatchSelection } from '../controller/dispatch-selection';
 
 // caretFromPoint only finds content inside the viewport.
 function lineInView(host: HTMLElement, last: boolean): DOMRect | null {
@@ -23,11 +24,8 @@ function caretAtGoal(controller: ViewController, host: HTMLElement, at: Omit<Pos
   const { goalX } = controller;
   const view = host.ownerDocument.defaultView;
   if (goalX === null || !view || y < 0 || y > view.innerHeight) return null;
-  const box = host.getBoundingClientRect();
-  const x = Math.min(Math.max(goalX, box.left), box.right - 1);
-  const point = caretFromPoint(host.ownerDocument, x, y);
-  const pos = point && domToPos(controller.registry, point.node, point.offset);
-  if (!pos || pos.block !== at.block || pos.region !== at.region) return null;
+  const pos = caretInHost(controller.registry, host, host.getBoundingClientRect(), at, goalX, y);
+  if (!pos) return null;
   return stayOnLine(pos, y, (p) => {
     const dom = posToDom(controller.registry, p);
     return dom && caretClientRect(dom);
@@ -89,17 +87,15 @@ function moveText(controller: ViewController, selection: TextSelection, directio
     controller.nativeVerticalMove = true;
     return false;
   }
-  const { editor } = controller;
   const moved = extend && next.kind === 'text' ? textSelection(selection.anchor, next.head) : next;
-  controller.dispatch(editor.createTransaction().setSelection(moved));
+  dispatchSelection(controller, moved);
   return true;
 }
 
 function extendBlocks(controller: ViewController, { anchor, head }: BlockRangeSelection, direction: -1 | 1): boolean {
-  const { editor } = controller;
-  const next = neighbourBlock(editor.state.doc, head, direction);
+  const next = neighbourBlock(controller.editor.state.doc, head, direction);
   if (next === null) return false;
-  controller.dispatch(editor.createTransaction().setSelection(blockRangeSelection(anchor, next.id)));
+  dispatchSelection(controller, blockRangeSelection(anchor, next.id));
   return true;
 }
 

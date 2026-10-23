@@ -45,8 +45,8 @@ import { Input } from './input';
 import { Popover, PopoverAnchor, PopoverContent } from './popover';
 import { classLists } from './test-class-lists';
 
-const VARIANTS = ['default', 'destructive', 'outline', 'secondary', 'ghost', 'link'] as const;
-const SIZES = ['default', 'xs', 'sm', 'lg', 'icon', 'icon-xs', 'icon-sm', 'icon-lg', null] as const;
+const VARIANTS = ['default', 'outline', 'ghost'] as const;
+const SIZES = ['default', 'xs', 'sm', 'icon-xs', 'icon-sm', null] as const;
 const HOST = 'host-class';
 
 type Family = [name: string, draw: (className?: string) => ReactElement];

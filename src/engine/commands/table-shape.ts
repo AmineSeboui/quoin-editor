@@ -1,5 +1,6 @@
 import { cellKey } from '../blocks/table-spec';
 import { blockById } from '../model/doc';
+import { countOf } from '../model/count';
 import type { BlockAttrs, EngineBlock, EngineDoc, Inline, Pos, Selection } from '../model/types';
 import { textSelection } from '../state/selection';
 
@@ -9,12 +10,9 @@ export type TableShape = { readonly rows: number; readonly cols: number };
 
 const CELL = /^cell:(\d+):(\d+)$/;
 
-const count = (value: unknown): number =>
-  typeof value === 'number' && Number.isInteger(value) && value > 0 ? value : 0;
-
 export const tableShape = (block: EngineBlock): TableShape => ({
-  rows: count(block.attrs.rows),
-  cols: count(block.attrs.cols),
+  rows: countOf(block.attrs.rows),
+  cols: countOf(block.attrs.cols),
 });
 
 export type ColumnAlign = 'left' | 'center' | 'right';

@@ -1,6 +1,6 @@
 import type { BlockRenderProps, BlockRenderer } from './block-renderer-types';
 import { EditableRegion } from './EditableRegion';
-import { headingLevel } from './heading-level';
+import { headingLevel } from '../../engine/render/heading-level';
 import { TaskCheckbox } from './TaskCheckbox';
 import { useOrderedNumber } from './use-ordered-number';
 

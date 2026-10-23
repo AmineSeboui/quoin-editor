@@ -12,25 +12,17 @@ const BASE = [
 const VARIANTS = {
   default:
     "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
-  destructive:
-    "bg-destructive text-white shadow-xs hover:bg-destructive/90 dark:bg-destructive/60 dark:hover:bg-destructive/75",
   outline:
     "border border-input bg-transparent shadow-xs hover:bg-accent hover:text-accent-foreground",
-  secondary:
-    "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
   ghost: "hover:bg-accent hover:text-accent-foreground",
-  link: "text-primary underline-offset-4 hover:underline",
 };
 
 const SIZES = {
   default: `h-9 px-4 py-2 has-[>svg]:px-3 ${TAP_TARGET_FLOOR}`,
   xs: `h-6 gap-1 rounded-md px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3 ${TAP_TARGET_FLOOR}`,
   sm: `h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5 ${TAP_TARGET_FLOOR}`,
-  lg: `h-10 rounded-md px-6 has-[>svg]:px-4 ${TAP_TARGET_FLOOR}`,
-  icon: `size-9 ${SQUARE_TAP_TARGET_FLOOR}`,
   "icon-xs": `size-6 rounded-md [&_svg:not([class*='size-'])]:size-3 ${SQUARE_TAP_TARGET_FLOOR}`,
   "icon-sm": `size-8 ${SQUARE_TAP_TARGET_FLOOR}`,
-  "icon-lg": `size-10 ${SQUARE_TAP_TARGET_FLOOR}`,
 };
 
 type ButtonVariants = { variant?: keyof typeof VARIANTS | null; size?: keyof typeof SIZES | null };

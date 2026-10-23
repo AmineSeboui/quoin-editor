@@ -1,3 +1,4 @@
+import type { EditorState, Transaction } from '../../engine';
 import { attachInput, type AttachedInput } from '../input/attach-input';
 import type { CrossMode } from '../selection/cross-mode';
 import { watchFocusReturn } from './focus-return';
@@ -15,7 +16,7 @@ export function bindRoot(
   controller: ViewController,
   root: HTMLElement,
   cross: CrossMode,
-  committed: () => void,
+  committed: (state: EditorState, tr: Transaction | null) => void,
 ): RootBinding {
   const selectionSync = createSelectionSync(root.ownerDocument, () => controller.readSelectionFromDom());
   const input = attachInput(controller, root);

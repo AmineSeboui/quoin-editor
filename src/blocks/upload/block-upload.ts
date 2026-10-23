@@ -2,7 +2,7 @@ import { setAttrsStep } from '../../engine';
 import { blockById } from '../../engine/model/doc';
 import type { UploadFn, UploadResult } from '../../types';
 import type { ViewController } from '../../view';
-import { str } from '../str';
+import { str } from '../../engine/blocks/data-fields';
 
 export type BlockUploadHost = {
   upload: UploadFn;

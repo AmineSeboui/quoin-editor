@@ -1,13 +1,13 @@
 import { devWarn } from '../../dev-warn';
 import type { EmbedProvider } from '../../engine';
-import { embedSource } from '../../engine/render/embed-provider';
+import { embedFrame } from '../../engine/render/embed-provider';
 import { coreEmbedProviders } from '../../engine/render/embed-providers';
 
 export type EmbedMatch = { readonly provider: string; readonly src: string };
 
 function frameOf(url: string, provider: EmbedProvider): string | null {
   try {
-    return embedSource(url, [provider]);
+    return embedFrame(url, [provider])?.src ?? null;
   } catch {
     devWarn(`the embed provider "${provider.name}" threw, so it frames nothing.`);
     return null;

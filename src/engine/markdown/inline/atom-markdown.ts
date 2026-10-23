@@ -1,7 +1,8 @@
 import type { AtomNode, Attrs } from '../../model/types';
 import { sanitizeHref } from '../urls';
 import { escapeText } from './escape-text';
-import { dataAttributes, htmlTag } from './html-marks';
+import { dataAttributes } from './data-attributes';
+import { htmlTag } from './html-marks';
 import { linkDestination } from './link-markdown';
 import type { RenderOptions } from './render-options';
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { str } from '../../blocks/str';
+import { str } from '../../engine/blocks/data-fields';
 import type { BlockRenderProps } from '../../view';
 import { useReadOnly } from '../../view/react/use-read-only';
 import { EmbedFrame } from './EmbedFrame';

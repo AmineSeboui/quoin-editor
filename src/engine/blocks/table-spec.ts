@@ -1,4 +1,5 @@
 import type { Inline } from '../model/types';
+import { countOf } from '../model/count';
 import type { BlockSpec } from '../schema/types';
 import { extraFields, optionalNumber, regionOf, str, withDefined, withExtra } from './data-fields';
 
@@ -7,8 +8,6 @@ const COLUMN_ALIGNS = ['left', 'center', 'right'];
 const CELL_WRITE = { escapePipes: true, hardBreak: 'br' } as const;
 
 export const cellKey = (row: number, col: number) => `cell:${row}:${col}`;
-
-const count = (value: unknown) => (typeof value === 'number' && Number.isInteger(value) && value > 0 ? value : 0);
 
 function columnAligns(value: unknown, cols: number): (string | null)[] {
   return Array.from({ length: cols }, (_, col) => {
@@ -47,8 +46,8 @@ export const tableSpec: BlockSpec = {
 
   toData(block, ctx) {
     const { attrs } = block;
-    const cols = count(attrs.cols);
-    const rows = Array.from({ length: count(attrs.rows) }, (_, r) =>
+    const cols = countOf(attrs.cols);
+    const rows = Array.from({ length: countOf(attrs.rows) }, (_, r) =>
       Array.from({ length: cols }, (_, c) => ctx.inline.serialize(regionOf(block, cellKey(r, c)), CELL_WRITE)),
     );
     return withExtra(

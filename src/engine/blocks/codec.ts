@@ -1,4 +1,5 @@
 import { inlineCodec } from '../markdown/inline/serialize-inline';
+import { countOf } from '../model/count';
 import { createDoc } from '../model/doc';
 import { newId } from '../model/new-id';
 import type { QuoinBlock } from '../model/quoin-block';
@@ -20,8 +21,6 @@ type SplitGroup = { readonly original: QuoinBlock; readonly blocks: readonly Eng
 
 const NO_IDS: ReadonlySet<string> = new Set();
 
-const indentOf = (indent: unknown) => (typeof indent === 'number' && Number.isInteger(indent) && indent > 0 ? indent : 0);
-
 export function createBlockCodec(schema: Schema, options: { newId?: () => string } = {}): BlockCodec {
   const context: CodecContext = { inline: inlineCodec, newId: options.newId ?? newId };
   const engineBlocks = new WeakMap<QuoinBlock, EngineBlock[]>();
@@ -30,14 +29,14 @@ export function createBlockCodec(schema: Schema, options: { newId?: () => string
 
   function convert(block: QuoinBlock): EngineBlock {
     const { attrs, regions } = specFor(schema, block.type).fromData(block.data, context);
-    return { id: block.id, type: block.type, indent: indentOf(block.indent), attrs, regions };
+    return { id: block.id, type: block.type, indent: countOf(block.indent), attrs, regions };
   }
 
   // Pieces cached for an earlier document are read again when a real block of this one has taken a derived id.
   function engineBlocksAmong(block: QuoinBlock, taken: ReadonlySet<string>): EngineBlock[] {
     const cached = engineBlocks.get(block);
     if (cached?.every((piece, index) => index === 0 || !taken.has(piece.id))) return [...cached];
-    const pieces = splitLegacyBlock(block, indentOf(block.indent), taken);
+    const pieces = splitLegacyBlock(block, countOf(block.indent), taken);
     if (pieces) {
       const blocks = pieces.map(convert);
       engineBlocks.set(block, blocks);

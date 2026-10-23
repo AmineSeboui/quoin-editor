@@ -1,4 +1,5 @@
 import type { EditorState, Inline } from '../../engine';
+import { blockById } from '../../engine/model/doc';
 import { inlineText, sliceInline } from '../../engine/model/inline';
 import { hasMark } from '../../engine/model/marks';
 import { isCollapsed } from '../../engine/state/selection';
@@ -33,7 +34,7 @@ export function findTrigger(state: EditorState, config: TriggerConfig): ActiveTr
   const { doc, selection } = state;
   if (selection?.kind !== 'text' || !isCollapsed(selection)) return null;
   const { block: blockId, region, offset: caret } = selection.head;
-  const block = doc.blocks[doc.index.get(blockId) ?? -1];
+  const block = blockById(doc, blockId);
   if (block === undefined || NO_TRIGGER_TYPES.has(block.type) || !Object.hasOwn(block.regions, region)) return null;
   const inline = block.regions[region];
   const start = Math.max(0, caret - (config.maxLength ?? DEFAULT_MAX_LENGTH) - 2);

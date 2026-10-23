@@ -2,10 +2,9 @@ import { blockRangeSelection, Transaction, type Command, type Selection } from '
 import { headBlockId } from '../engine/commands/block-helpers';
 import { runCommands } from '../engine/commands/run-commands';
 import { setSelection } from '../engine/commands/selection-commands';
+import { sameItems } from '../engine/model/same-items';
 import { endOf, sameSelection, selectedBlockIds, validateSelection } from '../engine/state/selection';
 import type { ViewController } from '../view';
-
-const sameIds = (a: readonly string[], b: readonly string[]) => a.length === b.length && a.every((id, i) => id === b[i]);
 
 // The command ran on a range of the blocks the writer did not have selected. The caret goes back where it was when it
 // is still inside one of them, and otherwise to the end of the first, so focus lands on the block the menu was for.
@@ -26,7 +25,7 @@ export function runOnBlocks(controller: ViewController, blockIds: readonly strin
   const ids = blockIds.filter((id) => state.doc.index.has(id));
   if (ids.length === 0) return false;
   const before = state.selection;
-  const exact = sameIds(selectedBlockIds(state.doc, before), ids);
+  const exact = sameItems(selectedBlockIds(state.doc, before), ids);
   const ran = exact ? before : blockRangeSelection(ids[0], ids[ids.length - 1]);
   const { ok, tr } = runCommands(state, [setSelection(ran), command]);
   const result = ok && tr !== null ? tr : new Transaction(state).setSelection(ran);

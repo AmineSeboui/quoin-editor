@@ -3,6 +3,8 @@ import { act, render, screen } from '@testing-library/react';
 import { blockRangeSelection, nodeSelection, textSelection, type QuoinBlock, type Selection } from '../../engine';
 import type { ViewController } from '../controller/view-controller';
 import { handleKeydown } from '../input/keydown';
+import { text } from '../../engine/model/inline';
+import { replaceInlineStep } from '../../engine/transform/replace-inline-step';
 import type { EditorViewProps } from './EditorView';
 import { Editor, md } from './test-harness';
 
@@ -118,6 +120,17 @@ describe('what the live region counts and says', () => {
   it('says what the controller is asked to announce, until the editor moves on', () => {
     const { controller, select, status } = mountWith(blocks);
     act(() => controller.announce('Saved'));
+    expect(status()).toHaveTextContent('Saved');
+    select(textSelection({ block: 'p', region: 'text', offset: 1 }));
+    expect(status()).toBeEmptyDOMElement();
+  });
+
+  it('keeps what it said through a collaborator change, until this editor moves on', () => {
+    const { controller, select, status } = mountWith(blocks);
+    act(() => controller.announce('Saved'));
+    const remote = () => controller.editor.createTransaction().setOrigin('remote').setMeta('addToHistory', false);
+    act(() => controller.editor.dispatch(remote()));
+    act(() => controller.editor.dispatch(remote().step(replaceInlineStep('p', 'text', 0, 0, [text('X')]))));
     expect(status()).toHaveTextContent('Saved');
     select(textSelection({ block: 'p', region: 'text', offset: 1 }));
     expect(status()).toBeEmptyDOMElement();

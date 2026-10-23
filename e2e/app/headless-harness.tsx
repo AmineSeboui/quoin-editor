@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { QuoinBlock } from 'quoin-editor';
 import { toggleMark } from 'quoin-editor/engine';
 import { EditorView, useQuoinEditor, type RenderOptions } from 'quoin-editor/headless';
+import { collaborative } from './collab-extensions';
 import { timeEdits } from './time-edits';
 
 const md = (id: string, markdown: string, indent = 0): QuoinBlock => ({
@@ -20,6 +21,7 @@ const PARAMS = new URLSearchParams(location.search);
 // array of the same blocks, or never.
 const ECHO = PARAMS.get('echo') ?? 'immediate';
 const READ_ONLY = PARAMS.get('readonly') === '1';
+const COLLABORATION = PARAMS.get('collab') === '1' ? collaborative(Number(PARAMS.get('presence') ?? 0)) : undefined;
 
 const docs: Record<string, QuoinBlock[]> = {
   empty: [],
@@ -81,6 +83,7 @@ export function HeadlessHarness({ doc }: { doc: string }) {
       else if (ECHO === 'mapped') setBlocks(next.map((block) => block));
     },
     readOnly: READ_ONLY,
+    extensions: COLLABORATION?.extensions,
     onFiles: (files, at) => window.__quoin.files?.push({ names: files.map((file) => file.name), at }),
   });
   window.__quoin = {
@@ -90,6 +93,7 @@ export function HeadlessHarness({ doc }: { doc: string }) {
     controller,
     files: window.__quoin?.files ?? [],
     timings: window.__quoin?.timings ?? [],
+    sharedText: COLLABORATION?.sharedText,
   };
   useEffect(() => timeEdits(controller), [controller]);
   return (
@@ -102,7 +106,9 @@ export function HeadlessHarness({ doc }: { doc: string }) {
         aria-label="Document"
         placeholder="Start writing"
         className={MONOSPACE.has(doc) ? 'harness-monospace' : undefined}
-      />
+      >
+        {COLLABORATION?.overlays?.map((Overlay, index) => <Overlay key={index} controller={controller} />)}
+      </EditorView>
       <button type="button">After the editor</button>
     </>
   );

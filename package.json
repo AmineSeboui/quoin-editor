@@ -77,6 +77,76 @@
         "default": "./dist/engine.cjs"
       }
     },
+    "./view": {
+      "import": {
+        "types": "./dist/view.d.ts",
+        "default": "./dist/view.js"
+      },
+      "require": {
+        "types": "./dist/view.d.cts",
+        "default": "./dist/view.cjs"
+      }
+    },
+    "./diff": {
+      "import": {
+        "types": "./dist/diff.d.ts",
+        "default": "./dist/diff.js"
+      },
+      "require": {
+        "types": "./dist/diff.d.cts",
+        "default": "./dist/diff.cjs"
+      }
+    },
+    "./docx": {
+      "import": {
+        "types": "./dist/docx.d.ts",
+        "default": "./dist/docx.js"
+      },
+      "require": {
+        "types": "./dist/docx.d.cts",
+        "default": "./dist/docx.cjs"
+      }
+    },
+    "./yjs": {
+      "import": {
+        "types": "./dist/yjs.d.ts",
+        "default": "./dist/yjs.js"
+      },
+      "require": {
+        "types": "./dist/yjs.d.cts",
+        "default": "./dist/yjs.cjs"
+      }
+    },
+    "./presence": {
+      "import": {
+        "types": "./dist/presence.d.ts",
+        "default": "./dist/presence.js"
+      },
+      "require": {
+        "types": "./dist/presence.d.cts",
+        "default": "./dist/presence.cjs"
+      }
+    },
+    "./comments": {
+      "import": {
+        "types": "./dist/comments.d.ts",
+        "default": "./dist/comments.js"
+      },
+      "require": {
+        "types": "./dist/comments.d.cts",
+        "default": "./dist/comments.cjs"
+      }
+    },
+    "./ai": {
+      "import": {
+        "types": "./dist/ai.d.ts",
+        "default": "./dist/ai.js"
+      },
+      "require": {
+        "types": "./dist/ai.d.cts",
+        "default": "./dist/ai.cjs"
+      }
+    },
     "./table": {
       "import": {
         "types": "./dist/table.d.ts",
@@ -190,7 +260,13 @@
   },
   "peerDependencies": {
     "react": "^18.2.0 || ^19.0.0",
-    "react-dom": "^18.2.0 || ^19.0.0"
+    "react-dom": "^18.2.0 || ^19.0.0",
+    "yjs": "^13.6.0"
+  },
+  "peerDependenciesMeta": {
+    "yjs": {
+      "optional": true
+    }
   },
   "dependencies": {
     "@radix-ui/react-context-menu": "^2.3.8",
@@ -229,6 +305,7 @@
     "typescript": "^5.7.0",
     "typescript-eslint": "^8.71.1",
     "vitest": "^3.0.0",
-    "vitest-axe": "^0.1.0"
+    "vitest-axe": "^0.1.0",
+    "yjs": "13.6.33"
   }
 }

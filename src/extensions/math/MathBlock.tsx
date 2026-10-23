@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useRef } from 'react';
-import { str } from '../../blocks/str';
+import { str } from '../../engine/blocks/data-fields';
 import { selectNode } from '../../blocks/void/select-node';
 import { useNodeKeys } from '../../blocks/void/use-node-keys';
 import type { BlockRenderProps } from '../../view';

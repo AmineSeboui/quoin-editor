@@ -25,6 +25,14 @@ describe('createAnnouncer', () => {
     expect(listener).toHaveBeenCalledTimes(2);
   });
 
+  it('offers what it said only while the state it was said in is the current one', () => {
+    let state = stateOf('first');
+    const announcer = createAnnouncer(() => state);
+    announcer.announce('checked');
+    state = stateOf('second');
+    expect(announcer.current()).toBeNull();
+  });
+
   it('stops telling a listener that unsubscribed, even from inside a notification', () => {
     const announcer = createAnnouncer(() => stateOf('a'));
     const calls: string[] = [];

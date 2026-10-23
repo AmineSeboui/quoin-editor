@@ -1,0 +1,98 @@
+/* A collaborator's colour comes as --quoin-presence on each element; without one the ring colour stands in. */
+.quoin .quoin-presence-selection {
+  background: color-mix(in srgb, var(--quoin-presence, var(--quoin-ring)) 20%, transparent);
+}
+
+/* Carets are drawn over the text, never in it, and take no pointer. Nothing of them, a long name near the end of a
+   line included, reaches past the canvas's sides, so they never widen the page. */
+.quoin .quoin-presence-carets {
+  position: absolute;
+  inset: 0;
+  overflow-x: clip;
+  pointer-events: none;
+}
+
+.quoin .quoin-presence-caret {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--quoin-presence, var(--quoin-ring));
+}
+
+.quoin .quoin-presence-name {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  max-width: 16em;
+  overflow: hidden;
+  padding: 0 4px;
+  border-radius: 3px;
+  background: var(--quoin-presence, var(--quoin-ring));
+  color: #fff;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: opacity 0.3s;
+}
+
+.quoin .quoin-presence-caret[data-idle] .quoin-presence-name {
+  opacity: 0;
+}
+
+/* A gutter of its own at the end of every line holds the avatars, so they never cover text. */
+.quoin.quoin-editor:has(> .quoin-presence-avatars) {
+  padding-inline-end: 24px;
+}
+
+.quoin .quoin-presence-avatars {
+  position: absolute;
+  top: 0;
+  inset-inline-end: 0;
+  pointer-events: none;
+}
+
+.quoin .quoin-presence-group {
+  position: absolute;
+  top: 0;
+  inset-inline-end: 3px;
+  display: flex;
+  flex-direction: column;
+}
+
+.quoin .quoin-presence-avatar {
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: var(--quoin-presence, var(--quoin-ring));
+  color: #fff;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
+}
+
+/* Several people in one block overlap, so the column stays short. */
+.quoin .quoin-presence-avatar + .quoin-presence-avatar {
+  margin-top: -8px;
+  box-shadow: 0 0 0 1px var(--quoin-background);
+}
+
+@media (forced-colors: active) {
+  .quoin .quoin-presence-selection {
+    background: Mark;
+    color: MarkText;
+  }
+
+  .quoin .quoin-presence-caret {
+    background: Highlight;
+  }
+
+  .quoin .quoin-presence-name,
+  .quoin .quoin-presence-avatar {
+    border: 1px solid CanvasText;
+  }
+}

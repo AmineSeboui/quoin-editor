@@ -1,6 +1,6 @@
 'use client';
 
-import { str } from '../../blocks/str';
+import { str } from '../../engine/blocks/data-fields';
 import type { BlockRenderProps } from '../../view';
 import { useReadOnly } from '../../view/react/use-read-only';
 import type { EmbedFeature } from './embed-feature';

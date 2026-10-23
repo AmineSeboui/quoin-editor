@@ -1,0 +1,47 @@
+/* Every change is told by its words as well as its colour: a label on a block, an underline or a strike through on
+   words, which also carry a word a screen reader speaks. */
+.quoin-diff [data-diff] {
+  border-inline-start: 3px solid var(--quoin-border);
+  padding-inline-start: 0.75rem;
+}
+
+.quoin-diff [data-diff="added"] {
+  border-inline-start-color: var(--quoin-success);
+}
+
+.quoin-diff [data-diff="removed"] {
+  border-inline-start-color: var(--quoin-destructive);
+}
+
+.quoin-diff [data-diff="moved"],
+.quoin-diff [data-diff="moved-away"] {
+  border-inline-start-color: var(--quoin-info);
+}
+
+.quoin-diff [data-diff="changed"] {
+  border-inline-start-color: var(--quoin-warning);
+}
+
+.quoin-diff [data-diff-label] {
+  display: block;
+  font-size: 0.75em;
+  font-weight: 600;
+  color: var(--quoin-muted-foreground);
+}
+
+.quoin-diff ins {
+  color: var(--quoin-diff-inserted);
+  background-color: var(--quoin-bg-green);
+  text-decoration: underline;
+}
+
+.quoin-diff del {
+  color: var(--quoin-diff-deleted);
+  background-color: var(--quoin-bg-red);
+  text-decoration: line-through;
+}
+
+.quoin-diff ins a[href],
+.quoin-diff del a[href] {
+  color: inherit;
+}

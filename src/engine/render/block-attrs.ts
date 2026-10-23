@@ -1,6 +1,6 @@
 import { alignOrUndefined, paletteOrUndefined } from '../blocks/data-fields';
 import type { BlockAttrs } from '../model/types';
-import type { Attr } from './html-tag';
+import type { Attr } from './html-node';
 
 export const indentAttr = (excess: number): Attr => ['data-indent', excess > 0 ? String(excess) : undefined];
 

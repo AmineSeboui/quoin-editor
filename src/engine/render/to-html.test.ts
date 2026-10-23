@@ -25,7 +25,7 @@ describe('toHTML', () => {
 
   it('renders task lists, quotes, headings and alignment', () => {
     expect(toHTML([md('- [x] done'), md('> q1'), md('> q2'), md('## Head', { id: 'h' }), md('mid', { data: { markdown: 'mid', align: 'center' } })])).toBe(
-      '<ul data-type="task"><li data-checked="true"><input type="checkbox" disabled checked> done</li></ul>' +
+      '<ul data-type="task"><li data-checked="true"><input type="checkbox" disabled checked aria-label="done"> done</li></ul>' +
         '<blockquote><p>q1</p><p>q2</p></blockquote>' +
         '<h2 id="h-h">Head</h2>' +
         '<p style="text-align:center">mid</p>',
@@ -45,7 +45,7 @@ describe('toHTML', () => {
       { resolveAssetUrl: (key) => `/a/${key}`, renderMath: (latex) => `<k>${latex}</k>` },
     );
     expect(html).toBe(
-      '<figure><img src="/a/k" alt="A" width="2" height="1"><figcaption>C</figcaption></figure>' +
+      '<figure><img src="/a/k" alt="A" width="2" height="1" loading="lazy" decoding="async"><figcaption>C</figcaption></figure>' +
         '<pre><code class="language-ts">a &lt; b</code></pre>' +
         '<details><summary>More</summary><p>inside</p></details>' +
         '<table><thead><tr><th>h1</th><th style="text-align:right">h2</th></tr></thead><tbody><tr><td>1</td><td style="text-align:right">2</td></tr></tbody></table>' +

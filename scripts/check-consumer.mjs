@@ -25,6 +25,10 @@ run(
   ],
   work,
 );
+// yjs is an optional peer, so the package installs without it; the yjs entry and its README sample then need it. Its
+// lib0 is held at the last release whose declarations TypeScript 5.4 reads: later ones write Uint8Array<ArrayBuffer>,
+// which needs TypeScript 5.7.
+run('npm', ['install', '--no-audit', '--no-fund', 'yjs@13.6.33', 'lib0@0.2.111'], work);
 
 const samples = join(work, 'samples');
 mkdirSync(samples);
@@ -57,6 +61,12 @@ const resolver = JSON.stringify(join(work, 'resolve-probe.cjs'));
 const probes = JSON.stringify(['quoin-editor/package.json', ...packageEntries.map(specifier)]);
 const probe = `const probe = require('node:module').createRequire(${resolver}); ${probes}.forEach((id) => probe.resolve(id));`;
 run(process.execPath, ['-e', probe], work);
+
+// The view and diff render, and docx writes a file, in a plain Node process with no DOM, on either React.
+for (const script of ['server-view.mjs', 'server-diff.mjs', 'server-docx.mjs']) {
+  cpSync(join(root, 'consumer-check', script), join(work, script));
+  run(process.execPath, [script], work);
+}
 
 // Only React 18 reports a layout effect reaching a server render, through console.error.
 if (react === '18') {

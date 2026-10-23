@@ -1,0 +1,6 @@
+/* QuoinView and QuoinDiff write bare links, which a host page would draw in the browser's blue whatever its theme. */
+.quoin-view a[href],
+.quoin-diff a[href] {
+  color: var(--quoin-link);
+  text-decoration: underline;
+}

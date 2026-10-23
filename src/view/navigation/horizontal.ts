@@ -5,6 +5,7 @@ import type { ViewController } from '../controller/view-controller';
 import { isCrossSelection } from '../selection/selection-decorations';
 import { collapseCross, crossHeadHorizontally } from './cross-moves';
 import { moveToNeighbour, neighbourHead, ownNode } from './neighbour-block';
+import { dispatchSelection } from '../controller/dispatch-selection';
 
 export function moveHorizontally(controller: ViewController, direction: -1 | 1, extend: boolean): boolean {
   controller.goalX = null;
@@ -23,12 +24,12 @@ export function moveHorizontally(controller: ViewController, direction: -1 | 1, 
   if (direction < 0 ? head.offset > 0 : head.offset < length) return false;
   const own = extend ? null : ownNode(controller, head.block, direction);
   if (own !== null) {
-    controller.dispatch(editor.createTransaction().setSelection(own));
+    dispatchSelection(controller, own);
     return true;
   }
   if (!extend) return moveToNeighbour(controller, head.block, direction);
   const edge = neighbourHead(controller, head.block, direction);
   if (edge === null) return false;
-  controller.dispatch(editor.createTransaction().setSelection(textSelection(selection.anchor, edge)));
+  dispatchSelection(controller, textSelection(selection.anchor, edge));
   return true;
 }

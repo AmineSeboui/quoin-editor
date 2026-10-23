@@ -7,7 +7,7 @@ type LiveRegionProps = { blocksSelected: (count: number) => string };
 
 function heardNow({ editor, announcer }: ViewController, blocksSelected: (count: number) => string): Heard {
   const spoken = announcer.current();
-  if (spoken !== null && spoken.state === editor.state) return { key: `said:${spoken.serial}`, message: spoken.message };
+  if (spoken !== null) return { key: `said:${spoken.serial}`, message: spoken.message };
   return selectionAnnouncement(editor.state, blocksSelected);
 }
 

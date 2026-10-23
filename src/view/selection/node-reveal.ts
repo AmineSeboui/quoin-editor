@@ -8,6 +8,8 @@ export type NodeReveal = {
   /** Forgets the block shown once the selection leaves it, however it leaves, so coming back brings it into view. */
   follow(selection: Selection | null): void;
   show(selection: Selection | null): void;
+  /** Counts the block a selection holds as shown, so the next show leaves it where it is. */
+  settle(selection: Selection | null): void;
 };
 
 /**
@@ -23,6 +25,9 @@ export function createNodeReveal(element: (block: string) => HTMLElement | undef
     },
     follow(selection) {
       if (nodeOf(selection) !== shown) shown = null;
+    },
+    settle(selection) {
+      shown = nodeOf(selection);
     },
     show(selection) {
       const block = nodeOf(selection);

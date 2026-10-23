@@ -44,13 +44,17 @@ export const entryBundle = async (root, name) => new TextDecoder().decode(await 
 
 export const totalGzip = (root, name, loaded = new Set()) => gzipOf(root, whole(name), loaded);
 
-// Namespaces rather than two star exports: a name the two entries export differently would be ambiguous, and dropped
-// with its code.
-export async function addedGzip(root, name, loaded = new Set()) {
+// Namespaces rather than star exports: a name two entries export differently would be ambiguous, and dropped with its
+// code.
+const namespaces = (names) =>
+  [names].flat().map((name, i) => `export * as feature${i === 0 ? '' : i} from '${built(name)}';`);
+
+/** What an entry, or several loaded together, adds to the main entry in gzip, counting the code they share once. */
+export async function addedGzip(root, names, loaded = new Set()) {
   const main = `export * as main from '${built(MAIN_ENTRY)}';`;
   const [alone, both] = await Promise.all([
     gzipOf(root, main, loaded),
-    gzipOf(root, `${main}\nexport * as feature from '${built(name)}';`, loaded),
+    gzipOf(root, [main, ...namespaces(names)].join('\n'), loaded),
   ]);
   return both - alone;
 }

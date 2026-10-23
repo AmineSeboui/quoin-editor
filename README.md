@@ -25,7 +25,7 @@ Quoin needs React 18.2 or later (React 19 is supported) and TypeScript 5.4 or la
 
 **Tailwind is not required, and either major version works.** See [Tailwind, or no Tailwind](#tailwind-or-no-tailwind) for the one thing a v4 host has to do.
 
-Quoin depends on five Radix primitives, `lucide-react` for its icons, and `clsx` for class composition. A page downloads only the entries it imports: the canvas, `quoin-editor`, is held under 155 kB gzip, `quoin-editor/headless` under 70 kB and `quoin-editor/engine` under 52 kB. Each opt-in feature adds between about 1.7 kB (stats, or the table of contents) and 9.5 kB (tables) to the canvas, all of them together about 29 kB, and the emoji dataset, about 42 kB, loads only when the `:` menu or the emoji picker first opens. The npm tarball is larger, about 1.6 MB, because it carries ESM and CommonJS builds with their sourcemaps. If you want the text editing and none of the UI, [`quoin-editor/headless`](#headless) has no component or UI library dependency at all.
+Quoin depends on five Radix primitives, `lucide-react` for its icons, and `clsx` for class composition. A page downloads only the entries it imports: the canvas, `quoin-editor`, is held under 155 kB gzip, `quoin-editor/headless` under 70 kB and `quoin-editor/engine` under 52 kB. Each opt-in feature adds between about 1.7 kB (stats, or the table of contents) and 9.5 kB (tables) to the canvas, all of them together about 29 kB, and the emoji dataset, about 42 kB, loads only when the `:` menu or the emoji picker first opens. Collaboration, `quoin-editor/yjs`, adds about 8 kB and needs `yjs` installed beside it, an optional peer dependency; showing collaborators, `quoin-editor/presence`, adds about 4.5 kB more, comments, `quoin-editor/comments`, about 6 kB, and AI actions, `quoin-editor/ai`, about 8 kB. The read-only view for a server, `quoin-editor/view`, is about 21 kB on its own, most of it the markdown parser it shares with the engine, the diff of two versions, `quoin-editor/diff`, about 26 kB, and the Word export, `quoin-editor/docx`, about 25 kB on its own, about 7 kB beside the engine. The npm tarball is larger, about 2.0 MB, because it carries ESM and CommonJS builds with their sourcemaps. If you want the text editing and none of the UI, [`quoin-editor/headless`](#headless) has no component or UI library dependency at all.
 
 ## Quickstart
 
@@ -98,6 +98,12 @@ export function AutosavingEditor({ initial }: { initial: QuoinBlock[] }) {
 ```
 
 `save` may return anything, so a mutation, an axios call or a `fetch` that resolves to a body goes straight in with no wrapper to discard the value. A save fails by rejecting, or by resolving to an explicit `{ ok: false }`; everything else, `undefined` included, is a success. `status` moves `idle` to `saving` to `saved`, or to `retrying` while it backs off, and `retry()` tries again at once. Since 0.4.1 one save runs at a time, with the newest payload queued behind it, and a pending edit is saved at once when the component unmounts or the page is hidden (`flush()` does the same on demand). Retries stop after `maxRetries` (default 8) or when `isRetryable(error)` returns false; `status` is then `failed` and `error` holds the reason.
+
+### A collaborative canvas
+
+A canvas given a collaboration extension takes its content from the shared document, so it is uncontrolled: pass the starting blocks, or the shared document's, once, and keep echoing `onChange` as above. The canvas still recognises its own output, but while the shared document is connected it ignores any other array you hand to `blocks`, and says so in development. The connection opens when the canvas mounts and closes when it unmounts.
+
+An editor with no canvas, such as one made with `createEditor` from `quoin-editor/engine`, connects when you call `editor.mount()`. Call the function it returns to disconnect; `editor.destroy()` disconnects too.
 
 ### Loading, undoing and discarding
 
@@ -518,7 +524,7 @@ The engine commands, such as `insertTable`, `addRow` and `setColumnWidth`, and t
 
 ### Embeds and bookmarks
 
-`quoin-editor/embed` draws `EMBED` blocks as the frame of the provider that frames their address, and `BOOKMARK` blocks as cards that link to their page. The built-in providers are YouTube (`youtube.com/watch?v=`, `youtu.be/` and shorts, framed from `youtube-nocookie.com`), Vimeo, Loom, Figma, CodePen, Spotify and SoundCloud, the same ones `toHTML` frames. Every frame, on the canvas and in `toHTML` with `embeds: 'iframe'`, is https only, with `sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"`, `loading="lazy"` and `referrerpolicy="strict-origin-when-cross-origin"`. The canvas titles each frame after its provider and draws it at the ratio of a video (Spotify and SoundCloud players at their own heights). An `EMBED` whose address no provider frames is drawn as a link card instead.
+`quoin-editor/embed` draws `EMBED` blocks as the frame of the provider that frames their address, and `BOOKMARK` blocks as cards that link to their page. The built-in providers are YouTube (`youtube.com/watch?v=`, `youtu.be/` and shorts, framed from `youtube-nocookie.com`), Vimeo, Loom, Figma, CodePen, Spotify and SoundCloud, the same ones `toHTML` frames. Every frame, on the canvas and in `toHTML` with `embeds: 'iframe'`, is https only, with `sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"`, `loading="lazy"` and `referrerpolicy="strict-origin-when-cross-origin"`. The canvas titles each frame after its provider and draws it at the ratio of a video (Spotify and SoundCloud players at their own heights); `toHTML` titles it with the name of its provider, or with what its `frameTitle` option makes of that name. An `EMBED` whose address no provider frames is drawn as a link card instead.
 
 ```tsx
 import { embedExtension } from 'quoin-editor/embed';
@@ -640,6 +646,140 @@ const extensions = [statsExtension({ limit: 280, focusMode: true, typography: { 
 
 `footer: false` leaves the footer out and keeps the rest. `useEditorStats(controller)` returns `{ characters, words, blocks }` for a count of your own, with the controller of a `BlockCanvas` handle or, inside the canvas, of `useViewController()`.
 
+### Collaborating through Yjs
+
+`quoin-editor/yjs` syncs a canvas through a [Yjs](https://yjs.dev) document, with an undo that takes back only your own changes. Install `yjs` beside the package (it is an optional peer dependency) and bring your own provider, such as `y-websocket`; Quoin never opens a connection itself.
+
+```tsx
+import { BlockCanvas, type QuoinBlock } from 'quoin-editor';
+import { collaborationExtension, yjsCollaboration } from 'quoin-editor/yjs';
+import { useEffect, useState } from 'react';
+import type * as Y from 'yjs';
+
+// The part of a provider such as y-websocket's WebsocketProvider this needs: whether it has synced, and its event.
+type Provider = {
+  synced: boolean;
+  on(event: 'sync', listener: (synced: boolean) => void): void;
+  off(event: 'sync', listener: (synced: boolean) => void): void;
+};
+
+export function SharedEditor({ doc, provider, starting }: { doc: Y.Doc; provider: Provider; starting: QuoinBlock[] }) {
+  const [synced, setSynced] = useState(provider.synced);
+  const [extensions] = useState(() => [collaborationExtension(yjsCollaboration({ doc, user: { name: 'Ada' } }))]);
+  const [blocks, setBlocks] = useState(starting);
+  useEffect(() => {
+    const listen = (done: boolean) => {
+      if (done) setSynced(true);
+    };
+    provider.on('sync', listen);
+    return () => provider.off('sync', listen);
+  }, [provider]);
+  // Connect only once the provider has synced, so an empty document is seeded by one client alone.
+  if (!synced) return null;
+  return <BlockCanvas blocks={blocks} onChange={setBlocks} extensions={extensions} />;
+}
+```
+
+The whole document lives in one `Y.Text`, `doc.getText('quoin')` (`field` names another). Each block starts with an embedded `Y.Map` holding its `id`, `type`, `indent` and `attrs` (a `Y.Map` of its own, so two people changing different attrs of one block both keep their change), and each region with an embed naming it (`{ r: 'text' }`), followed by its characters, whose formatting attributes are the marks (`{ bold: true }`, `{ link: { href } }`, `{ 'comment:c1': true }`); atoms are embeds `{ atom, attrs }`. Blocks and marks the canvas does not know are kept as they are. Pressing Enter puts a block marker into the text and Backspace at the start of a line takes one out, so what someone else types in that line at the same moment stays where they typed it. Edits that cross at the same moment can leave the text in a shape no single client wrote (characters outside any region, two markers of one block); every client reads such a text the same way, without writing anything back, so all of them still show the same document. Text someone types into a block that another person deletes at the same moment is kept: it shows up at the end of the region before it in the document, which can be a block above a divider or an image. When a region later appears between that text and the region it shows up in, as when a code block above it becomes a paragraph, the text moves into the new region, on every client alike. A text block whose region another edit took out reads as empty, and typing into it writes the region again. When the canvas connects, a shared document with content replaces the canvas's blocks, and an empty one takes them; two clients that connect to an empty document before their provider has synced would both fill it, so connect after the provider's first sync, or pass `seed: false` to all clients but one. Moving a block takes it out of the text and writes it again where it goes, so an edit someone makes inside a block being moved at the same moment is lost; every client still ends with the same document. Undo and redo go through a `Y.UndoManager` that tracks this client's changes alone, grouped as the canvas groups typing. A chain cannot hold them, so `editor.chain().undo().run()` does nothing under a collaboration: call `editor.commands.undo()`, or `controller.run(undo)` with the controller of the canvas's handle. One `yjsCollaboration` serves one editor at a time: build it with the editor, as above, and a second editor it is given stays unconnected and is reported to its `onError` option. Recent releases of `lib0`, which `yjs` depends on, declare types that need TypeScript 5.7: on an older TypeScript, set `skipLibCheck` or hold `lib0` at 0.2.111.
+
+### Showing who else is here
+
+`quoin-editor/presence` shows the people your provider's awareness knows: each one's selection tinted with their colour, their caret with their name, small avatars of their initials in a narrow gutter beside the block they are in, and, through the canvas's live region, who joined and who left. It is an entry of its own, so a worker or a server that only syncs through `quoin-editor/yjs` loads none of the canvas. Give `yjsCollaboration` the provider's awareness, such as `provider.awareness` of `y-websocket`, and a `user` with a name and a colour; Quoin never makes one up, and a colour that is not a plain CSS colour is left out. Pick colours that white text reads well on, since names and initials are drawn in white.
+
+```tsx
+import { presenceExtension } from 'quoin-editor/presence';
+import { collaborationExtension, yjsCollaboration, type YjsAwareness } from 'quoin-editor/yjs';
+import { useState } from 'react';
+import type * as Y from 'yjs';
+
+export function useSharedExtensions(doc: Y.Doc, awareness: YjsAwareness) {
+  const [extensions] = useState(() => {
+    const user = { name: 'Ada Lovelace', color: '#b91c1c' };
+    const collaboration = yjsCollaboration({ doc, awareness, user });
+    return [collaborationExtension(collaboration), presenceExtension(collaboration)];
+  });
+  return extensions;
+}
+```
+
+Each client writes `{ user: { name, color }, selection }` to its awareness state, the selection's ends given by block id, region and offset with a Yjs relative position beside them, so a caret stays on its character while others type before it. The selection is written at most every 50 ms, and only while the canvas is focused and editable: on blur or in read-only it is cleared, so others stop showing it. Carets are drawn over the text rather than in it, so they never change how your own caret moves, what you select, copy or compose; they are hidden from assistive technology and take no pointer or focus. A collaborator's name fades after 2 seconds without a move, and a long name is cut short with an ellipsis (the avatars' accessible name keeps it whole). The avatars' gutter takes 24 px at the end of every line of a canvas with presence, whether or not anyone else is there, so the text never reflows as people come and go; leave room for it in a narrow layout. A name label that reaches the canvas's side is cut off there, and a caret in a part of the document that scrolls on its own, such as a wide table, stays inside it and scrolls with it. Nothing a collaborator does scrolls the page or moves the focus, and an announcement stays in the live region until you, not a collaborator, change something. Strings come from `PresenceLabels` (English in `englishPresenceLabels`), overridden through `presenceExtension(collaboration, { labels })`.
+
+### Comments
+
+`quoin-editor/comments` anchors comment threads to text. The threads are yours: Quoin stores only the anchor, a `comment` mark whose `id` is the thread's (`<span data-comment="t1">` in markdown), and asks your callbacks for everything else. Keep the threads in a store from `createCommentThreads(initial)` and call its `set(threads)` whenever your copy changes, after a reply is saved or when a collaborator resolves a thread; the canvas follows without a remount.
+
+```tsx
+import { BlockCanvas, type QuoinBlock } from 'quoin-editor';
+import { commentsExtension, createCommentThreads, type CommentThread } from 'quoin-editor/comments';
+import { useState } from 'react';
+
+type Props = {
+  blocks: QuoinBlock[];
+  onChange: (next: QuoinBlock[]) => void;
+  initial: CommentThread[];
+  saveReply: (threadId: string, body: string) => Promise<CommentThread[]>;
+};
+
+export function ReviewedEditor({ blocks, onChange, initial, saveReply }: Props) {
+  const [threads] = useState(() => createCommentThreads(initial));
+  const [extensions] = useState(() => [
+    commentsExtension({
+      threads,
+      currentUser: { id: 'u1', name: 'Ada Lovelace' },
+      onCreate: async () => {
+        const thread: CommentThread = { id: crypto.randomUUID(), resolved: false, comments: [] };
+        threads.set([...threads.get(), thread]);
+        return thread.id;
+      },
+      onReply: async (threadId, body) => threads.set(await saveReply(threadId, body)),
+      onResolve: async (threadId) => {
+        threads.set(threads.get().map((t) => (t.id === threadId ? { ...t, resolved: true } : t)));
+      },
+      onDelete: async (threadId) => {
+        threads.set(threads.get().filter((t) => t.id !== threadId));
+      },
+    }),
+  ]);
+  return <BlockCanvas blocks={blocks} onChange={onChange} extensions={extensions} />;
+}
+```
+
+The bubble toolbar's Comment button, or Mod+Alt+M, calls `onCreate({ anchorText, blockId })` for the selected text (`blockId` is the first block of a selection across blocks). While it is pending the text is drawn as a pending anchor, which follows any edits made meanwhile; when it resolves with an id, the `comment` mark is added over that text in one undo step, a part in each block of a selection across blocks, and, if the selection has not moved since, the new thread opens with focus in its field for the first comment, which goes to `onReply`. When it rejects, the pending anchor goes and the canvas's `onError` hears why. An edit that splits the text meanwhile, such as Enter inside it, leaves a part in each block, and when all of the text was deleted before your host answered, `onError` hears so with the thread's id, so you can delete the empty thread.
+
+Anchors are tinted with `--quoin-comment`, translucent so that overlapping threads stack deeper, and underlined with `--quoin-comment-edge`, a double line where threads overlap; the anchor of the open thread takes `--quoin-comment-active` and a thicker rule. Body and palette text read at 4.5:1 or more on every tint in the light and dark themes, so the tints stay pale and the rule carries the difference. Clicking an anchor opens its thread in a popover beside it, or a list to choose from where several threads overlap, without taking focus from the text, so typing goes on where the click put the caret. Mod+Alt+M with the caret in an anchor opens it with focus in its reply field, and moves focus into a thread a click already opened. The popover is a dialog that leaves the canvas editable; Escape closes it and, when focus was inside, gives focus back to the text. An anchor whose thread your store does not know, or has resolved, is drawn as a plain tint and opens nothing. When the text of an open thread is deleted, by you or a collaborator, the popover stays open as "Text removed" with what you were writing, until you close it; one a click opened, while you kept typing in the text, closes when you next move the caret.
+
+On a canvas 800 px wide or more the open threads are listed beside the text, each level with the block its text starts in and pushed down when they would overlap; positions follow edits, resizes and loading images, and nothing scrolls the page. A thread opens in place in the list, and Escape folds it back. On a narrower canvas a small button beside each block with threads, and one after them, opens a sheet over the foot of the page that lists them. The room is reserved at the end of every line whenever comments are on, so the threads never cover the text, and the canvas grows as tall as the list beside it, so the list never runs over the page below; the list is left out of a selection or a copy of the page: 272 px on a wide canvas, 36 px on a narrow one, and presence's 24 px gutter sits inside it. Threads whose text has all been deleted are listed after the others as "Text removed", and can still be resolved or deleted.
+
+Resolve and Delete call `onResolve` or `onDelete`, then take the thread's marks off in one undo step. Undo puts the marks back, and the thread stays as your host left it: a resolved thread's anchor comes back as a plain tint. A thread resolved or deleted here leaves the lists at once, before your store says so, and comes back as soon as your store sets it anew, as when you reopen it. A failed call goes to `onError` and leaves the document unchanged. A read-only canvas shows threads and takes replies but has no Resolve or Delete, since those change the document. Bodies are drawn as plain text with their line breaks, never as markdown or HTML; Mod+Enter or Send sends a reply. With `quoin-editor/yjs`, anchors reach collaborators like any other mark, and their threads come from each client's own store. Strings come from `CommentsLabels` (English in `englishCommentsLabels`), overridden through `commentsExtension({ labels })`.
+
+### AI actions
+
+`quoin-editor/ai` streams your model's answers into the document. Quoin never calls a model itself: `aiExtension({ stream })` takes a function that answers each request with an async iterable of markdown chunks and stops when the signal aborts, so any provider, proxy or SDK fits behind it.
+
+```tsx
+import { BlockCanvas, type QuoinBlock } from 'quoin-editor';
+import { aiExtension, type AiStream } from 'quoin-editor/ai';
+import { useState } from 'react';
+
+// Your server relays the request to a model and streams its text back.
+const stream: AiStream = async function* (request, signal) {
+  const response = await fetch('/api/ai', { method: 'POST', body: JSON.stringify(request), signal });
+  const reader = response.body!.pipeThrough(new TextDecoderStream()).getReader();
+  for (let next = await reader.read(); !next.done; next = await reader.read()) yield next.value;
+};
+
+export function AssistedEditor({ blocks, onChange }: { blocks: QuoinBlock[]; onChange: (next: QuoinBlock[]) => void }) {
+  const [extensions] = useState(() => [aiExtension({ stream })]);
+  return <BlockCanvas blocks={blocks} onChange={onChange} extensions={extensions} />;
+}
+```
+
+Each request is `{ action, prompt?, selection, context, language? }`. `action` is one of `continue`, `improve`, `fix`, `shorten`, `lengthen`, `simplify`, `tone`, `translate`, `summarize`, `explain` and `custom`; `prompt` is what the writer typed, the request itself for `custom`, the tone for `tone` and the language to translate to for `translate`. `selection` is the markdown of the selected text, or of the block the caret is in; `context` is the document's markdown, cut to 8,000 characters around the selection at block boundaries; `language` is the `lang` of the closest element around the canvas that has one.
+
+The AI menu opens from Ask AI in the bubble toolbar and in the block menu, from Ask AI and Continue writing in the slash menu's AI group, and from a Space on an empty paragraph that has held no text since focus last arrived in the canvas; a second Space, or Escape, then types the space. The writer types a request or picks an action, and the answer streams in as it comes: below its text for Continue writing, Summarize, Explain and a request typed with nothing selected, after its text, which shows as struck through, for the actions that rewrite it. It is drawn at most once a frame, with unfinished markdown closed for display, over the canvas under the block it is for, which keeps room for it so it covers no text (a `margin-bottom` of `var(--quoin-ai-room)` on that block, `[data-quoin-ai-room]`; a host rule that overrides it lets the answer cover the next block, and content below the answer moves as it grows); it is never part of the document, so it is not saved, copied, reached by the caret or read by assistive technology until it is complete or stopped, when it is announced once. Under it, Writing and Stop while it streams, then Accept, Discard, Retry and a field for a follow-up, which asks for a change to the answer and replaces it. Escape in the text takes focus to that bar.
+
+Accept applies the answer in one undo step, a transaction whose origin is `ai`, read with the engine's markdown parser as a paste is, so its HTML stays text and unsafe links are dropped. Edits made while it streams, a collaborator's among them, move its target with them; if its text was deleted meanwhile, Accept puts the answer where the text was and says so, and if its block was deleted the stream stops and Accept puts the answer as blocks of their own beside the block that was next to it. `selection` and `context` are plain markdown: the spaces the engine keeps as `&#32;` reach the host as spaces. Stop aborts the signal and keeps what streamed. A stream that rejects, throws or yields something other than a string goes to `onError` and shows inline with Retry. A new request, Discard and unmounting the canvas abort the signal too. A read-only canvas shows no AI entry points, and making a canvas read-only ends any answer it shows. Strings come from `AiLabels` (English in `englishAiLabels`), overridden through `aiExtension({ labels })`.
+
 ## Read-only
 
 ```tsx
@@ -656,6 +796,80 @@ export function Reader({ blocks }: { blocks: QuoinBlock[] }) {
 `readOnly` renders each block's `preview` with no inserters, menus, drag handles or editors. `onChange` is still required by the type, and is never called. `aria-label` names the document for assistive technology, and `className` and `id` go on the root element.
 
 Because it draws previews and never editors, a block type registered without a `preview` has nothing to show here but its own label. Quoin warns once per type in the console when that happens, so give every type you render read-only a `preview`. It is not an error channel: `onError` is for the document, this is for the registration, so it goes to the developer and not to the reader.
+
+### On the server
+
+`quoin-editor/view` draws a document read-only with no hook, effect or browser API, so it renders in a React Server Component, in a static export and in plain Node. It carries no `'use client'` banner and loads none of the canvas.
+
+```tsx
+import type { QuoinBlock } from 'quoin-editor/engine';
+import { QuoinView } from 'quoin-editor/view';
+
+export function Article({ blocks }: { blocks: QuoinBlock[] }) {
+  return <QuoinView blocks={blocks} className="article" resolveAssetUrl={(key) => `/files/${key}`} />;
+}
+```
+
+`QuoinView` writes the same HTML as `toHTML` with the same options (`resolveAssetUrl`, `renderMath`, `embeds`, `embedProviders`, `frameTitle` and `taskLabel`), inside a `div` with the class `quoin-view` and your `className`; with `quoin-editor/styles.css` loaded its links take Quoin's link colour in both themes, never the browser's blue. Toggles are native `details`, open as their blocks are, and pictures load lazily, so a server render preloads none of them. `highlight` takes the canvas's code highlighter and draws its tokens on the server; a token colour that is not a single colour value is left out. A block type of your own is drawn by the `preview` of its definition in `blockTypes`, inside the `div` `toHTML` writes for it. A definition of a type Quoin draws itself is ignored here. A `BlockCanvas` with `readOnly` stays the way to show a document the reader interacts with in the browser.
+
+In a Server Component, `blockTypes` has to be a real array, so define it in a module with no `'use client'` banner: imported from a client module it arrives as a client reference, not as the definitions, and no preview is drawn. Build each definition there with the `defineBlock` of `quoin-editor/view` or `quoin-editor/diff`, the same function the main entry exports: the main entry is a client entry, so a server module cannot call its own.
+
+```tsx
+import { defineBlock } from 'quoin-editor/view';
+import { ChartColumn } from 'lucide-react';
+
+export const serverBlockTypes = [
+  defineBlock<{ points: number[] }>({
+    type: 'SALES_CHART',
+    label: 'Sales chart',
+    icon: ChartColumn,
+    preview: ({ data }) => <output>{data.points.join(', ')}</output>,
+  }),
+];
+```
+
+Each component of these definitions can still be a client component, in a file of its own that starts with `'use client'`, as an `editor` with hooks has to be. A `preview` that is not marked as one runs on the server, so it uses no hook, effect or browser API.
+
+`toHTML` titles a frame with its provider's name and names the checkbox of a task with no text `Task`. Pass `frameTitle` and `taskLabel` to name them in the reader's language, for example `frameTitle={(provider) => titles[provider] ?? provider}`. The canvas's English frame titles are `englishEmbedLabels.frameTitle` in `quoin-editor/embed`, a client entry, so a Server Component keeps a copy of its own.
+
+### Comparing two versions
+
+`quoin-editor/diff` draws the changes between two versions of a document, read-only, and like `quoin-editor/view` it uses no hook, effect or browser API, so it renders in a React Server Component and in plain Node.
+
+```tsx
+import type { QuoinBlock } from 'quoin-editor/engine';
+import { QuoinDiff } from 'quoin-editor/diff';
+
+export function Changes({ before, after }: { before: QuoinBlock[]; after: QuoinBlock[] }) {
+  return <QuoinDiff before={before} after={after} className="article" />;
+}
+```
+
+Blocks are drawn as `QuoinView` draws them, with `blockTypes`, `resolveAssetUrl`, `renderMath`, `highlight`, `embeds`, `embedProviders`, `frameTitle` and `taskLabel` working the same way (`taskLabel` defaults to the `emptyTask` label). A block only the newer version has is labelled "Added" with a green rule, one only the older version has "Removed" with a red rule, and a moved block "Moved" where it went and "Moved away" where it was. In a changed block, inserted words are underlined in an `ins` and deleted words struck through in a `del`, each opened and closed by visually hidden words ("inserted" ... "end inserted"), so no change is told by colour alone and two neighbouring changes read apart. A block that moved and was edited shows its word changes where it went. A change to anything but the text, such as a heading level, a checkbox or a picture's alt text, is labelled "Changed" with what changed when Quoin can name it. Rows and columns a table lost are drawn with their text deleted, as rows it gained are drawn inserted.
+
+Nesting follows the newer version. List items and quote lines stay inside their list or quote, each marked on its own, and a numbered item keeps the number its version gives it. A removed list item or toggle holds only the blocks removed with it: a kept block nested after it is drawn where the newer version has it. A toggle that holds a change is drawn open, so no change hides in it. The table of contents lists a moved heading once, where it went, and a removed heading as deleted words. The rules and colours come from `quoin-editor/styles.css` and its tokens, in both themes, links included (a link inside a change takes the change's colour); the markup reads the same without it, each label set apart from the text it marks.
+
+Words are found by the engine's `diffBlocks`, which splits text at spaces and punctuation, so a run of Chinese or Japanese text with no spaces counts as one word: a change to one character marks the whole run as deleted and inserted. Every string comes from `DiffLabels`, English by default, and the `labels` prop overrides any of them; `changed` takes the names of the attributes that changed and returns the label.
+
+### Exporting to Word
+
+`quoin-editor/docx` writes a document as a Word file with no dependency, in a browser, a worker or Node 18 and later. It needs no DOM, carries no `'use client'` banner and loads no React.
+
+```ts
+import type { QuoinBlock } from 'quoin-editor/engine';
+import { toDocx } from 'quoin-editor/docx';
+
+export async function downloadDocx(blocks: QuoinBlock[]): Promise<void> {
+  const blob = await toDocx(blocks, { title: 'Release notes', resolveAssetUrl: (key) => `/files/${key}` });
+  const link = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'notes.docx' });
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+```
+
+Headings take Word's Heading 1 to Heading 6 styles and the table of contents links to them. Bullet and numbered lists are Word lists, nested by their indent, each numbered list starting at its own first number; a task is a checkbox character and its text. Quotes take the Quote style, code a monospace style with its line breaks, and math its source in a monospace run. A callout is a shaded table of one cell, a divider a paragraph with a bottom border, and a toggle its summary followed by what it holds. Bold, italic, underline, strike, inline code, subscript, superscript, text colour, highlight and background become run properties; links to an absolute `http`, `https`, `mailto` or `tel` address become hyperlinks, and any other link is written as its text with its marks: an unsafe address (such as `javascript:`), a relative one (Word would resolve it against the file's folder), a network path such as `\\host\share` or `//host/x` (Word would open it as a share), and a `mention:` link. Comments export as their plain text: the file holds no Word comments. Files, embeds and bookmarks become links under the same rule. Code keeps its tabs and its line breaks, whether written as LF, CRLF or CR. A block type Quoin does not know is written as its type in brackets and its plain text, when its spec gives one.
+
+Pictures are fetched from the address `resolveAssetUrl` gives (or their own `url`) through `fetchAsset`, the global `fetch` by default, four at a time (`imageConcurrency`), and drawn at the size their PNG, JPEG, GIF or WebP header gives, shrunk to the page width or set to their width percent. One that fails, answers with an error status, is no such picture or takes longer than `imageTimeout` milliseconds (10,000 by default; `Infinity`, a negative number, NaN or more than 2,147,483,647 waits that longest time, about 24.8 days) is replaced by its alt text, and the export goes on. WebP pictures are written as WebP, which Word 2019 and Microsoft 365 show and older Word versions replace with a placeholder. Parts are deflated through `CompressionStream` where the runtime offers it and stored otherwise; either way the archive is a standard zip.
 
 ## Theming
 
@@ -750,7 +964,7 @@ Point the prefixed names at your own in one block on `.quoin`. The canvas root c
 }
 ```
 
-`--quoin-info`, `--quoin-success` and `--quoin-warning` arrived in 0.4.0 and are read only by the callout block, for its rule and the wash behind it, never for type. If your own theme has no equivalent, leave those three out of the block and the defaults above stand; the rest of the editor does not touch them.
+`--quoin-info`, `--quoin-success` and `--quoin-warning` arrived in 0.4.0 and are read only by the callout block, for its rule and the wash behind it, never for type. If your own theme has no equivalent, leave those three out of the block and the defaults above stand; the rest of the editor does not touch them. `--quoin-comment`, `--quoin-comment-active` and `--quoin-comment-edge` arrived with comments and mark the text threads are anchored to; keep the two tints pale enough for your body and palette text.
 
 `--quoin-ring` colours the keyboard focus outline, which is solid and drawn at full strength, so it should reach 3:1 against both `--quoin-background` and `--quoin-popover`. A pale value, such as the grey many shadcn themes keep for `--ring`, fails that, so give `--quoin-ring` a value of its own that does.
 
@@ -877,6 +1091,20 @@ From `quoin-editor/emoji`: `emojiExtension`, its `EmojiOptions`, `EmojiLabels` a
 From `quoin-editor/find`: `findExtension`, its `FindOptions`, `FindLabels` and `englishFindLabels`, `findMatches` and `replaceMatches`, and the `SearchOptions`, `FindQuery`, `FindMatch` and `FindResult` types.
 
 From `quoin-editor/stats`: `statsExtension`, its `StatsOptions`, `StatsLabels` and `englishStatsLabels`, and `useEditorStats` with its `EditorStats` type.
+
+From `quoin-editor/yjs`: `yjsCollaboration` with its `YjsCollaborationOptions`, `YjsCollaboration`, `CollaborationUser`, `YjsAwareness` and `Seed` types, and `collaborationExtension`, `applyRemote` and the `CollaborationAdapter` and `CollaborationHistory` types for an adapter of your own. Like the engine entry it has no `'use client'` banner and needs no DOM.
+
+From `quoin-editor/presence`: `presenceExtension` with its `PresenceOptions` and `PresenceLabels` types, and `englishPresenceLabels`.
+
+From `quoin-editor/comments`: `commentsExtension` with its `CommentsOptions` and `CommentsLabels` types, `englishCommentsLabels`, and `createCommentThreads` with the `CommentThreads`, `CommentThread`, `ThreadComment`, `CommentAuthor` and `CommentUser` types.
+
+From `quoin-editor/ai`: `aiExtension` with its `AiOptions` and `AiLabels` types, `englishAiLabels`, and the `AiAction`, `AiRequest` and `AiStream` types.
+
+From `quoin-editor/view`: `QuoinView` with its `QuoinViewProps` type, and `defineBlock` with the `BlockDefinition` and `AnyBlockDefinition` types, for block types built on a server. Like the engine entry it has no `'use client'` banner and needs no DOM.
+
+From `quoin-editor/diff`: `QuoinDiff` with its `QuoinDiffProps` and `DiffLabels` types, `englishDiffLabels`, and `defineBlock` with its types, as in `quoin-editor/view`. Like the view entry it has no `'use client'` banner and needs no DOM.
+
+From `quoin-editor/docx`: `toDocx` with its `DocxOptions` and `FetchAsset` types. It has no `'use client'` banner, needs no DOM and loads no React.
 
 From `quoin-editor/catalogue`: `catalogue`, every opt-in feature at once.
 

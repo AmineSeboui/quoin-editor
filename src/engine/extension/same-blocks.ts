@@ -1,4 +1,5 @@
 import type { QuoinBlock } from '../model/quoin-block';
+import { sameItems } from '../model/same-items';
 import { sameValue } from '../model/same-value';
 
 export function sameBlock(a: QuoinBlock, b: QuoinBlock): boolean {
@@ -10,5 +11,5 @@ export function sameBlock(a: QuoinBlock, b: QuoinBlock): boolean {
 
 /** Whether two documents hold the same blocks in the same order, comparing each block's data deeply. */
 export function sameBlocks(a: readonly QuoinBlock[], b: readonly QuoinBlock[]): boolean {
-  return a === b || (a.length === b.length && a.every((block, i) => sameBlock(block, b[i])));
+  return a === b || sameItems(a, b, sameBlock);
 }

@@ -3,7 +3,7 @@ import { blockPlainText } from '../engine/render/block-plain-text';
 import { languageName } from '../blocks/code/code-languages';
 import { fileName, hasFile } from '../blocks/file/file-source';
 import { hasPicture } from '../blocks/image/image-source';
-import { str } from '../blocks/str';
+import { str } from '../engine/blocks/data-fields';
 import { blockTypeLabel } from '../gutter/block-type-label';
 import type { QuoinLabels } from '../i18n/labels';
 import type { AnyBlockDefinition } from '../registry';

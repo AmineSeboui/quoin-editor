@@ -23,6 +23,12 @@
   --quoin-success: oklch(0.55 0.14 155);
   --quoin-warning: oklch(0.65 0.16 65);
   --quoin-selection: oklch(0.62 0.17 250 / 28%);
+  /* The tint of text a comment thread is anchored to, painted translucent so overlapping anchors stack, the opaque tint
+     of the anchor whose thread is open, and the rule under both, thicker when open. Body and palette text read at
+     4.5:1 on either tint, so the tints stay pale and the rule carries the difference. */
+  --quoin-comment: oklch(0.975 0.06 90);
+  --quoin-comment-active: oklch(0.98 0.06 85);
+  --quoin-comment-edge: oklch(0.62 0.14 70);
   --quoin-radius: 0.625rem;
   /* The palette a writer colours text and backgrounds with. Each text colour reaches 4.5:1 on the page, and body text
      reaches 4.5:1 on each background. */
@@ -46,6 +52,11 @@
   --quoin-bg-purple: oklch(0.955 0.025 305);
   --quoin-bg-pink: oklch(0.955 0.025 350);
   --quoin-bg-red: oklch(0.95 0.022 20);
+  /* The words a diff marks as inserted and deleted, at 4.5:1 or more on their wash, which the palette colours miss. */
+  --quoin-diff-inserted: oklch(0.48 0.11 155);
+  --quoin-diff-deleted: oklch(0.5 0.19 27);
+  /* The links of the static view and the diff, which a host page would otherwise draw in its browser's blue. */
+  --quoin-link: oklch(0.5 0.16 255);
 }
 
 .dark {
@@ -69,6 +80,9 @@
   --quoin-success: oklch(0.74 0.15 155);
   --quoin-warning: oklch(0.79 0.15 65);
   --quoin-selection: oklch(0.72 0.14 250 / 35%);
+  --quoin-comment: oklch(0.35 0.08 90);
+  --quoin-comment-active: oklch(0.3 0.08 85);
+  --quoin-comment-edge: oklch(0.72 0.14 75);
   --quoin-radius: 0.625rem;
   --quoin-color-default: oklch(0.985 0 0);
   --quoin-color-gray: oklch(0.72 0 0);
@@ -90,4 +104,7 @@
   --quoin-bg-purple: oklch(0.29 0.055 305);
   --quoin-bg-pink: oklch(0.29 0.055 355);
   --quoin-bg-red: oklch(0.29 0.06 25);
+  --quoin-diff-inserted: oklch(0.76 0.13 155);
+  --quoin-diff-deleted: oklch(0.74 0.15 25);
+  --quoin-link: oklch(0.76 0.12 250);
 }

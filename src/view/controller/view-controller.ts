@@ -1,13 +1,14 @@
-import type { Command, Decoration, Editor, Pos, Transaction } from '../../engine';
+import type { Command, Decoration, Editor, EditorState, Pos, Selection, Transaction } from '../../engine';
 import { detectMac } from '../../engine/extension/detect-mac';
 import { sameSelection } from '../../engine/state/selection';
 import type { RenderOptions } from '../dom/render-inline';
 import type { KeyInterceptor } from '../input/keydown';
 import { createCrossMode } from '../selection/cross-mode';
 import { createNodeReveal } from '../selection/node-reveal';
-import { focusingSink, focusSink, heldBySink } from '../selection/selection-sink';
+import { inPlace } from '../selection/in-place';
+import { focusSink } from '../selection/selection-sink';
 import { createAnnouncer } from './announcer';
-import { readSelection, writeSelection } from './dom-selection';
+import { dispatchSelection } from './dispatch-selection';
 import { createDrawnElements } from './drawn-elements';
 import { hasFocus, ownsFocus } from './focus-ownership';
 import { focusTarget, type FocusTarget } from './focus-target';
@@ -17,7 +18,7 @@ import { createHostRenderer, type HostRenderer } from './host-renderer';
 import { createOutsideChanges } from './outside-changes';
 import { createReadOnly, type ReadOnly } from './read-only';
 import { bindRoot, type RootBinding } from './root-binding';
-import { samePoints, selectionPoints } from './selection-sync';
+import { movedSelection, writeModelSelection } from './selection-io';
 
 export type ViewControllerOptions = {
   editor: Editor;
@@ -31,11 +32,6 @@ export type ViewControllerOptions = {
 
 const runNow = (fn: () => void): void => fn();
 
-function first<T>(items: Iterable<T>): T | undefined {
-  for (const item of items) return item;
-  return undefined;
-}
-
 export class ViewController {
   readonly editor: Editor;
   readonly registry: HostRegistry = createHostRegistry((element) => {
@@ -48,7 +44,7 @@ export class ViewController {
   });
   readonly keyInterceptors = new Set<KeyInterceptor>();
   readonly nodeReveal = createNodeReveal((id) => this.blockElement(id));
-  readonly announcer = createAnnouncer(() => this.editor.state);
+  readonly announcer = createAnnouncer(() => this.said);
   readonly isMac: boolean;
   readonly onFiles: ViewControllerOptions['onFiles'];
   goalX: number | null = null;
@@ -59,13 +55,22 @@ export class ViewController {
   private readonly hosts: HostRenderer;
   private readonly drawn = createDrawnElements(this.registry, () => this.editor.state);
   private readonly cross = createCrossMode(this);
-  private readonly outside = createOutsideChanges(() => hasFocus(this, this.ownerDocument()));
+  private readonly outside = createOutsideChanges(
+    () => hasFocus(this, this.ownerDocument()),
+    (model) => movedSelection(this, this.ownerDocument(), model),
+  );
   private binding: RootBinding | null = null;
+  private quiet = false;
+  private said?: EditorState;
   private detachRoot: (() => void) | null = null;
   private readonly readOnlyState: ReadOnly;
 
   constructor(options: ViewControllerOptions) {
     this.editor = options.editor;
+    // Subscribed first, so a listener that announces after a change finds the change already noted.
+    options.editor.subscribe((state, tr) => {
+      if (tr?.origin !== 'remote') this.said = state;
+    });
     this.flush = options.flush ?? runNow;
     this.onFiles = options.onFiles;
     this.isMac = options.isMac ?? detectMac();
@@ -92,13 +97,16 @@ export class ViewController {
 
   attach(root: HTMLElement): () => void {
     this.detachRoot?.();
-    const binding = bindRoot(this, root, this.cross, () => {
-      this.outside.committed();
+    const binding = bindRoot(this, root, this.cross, (_, tr) => {
+      this.quiet ||= tr?.origin === 'remote';
+      this.outside.committed(tr);
       this.nodeReveal.follow(this.editor.state.selection);
       this.drawn.syncTabStop();
       this.cross.syncLater();
     });
+    const unmount = this.editor.mount();
     const detach = () => {
+      unmount();
       binding.detach();
       if (this.detachRoot !== detach) return;
       this.detachRoot = null;
@@ -169,13 +177,22 @@ export class ViewController {
   }
 
   // A change made outside edit() reaches the hosts when React draws them, so the selection is written back once that
-  // has happened, and focus follows a host the change replaced.
+  // has happened, and focus follows a host the change replaced. A collaborator's change scrolls nothing doing so.
   afterRender(): void {
+    const { quiet } = this;
+    this.quiet = false;
     const doc = this.ownerDocument();
+    const moved = this.outside.takeMoved();
     if (!this.outside.takeFocused() || !doc || !ownsFocus(this, doc)) return;
+    if (moved) this.selectFromDom(moved);
     this.cross.sync();
-    this.keepFocus();
-    this.syncSelectionToDom();
+    const follow = () => {
+      this.keepFocus(quiet);
+      this.syncSelectionToDom();
+    };
+    if (!quiet) return follow();
+    this.nodeReveal.settle(this.editor.state.selection);
+    inPlace(this.root!, follow);
   }
 
   refreshHosts(): void {
@@ -185,7 +202,7 @@ export class ViewController {
   }
 
   run(command: Command): boolean {
-    return command(this.editor.state, (tr) => this.dispatch(tr));
+    return this.edit(() => command(this.editor.state, this.editor.dispatch));
   }
 
   announce(message: string): void {
@@ -207,38 +224,19 @@ export class ViewController {
     return this.ownerDocument()?.getSelection() ?? null;
   }
 
-  // While an IME composes, the composing host's offset map is stale and moving the DOM selection would cancel the
-  // composition, so the selection is left alone in both directions. A selection across hosts or of whole blocks has no
-  // native form in the hosts and is held by the sink. Where no sink is drawn, a node selection falls back to its shell,
-  // and a caret left behind in a host would be read back on the next key, so a block range empties the native selection.
   syncSelectionToDom(): void {
-    const doc = this.ownerDocument();
-    const domSelection = doc?.getSelection();
-    if (focusingSink(this) || this.composingKey !== null || !doc || !domSelection || !ownsFocus(this, doc)) return;
-    const before = selectionPoints(domSelection);
-    const { selection } = this.editor.state;
-    if (heldBySink(selection) && this.sink !== null) focusSink(this);
-    else if (selection?.kind === 'blocks') domSelection.removeAllRanges();
-    else writeSelection(this.registry, selection, domSelection, (id) => this.blockElement(id));
-    this.nodeReveal.show(selection);
-    const after = selectionPoints(domSelection);
-    if (!samePoints(before, after)) this.binding?.selectionSync.suppressNext();
+    writeModelSelection(this, this.ownerDocument(), () => this.binding?.selectionSync.suppressNext());
   }
 
   // A pointer drag across hosts sets the model selection itself, while the browser keeps extending its own. Leaving
   // cross mode re-renders the hosts that drew it as decorations, which can remove the node holding the caret, so the
   // selection is written back.
   readSelectionFromDom(): void {
-    const { editor } = this;
-    const doc = this.ownerDocument();
-    if (this.composingKey !== null || this.dragging || !doc || !ownsFocus(this, doc)) return;
-    const selection = readSelection(this.registry, doc.getSelection(), (node) => this.blockAt(node));
-    if (selection === null || sameSelection(selection, editor.state.selection)) return;
+    const selection = movedSelection(this, this.ownerDocument(), this.editor.state.selection);
+    if (selection === null) return;
     const wasCross = this.cross.active;
     if (!this.nativeVerticalMove) this.goalX = null;
-    this.flush(() =>
-      this.outside.inside(() => editor.dispatch(editor.createTransaction().setSelection(selection).setOrigin('input'))),
-    );
+    this.flush(() => this.selectFromDom(selection));
     this.cross.sync();
     if (!wasCross && !this.cross.active) return;
     this.keepFocus();
@@ -248,9 +246,7 @@ export class ViewController {
   focus(target?: FocusTarget): void {
     const { editor } = this;
     const selection = focusTarget(editor.state, target);
-    if (selection !== null && !sameSelection(selection, editor.state.selection)) {
-      this.dispatch(editor.createTransaction().setSelection(selection));
-    }
+    if (selection !== null && !sameSelection(selection, editor.state.selection)) dispatchSelection(this, selection);
     this.takeFocus();
     this.syncSelectionToDom();
   }
@@ -267,24 +263,29 @@ export class ViewController {
     this.detachRoot?.();
   }
 
+  private selectFromDom(selection: Selection): void {
+    const { editor } = this;
+    this.outside.inside(() => editor.dispatch(editor.createTransaction().setSelection(selection).setOrigin('input')));
+  }
+
   private isComposing(host: HostEntry): boolean {
     return this.composingKey !== null && hostKey(host.block, host.region) === this.composingKey;
   }
 
   private ownerDocument(): Document | null {
-    return (this.binding?.root ?? first(this.registry.all())?.element)?.ownerDocument ?? null;
+    return (this.binding?.root ?? this.registry.all().next().value?.element)?.ownerDocument ?? null;
   }
 
   // React replaces a host whose block changes kind, which drops focus, and Firefox does not move focus into another
   // host when a script selects inside it.
-  private keepFocus(): void {
-    if (this.composingKey === null) this.takeFocus();
+  private keepFocus(preventScroll?: boolean): void {
+    if (this.composingKey === null) this.takeFocus(preventScroll);
   }
 
-  private takeFocus(): void {
+  private takeFocus(preventScroll?: boolean): void {
     const element = this.drawn.focusElement();
     if (!element || element.ownerDocument.activeElement === element) return;
     if (element === this.sink) focusSink(this);
-    else element.focus();
+    else element.focus({ preventScroll });
   }
 }

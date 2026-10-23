@@ -61,13 +61,19 @@ describe('the package entry list', () => {
     expect(lazyChunks.every(({ total }) => Number.isInteger(total) && total > 0)).toBe(true);
   });
 
-  it('keeps the absolute budgets of the main, headless and engine entries', () => {
+  it('keeps the absolute budgets of the main, headless and engine entries, and of the view, diff and docx a server loads alone', () => {
     const totals = packageEntries.filter((entry) => entry.total !== undefined).map(({ name, total }) => [name, total]);
     expect(totals).toEqual([
       ['index', 155_000],
       ['headless', 70_000],
       ['engine', 52_000],
+      ['view', 22_214],
+      ['diff', 26_961],
+      ['docx', 25_891],
     ]);
+    expect(packageEntries[3]).toMatchObject({ source: 'src/view-static/index.ts', client: false });
+    expect(packageEntries[4]).toMatchObject({ source: 'src/diff/index.ts', client: false });
+    expect(packageEntries[5]).toMatchObject({ source: 'src/docx/index.ts', client: false });
   });
 
   it('sets an incremental budget at the measure plus 4 percent, and never less than 256 B above it', () => {
@@ -77,9 +83,21 @@ describe('the package entry list', () => {
     expect(incrementalBudget(9_999)).toBe(10_399);
   });
 
-  it('publishes every feature, then the catalogue, as client entries held to what they add to the main entry', () => {
-    const optIn = packageEntries.slice(3);
-    expect(optIn.map(({ name }) => name)).toEqual([...featureEntries.map(({ name }) => name), 'catalogue']);
+  it('publishes the Yjs adapter, presence, comments, AI, every feature, then the catalogue, held to what they add', () => {
+    const optIn = packageEntries.slice(6);
+    expect(optIn.map(({ name }) => name)).toEqual([
+      'yjs',
+      'presence',
+      'comments',
+      'ai',
+      ...featureEntries.map(({ name }) => name),
+      'catalogue',
+    ]);
+    expect(optIn[0]).toMatchObject({ source: 'src/yjs.ts', client: false });
+    expect(optIn[1]).toMatchObject({ source: 'src/presence.ts', client: true });
+    expect(optIn[2]).toMatchObject({ source: 'src/comments.ts', client: true });
+    expect(optIn[3]).toMatchObject({ source: 'src/ai.ts', client: true });
+    expect(optIn.slice(1).every(({ client }) => client)).toBe(true);
     expect(optIn.at(-1)).toMatchObject({ source: 'src/catalogue.ts', client: true });
     expect(optIn.every(({ added }) => Number.isInteger(added) && Number(added) > 0)).toBe(true);
   });
@@ -91,14 +109,24 @@ const importsOf = (code: string) => [...code.matchAll(/^import\s[\s\S]*?['"]([^'
 // A feature that reaches only some modules of the main entry makes the bundler split the main entry's chunks around
 // them, which reorders the main entry's code and grows its gzip by hundreds of bytes with no change to it.
 describe('the sources of the opt-in entries', () => {
-  it.each(featureEntries.map(({ name, source }) => [name, source]))(
-    '%s starts with the client directive, then imports the whole main entry',
-    (_, source) => {
-      const code = sourceOf(source);
-      expect(code.startsWith("'use client';\n")).toBe(true);
-      expect(importsOf(code)[0]).toBe('./index');
-    },
-  );
+  it.each(
+    [
+      ...featureEntries,
+      { name: 'presence', source: 'src/presence.ts' },
+      { name: 'comments', source: 'src/comments.ts' },
+      { name: 'ai', source: 'src/ai.ts' },
+    ].map(({ name, source }) => [name, source]),
+  )('%s starts with the client directive, then imports the whole main entry', (_, source) => {
+    const code = sourceOf(source);
+    expect(code.startsWith("'use client';\n")).toBe(true);
+    expect(importsOf(code)[0]).toBe('./index');
+  });
+
+  it('include the Yjs adapter, which reaches no client code: no directive, and the whole engine entry first', () => {
+    const code = sourceOf('src/yjs.ts');
+    expect(code).not.toMatch(/['"]use client['"]/);
+    expect(importsOf(code)[0]).toBe('./engine/index');
+  });
 
   it('gather in the catalogue through each feature entry, and nothing else', () => {
     const own = ['./engine', './extensions/create-catalogue'];

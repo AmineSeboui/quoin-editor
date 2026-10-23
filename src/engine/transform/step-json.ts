@@ -1,4 +1,5 @@
 import { createDoc } from '../model/doc';
+import { isRecord } from '../model/is-record';
 import type { EngineBlock, EngineDoc, Inline, Mark } from '../model/types';
 import { patchFromJSON, setAttrsStep, setIndentStep } from './attrs-steps';
 import { insertBlocksStep, moveBlocksStep, removeBlocksStep, replaceBlockStep } from './block-steps';
@@ -10,8 +11,6 @@ import { StepError, type CreatedBlock, type Step, type StepJSON } from './step';
 
 type JSONRecord = Record<string, unknown>;
 
-const isRecord = (value: unknown): value is JSONRecord =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
 const isRegions = (value: unknown): value is Record<string, Inline> =>
   isRecord(value) && Object.values(value).every(Array.isArray);
 const isMark = (value: unknown): value is Mark =>

@@ -21,14 +21,12 @@ function decorationRanges(decorations: readonly Decoration[], length: number): D
   return ranges;
 }
 
-const clamp = (value: number, length: number): number => Math.min(Math.max(value, 0), length);
-
 export function toSegments(inline: Inline, decorations: readonly Decoration[]): Segment[] {
   const length = inlineLength(inline);
   const ranges = decorationRanges(decorations, length);
   const widgets = decorations
     .filter((decoration): decoration is WidgetDecoration => decoration.kind === 'widget')
-    .map((decoration) => ({ decoration, at: clamp(decoration.offset, length) }))
+    .map((decoration) => ({ decoration, at: Math.min(Math.max(decoration.offset, 0), length) }))
     .sort((a, b) => a.at - b.at || (a.decoration.side ?? 1) - (b.decoration.side ?? 1));
   const edges = [...ranges.flatMap((range) => [range.from, range.to]), ...widgets.map((widget) => widget.at)];
   const cuts = [...new Set(edges)].filter((point) => point > 0 && point < length).sort((a, b) => a - b);

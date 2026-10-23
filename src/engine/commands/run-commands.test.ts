@@ -3,7 +3,7 @@ import { applyTransaction, type EditorState } from '../state/editor-state';
 import { historyPlugin, redoDepth, undoDepth } from '../state/history';
 import { createPluginKey, type PluginSpec } from '../state/plugin';
 import { textSelection } from '../state/selection';
-import { Transaction } from '../state/transaction';
+import { Transaction, UNFILTERED } from '../state/transaction';
 import { buildState, markdownOf } from '../test-support/build-state';
 import { coreCommandFactories, createCommandHelpers } from './chain';
 import type { Command } from './command';
@@ -62,6 +62,24 @@ describe('chained commands and transaction metadata', () => {
     }, { first: () => tag('first'), second: () => tag('second') });
     helpers.chain().first().second().run();
     expect(seen).toEqual(['second']);
+  });
+
+  it('exempts a chain from the filters only when every part is exempt', () => {
+    let state: EditorState = buildState(['hello'], { block: 0, offset: 5 });
+    const seen: unknown[] = [];
+    const part = (unfiltered: boolean): Command => (current, dispatch) => {
+      const tr = new Transaction(current);
+      dispatch?.(unfiltered ? tr.setMeta(UNFILTERED, true) : tr);
+      return true;
+    };
+    const helpers = createCommandHelpers(() => state, (tr) => {
+      seen.push(tr.getMeta(UNFILTERED));
+      state = applyTransaction(state, tr);
+    }, { exempt: () => part(true), judged: () => part(false) });
+    helpers.chain().exempt().judged().run();
+    helpers.chain().judged().exempt().run();
+    helpers.chain().exempt().exempt().run();
+    expect(seen).toEqual([undefined, undefined, true]);
   });
 
   it('keeps redo available when a chain selects and then undoes', () => {

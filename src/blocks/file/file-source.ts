@@ -1,5 +1,5 @@
 import type { BlockAttrs } from '../../engine';
-import { str } from '../str';
+import { str } from '../../engine/blocks/data-fields';
 
 /** The name of the file a file block holds, or its key when the upload kept no name. */
 export const fileName = (attrs: BlockAttrs): string => str(attrs.filename) || str(attrs.storageKey);

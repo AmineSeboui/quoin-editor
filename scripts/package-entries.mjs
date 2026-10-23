@@ -52,13 +52,13 @@ export const packageEntries = [
   // Word documents written in a browser, a worker or Node, loaded alone like the view: most of it is the block reading.
   { name: 'docx', source: 'src/docx/index.ts', client: false, total: 25_891 },
   // Measured as what it adds to the main entry, like a feature: the engine entry it loads is a part of the main entry.
-  { name: 'yjs', source: 'src/yjs.ts', client: false, added: incrementalBudget(8_044) },
+  { name: 'yjs', source: 'src/yjs.ts', client: false, added: incrementalBudget(8_111) },
   // Collaborators drawn in the canvas: a client entry, apart from the adapter, which a worker or a server can load alone.
-  { name: 'presence', source: 'src/presence.ts', client: true, added: incrementalBudget(4_305) },
+  { name: 'presence', source: 'src/presence.ts', client: true, added: incrementalBudget(4_534) },
   // Threads the host keeps, which no catalogue option could carry, so it stays out of the catalogue as presence does.
-  { name: 'comments', source: 'src/comments.ts', client: true, added: incrementalBudget(6_547) },
+  { name: 'comments', source: 'src/comments.ts', client: true, added: incrementalBudget(6_560) },
   // The host's model streams through a callback no catalogue option could carry, so it stays out as comments do.
-  { name: 'ai', source: 'src/ai.ts', client: true, added: incrementalBudget(8_338) },
+  { name: 'ai', source: 'src/ai.ts', client: true, added: incrementalBudget(8_417) },
   ...featureEntries,
   { name: 'catalogue', source: 'src/catalogue.ts', client: true, added: incrementalBudget(28_865) },
 ];

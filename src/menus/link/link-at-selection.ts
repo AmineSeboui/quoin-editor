@@ -19,7 +19,7 @@ export function linkAround(state: EditorState, from: Pos, to: Pos = from): LinkA
   const attrs = sliceInline(inline, extent.from, extent.to)[0]?.marks.find((mark) => mark.type === 'link')?.attrs;
   if (attrs?.href === undefined) return null;
   const range = { block: from.block, region: from.region, ...extent };
-  return attrs.title ? { href: attrs.href, title: attrs.title, range } : { href: attrs.href, range };
+  return { href: attrs.href, title: attrs.title || undefined, range };
 }
 
 export function linkAtSelection(state: EditorState): LinkAtSelection | null {

@@ -50,7 +50,7 @@ Quoin 1.0 replaces the 0.4 canvas, a card per block with a textarea opened to ed
 - The stylesheet declares `color-scheme` in light and dark, and reads new tokens: `--quoin-selection`, the text and background colours `--quoin-color-*` and `--quoin-bg-*`, `--quoin-comment`, `--quoin-comment-active` and `--quoin-comment-edge`, `--quoin-diff-inserted` and `--quoin-diff-deleted`, and `--quoin-link`. Every 0.4 token keeps its name.
 - English callout tone names are written in lower case in the tone chip and its menu.
 - One build with code splitting serves every entry, in ESM and CommonJS, and each entry is held to a gzip budget in CI.
-- The tarball is 1.1 MB packed, 4.7 MB unpacked: the sourcemaps leave out `sourcesContent` and name their sources relative to the map. They still map each line to its file and line under `src/`. Every entry is exported, and the package publishes `dist`, the README, the license, this changelog and MIGRATION.md.
+- The tarball is about 1 MB packed, under 5 MB unpacked: the sourcemaps leave out `sourcesContent` and name their sources relative to the map. They still map each line to its file and line under `src/`. Every entry is exported, and the package publishes `dist`, the README, the license, this changelog and MIGRATION.md.
 - `@radix-ui/react-context-menu` is a new dependency, for the block menu on a right click.
 
 ### Removed

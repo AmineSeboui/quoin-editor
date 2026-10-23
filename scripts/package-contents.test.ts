@@ -8,7 +8,9 @@ import { readText, root, sectionOf } from './docs-sources.mjs';
 type Packed = { size: number; unpackedSize: number; files: { path: string }[] };
 
 const DOCUMENTS = ['package.json', 'README.md', 'LICENSE', 'CHANGELOG.md', 'MIGRATION.md'];
-const megabytes = (bytes: number) => `${(bytes / 1_000_000).toFixed(1)} MB`;
+const STATED = 'about 1 MB packed, under 5 MB unpacked';
+const ABOUT_1_MB = { min: 850_000, max: 1_150_000 };
+const UNDER_5_MB = 5_000_000;
 
 let packed: Packed | undefined;
 const pack = (): Packed =>
@@ -25,9 +27,11 @@ describeBuilt('the packed tarball', distEntries, () => {
 
   it('has the size the README and the changelog state', () => {
     const { size, unpackedSize } = pack();
-    const stated = `${megabytes(size)} packed, ${megabytes(unpackedSize)} unpacked`;
-    expect(readText(join(root, 'README.md'))).toContain(stated);
-    expect(readText(join(root, 'demo', 'docs', 'getting-started.md'))).toContain(stated);
-    expect(sectionOf(sectionOf(readText(join(root, 'CHANGELOG.md')), '## 1.0.0 (unreleased)'), '### Changed')).toContain(stated);
+    expect(size).toBeGreaterThanOrEqual(ABOUT_1_MB.min);
+    expect(size).toBeLessThan(ABOUT_1_MB.max);
+    expect(unpackedSize).toBeLessThan(UNDER_5_MB);
+    expect(readText(join(root, 'README.md'))).toContain(STATED);
+    expect(readText(join(root, 'demo', 'docs', 'getting-started.md'))).toContain(STATED);
+    expect(sectionOf(sectionOf(readText(join(root, 'CHANGELOG.md')), '## 1.0.0 (unreleased)'), '### Changed')).toContain(STATED);
   }, 30_000);
 });

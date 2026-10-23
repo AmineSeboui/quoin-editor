@@ -40,6 +40,14 @@ it('renders a diff of a 1,000 block document with a handful of changes in a time
   expect(diff / view).toBeLessThan(6);
 }, SLOW);
 
+const LIMITS: Record<string, number> = {
+  'every block edited': 12,
+  'every id new, the text the same': 40,
+  'every id and text new': 30,
+  'the order reversed': 40,
+  'half moved': 40,
+};
+
 const REWRITES: Record<string, (blocks: QuoinBlock[]) => QuoinBlock[]> = {
   'every block edited': (blocks) => blocks.map((block) => ({ ...block, data: { markdown: `${block.data.markdown} terms` } })),
   'every id new, the text the same': (blocks) => blocks.map((block, at) => ({ ...block, id: `n${at}` })),
@@ -54,5 +62,5 @@ it.each(Object.keys(REWRITES))('renders a diff of a 1,000 block document with %s
   const after = REWRITES[name](before);
   const diff = fastest(() => renderToStaticMarkup(<QuoinDiff before={before} after={after} />));
   const view = fastest(() => renderToStaticMarkup(<QuoinView blocks={[...before, ...after]} />));
-  expect(diff / view).toBeLessThan(40);
+  expect(diff / view).toBeLessThan(LIMITS[name]);
 }, SLOW);

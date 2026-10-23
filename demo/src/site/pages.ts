@@ -73,7 +73,7 @@ export const demoPages: Page[] = [
     kind: 'server-rendering',
     path: 'server-rendering/',
     title: 'Server rendering, shown',
-    description: 'A document drawn at build time by QuoinView and a diff of two versions drawn by QuoinDiff, with no JavaScript on the page.',
+    description: 'A document drawn at build time by QuoinView and a diff of two versions drawn by QuoinDiff, with no editor loaded on the page.',
   },
 ];
 

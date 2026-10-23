@@ -72,6 +72,7 @@ Quoin 1.0 replaces the 0.4 canvas, a card per block with a textarea opened to ed
 - F-22 [A11Y-9]: the slash menu opens from the text typed, not from a key press, so a virtual keyboard or dictation opens it too.
 - F-23 [A11Y-10]: an upload in flight no longer disables the focused file input, and one status region, mounted from the start, announces its progress.
 - F-26 [CQ-11]: `BlockCanvas.tsx` and `BlockCard.tsx` are gone; the canvas file wires the engine, the view and the UI in 159 lines.
+- F-28 [CQ-14]: one suggestion menu serves the slash menu and every other menu typed in the text, and the shortcuts dialog reads one table, which `scripts/keyboard-docs.test.ts` checks against the keymaps: the dialog lists only keys the code binds, and every key the canvas's own keymaps bind.
 - F-29 [CQ-15, PKG-5]: the `badge`, `label` and `select` primitives are gone, with `@radix-ui/react-label` and `@radix-ui/react-select`.
 - F-31 [CQ-17]: `toggleLinePrefix` is gone with the textarea helpers.
 - F-32 [CQ-18, PKG-3]: one build with code splitting, so `quoin-editor` and `quoin-editor/headless` share each export, which `src/index.test.ts` checks against the built files.
@@ -80,7 +81,7 @@ Quoin 1.0 replaces the 0.4 canvas, a card per block with a textarea opened to ed
 - F-36 [A11Y-14]: the canvas no longer takes focus on mount unless `autoFocus` is set.
 - F-37 [A11Y-16]: nothing animates or scrolls smoothly when the reader asks for reduced motion (`e2e/tests/canvas/reader-settings.spec.ts`).
 - F-38 [A11Y-17]: on a touch screen the gutter shows one 44 px handle beside the block being edited, and a toolbar above the keyboard carries the editing tools.
-- F-41 [A11Y-21]: the shortcuts dialog lists the whole keyboard model, and the Accessibility docs page names what each test suite checks and what it does not.
+- F-41 [A11Y-21]: the shortcuts dialog lists the canvas's keyboard model, the keyboard docs page adds the keys of the opt-in features, and the Accessibility docs page names what each test suite checks and what it does not.
 
 ### Security
 - `toDocx` links a hyperlink only when its address is an absolute `http`, `https`, `mailto` or `tel` one; any other address, relative ones included, is written as plain text, since Word reads a relative address against the file's folder and a `\\host\share` address as a network share.
@@ -92,7 +93,6 @@ Findings of #73 that 1.0 addresses only in part. Each part still open stays open
 - F-12 [PKG-2]. Fixed: dnd-kit, cmdk, tailwind-merge and class-variance-authority are gone, features beyond the core blocks are entries of their own, and `npm run check:size` holds every entry to a budget. Remains: the build turns tree shaking off, since Rollup would strip the `'use client'` banners, and leaves it to the host's bundler.
 - F-14 [API-4, A11Y-15]. Fixed: `QuoinView` renders a document on a server, with real headings, lists and links, the canvas draws text formatted instead of raw markdown, and `toHTML` and `QuoinView` draw an image as a `figure` with `width`, `height`, `loading="lazy"` and its caption, and a file as a link. Remains: an empty alt still marks an image decorative silently, with no choice to make it so on purpose.
 - F-20 [A11Y-6]. Fixed: a callout's tone is in its accessible name ("Callout, warning"), and `toHTML` writes a callout as `<aside role="note" data-tone>`, so colour is no longer the only cue. Remains: the light `--quoin-warning` keeps its 0.4 value, so the warning callout's rule keeps the contrast the review measured, 2.84:1 against its wash.
-- F-28 [CQ-14]. Fixed: one suggestion menu serves the slash menu and every other menu typed in the text, and the shortcuts dialog reads one table. Remains: nothing checks that table against the keymaps.
 - F-30 [CQ-16]. Fixed: ESLint with typescript-eslint and react-hooks runs in CI, with a coverage gate of 90 percent of lines on the engine. Remains: no coverage threshold on the canvas or the hooks.
 - F-33 [API-3]. Fixed: `icon` accepts any component. Remains: `initialData` stays optional when the data has required fields, and a definition has no `parse` or `migrate`.
 - F-42 [A11Y-22]. Fixed: `color-scheme` is declared in light and dark. Remains: `--quoin-input` keeps its 0.4 values, which the review measured at 1.26:1 in light and 1.47:1 in dark for field borders.

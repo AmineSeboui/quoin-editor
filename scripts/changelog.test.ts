@@ -17,16 +17,16 @@ describe('the changelog', () => {
     expect(versions).toEqual(['1.0.0', '0.4.2', '0.4.1', '0.4.0', '0.3.0', '0.2.0', '0.1.1', '0.1.0']);
   });
 
-  it('sorts the 1.0.0 changes under Added, Changed, Removed, Fixed and Security', () => {
+  it('sorts the 1.0.0 changes under Added, Changed, Removed, Fixed and Security, then the known gaps', () => {
     const headings = [...release.matchAll(/^### (.+)$/gm)].map(([, heading]) => heading);
-    expect(headings).toEqual(['Added', 'Changed', 'Removed', 'Fixed', 'Security']);
+    expect(headings).toEqual(['Added', 'Changed', 'Removed', 'Fixed', 'Security', 'Known gaps']);
   });
 
   it.each(packageEntries.map((entry) => [specifier(entry)]))('names the %s entry under Added', (name) => {
     expect(entryNamed(part('Added'), name)).toBe(true);
   });
 
-  it.each(['useBlockList', 'useAutoGrow', 'useMarkdownKeymap', 'TEXT_COMMANDS', '@dnd-kit', 'cmdk', 'tailwind-merge', 'class-variance-authority'])(
+  it.each(['useBlockList', 'useAutoGrow', 'useMarkdownKeymap', 'TEXT_COMMANDS', '@dnd-kit', 'cmdk', 'tailwind-merge', 'class-variance-authority', '@radix-ui/react-label', '@radix-ui/react-select'])(
     'lists %s under Removed',
     (name) => {
       expect(part('Removed')).toContain(`\`${name}`);
@@ -38,6 +38,25 @@ describe('the changelog', () => {
     expect(ids.length).toBeGreaterThan(0);
     expect(new Set(ids).size).toBe(ids.length);
   });
+
+  it('lists each partly fixed finding once under Known gaps, with what was fixed and what remains, never under Fixed', () => {
+    const gaps = part('Known gaps')
+      .split('\n')
+      .filter((line) => line.startsWith('- F-'));
+    expect(gaps.length).toBeGreaterThan(0);
+    for (const line of gaps) expect(line).toMatch(/Fixed: [\s\S]+ Remains: /);
+    const gapIds = gaps.map((line) => line.slice(2, 6));
+    expect(new Set(gapIds).size).toBe(gapIds.length);
+    expect(gapIds.filter((id) => part('Fixed').includes(id))).toEqual([]);
+    expect(part('Fixed')).not.toMatch(/in part/);
+  });
+
+  it.each(['align', 'color', 'background', 'icon', 'url', 'widthPercent', 'mime', 'indent'])(
+    'names the optional key %s that 1.0 writes',
+    (key) => {
+      expect(part('Changed')).toContain(`\`${key}\``);
+    },
+  );
 
   it('names the link rule of the Word export and the colour rule of the highlighter under Security', () => {
     expect(part('Security')).toMatch(/toDocx/);

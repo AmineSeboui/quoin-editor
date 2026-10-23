@@ -50,6 +50,21 @@ describe('the migration guide', () => {
     expect(migration).toMatch(marker);
   });
 
+  it.each(['align', 'color', 'background', 'icon', 'url', 'widthPercent', 'mime'])(
+    'names the optional key %s that 1.0 writes, for a strict schema',
+    (key) => {
+      expect(sectionOf(migration, '### New optional keys')).toContain(`\`${key}\``);
+    },
+  );
+
+  it('tells a strict schema how to accept the new keys', () => {
+    expect(sectionOf(migration, '### New optional keys')).toMatch(/passthrough\(\)[\s\S]*additionalProperties/);
+  });
+
+  it.each(['insertAt', 'update', 'remove', 'undo', 'move', 'reorder', 'reset'])('maps BlockList.%s', (member) => {
+    expect(mappingRows().some(([, before]) => before === `\`BlockList.${member}\``)).toBe(true);
+  });
+
   it('ends with a checklist', () => {
     expect(sectionOf(migration, '## Checklist')).toMatch(/^- \[ \] /m);
   });

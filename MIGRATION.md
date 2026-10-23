@@ -12,7 +12,7 @@ React 18.2 or 19 and TypeScript 5.4 or later, as in 0.4.
 
 ### No migration is needed
 
-A document is still a `QuoinBlock[]` of `{ id, type, data }`, and the five 0.4 block types keep their `data` shapes (`MarkdownBlockData`, `CalloutBlockData`, `CodeBlockData`, `ImageBlockData` and `FileBlockData`). Store and load the same arrays. Blocks nobody edits are handed back by `onChange` as the very objects you supplied, so a stored 0.4 document is never rewritten by being opened. The one exception is a block whose id repeats another's: it gets a fresh id.
+A document is still a `QuoinBlock[]` of `{ id, type, data }`, and every key of the five 0.4 block types keeps its name and meaning (`MarkdownBlockData`, `CalloutBlockData`, `CodeBlockData`, `ImageBlockData` and `FileBlockData`). Store and load the same arrays. 1.0 adds optional keys, listed [below](#new-optional-keys). Blocks nobody edits are handed back by `onChange` as the very objects you supplied, so a stored 0.4 document is never rewritten by being opened. The one exception is a block whose id repeats another's: it gets a fresh id.
 
 ### Multi-paragraph markdown blocks split on their first edit
 
@@ -35,7 +35,20 @@ export const edited: QuoinBlock[] = [
 
 ### The `indent` field
 
-`QuoinBlock` gains an optional `indent`, the nesting depth shared by every block type: a nested list item, or a block inside a toggle. It is written only when it is above 0. Code that copies, validates or stores blocks should keep it; a schema that rejects unknown keys needs it added.
+`QuoinBlock` gains an optional `indent`, the nesting depth shared by every block type: a nested list item, or a block inside a toggle. It is written only when it is above 0. Code that copies, validates or stores blocks should keep it.
+
+### New optional keys
+
+1.0 writes keys that 0.4 never wrote, each only once a writer uses what it holds:
+
+| Type | New keys in `data` |
+| --- | --- |
+| `MARKDOWN` | `align` (`'left'`, `'center'`, `'right'` or `'justify'`), `color` and `background` (palette colour names) |
+| `CALLOUT` | `icon`, the emoji the writer picked |
+| `IMAGE` | `url` (an image embedded by address), `align` and `widthPercent` |
+| `FILE` | `mime`, the type the uploaded file declares |
+
+The block itself may carry `indent`, and documents may hold the new block types `DIVIDER`, `TOGGLE`, `TABLE`, `EMBED`, `BOOKMARK`, `MATH` and `TOC`. A host whose schema rejects unknown keys or types would reject a paragraph that was aligned, or an image that was resized. Add the keys above as optional, or let unknown keys through: in zod, `.passthrough()` on the `data` schema; in JSON Schema, `"additionalProperties": true`.
 
 ### Captions and callout bodies are inline markdown
 
@@ -53,7 +66,7 @@ An image alone on its line becomes an `IMAGE` block. An image inside a paragraph
 
 ### `BlockCanvas`
 
-Every 0.4 prop keeps its name, and all but `onDelete` keep their meaning: `blocks`, `onChange`, `onDelete`, `blockTypes`, `upload`, `resolveAssetUrl`, `onError`, `readOnly`, `className`, `id` and `aria-label`. New ones are optional:
+Every 0.4 prop keeps its name, and its meaning except as the changes below say: `blocks`, `onChange`, `onDelete`, `blockTypes`, `upload`, `resolveAssetUrl`, `onError`, `readOnly`, `className`, `id` and `aria-label`. New ones are optional:
 
 | Prop | What it does |
 | --- | --- |
@@ -62,10 +75,10 @@ Every 0.4 prop keeps its name, and all but `onDelete` keep their meaning: `block
 | `autoFocus` | Focuses the canvas on mount. Off by default. |
 | `placeholder` | The text of an empty paragraph that holds the caret. |
 | `labels` | Every string the canvas shows or speaks, English by default. Keep the object stable. |
-| `blockLink` | The address "Copy link to block" copies, `#block-<id>` by default. |
+| `blockLink` | The address "Copy link to block" copies, by default the page's address with `#block-<id>`. |
 | `ref` | A `QuoinEditorHandle` with the `editor`, the `controller`, `focus()` and `toMarkdown()`. |
 
-Two behaviours changed, one of them `onDelete`'s:
+Two behaviours changed:
 
 - **`onDelete` reports more.** Besides the block menu's Delete, it reports whole blocks removed by typing over a selected block or by pasting over selected blocks. A line that Backspace or Delete merges into its neighbour is still not reported. To restore a block, splice it back into `blocks` once they no longer hold it, as on a later click of an Undo toast, not inside the callback.
 - **A collaborative canvas is uncontrolled.** A canvas given `collaborationExtension` from `quoin-editor/yjs` takes its content from the shared document. Pass the starting blocks once and keep echoing `onChange`; while the shared document is connected, any other array handed to `blocks` is ignored, with a warning in development.
@@ -94,6 +107,10 @@ export function Editor({ blocks, onChange }: { blocks: QuoinBlock[]; onChange: (
 }
 ```
 
+### `useQuoin`
+
+`QuoinConfig`, which `useQuoin()` returns to a custom block, gains `highlight` and the required `controller` and `labels`. `QuoinProvider` fills them in, so only a `QuoinConfig` built by hand, such as a test double for a custom block, needs `controller: null` and `labels: englishLabels` added.
+
 ### Entries
 
 - `quoin-editor/headless` now exports the view and the engine (`useQuoinEditor`, `EditorView`, `createEditor` and the rest), and none of the 0.4 helpers. The main entry re-exports all of it.
@@ -108,17 +125,24 @@ The 0.4 helpers worked on the text of a textarea. In 1.0 each is an engine comma
 | --- | --- | --- |
 | `applyEdit`, `Edit` | `insertText` | The editor applies every edit itself; insert text at the selection with the command. |
 | `lineAt` | Nothing | Each text block holds one line. |
-| `toggleLinePrefix`, `LinePrefix` | `setBlockType` | `setBlockType('MARKDOWN', { kind: 'heading', level: 2 })`, `{ kind: 'bullet' }`, `{ kind: 'quote' }` and so on. |
+| `toggleLinePrefix`, `LinePrefix` | `setBlockType` | `setBlockType('MARKDOWN', { kind: 'heading', level: 2 })`, `{ kind: 'bullet' }`, `{ kind: 'ordered' }` and so on. |
 | `continueList` | `splitBlock` | Enter continues a list on its own. |
 | `indentList` | `indent`, `outdent` | Tab and Shift+Tab call them. |
-| `wrapSelection`, `WrapKind` | `toggleMark` | `toggleMark('bold')`, `'italic'`, `'code'`, `'strike'`. |
+| `wrapSelection`, `WrapKind` | `toggleMark`, `setLink` | `toggleMark('bold')`, `'italic'` or `'code'`; `setLink` for `'link'`. |
 | `linkPaste` | `setLink`, `pasteLinkOverSelection` | Pasting an address over a selection links it on its own. |
-| `insertCommand`, `InsertableCommand` | `insertBlockAfter`, `setBlockType` | |
+| `insertCommand`, `InsertableCommand` | `insertBlockAfter`, `setBlockType` | `setBlockType` for a heading or a list, `insertBlockAfter` for a code block or a divider; a table needs `quoin-editor/table`. |
 | `shouldOpenPalette` | Nothing | The slash menu opens from the text typed, virtual keyboards included. |
 | `caretRect`, `CaretRect` | Nothing | The caret is the browser's own: read `window.getSelection()`. |
 | `useMarkdownKeymap` | `defineExtension` | Give an extension a `keymap` of commands. |
 | `TEXT_COMMANDS`, `TextCommand` | `defineExtension` | Add slash items through an extension's `ui.slashItems`. |
-| `useBlockList`, `BlockList`, `UndoToken` | `moveBlocksUp`, `moveBlocksDown`, `duplicateBlocks`, `deleteBlocks`, `undo` | The editor's history undoes a deletion. |
+| `useBlockList`, `BlockList`, `UndoToken` | Nothing | The host holds the array itself and hands it to `blocks`; the rows below map each member. |
+| `BlockList.insertAt` | `insertBlockAfter` | Inserts after the selected block. |
+| `BlockList.update` | `setAttrs` | Patches the selected block; to replace whole blocks, hand `blocks` a new array. |
+| `BlockList.remove` | `deleteBlocks` | Deletes the selected blocks. |
+| `BlockList.undo` | `undo` | The editor's history undoes a deletion, with no token. |
+| `BlockList.move` | `moveBlocksUp`, `moveBlocksDown` | |
+| `BlockList.reorder` | `moveBlocksTo` | `moveBlocksTo(ids, toIndex, indent)`. |
+| `BlockList.reset` | Nothing | Hand `blocks` a new array, or call `editor.setBlocks(blocks)`. |
 | `useAutoGrow` | Nothing | Nothing is drawn in a textarea any more. |
 
 ```tsx
@@ -196,7 +220,7 @@ The tarball ships ESM and CommonJS builds of every entry, with their sourcemaps.
 ## Checklist
 
 - [ ] Install `quoin-editor@^1`.
-- [ ] Keep `indent` when you copy, validate or store blocks.
+- [ ] Keep `indent` and the new optional keys when you copy, validate or store blocks, and let a strict schema accept them.
 - [ ] Expect a 0.4 block of several lines to be split into one block per line, with derived ids, on its first edit.
 - [ ] Check captions and callout bodies that hold `*`, `_`, `` ` ``, `[` or `&`, which now read as inline markdown.
 - [ ] Replace named entities other than the 23 listed, and move inline images onto lines of their own, in markdown you import.

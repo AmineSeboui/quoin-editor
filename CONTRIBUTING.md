@@ -46,7 +46,8 @@ Firefox, and the Linux builds of the other two, can be run in the Playwright ima
 docker run --rm --ipc=host -v "$PWD":/src:ro \
   mcr.microsoft.com/playwright:v1.64.0-noble bash -lc '
     mkdir -p /work && cd /src &&
-    tar --exclude=node_modules --exclude=dist --exclude=.git --exclude=demo -cf - . | tar -xf - -C /work &&
+    tar --exclude=node_modules --exclude=dist --exclude=.git --exclude=demo \
+      --exclude=playwright-report --exclude=test-results -cf - . | tar -xf - -C /work &&
     cd /work && npm ci --no-audit --no-fund && CI=true npx playwright test --project=firefox'
 ```
 

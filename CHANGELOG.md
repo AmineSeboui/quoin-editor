@@ -2,7 +2,7 @@
 
 Every release of `quoin-editor` is listed here, newest first, in the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). From 1.0.0 the package follows [semantic versioning](https://semver.org/): a breaking change waits for the next major version. Until then, Quoin was 0.x and a minor version could contain breaking changes; those known at release were marked "Breaking". The 0.x sections are kept as they were released, "Docs" headings included. Moving from 0.4 to 1.0 is covered step by step in [MIGRATION.md](MIGRATION.md). Review finding ids such as F-17 are those of the 0.4.0 review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73).
 
-## 1.0.0 (unreleased)
+## 1.0.0 (2026-10-23)
 
 Quoin 1.0 replaces the 0.4 canvas, a card per block with a textarea opened to edit it, by an editor of its own: an engine with no dependency, a view that types into the page in place, and a canvas UI on top. A 0.4 document loads as it is, and the 0.4 `BlockCanvas` props keep their names. [MIGRATION.md](MIGRATION.md) lists what a 0.4 host changes.
 

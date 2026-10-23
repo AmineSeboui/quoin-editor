@@ -32,6 +32,7 @@ export const samplePages = () => [
  * @returns {string}
  */
 export function sectionOf(markdown, heading) {
+  if (!heading) return '';
   const lines = markdown.split('\n');
   const start = lines.indexOf(heading);
   if (start === -1) return '';
@@ -39,3 +40,17 @@ export function sectionOf(markdown, heading) {
   const next = lines.findIndex((line, i) => i > start && /^#+ /.test(line) && line.match(/^#+/)[0].length <= level);
   return lines.slice(start + 1, next === -1 ? undefined : next).join('\n');
 }
+
+/**
+ * The heading of a release's section, `## <version> (unreleased)` or `## <version> (YYYY-MM-DD)`; empty when it has none.
+ * @param {string} markdown
+ * @param {string} version
+ * @returns {string}
+ */
+export const releaseHeading = (markdown, version) => {
+  const pattern = new RegExp(`^## ${version.replaceAll('.', '\\.')} \\((unreleased|\\d{4}-\\d{2}-\\d{2})\\)$`);
+  return markdown.split('\n').find((line) => pattern.test(line)) ?? '';
+};
+
+/** Whether a release heading carries a date rather than "(unreleased)". */
+export const isDated = (heading) => /\(\d{4}-\d{2}-\d{2}\)$/.test(heading);

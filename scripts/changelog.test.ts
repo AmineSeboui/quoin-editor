@@ -1,14 +1,35 @@
 // @vitest-environment node
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { readText, root, sectionOf } from './docs-sources.mjs';
+import { isDated, readText, releaseHeading, root, sectionOf } from './docs-sources.mjs';
 import { specifier } from './entry-outputs.mjs';
 import { packageEntries } from './package-entries.mjs';
 
 const changelog = readText(join(root, 'CHANGELOG.md'));
-const release = sectionOf(changelog, '## 1.0.0 (unreleased)');
+const version: string = JSON.parse(readText(join(root, 'package.json'))).version;
+const heading = releaseHeading(changelog, '1.0.0');
+const release = sectionOf(changelog, heading);
+const fitsPackage = (line: string, packageVersion: string) => line !== '' && (packageVersion !== '1.0.0' || isDated(line));
 const part = (name: string) => sectionOf(release, `### ${name}`);
 const entryNamed = (text: string, name: string) => new RegExp(`\`${name}\`(?![/\\w-])`).test(text);
+
+describe('the 1.0.0 heading', () => {
+  it.each([
+    ['## 1.0.0 (unreleased)', '0.4.2', true],
+    ['## 1.0.0 (2026-10-23)', '0.4.2', true],
+    ['## 1.0.0 (2026-10-23)', '1.0.0', true],
+    ['## 1.0.0 (unreleased)', '1.0.0', false],
+    ['## 1.0.0', '0.4.2', false],
+    ['## 1.0.0 (soon)', '0.4.2', false],
+  ])('accepts %s with package.json at %s: %s', (line, packageVersion, fits) => {
+    expect(fitsPackage(releaseHeading(`# Changelog\n\n${line}\n\ntext\n`, '1.0.0'), packageVersion)).toBe(fits);
+  });
+
+  it('reads "(unreleased)" or a date, and a date once package.json is at 1.0.0', () => {
+    expect(heading).toMatch(/^## 1\.0\.0 \((unreleased|\d{4}-\d{2}-\d{2})\)$/);
+    expect(fitsPackage(heading, version)).toBe(true);
+  });
+});
 
 describe('the changelog', () => {
   it('has a 1.0.0 section above every 0.x release', () => {

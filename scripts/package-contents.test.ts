@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import { expect, it } from 'vitest';
 import { describeBuilt, distEntries } from '../test/support/built-dist';
-import { readText, root, sectionOf } from './docs-sources.mjs';
+import { readText, releaseHeading, root, sectionOf } from './docs-sources.mjs';
 
 type Packed = { size: number; unpackedSize: number; files: { path: string }[] };
 
@@ -32,6 +32,7 @@ describeBuilt('the packed tarball', distEntries, () => {
     expect(unpackedSize).toBeLessThan(UNDER_5_MB);
     expect(readText(join(root, 'README.md'))).toContain(STATED);
     expect(readText(join(root, 'demo', 'docs', 'getting-started.md'))).toContain(STATED);
-    expect(sectionOf(sectionOf(readText(join(root, 'CHANGELOG.md')), '## 1.0.0 (unreleased)'), '### Changed')).toContain(STATED);
+    const changelog = readText(join(root, 'CHANGELOG.md'));
+    expect(sectionOf(sectionOf(changelog, releaseHeading(changelog, '1.0.0')), '### Changed')).toContain(STATED);
   }, 30_000);
 });

@@ -3,7 +3,7 @@ import { focusOwners } from '../view/react/focus-owners';
 
 /** Whether `node` is in the canvas, or in a menu, popover or toolbar the canvas portals out of it. */
 export function ownsNode(controller: ViewController, node: EventTarget | null): boolean {
-  return node instanceof Node && (focusOwners.get(node) === controller || controller.root?.contains(node) === true);
+  return focusOwners.get(node!) === controller || !!controller.root?.contains(node as Node | null);
 }
 
 /**
@@ -18,11 +18,11 @@ export function watchCanvasFocus(
   let timer: ReturnType<typeof setTimeout> | undefined;
   const moved = (event: FocusEvent) => listener(ownsNode(controller, event.target), event.target);
   const left = ({ target, relatedTarget }: FocusEvent) => {
-    if (relatedTarget !== null || !ownsNode(controller, target)) return;
+    if (relatedTarget !== null) return;
     clearTimeout(timer);
     timer = setTimeout(() => {
       const active = doc.activeElement;
-      if ((active === null || active === doc.body) && (target as Node).isConnected) listener(false, active);
+      if ((!active || active === doc.body) && (target as Node).isConnected) listener(false, active);
     });
   };
   doc.addEventListener('focusin', moved);

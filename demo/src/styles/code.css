@@ -1,0 +1,78 @@
+.prose pre,
+.install,
+.markdown-panel pre {
+  padding: 1rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  border-radius: 0.5rem;
+  background: var(--quoin-muted);
+  font-family: var(--site-mono);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.prose :not(pre) > code {
+  padding: 0.1em 0.3em;
+  border-radius: 0.25rem;
+  background: var(--quoin-muted);
+  font-size: 0.9em;
+}
+
+.tok-comment,
+.tok-prolog {
+  color: oklch(0.45 0 0);
+  font-style: italic;
+}
+
+.tok-keyword,
+.tok-boolean,
+.tok-important {
+  color: oklch(0.45 0.2 300);
+}
+
+.tok-string,
+.tok-attr-value,
+.tok-template-string {
+  color: oklch(0.45 0.12 150);
+}
+
+.tok-number,
+.tok-tag,
+.tok-property {
+  color: oklch(0.47 0.16 30);
+}
+
+.tok-function,
+.tok-class-name,
+.tok-attr-name {
+  color: oklch(0.45 0.15 250);
+}
+
+.dark .tok-comment,
+.dark .tok-prolog {
+  color: oklch(0.75 0 0);
+}
+
+.dark .tok-keyword,
+.dark .tok-boolean,
+.dark .tok-important {
+  color: oklch(0.8 0.12 300);
+}
+
+.dark .tok-string,
+.dark .tok-attr-value,
+.dark .tok-template-string {
+  color: oklch(0.82 0.12 150);
+}
+
+.dark .tok-number,
+.dark .tok-tag,
+.dark .tok-property {
+  color: oklch(0.82 0.1 50);
+}
+
+.dark .tok-function,
+.dark .tok-class-name,
+.dark .tok-attr-name {
+  color: oklch(0.82 0.1 250);
+}

@@ -63,7 +63,7 @@ What `onChange` hands you, and what you store:
 
 Each cell links to the page that shows it; the Tiptap UI cell also draws on the review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73) (2026-10-12).
 
-| | Quoin 1.0 | Tiptap 3 | BlockNote | Editor.js |
+| Feature | Quoin 1.0 | Tiptap 3 | BlockNote | Editor.js |
 | --- | --- | --- | --- | --- |
 | Stored document | Block array, markdown per text block | [JSON, or HTML][tt-store] | [Block JSON][bn-formats] | [JSON][ej-repo] |
 | Markdown | The storage format | [`@tiptap/markdown`, an early release][tt-md] | [Export and import, documented as lossy][bn-formats] | [Community plugin][ej-awesome] |

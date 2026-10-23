@@ -15,6 +15,15 @@ npx playwright install chromium webkit firefox
 
 The package lives at the root. `demo/` is the docs site and the live demo, a separate package with its own `npm ci`.
 
+## The docs site
+
+`demo/` depends on the package at the root through `file:..`, so build the root first. `npm run build` in `demo/` builds the site into `demo/dist/`, each page's main content drawn at build time with `QuoinView` and every live editor mounted in the browser; `npm run dev` serves the same pages while you edit. `npm test` in `demo/` checks the built pages' titles, descriptions, canonical addresses, Open Graph tags and links, and `npm run test:e2e` runs axe and the live demos over every page in Chromium, Firefox and WebKit.
+
+```bash
+npm run build
+cd demo && npm ci && npm run build && npm test && npm run test:e2e
+```
+
 ## Scripts
 
 | Script | What it does |

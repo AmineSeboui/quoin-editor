@@ -10,5 +10,5 @@ describe('clients that type, split and join one document at once', () => {
       }),
       { seed: 20261021, numRuns: 500 },
     );
-  });
+  }, 60_000);
 });

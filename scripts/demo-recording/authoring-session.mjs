@@ -73,12 +73,16 @@ async function dragAbove(page, recorder, moving, target) {
   await recorder.hold(400);
 }
 
-async function settle(page, recorder, line) {
-  const box = await line.boundingBox();
-  await glide(page, recorder, { x: box.x + box.width - 4, y: box.y + box.height / 2 });
+async function clickAt(page, recorder, point) {
+  await glide(page, recorder, point);
   await page.mouse.down();
   await page.mouse.up();
-  await glide(page, recorder, { x: 1180, y: 660 });
+}
+
+async function leaveEditor(page, recorder) {
+  const last = await hosts(page).last().boundingBox();
+  await clickAt(page, recorder, { x: last.x + last.width - 4, y: last.y + last.height / 2 });
+  await clickAt(page, recorder, { x: 1180, y: 660 });
 }
 
 /** The scripted authoring session the hero animation shows. */
@@ -98,6 +102,6 @@ export async function authoringSession(page, recorder) {
   await recorder.hold(500);
   const blocks = editor(page).locator('[data-quoin-block]');
   await dragAbove(page, recorder, blocks.last(), blocks.nth(1));
-  await settle(page, recorder, hosts(page).last());
+  await leaveEditor(page, recorder);
   await recorder.hold(3000);
 }

@@ -4,7 +4,7 @@ const ARROW =
 const VIEW_CSS = `
   header, .hero, .proofs, footer, .skip-link { display: none !important; }
   html { font-size: 20px; }
-  main { padding-top: 48px !important; }
+  main { padding-top: 110px !important; }
   #demo-cursor { position: fixed; left: 0; top: 0; width: 22px; height: 22px; pointer-events: none; z-index: 2147483647; }
 `;
 

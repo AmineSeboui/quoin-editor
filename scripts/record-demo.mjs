@@ -18,6 +18,11 @@ const settle = async () => {
     document.getAnimations().map((animation) => (animation.effect?.getTiming().iterations === Infinity ? null : animation.finished)),
   );
 };
+const capture = async (page) => {
+  await page.evaluate(settle);
+  return page.screenshot({ animations: 'disabled' });
+};
+const PANEL_PAUSE = 300;
 const VIEWPORT = { width: 1280, height: 720 };
 
 if (!existsSync(join(dist, 'index.html'))) {
@@ -31,12 +36,15 @@ try {
   await page.goto(site.url);
   await page.locator('[data-island] [data-quoin-host]').first().waitFor();
   await emptyDocument(page);
+  await page.waitForTimeout(PANEL_PAUSE + 100);
   await prepareRecordingView(page);
   await page.evaluate(() => document.fonts.ready);
   await authoringSession(page, {
     hold: async (delay) => {
-      await page.evaluate(settle);
-      shots.push({ png: await page.screenshot({ animations: 'disabled' }), delay });
+      shots.push({ png: await capture(page), delay: Math.min(delay, PANEL_PAUSE) });
+      if (delay < PANEL_PAUSE) return;
+      await page.waitForTimeout(PANEL_PAUSE + 100);
+      if (delay > PANEL_PAUSE) shots.push({ png: await capture(page), delay: delay - PANEL_PAUSE });
     },
   });
 } finally {

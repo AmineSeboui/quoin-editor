@@ -48,7 +48,7 @@ export const edited: QuoinBlock[] = [
 | `IMAGE` | `url` (an image embedded by address), `align` and `widthPercent` |
 | `FILE` | `mime`, the type the uploaded file declares |
 
-The block itself may carry `indent`, and documents may hold the new block types `DIVIDER`, `TOGGLE`, `TABLE`, `EMBED`, `BOOKMARK`, `MATH` and `TOC`. A host whose schema rejects unknown keys or types would reject a paragraph that was aligned, or an image that was resized. Add the keys above as optional, or let unknown keys through: in zod, `.passthrough()` on the `data` schema; in JSON Schema, `"additionalProperties": true`.
+The block itself may carry `indent`, and documents may hold the new block types `DIVIDER`, `TOGGLE`, `TABLE`, `EMBED`, `BOOKMARK`, `MATH` and `TOC`. A host whose schema rejects unknown keys or types would reject a paragraph that was aligned, or an image that was resized. Add the keys above as optional, or let unknown keys through: in zod, `.passthrough()` (zod 3) or `.loose()` (zod 4) on the `data` schema; in JSON Schema, `"additionalProperties": true`.
 
 ### Captions and callout bodies are inline markdown
 

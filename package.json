@@ -1,7 +1,7 @@
 {
   "name": "quoin-editor",
   "version": "0.4.2",
-  "description": "Markdown-native block editor for React: Notion-style blocks, a slash palette, drag to reorder and your own block types. Typed JSON out, MIT.",
+  "description": "Markdown-native block editor for React: live formatting, Notion-style menus, drag and drop, collaboration hooks and your own React blocks. MIT.",
   "license": "MIT",
   "author": {
     "name": "Amine Sboui",
@@ -11,7 +11,7 @@
     "type": "git",
     "url": "git+https://github.com/AmineSeboui/quoin-editor.git"
   },
-  "homepage": "https://amineseboui.github.io/quoin-editor",
+  "homepage": "https://amineseboui.github.io/quoin-editor/",
   "bugs": {
     "url": "https://github.com/AmineSeboui/quoin-editor/issues"
   },
@@ -25,9 +25,13 @@
     "notion-style",
     "markdown",
     "markdown-editor",
+    "wysiwyg",
+    "rich-text-editor",
     "slash-command",
     "slash-menu",
     "drag-and-drop",
+    "collaborative-editing",
+    "yjs",
     "typescript",
     "headless",
     "content-editor",
@@ -42,6 +46,8 @@
   ],
   "files": [
     "dist",
+    "README.md",
+    "LICENSE",
     "CHANGELOG.md",
     "MIGRATION.md"
   ],

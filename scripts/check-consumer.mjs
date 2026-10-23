@@ -64,6 +64,10 @@ const probes = JSON.stringify(['quoin-editor/package.json', ...packageEntries.ma
 const probe = `const probe = require('node:module').createRequire(${resolver}); ${probes}.forEach((id) => probe.resolve(id));`;
 run(process.execPath, ['-e', probe], work);
 
+// Every entry that needs no DOM loads in a plain Node process, through import and require alike, with the same exports.
+cpSync(join(root, 'consumer-check', 'server-entries.mjs'), join(work, 'server-entries.mjs'));
+run(process.execPath, ['server-entries.mjs', ...packageEntries.filter(({ client }) => !client).map(specifier)], work);
+
 // The view and diff render, and docx writes a file, in a plain Node process with no DOM, on either React.
 for (const script of ['server-view.mjs', 'server-diff.mjs', 'server-docx.mjs']) {
   cpSync(join(root, 'consumer-check', script), join(work, script));

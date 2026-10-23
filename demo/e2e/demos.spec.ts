@@ -12,6 +12,21 @@ test('the home editor hands its edits back as markdown', async ({ page }) => {
   await expect(page.getByRole('region', { name: 'What onChange hands you, as markdown' }).locator('pre')).toContainText('- [ ] Diff it in git today');
 });
 
+test('the home panel shows the stored markdown once typing pauses for 300 ms', async ({ page }) => {
+  await page.clock.install();
+  await page.goto('');
+  await waitForIslands(page);
+  const panel = page.getByRole('region', { name: 'What onChange hands you, as markdown' });
+  await expect(panel).toContainText('It shows what is stored once you pause typing for 300 ms.');
+  await page.locator('.quoin-editor').getByText('Diff it in git').click();
+  await page.keyboard.press('End');
+  await page.keyboard.type(' now');
+  await page.clock.runFor(250);
+  await expect(panel.locator('pre')).toContainText('- [ ] Diff it in git\n');
+  await page.clock.runFor(100);
+  await expect(panel.locator('pre')).toContainText('- [ ] Diff it in git now\n');
+});
+
 test('the two collaboration editors follow each other', async ({ page }) => {
   await page.goto('collaboration/');
   await waitForIslands(page);

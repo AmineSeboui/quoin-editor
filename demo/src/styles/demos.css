@@ -50,6 +50,12 @@
   font-size: 1rem;
 }
 
+.panel-note {
+  margin: 0 0 0.5rem;
+  font-size: 0.875rem;
+  color: var(--quoin-muted-foreground);
+}
+
 .markdown-panel pre {
   margin: 0;
   white-space: pre-wrap;

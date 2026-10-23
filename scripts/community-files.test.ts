@@ -43,11 +43,13 @@ describe('the community files', () => {
     for (const path of forms) expect(read(path)).toMatch(/^body:/m);
   });
 
-  it('send questions to the issue tracker, not to Discussions that may be off', () => {
+  it('send questions to Discussions and keep the docs and private reporting links', () => {
     const config = read('.github/ISSUE_TEMPLATE/config.yml');
-    expect(config).not.toMatch(/discussions/i);
-    expect(config).toMatch(/blank_issues_enabled: true/);
-    expect(config).toContain('https://github.com/AmineSeboui/quoin-editor/issues');
+    expect(config).toContain('url: https://github.com/AmineSeboui/quoin-editor/discussions');
+    expect(config).toMatch(/blank_issues_enabled: false/);
+    expect(config).toContain('https://amineseboui.github.io/quoin-editor/docs/getting-started/');
+    expect(config).toContain('https://github.com/AmineSeboui/quoin-editor/security/advisories/new');
+    expect(read('CONTRIBUTING.md')).toContain('https://github.com/AmineSeboui/quoin-editor/discussions');
   });
 
   it('update npm weekly and actions monthly, in groups', () => {

@@ -1,6 +1,6 @@
 # Contributing to Quoin
 
-Thank you for helping. Bug reports, block type ideas, docs fixes and pull requests are all welcome. Please follow the [code of conduct](CODE_OF_CONDUCT.md), and report a security problem privately as [SECURITY.md](SECURITY.md) explains, never in a public issue.
+Thank you for helping. Bug reports, block type ideas, docs fixes and pull requests are all welcome. Questions go to [Discussions](https://github.com/AmineSeboui/quoin-editor/discussions). Please follow the [code of conduct](CODE_OF_CONDUCT.md), and report a security problem privately as [SECURITY.md](SECURITY.md) explains, never in a public issue.
 
 ## Setup
 

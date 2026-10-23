@@ -5,7 +5,7 @@ description: What each entry of quoin-editor exports, from the canvas to the Wor
 
 # Exports
 
-From `quoin-editor`: `BlockCanvas`, `QuoinProvider`, `useQuoin`, `defineBlock`, `blockByType`, `paletteBlocks`, `coreBlocks`, `UploadField`, `FilePickerButton`, `useAutosave`, and everything in `quoin-editor/headless`, with their types (`QuoinBlock`, `QuoinEditorHandle`, `UploadFn`, `UploadResult`, `BlockDefinition`, `AnyBlockDefinition`, `BlockEditorProps`, `BlockPreviewProps`, `BlockCanvasProps`, `UploadFieldProps`, `FilePickerButtonProps` and others), and the [core block data shapes](https://amineseboui.github.io/quoin-editor/docs/custom-blocks/#what-the-core-blocks-store): `MarkdownBlockData`, `CalloutBlockData`, `CodeBlockData`, `ImageBlockData`, `FileBlockData` and `CoreBlockData`.
+From `quoin-editor`: `BlockCanvas`, `QuoinProvider`, `useQuoin`, `defineBlock`, `blockByType`, `paletteBlocks`, `coreBlocks`, `UploadField`, `FilePickerButton`, `useAutosave`, `formatShortcut`, `englishLabels`, `resolveLabels`, `useLabels`, and everything in `quoin-editor/headless`, with their types (`QuoinBlock`, `QuoinEditorHandle`, `UploadFn`, `UploadResult`, `BlockDefinition`, `AnyBlockDefinition`, `BlockEditorProps`, `BlockPreviewProps`, `BlockCanvasProps`, `UploadFieldProps`, `FilePickerButtonProps` and others), and the [core block data shapes](https://amineseboui.github.io/quoin-editor/docs/custom-blocks/#what-the-core-blocks-store): `MarkdownBlockData`, `CalloutBlockData`, `CodeBlockData`, `ImageBlockData`, `FileBlockData` and `CoreBlockData`.
 
 From `quoin-editor/headless`: the editing engine and its editable view, with no canvas UI.
 

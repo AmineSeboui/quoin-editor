@@ -2,7 +2,7 @@
 
 **Blocks on screen. Markdown on disk.**
 
-Quoin is a block editor for React that keeps every block as readable markdown inside a typed array you hold in your own state. Writers get live formatting, a slash menu and drag handles; you get a document you can save, diff in git or hand to an LLM without a conversion step.
+Quoin is a block editor for React that keeps every text block as readable markdown inside a typed array you hold in your own state; images, files, code, dividers, tables and the catalogue blocks are typed data beside them. Writers get live formatting, a slash menu and drag handles; you get a document you can save, diff in git or hand to an LLM without a conversion step.
 
 [![npm](https://img.shields.io/npm/v/quoin-editor)](https://www.npmjs.com/package/quoin-editor) [![CI](https://github.com/AmineSeboui/quoin-editor/actions/workflows/ci.yml/badge.svg)](https://github.com/AmineSeboui/quoin-editor/actions/workflows/ci.yml) [![licence](https://img.shields.io/npm/l/quoin-editor)](LICENSE)
 
@@ -13,7 +13,7 @@ Quoin is a block editor for React that keeps every block as readable markdown in
 - **Live formatting, markdown on disk.** Type `**bold**` or `# ` and see bold text or a heading; the block stores the markdown. Blocks you never edit are never rewritten (`src/engine/blocks/codec.test.ts`).
 - **Typed blocks you control like an input.** A document is `QuoinBlock[]`, plain JSON, passed as `blocks` and returned through `onChange`, so saving, versioning and validation stay in your code.
 - **Notion-style UI included, MIT.** Slash menu, bubble toolbar, block menu, drag handles, a mobile toolbar and a shortcuts dialog, with no account and no paid tier.
-- **Custom blocks as plain React.** `defineBlock` takes an editor and a preview component; no schema language to learn.
+- **Custom blocks as plain React.** `defineBlock` takes an editor, a preview, or both, as React components; no schema language to learn.
 - **Accessible, with tested keyboard and screen reader support.** In CI, axe runs over the canvas and its menus in light and dark mode (`e2e/tests/canvas/a11y.spec.ts`), a document is written with the keyboard alone (`keyboard-only.spec.ts`), and moves and deletions are announced (`shortcuts.spec.ts`). [What is not checked yet](https://amineseboui.github.io/quoin-editor/docs/accessibility/#what-is-not-checked-yet).
 
 ## Install
@@ -61,19 +61,38 @@ What `onChange` hands you, and what you store:
 
 ## Why Quoin
 
-Facts from the review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73) (2026-10-12) and from each project's own docs and repository, checked on 2026-10-23.
+Each cell links to the page that shows it; the Tiptap UI cell also draws on the review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73) (2026-10-12).
 
 | | Quoin 1.0 | Tiptap 3 | BlockNote | Editor.js |
 | --- | --- | --- | --- | --- |
-| Stored document | Block array, markdown per text block | ProseMirror JSON or HTML | Block JSON | Block JSON |
-| Markdown | The storage format | `@tiptap/markdown`, in beta | Export and import, documented as lossy | Not in its docs |
-| Notion-style UI | Included, MIT | Notion-like template on a paid plan | Included | Toolbox and inline toolbar |
-| Licence | MIT | MIT core, paid Pro extensions | MPL-2.0, `xl-*` packages GPL-3.0 or commercial | Apache-2.0 |
-| Real-time collaboration | Yjs, opt-in entry | Yjs | Yjs | On its roadmap |
-| Comments | Opt-in, your store | Paid plan | Built in, on Yjs or a thread store | Not in its docs |
-| Framework | React | React, Vue, Svelte, vanilla | React | Vanilla JS |
+| Stored document | Block array, markdown per text block | [JSON, or HTML][tt-store] | [Block JSON][bn-formats] | [JSON][ej-repo] |
+| Markdown | The storage format | [`@tiptap/markdown`, an early release][tt-md] | [Export and import, documented as lossy][bn-formats] | [Community plugin][ej-awesome] |
+| Notion-style UI | Included, MIT | [MIT menus and drag handle][tt-review]; [Notion-like template on a paid plan][tt-notion] | [Included][bn-home] | [Toolbox and inline toolbar][ej-home] |
+| Licence | MIT | [MIT core, paid Pro extensions][tt-repo] | [MPL-2.0, `xl-*` packages GPL-3.0 or commercial][bn-repo] | [Apache-2.0][ej-repo] |
+| Real-time collaboration | Yjs, opt-in entry | [Yjs][tt-collab] | [Yjs][bn-collab] | [On its roadmap][ej-repo] |
+| Comments | Opt-in, your store | [Paid plan][tt-comments] | [Built in, on Yjs or a thread store][bn-comments] | [Community plugin][ej-awesome] |
+| Framework | React | [React, Vue, Svelte, plain JavaScript and more][tt-install] | [React][bn-start] | [Plain JavaScript][ej-start] |
 
-Where the Quoin column comes from: storage in `src/engine/blocks/markdown-spec.ts`, untouched blocks kept in `src/engine/blocks/codec.test.ts`, the UI and licence in this repository, collaboration in `e2e/tests/canvas/presence.spec.ts`, comments in `e2e/tests/canvas/comments.spec.ts`.
+Sources, checked on 2026-10-23: Tiptap [persistence][tt-store], [markdown][tt-md], [Notion-like template][tt-notion], [repository][tt-repo], [collaboration][tt-collab], [comments][tt-comments], [install][tt-install]; BlockNote [home][bn-home], [formats][bn-formats], [repository][bn-repo], [collaboration][bn-collab], [comments][bn-comments], [getting started][bn-start]; Editor.js [home][ej-home], [repository][ej-repo], [getting started][ej-start], [awesome-editorjs][ej-awesome]. Quoin: storage in `src/engine/blocks/markdown-spec.ts`, untouched blocks in `src/engine/blocks/codec.test.ts`, collaboration in `e2e/tests/canvas/presence.spec.ts`, comments in `e2e/tests/canvas/comments.spec.ts`.
+
+[tt-store]: https://tiptap.dev/docs/editor/core-concepts/persistence
+[tt-md]: https://tiptap.dev/docs/editor/markdown
+[tt-review]: https://github.com/AmineSeboui/quoin-editor/issues/73
+[tt-notion]: https://tiptap.dev/docs/ui-components/templates/notion-like-editor
+[tt-repo]: https://github.com/ueberdosis/tiptap
+[tt-collab]: https://tiptap.dev/docs/editor/extensions/functionality/collaboration
+[tt-comments]: https://tiptap.dev/docs/comments/getting-started/overview
+[tt-install]: https://tiptap.dev/docs/editor/getting-started/install
+[bn-home]: https://www.blocknotejs.org/
+[bn-formats]: https://www.blocknotejs.org/docs/foundations/supported-formats
+[bn-repo]: https://github.com/TypeCellOS/BlockNote
+[bn-collab]: https://www.blocknotejs.org/docs/features/collaboration
+[bn-comments]: https://www.blocknotejs.org/docs/features/collaboration/comments
+[bn-start]: https://www.blocknotejs.org/docs/getting-started
+[ej-home]: https://editorjs.io/
+[ej-repo]: https://github.com/codex-team/editor.js
+[ej-start]: https://editorjs.io/getting-started
+[ej-awesome]: https://github.com/editor-js/awesome-editorjs
 
 ## Learn more
 

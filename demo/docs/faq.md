@@ -15,7 +15,7 @@ A quoin is the wedge a letterpress printer tightens to lock blocks of type into 
 
 ## Does it render markdown?
 
-Yes. The canvas draws each text block formatted as you type, and keeps its markdown source in `data.markdown`. `toMarkdown`, `toHTML` and `toPlainText` from `quoin-editor/engine` turn a whole document into each format, `fromMarkdown` reads one back, and [`QuoinView`](https://amineseboui.github.io/quoin-editor/docs/server-rendering/) draws it on a server. Blocks you never edit are never rewritten: `onChange` hands them back as the same objects you supplied, with the same markdown (`src/engine/blocks/codec.test.ts`).
+Yes. The canvas draws each text block formatted as you type, and keeps its markdown source in `data.markdown`. `toMarkdown`, `toHTML` and `toPlainText` from `quoin-editor/engine` turn a whole document into each format, `fromMarkdown` reads one back, and [`QuoinView`](https://amineseboui.github.io/quoin-editor/docs/server-rendering/) draws it on a server. Blocks you never edit are never rewritten: `onChange` hands them back as the same objects you supplied, with the same markdown (`src/engine/blocks/codec.test.ts`). A block whose id repeats another's is the exception: it gets a fresh id.
 
 ## Which frameworks does it support?
 

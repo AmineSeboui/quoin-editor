@@ -43,8 +43,8 @@ If your application has Tailwind of its own, import the stylesheet from your CSS
 Quoin depends on five Radix primitives, `lucide-react` for its icons, and `clsx` for class composition. A page downloads only the entries it imports, and `npm run check:size` holds each to a gzip budget (`scripts/package-entries.mjs`):
 
 - The canvas, `quoin-editor`, is held under 155 kB gzip, `quoin-editor/headless` under 70 kB and `quoin-editor/engine` under 52 kB.
-- Each opt-in feature adds between about 1.7 kB (stats, or the table of contents) and 9.5 kB (tables) to the canvas, all of them together about 29 kB. The emoji dataset, about 42 kB, loads only when the `:` menu or the emoji picker first opens.
-- Collaboration, `quoin-editor/yjs`, adds about 8 kB and needs `yjs` installed beside it, an optional peer dependency. Showing collaborators, `quoin-editor/presence`, adds about 4.5 kB more, comments, `quoin-editor/comments`, about 6 kB, and AI actions, `quoin-editor/ai`, about 8 kB.
+- Each opt-in feature adds between about 1.7 kB (stats, or the table of contents) and 9.6 kB (tables) to the canvas, all of them together about 30 kB. The emoji dataset, about 42 kB, loads only when the `:` menu or the emoji picker first opens.
+- Collaboration, `quoin-editor/yjs`, adds about 8 kB and needs `yjs` installed beside it, an optional peer dependency. Showing collaborators, `quoin-editor/presence`, adds about 4.5 kB more, comments, `quoin-editor/comments`, about 6.5 kB, and AI actions, `quoin-editor/ai`, about 8 kB.
 - The read-only view for a server, `quoin-editor/view`, is about 21 kB on its own, most of it the markdown parser it shares with the engine. The diff of two versions, `quoin-editor/diff`, is about 26 kB, and the Word export, `quoin-editor/docx`, about 25 kB on its own, about 7 kB beside the engine.
 
 The npm tarball is larger, about 2.0 MB, because it carries ESM and CommonJS builds with their sourcemaps. If you want the text editing and none of the UI, [`quoin-editor/headless`](https://amineseboui.github.io/quoin-editor/docs/headless/) has no component or UI library dependency at all.

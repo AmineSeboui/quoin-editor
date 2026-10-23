@@ -2,7 +2,7 @@ import { format } from 'node:util';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { toHTML } from 'quoin-editor/engine';
-import { QuoinView } from 'quoin-editor/view';
+import { QuoinView, defineBlock } from 'quoin-editor/view';
 
 const errors = [];
 console.error = (...args) => errors.push(format(...args));
@@ -17,7 +17,7 @@ const blocks = [
   { id: 'chart', type: 'CHART', data: { points: 3 } },
 ];
 const blockTypes = [
-  { type: 'CHART', label: 'Chart', icon: () => null, preview: ({ data }) => createElement('output', null, data.points) },
+  defineBlock({ type: 'CHART', label: 'Chart', icon: () => null, preview: ({ data }) => createElement('output', null, data.points) }),
 ];
 
 const html = renderToString(createElement(QuoinView, { blocks, blockTypes, className: 'doc' }));

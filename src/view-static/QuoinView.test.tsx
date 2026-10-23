@@ -117,7 +117,7 @@ describe('QuoinView', () => {
 });
 
 describe('the view entry', () => {
-  it('exports QuoinView and nothing else at runtime', async () => {
-    expect(Object.keys(await import('./index'))).toEqual(['QuoinView']);
+  it('exports QuoinView and defineBlock and nothing else at runtime', async () => {
+    expect(Object.keys(await import('./index')).sort()).toEqual(['QuoinView', 'defineBlock']);
   });
 });

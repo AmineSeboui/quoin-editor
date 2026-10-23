@@ -179,7 +179,7 @@ describe('QuoinDiff', () => {
 });
 
 describe('the diff entry', () => {
-  it('exports QuoinDiff and the English labels at runtime', async () => {
-    expect(Object.keys(await import('./index')).sort()).toEqual(['QuoinDiff', 'englishDiffLabels']);
+  it('exports QuoinDiff, the English labels and defineBlock at runtime', async () => {
+    expect(Object.keys(await import('./index')).sort()).toEqual(['QuoinDiff', 'defineBlock', 'englishDiffLabels']);
   });
 });

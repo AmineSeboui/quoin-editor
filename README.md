@@ -812,7 +812,23 @@ export function Article({ blocks }: { blocks: QuoinBlock[] }) {
 
 `QuoinView` writes the same HTML as `toHTML` with the same options (`resolveAssetUrl`, `renderMath`, `embeds`, `embedProviders`, `frameTitle` and `taskLabel`), inside a `div` with the class `quoin-view` and your `className`; with `quoin-editor/styles.css` loaded its links take Quoin's link colour in both themes, never the browser's blue. Toggles are native `details`, open as their blocks are, and pictures load lazily, so a server render preloads none of them. `highlight` takes the canvas's code highlighter and draws its tokens on the server; a token colour that is not a single colour value is left out. A block type of your own is drawn by the `preview` of its definition in `blockTypes`, inside the `div` `toHTML` writes for it. A definition of a type Quoin draws itself is ignored here. A `BlockCanvas` with `readOnly` stays the way to show a document the reader interacts with in the browser.
 
-In a Server Component, `blockTypes` has to be a real array, so define it in a module with no `'use client'` banner: imported from a client module it arrives as a client reference, not as the definitions, and no preview is drawn. Each component inside it can still be a client component, in a file of its own that starts with `'use client'`, as an `editor` with hooks has to be. A `preview` that is not marked as one runs on the server, so it uses no hook, effect or browser API.
+In a Server Component, `blockTypes` has to be a real array, so define it in a module with no `'use client'` banner: imported from a client module it arrives as a client reference, not as the definitions, and no preview is drawn. Build each definition there with the `defineBlock` of `quoin-editor/view` or `quoin-editor/diff`, the same function the main entry exports: the main entry is a client entry, so a server module cannot call its own.
+
+```tsx
+import { defineBlock } from 'quoin-editor/view';
+import { ChartColumn } from 'lucide-react';
+
+export const serverBlockTypes = [
+  defineBlock<{ points: number[] }>({
+    type: 'SALES_CHART',
+    label: 'Sales chart',
+    icon: ChartColumn,
+    preview: ({ data }) => <output>{data.points.join(', ')}</output>,
+  }),
+];
+```
+
+Each component of these definitions can still be a client component, in a file of its own that starts with `'use client'`, as an `editor` with hooks has to be. A `preview` that is not marked as one runs on the server, so it uses no hook, effect or browser API.
 
 `toHTML` titles a frame with its provider's name and names the checkbox of a task with no text `Task`. Pass `frameTitle` and `taskLabel` to name them in the reader's language, for example `frameTitle={(provider) => titles[provider] ?? provider}`. The canvas's English frame titles are `englishEmbedLabels.frameTitle` in `quoin-editor/embed`, a client entry, so a Server Component keeps a copy of its own.
 
@@ -1084,9 +1100,9 @@ From `quoin-editor/comments`: `commentsExtension` with its `CommentsOptions` and
 
 From `quoin-editor/ai`: `aiExtension` with its `AiOptions` and `AiLabels` types, `englishAiLabels`, and the `AiAction`, `AiRequest` and `AiStream` types.
 
-From `quoin-editor/view`: `QuoinView` with its `QuoinViewProps` type. Like the engine entry it has no `'use client'` banner and needs no DOM.
+From `quoin-editor/view`: `QuoinView` with its `QuoinViewProps` type, and `defineBlock` with the `BlockDefinition` and `AnyBlockDefinition` types, for block types built on a server. Like the engine entry it has no `'use client'` banner and needs no DOM.
 
-From `quoin-editor/diff`: `QuoinDiff` with its `QuoinDiffProps` and `DiffLabels` types, and `englishDiffLabels`. Like the view entry it has no `'use client'` banner and needs no DOM.
+From `quoin-editor/diff`: `QuoinDiff` with its `QuoinDiffProps` and `DiffLabels` types, `englishDiffLabels`, and `defineBlock` with its types, as in `quoin-editor/view`. Like the view entry it has no `'use client'` banner and needs no DOM.
 
 From `quoin-editor/docx`: `toDocx` with its `DocxOptions` and `FetchAsset` types. It has no `'use client'` banner, needs no DOM and loads no React.
 

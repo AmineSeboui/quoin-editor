@@ -16,7 +16,7 @@ Every claim on this page is held by a test that runs in CI. The page names the f
 - **Reader settings.** `e2e/tests/headless/media-queries.spec.ts` and `e2e/tests/canvas/reader-settings.spec.ts` check that selected blocks and focused text keep an outline in system colours under forced colours, and that nothing animates or scrolls smoothly when the reader asks for reduced motion.
 - **IME.** `e2e/tests/headless/ime.spec.ts` checks that compositions, dead keys included, commit once into the document.
 
-The keyboard shortcuts dialog, Mod+Shift+/ from the canvas, lists the whole keyboard model.
+The keyboard shortcuts dialog, Mod+Shift+/ from the canvas, lists the whole keyboard model, and the [keyboard page](https://amineseboui.github.io/quoin-editor/docs/keyboard/) lists it for both platforms.
 
 ## What is not checked yet
 

@@ -23,6 +23,7 @@ export const GUIDE_ORDER = [
   'blocks',
   'uploads',
   'extensions',
+  'keyboard',
   'collaboration',
   'comments',
   'ai',

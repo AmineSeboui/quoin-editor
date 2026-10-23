@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { cpSync, mkdirSync, mkdtempSync, readdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { codeSamples, docsSources, readText, root } from './docs-sources.mjs';
+import { codeSamples, readText, root, samplePages } from './docs-sources.mjs';
 import { specifier } from './entry-outputs.mjs';
 import { packageEntries } from './package-entries.mjs';
 
@@ -38,10 +38,9 @@ writeFileSync(
   packageEntries.map((entry, i) => `export * as entry${i} from '${specifier(entry)}';\n`).join(''),
 );
 
-// The README and the docs pages are what a consumer copies from, so their samples are typechecked against the packed
-// build too.
-const pages = [{ slug: 'readme', path: join(root, 'README.md') }, ...docsSources()];
-for (const { slug, path } of pages) {
+// The README, the migration guide and the docs pages are what a consumer copies from, so their samples are typechecked
+// against the packed build too.
+for (const { slug, path } of samplePages()) {
   codeSamples(readText(path)).forEach(({ lang, code }, i) => {
     writeFileSync(join(samples, `${slug}-${i + 1}.${lang}`), code);
   });
@@ -77,4 +76,4 @@ if (react === '18') {
   run(process.execPath, ['server-render.mjs'], work);
 }
 
-console.log(`The packed package typechecks for a consumer on React ${react} and TypeScript 5.4, with every entry and every sample of the README and the docs.`);
+console.log(`The packed package typechecks for a consumer on React ${react} and TypeScript 5.4, with every entry and every sample of the README, the migration guide and the docs.`);

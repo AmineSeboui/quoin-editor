@@ -1,0 +1,59 @@
+name: Bug report
+description: Something in Quoin does not work as the docs say.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for the report. A security problem goes through private reporting instead, as SECURITY.md explains: please do not file it here.
+  - type: input
+    id: version
+    attributes:
+      label: quoin-editor version
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: entry
+    attributes:
+      label: Entry
+      description: Where the component or function you use comes from.
+      options:
+        - quoin-editor (BlockCanvas)
+        - quoin-editor/headless
+        - quoin-editor/engine
+        - An opt-in feature (table, embed, math, toc, mention, emoji, find, stats, catalogue)
+        - quoin-editor/yjs or /presence
+        - quoin-editor/comments or /ai
+        - quoin-editor/view, /diff or /docx
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: React version, browser and operating system, and the framework or bundler.
+      placeholder: React 19.2, Safari 18 on macOS 15, Next.js 15
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The smallest document and the keys, clicks or calls that show the problem. A link to a sandbox helps most.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened
+      description: Include the `blocks` that `onChange` reported, and any console error.
+    validations:
+      required: true

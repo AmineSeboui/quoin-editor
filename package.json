@@ -41,7 +41,9 @@
     "*.css"
   ],
   "files": [
-    "dist"
+    "dist",
+    "CHANGELOG.md",
+    "MIGRATION.md"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

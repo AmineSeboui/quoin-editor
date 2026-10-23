@@ -1,11 +1,9 @@
-import { join } from 'node:path';
 import { catalogue } from '../src/catalogue';
 import { coreBlockSpecs } from '../src/engine';
 import type { ExtensionUI } from '../src/extensions/ui-types';
-import { codeSamples, docsSources, readText, root } from './docs-sources.mjs';
+import { codeSamples, readText, samplePages } from './docs-sources.mjs';
 
-const pages = [join(root, 'README.md'), ...docsSources().map(({ path }) => path)];
-const samples = pages.flatMap((path) => codeSamples(readText(path)).map(({ code }) => code));
+const samples = samplePages().flatMap(({ path }) => codeSamples(readText(path)).map(({ code }) => code));
 const definitions = samples.flatMap((code) =>
   [...code.matchAll(/defineBlock(?:<[^>]*>)?\(\{\s*type: '([^']+)',\s*label: '([^']+)'/g)].map(([, type, label]) => ({
     type,

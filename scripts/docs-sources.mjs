@@ -17,3 +17,25 @@ export const codeSamples = (markdown) =>
   [...markdown.matchAll(/```(tsx?)\n([\s\S]*?)```/g)].map(([, lang, code]) => ({ lang, code }));
 
 export const readText = (path) => readFileSync(path, 'utf8');
+
+/** The pages whose samples a consumer copies from: the README, the migration guide and the docs pages. */
+export const samplePages = () => [
+  { slug: 'readme', path: join(root, 'README.md') },
+  { slug: 'migration', path: join(root, 'MIGRATION.md') },
+  ...docsSources(),
+];
+
+/**
+ * The text under a heading, up to the next heading of the same level or higher; empty when it has none.
+ * @param {string} markdown
+ * @param {string} heading
+ * @returns {string}
+ */
+export function sectionOf(markdown, heading) {
+  const lines = markdown.split('\n');
+  const start = lines.indexOf(heading);
+  if (start === -1) return '';
+  const level = heading.match(/^#+/)[0].length;
+  const next = lines.findIndex((line, i) => i > start && /^#+ /.test(line) && line.match(/^#+/)[0].length <= level);
+  return lines.slice(start + 1, next === -1 ? undefined : next).join('\n');
+}

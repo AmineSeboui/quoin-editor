@@ -24,3 +24,7 @@ React 18.2 and later, React 19 included. `npm run check:consumer` typechecks the
 ## How stable is it?
 
 From 1.0, Quoin follows semantic versioning: a breaking change waits for the next major version, and every change is listed in the [changelog](https://github.com/AmineSeboui/quoin-editor/blob/main/CHANGELOG.md). Until 1.0, a minor version could break, so pin `~0.4.0` to stay on 0.4.
+
+## How do I upgrade from 0.4?
+
+A 0.4 document loads in 1.0 as it is, and the `BlockCanvas` props keep their names. The [migration guide](https://github.com/AmineSeboui/quoin-editor/blob/main/MIGRATION.md) lists what changes, from multi-paragraph blocks that split on their first edit to the 0.4 helpers that became engine commands, and ends with a checklist.

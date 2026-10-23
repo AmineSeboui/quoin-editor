@@ -103,7 +103,7 @@ Sources, checked on 2026-10-23: Tiptap [persistence][tt-store], [markdown][tt-md
 - [Collaboration](https://amineseboui.github.io/quoin-editor/docs/collaboration/), [comments](https://amineseboui.github.io/quoin-editor/docs/comments/) and [AI](https://amineseboui.github.io/quoin-editor/docs/ai/)
 - [Server rendering](https://amineseboui.github.io/quoin-editor/docs/server-rendering/): read-only, `QuoinView`, `QuoinDiff`, `toDocx`
 - [Accessibility](https://amineseboui.github.io/quoin-editor/docs/accessibility/): what each test suite checks, and what it does not yet
-- [FAQ](https://amineseboui.github.io/quoin-editor/docs/faq/): the package name, stability, React versions
+- [FAQ](https://amineseboui.github.io/quoin-editor/docs/faq/): the package name, stability, React versions, and [upgrading from 0.4](MIGRATION.md)
 
 ## The name
 

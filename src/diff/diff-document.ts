@@ -25,6 +25,9 @@ function changeMark(status: DiffStatus, change: BlockChange, codec: BlockCodec):
   return { status, change, attributes: changedAttributes(change, codec) };
 }
 
+const wordsChanged = ({ regions }: BlockChange) =>
+  Object.values(regions).some((changes) => changes.some(({ op }) => op !== 'equal'));
+
 function shownOf(diffs: readonly BlockDiff[], schema: Schema, codec: BlockCodec): Shown[] {
   const origins = new Map<string, QuoinBlock>();
   for (const diff of diffs) if (diff.op === 'delete' && diff.moved) origins.set(diff.block.id, diff.block);
@@ -32,8 +35,10 @@ function shownOf(diffs: readonly BlockDiff[], schema: Schema, codec: BlockCodec)
     switch (diff.op) {
       case 'equal':
         return { block: diff.block };
-      case 'change':
-        return { block: diff.after, mark: changeMark('changed', diff, codec) };
+      case 'change': {
+        const mark = changeMark('changed', diff, codec);
+        return wordsChanged(diff) || mark.attributes.length > 0 ? { block: diff.after, mark } : { block: diff.after };
+      }
       case 'delete':
         return { block: diff.block, mark: { status: diff.moved ? 'moved-away' : 'removed', attributes: [] } };
       case 'insert': {

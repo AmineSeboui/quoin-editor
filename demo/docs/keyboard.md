@@ -5,7 +5,7 @@ description: Every key the canvas and its opt-in features answer to, as macOS an
 
 # Keyboard
 
-Every key below works on the canvas, and the shortcuts dialog (Mod+Shift+/ from the canvas) lists the same keys in the reader's own words, written for the platform it runs on. Mod is Command on a Mac and Control elsewhere. A test (`scripts/keyboard-docs.test.ts`) holds this page to the dialog's list and to the keymaps of the opt-in features, so a key added, changed or removed in the code fails it until the page follows.
+Every key below works on the canvas, and the shortcuts dialog (Mod+Shift+/ from the canvas) lists the same keys in the reader's own words, written for the platform it runs on. Mod is Command on a Mac and Control elsewhere. A test (`scripts/keyboard-docs.test.ts`) reads the keymaps the canvas and the opt-in features bind, and the few keys the view reads from the key event itself: a key this page lists that the code no longer binds fails it, and so does a key the canvas binds that this page or the dialog leaves out.
 
 ## Text
 

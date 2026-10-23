@@ -9,17 +9,17 @@ const PROOFS = [
   {
     title: 'Markdown on disk',
     text: 'Each text block stores its markdown. Blocks you never edit are never rewritten: onChange hands them back as the objects you supplied.',
-    test: 'src/engine/blocks/codec.test.ts',
+    tests: ['src/engine/blocks/codec.test.ts'],
   },
   {
     title: 'A controlled input',
     text: 'A document is a QuoinBlock[] of plain JSON, passed as blocks and returned through onChange, so saving and versioning stay in your code.',
-    test: 'src/canvas/BlockCanvas.contract.test.tsx',
+    tests: ['src/canvas/BlockCanvas.contract.test.tsx'],
   },
   {
     title: 'Tested with the keyboard and axe',
     text: 'In CI, axe runs over the canvas and its menus in light and dark mode, and a document is written with the keyboard alone.',
-    test: 'e2e/tests/canvas/keyboard-only.spec.ts',
+    tests: ['e2e/tests/canvas/a11y.spec.ts', 'e2e/tests/canvas/keyboard-only.spec.ts'],
   },
 ];
 
@@ -47,12 +47,18 @@ export function HomePage() {
       <section className="proofs" aria-labelledby="proofs-heading">
         <h2 id="proofs-heading">What holds it up</h2>
         <ul>
-          {PROOFS.map(({ title, text, test }) => (
+          {PROOFS.map(({ title, text, tests }) => (
             <li key={title}>
               <h3>{title}</h3>
               <p>{text}</p>
               <p className="proof-source">
-                Checked by <a href={source(test)}>{test}</a>
+                Checked by{' '}
+                {tests.map((test, index) => (
+                  <span key={test}>
+                    {index > 0 && ' and '}
+                    <a href={source(test)}>{test}</a>
+                  </span>
+                ))}
               </p>
             </li>
           ))}

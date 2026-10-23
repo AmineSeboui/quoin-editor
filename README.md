@@ -61,7 +61,7 @@ What `onChange` hands you, and what you store:
 
 ## Why Quoin
 
-Each cell links to the page that shows it; the Tiptap UI cell also draws on the review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73) (2026-10-12).
+Each competitor cell links to the page that shows it, and Quoin's cite the files listed below the table; the Tiptap UI cell also draws on the review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73) (2026-10-12).
 
 | Feature | Quoin 1.0 | Tiptap 3 | BlockNote | Editor.js |
 | --- | --- | --- | --- | --- |

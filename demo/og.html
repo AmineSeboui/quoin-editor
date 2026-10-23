@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="robots" content="noindex" />
+    <title>Quoin social preview</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; }
+      html, body { width: 1280px; height: 640px; }
+      body {
+        display: grid;
+        grid-template-columns: 600px 1fr;
+        gap: 48px;
+        align-items: center;
+        padding: 0 72px 0 88px;
+        background: #fafaf9;
+        color: #171717;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      }
+      .name { display: flex; align-items: center; gap: 20px; margin-bottom: 40px; }
+      .mark {
+        display: grid; place-items: center; width: 72px; height: 72px; border-radius: 16px;
+        background: #171717; color: #fafaf9; font-size: 44px; font-weight: 700;
+      }
+      h1 { font-size: 44px; font-weight: 700; letter-spacing: -0.01em; }
+      .tagline { font-size: 62px; line-height: 1.06; font-weight: 800; letter-spacing: -0.025em; }
+      .sub { margin-top: 28px; font-size: 28px; color: #525252; }
+      .sub code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 24px; color: #171717; }
+      .excerpt { display: grid; gap: 14px; }
+      .label { font-size: 15px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #737373; margin-bottom: 8px; }
+      .screen {
+        padding: 18px 24px; border: 1px solid #e5e5e5; border-radius: 14px; background: #fff;
+        box-shadow: 0 12px 32px rgb(0 0 0 / 0.08); font-size: 20px; line-height: 1.5;
+      }
+      .screen h2 { font-size: 30px; font-weight: 700; margin-bottom: 8px; }
+      .callout {
+        display: flex; gap: 12px; align-items: center; margin: 6px 0 8px; padding: 10px 16px;
+        border-left: 4px solid #0b74de; border-radius: 10px; background: #dbeafb;
+      }
+      .callout span { font-size: 22px; }
+      .screen ul { padding-left: 26px; }
+      .disk {
+        padding: 16px 24px; border-radius: 14px; background: #f0f0ef; color: #262626;
+        font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 16px; line-height: 1.45; white-space: pre;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="name">
+        <div class="mark" aria-hidden="true">Q</div>
+        <h1>Quoin</h1>
+      </div>
+      <p class="tagline">Blocks on screen. Markdown on disk.</p>
+      <p class="sub">A block editor for React. <code>npm i quoin-editor</code></p>
+    </main>
+    <section class="excerpt" data-og-excerpt aria-label="An editor excerpt and the markdown it stores">
+      <div>
+        <p class="label">On screen</p>
+        <div class="screen">
+          <h2>Release notes</h2>
+          <div class="callout"><span aria-hidden="true">&#x2139;&#xfe0f;</span>Drag a block by its handle to move it.</div>
+          <ul>
+            <li>Blocks on screen</li>
+            <li>Markdown on disk</li>
+          </ul>
+          <p>Every edit stays <strong>plain markdown</strong></p>
+        </div>
+      </div>
+      <div>
+        <p class="label">On disk</p>
+        <div class="disk"># Release notes
+
+&gt; [!NOTE]
+&gt; Drag a block by its handle to move it.
+
+- Blocks on screen
+- Markdown on disk
+
+Every edit stays **plain markdown**</div>
+      </div>
+    </section>
+  </body>
+</html>

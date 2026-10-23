@@ -8,7 +8,7 @@ Quoin is a block editor for React that keeps every text block as readable markdo
 
 [Live demo](https://amineseboui.github.io/quoin-editor/) | [Docs](https://amineseboui.github.io/quoin-editor/docs/getting-started/) | [Changelog](CHANGELOG.md)
 
-![Typing markdown that formats as it is typed, opening the slash menu and dragging a callout into place](demo/public/quoin-demo.gif)
+![A heading typed with a hash and a space, a bulleted list, two words made bold from the toolbar, a callout inserted from the slash menu and dragged into place, while the panel beside shows the markdown onChange hands back](demo/public/quoin-demo.gif)
 
 - **Live formatting, markdown on disk.** Type `**bold**` or `# ` and see bold text or a heading; the block stores the markdown. Blocks you never edit are never rewritten (`src/engine/blocks/codec.test.ts`).
 - **Typed blocks you control like an input.** A document is `QuoinBlock[]`, plain JSON, passed as `blocks` and returned through `onChange`, so saving, versioning and validation stay in your code.

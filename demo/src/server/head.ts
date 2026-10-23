@@ -1,7 +1,12 @@
 import type { Page } from '../site/pages';
 import { BASE, SITE_NAME, SITE_URL } from '../site/site';
 
-export const OG_IMAGE = { path: 'og.png', width: 1280, height: 640, alt: 'Quoin: blocks on screen, markdown on disk' };
+export const OG_IMAGE = {
+  path: 'og.png',
+  width: 1280,
+  height: 640,
+  alt: 'Quoin. Blocks on screen. Markdown on disk. A release notes excerpt as the editor shows it and as the markdown it stores.',
+};
 
 const escape = (text: string) =>
   text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');

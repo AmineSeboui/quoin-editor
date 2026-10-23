@@ -24,6 +24,13 @@ npm run build
 cd demo && npm ci && npm run build && npm test && npm run test:e2e
 ```
 
+The README's animation, `demo/public/quoin-demo.gif`, and the social preview, `demo/public/og.png`, are committed files that you regenerate by hand, never in CI. `npm run record:demo` serves the built site from `demo/dist/`, plays a scripted writing session on the home page's editor in Chromium at 1280 by 720 in the light theme, with every request off the machine refused, and encodes the frames with `gifenc`; the script fails unless the site is built. `npm run render:og` screenshots `demo/og.html`, a page the site neither builds nor links, at 1280 by 640. Both use the system fonts of the machine that runs them, so rerun them on macOS to keep the look of the committed files, then look at the result before you commit it. `scripts/hero-assets.test.ts` holds both files to their size, dimensions and limits (under 3 MB and under 1 MB).
+
+```bash
+npm run build && (cd demo && npm run build)
+npm run record:demo && npm run render:og
+```
+
 ## Scripts
 
 | Script | What it does |
@@ -38,6 +45,8 @@ cd demo && npm ci && npm run build && npm test && npm run test:e2e
 | `npm run check:directives` | Client entries carry `'use client'`, server entries do not |
 | `npm run check:size` | Each entry stays within its gzip budget |
 | `npm run check:consumer` | Packs the package, installs it in a fresh project and typechecks every entry and every `ts` and `tsx` sample of the README, MIGRATION.md and the docs pages |
+| `npm run record:demo` | Records the README's animation from the built site into `demo/public/quoin-demo.gif` |
+| `npm run render:og` | Draws `demo/og.html` into the social preview, `demo/public/og.png` |
 
 ## Tests
 

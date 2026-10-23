@@ -24,7 +24,7 @@ Everything in it is re-exported from the main `quoin-editor` entry too. Both ent
 
 ## Files dropped or pasted
 
-`useQuoinEditor` hands files that are pasted or dropped to `onFiles(files, at)` and inserts nothing itself. `at` is the caret for a paste, and for a drop on text the place it lands. A drop on a block with no text of its own, such as an image or a divider, gives that block with an empty region and offset 0, `{ block, region: '', offset: 0 }`, so check `region` before you insert text at `at`.
+`useQuoinEditor` hands files that are pasted or dropped to `onFiles(files, at)` and inserts nothing itself; a paste or a drop that also carries text or HTML goes in as that text instead. `at` is the caret for a paste, or `null` when the selection is not in text, such as a block selected as a whole, and for a drop on text the place it lands. A drop on a block with no text of its own, such as an image or a divider, gives that block with an empty region and offset 0, `{ block, region: '', offset: 0 }`, so check `region` before you insert text at `at`.
 
 ## Keep renderers stable
 
@@ -32,7 +32,7 @@ Everything in it is re-exported from the main `quoin-editor` entry too. Both ent
 
 ## The Mod key
 
-`useQuoinEditor` reads the platform once and gives the editor and its `ViewController` the same answer, so Mod is Command on a Mac and Control elsewhere for both. A host that calls `createEditor` and builds a `ViewController` itself and passes `isMac` to one must pass the same `isMac` to the other: the editor reads it for its keymap and the controller for the keys it handles itself, and the two must agree.
+The editor `useQuoinEditor` creates and its `ViewController` each default to the same platform check, so they agree: Mod is Command on a Mac and Control elsewhere for both. A host that calls `createEditor` and builds a `ViewController` itself and passes `isMac` to one must pass the same `isMac` to the other: the editor reads it for its keymap and the controller for the keys it handles itself, and the two must agree.
 
 ## Internal names
 

@@ -57,6 +57,8 @@ export const idsOf = (html) => new Set([...html.matchAll(/ id="([^"]+)"/g)].map(
 
 export const hrefsOf = (html) => [...html.matchAll(/ href="([^"]*)"/g)].map(([, href]) => unescape(href));
 
+export const srcsOf = (html) => [...html.matchAll(/ src="([^"]*)"/g)].map(([, src]) => unescape(src));
+
 /** The width and height a PNG file declares in its header. */
 export function pngSize(path) {
   const bytes = readFileSync(path);

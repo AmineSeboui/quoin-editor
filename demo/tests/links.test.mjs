@@ -15,6 +15,7 @@ import {
   mainText,
   readText,
   repoRoot,
+  srcsOf,
 } from './built-site.mjs';
 
 const escapeRegExp = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -68,6 +69,19 @@ describe('links between the pages of the built site', () => {
         return anchor !== undefined && anchor !== '' && file.endsWith('.html') && !idsOf(readText(file)).has(anchor);
       });
       assert.deepEqual(broken, []);
+    });
+  }
+});
+
+describe('the addresses of the built site', () => {
+  const relative = (address) => !/^([a-z][a-z\d+.-]*:|[#/])/i.test(address);
+  for (const from of expectedPages()) {
+    it(`on /${from} are none relative, and every picture and script of the site's own is there`, () => {
+      const html = builtPage(from);
+      const addresses = [...hrefsOf(html), ...srcsOf(html)];
+      assert.deepEqual(addresses.filter(relative), []);
+      const missing = srcsOf(html).filter((src) => src.startsWith(BASE) && !existsSync(join(dist, src.slice(BASE.length))));
+      assert.deepEqual(missing, []);
     });
   }
 });

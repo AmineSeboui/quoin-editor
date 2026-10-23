@@ -3,7 +3,7 @@ import { BlockCanvas, type QuoinBlock } from 'quoin-editor';
 import { catalogue } from 'quoin-editor/catalogue';
 import type { MentionResult } from 'quoin-editor/mention';
 import { everyBlock } from '../content/every-block';
-import { BASE } from '../site/site';
+import { resolveAssetUrl } from '../site/asset-url';
 
 const PEOPLE: MentionResult[] = [
   { id: 'ada', label: 'Ada Lovelace', kind: 'user', description: 'Mathematician' },
@@ -13,8 +13,6 @@ const PEOPLE: MentionResult[] = [
 
 const search = async (query: string) =>
   PEOPLE.filter(({ label }) => label.toLowerCase().includes(query.toLowerCase()));
-
-const resolveAssetUrl = (storageKey: string) => `${BASE}${storageKey}`;
 
 export default function BlocksEditor() {
   const [blocks, setBlocks] = useState<QuoinBlock[]>(everyBlock);

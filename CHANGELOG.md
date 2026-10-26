@@ -17,6 +17,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 - Docs: the `onError` of `yjsCollaboration` is the adapter's own, apart from the canvas's; pass both the same handler (collaboration page).
 
 ### Fixed
+- A canvas rendered on the server, as with `react-dom/server`, draws a code token's `color` only when it is a single colour value, as `QuoinView` does, rather than writing a value such as `red;background-image:url(...)` into the page as it is.
 - `toDocx` writes a link to an `http` or `https` address with no host, such as `http:foo`, as its text, as it does other targets Word cannot open, rather than as a hyperlink.
 - A canvas drawn by a renderer that sets no refs on its elements, such as react-test-renderer without `createNodeMock`, renders again without attaching to an element it was not given, as in 1.0.
 - With presence, a long collaborator name at the end of a line is cut off where the avatars' gutter begins, rather than over the avatars.

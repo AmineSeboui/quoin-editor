@@ -3,10 +3,11 @@
 import { Fragment, useMemo, type ComponentPropsWithoutRef, type Ref } from 'react';
 import { useQuoin } from '../../context';
 import { highlightedLines, type CodeToken } from './code-highlighter';
+import { tokenColour } from './token-colour';
 
 function Token({ text, color, className }: CodeToken) {
   return (
-    <span style={{ color }} className={className}>
+    <span style={{ color: tokenColour(color) }} className={className}>
       {text}
     </span>
   );

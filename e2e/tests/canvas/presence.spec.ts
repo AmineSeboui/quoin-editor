@@ -129,7 +129,14 @@ test.describe('presence between two pages', () => {
     const near = page.getByRole('textbox', { name: 'Row 2, column 2', exact: true });
     await near.click();
     await expect(near).toBeFocused();
-    await expect(caretOf(bea, 'Ada Lovelace')).toBeVisible();
+    const caret = caretOf(bea, 'Ada Lovelace');
+    const cell = bea.getByRole('textbox', { name: 'Row 2, column 2', exact: true });
+    await expect
+      .poll(async () => {
+        const [line, box] = [await caret.boundingBox(), await cell.boundingBox()];
+        return line !== null && box !== null && line.x >= box.x - 2 && line.x <= box.x + box.width;
+      })
+      .toBe(true);
     const moved = await bea.evaluate(async () => {
       const scroller = document.querySelector<HTMLElement>('.quoin-table-scroll')!;
       const caret = document.querySelector<HTMLElement>('.quoin-presence-caret')!;

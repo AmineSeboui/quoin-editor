@@ -1,7 +1,8 @@
 function scrollerOf(root: HTMLElement): Element | null {
   for (let element: Element | null = root; element !== null; element = element.parentElement) {
-    const { overflowY } = getComputedStyle(element);
-    if ((overflowY === 'auto' || overflowY === 'scroll') && element.scrollHeight > element.clientHeight) return element;
+    if (/auto|scroll/.test(getComputedStyle(element).overflowY) && element.scrollHeight > element.clientHeight) {
+      return element;
+    }
   }
   return root.ownerDocument.scrollingElement ?? null;
 }

@@ -15,7 +15,7 @@ function preText(node: Node, depth = 0): string {
 }
 
 const languageOf = (element: Element | null): string | undefined =>
-  element === null ? undefined : LANGUAGE.exec(element.getAttribute('class') ?? '')?.[1];
+  element ? LANGUAGE.exec(element.getAttribute('class') ?? '')?.[1] : undefined;
 
 export function codeBlock(pre: Element, ctx: Context, sink: Sink): void {
   const code = preText(pre).replace(/\r\n?/g, '\n').replace(/\n$/, '');

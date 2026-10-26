@@ -22,7 +22,7 @@ function targetAt(controller: ViewController, node: Node | null): Target | null 
 
 function elementOf(controller: ViewController, target: Target | null): HTMLElement | undefined {
   if (target === EMPTY_HOST) return controller.emptyHost ?? undefined;
-  return target === null ? undefined : controller.registry.get(target.block, target.region);
+  return target ? controller.registry.get(target.block, target.region) : undefined;
 }
 
 // Some browsers apply the committed text in an input event after compositionend, so the host is read once that event

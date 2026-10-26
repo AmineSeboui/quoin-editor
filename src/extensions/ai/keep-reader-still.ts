@@ -22,5 +22,6 @@ export function keepReaderStill(root: HTMLElement, shell: Element, change: () =>
   const before = mark();
   change();
   // An explicit behaviour, as a page's smooth `scroll-behavior` would ease the correction in and lose part of it.
-  scroller.scrollBy({ top: mark() - before, behavior: 'instant' });
+  const moved = mark() - before;
+  if (moved) scroller.scrollBy({ top: moved, behavior: 'instant' });
 }

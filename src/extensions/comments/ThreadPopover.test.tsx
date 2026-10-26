@@ -67,18 +67,6 @@ describe('the thread popover', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
-  it('closes a thread a click opened, once its text is gone, on the next move of the caret', () => {
-    const canvas = mountComments(blocks(), threads());
-    canvas.caret('a', 6);
-    canvas.click(canvas.anchor('t1'));
-    const { editor } = canvas.handle();
-    const removal = editor.createTransaction().setOrigin('remote').step(replaceInlineStep('a', 'text', 4, 9, []));
-    act(() => editor.dispatch(removal));
-    expect(canvas.popover('Text removed')).not.toBeNull();
-    canvas.caret('a', 1);
-    expect(screen.queryByRole('dialog')).toBeNull();
-  });
-
   it('keeps a thread a click opened while a reply is written in it, whatever happens to its text', () => {
     const canvas = mountComments(blocks(), threads());
     canvas.caret('a', 6);

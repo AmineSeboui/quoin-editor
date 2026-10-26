@@ -1,5 +1,5 @@
 import { createPluginKey, type EditorState, type PluginSpec, type Selection, type Transaction } from '../../engine';
-import { commentAnchors, type AnchorRange } from './comment-anchors';
+import { commentIdsAt, type AnchorRange } from './comment-anchors';
 import type { CommentThread } from './comment-threads';
 import { foreignOrigins } from '../../engine/state/transaction';
 import { mapPendingRanges } from './pending-ranges';
@@ -73,13 +73,14 @@ function afterEdit(tr: Transaction, value: CommentsState, state: EditorState): C
   return { ...value, pending };
 }
 
-// A thread a click opened, focus left in the text, whose text is gone closes when the writer next moves the caret: a
-// collaborator's change never closes it, nor does anything while focus is in it.
+// A thread a click opened, focus left in the text, closes once the writer moves the caret out of its text, or anywhere
+// once its text is gone. A collaborator's change never closes it.
 function afterMove(tr: Transaction, value: CommentsState, state: EditorState): CommentsState {
   const { open } = value;
   if (open === null || open.focus || !tr.selectionSet || foreignOrigins.includes(tr.origin)) return value;
-  const anchors = commentAnchors(state.doc);
-  return open.ids.some((id) => anchors.has(id)) ? value : { ...value, active: null, open: null };
+  const { selection } = state;
+  const here = selection?.kind === 'text' ? commentIdsAt(state.doc, selection.head) : [];
+  return open.ids.some((id) => here.includes(id)) ? value : { ...value, active: null, open: null };
 }
 
 export const commentsPlugin: PluginSpec<CommentsState> = {

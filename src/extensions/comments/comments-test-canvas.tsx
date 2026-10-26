@@ -1,6 +1,6 @@
 import { act, fireEvent, screen } from '@testing-library/react';
 import type { mountCanvas } from '../../blocks/void/test-canvas';
-import type { QuoinBlock } from '../../engine';
+import { textSelection, type QuoinBlock, type TransactionOrigin } from '../../engine';
 import { mountTypingCanvas } from '../typing-test-canvas';
 import type { ExtensionUI } from '../ui-types';
 import { createCommentThreads, type CommentThread } from './comment-threads';
@@ -44,5 +44,11 @@ export function mountComments(
   const popover = (name: string | RegExp) => screen.queryByRole('dialog', { name });
   const settle = () => act(() => new Promise((resolve) => setTimeout(resolve, 0)));
   const ui = () => extension.ui as ExtensionUI;
-  return { ...mounted, store, calls, onError, anchor, click, mod, commentKey, popover, settle, ui };
+  /** Puts the caret at `offset` of `block` with a change of the given origin, by default the writer's own. */
+  const moveCaret = (block: string, offset: number, origin: TransactionOrigin = 'input') => {
+    const { controller, editor } = mounted.handle();
+    const at = { block, region: 'text', offset };
+    act(() => controller.dispatch(editor.createTransaction().setSelection(textSelection(at, at)).setOrigin(origin)));
+  };
+  return { ...mounted, store, calls, onError, anchor, click, mod, commentKey, popover, settle, ui, moveCaret };
 }

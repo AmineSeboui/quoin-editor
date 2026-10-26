@@ -39,3 +39,26 @@ for (const anchoring of ['auto', 'none']) {
     }
   });
 }
+
+const spacing = (page: Page) =>
+  page.evaluate(() => {
+    const layer = document.querySelector('.quoin-ai-layer')!.getBoundingClientRect();
+    const text = document.querySelector('[data-block-id="p"] [data-quoin-host]')!.getBoundingClientRect();
+    const next = document.querySelector('[data-block-id="q"]')!.getBoundingClientRect();
+    return { above: Math.round(layer.top - text.bottom), below: Math.round(next.top - layer.bottom) };
+  });
+
+test("keeps room for an answer that uses the block's own padding and the gap of a flex or grid canvas first", async ({
+  page,
+}) => {
+  await askAboutFirstWord(page);
+  await page.addStyleTag({
+    content: `.quoin.quoin-editor { display: flex; flex-direction: column; row-gap: 12px }
+      .quoin [data-quoin-block] { padding-bottom: 20px }`,
+  });
+  for (const chunk of ['One', '\n\nTwo', '\n\nThree']) {
+    await push(page, chunk);
+    await expect(ghost(page)).toContainText(chunk.trim());
+  }
+  await expect.poll(() => spacing(page)).toEqual({ above: 4, below: 4 });
+});

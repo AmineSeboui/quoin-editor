@@ -8,6 +8,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 - Under a collaboration, `editor.chain().undo().run()` and `editor.chain().redo().run()` undo and redo when the chain holds nothing else. A chain that holds other commands as well still does nothing.
 
 ### Fixed
+- Presence on a second editor given a `yjsCollaboration` that already serves one, which stays unconnected, no longer writes to the awareness: unmounting it no longer takes the person and their selection out while the first canvas is still mounted.
 - An editor that disconnects from a `yjsCollaboration` and connects again keeps what it can undo and redo, rather than starting with an empty history.
 - `yjsCollaboration` reports to its `onError` a change from the shared document that does not apply to the editor, before the editor takes the document as the shared text reads, rather than recovering in silence.
 - A block that a collaborator's change leaves selected as a whole comes into view with the writer's next change, rather than only once the selection leaves it and comes back.

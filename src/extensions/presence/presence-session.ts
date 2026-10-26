@@ -47,8 +47,11 @@ export function startPresence(
   let timer: ReturnType<typeof setTimeout> | undefined;
   let dirty = false;
 
+  // An editor the collaboration did not connect, as a second one it was given, leaves awareness to the first.
+  const bound = sharedOf() !== null;
   // This client's own writes change nothing it draws, so they are not read back.
   const put = (field: string, value: unknown) => {
+    if (!bound) return;
     writing = true;
     try {
       awareness.setLocalStateField(field, value);
@@ -145,6 +148,6 @@ export function startPresence(
       });
     },
   };
-  namedBy.set(awareness, session);
+  if (bound) namedBy.set(awareness, session);
   return session;
 }

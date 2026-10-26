@@ -123,6 +123,20 @@ describe('a block selected by a change of a collaborator, without bringing it in
     act(() => controller.dispatch(controller.editor.createTransaction().setSelection(nodeSelection('d2'))));
     expect(reveals).toHaveBeenCalledTimes(1);
   });
+
+  it('stays where it is through the caret moves and changes of collaborators that follow', () => {
+    const { controller, reveals, selectNode, remove } = mountScrolled('around');
+    act(() => controller.focus());
+    selectNode('d1');
+    remove('d1', 'remote');
+    act(() => {
+      const { editor } = controller;
+      editor.dispatch(editor.createTransaction().setOrigin('remote').setMeta('presence', true));
+    });
+    remove('a', 'remote');
+    expect(controller.editor.state.selection).toEqual(nodeSelection('d2'));
+    expect(reveals).not.toHaveBeenCalled();
+  });
 });
 
 describe('the caret move of a collaborator drawn in the same render as a command', () => {

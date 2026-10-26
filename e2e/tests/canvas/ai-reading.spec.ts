@@ -15,9 +15,14 @@ async function askAboutFirstWord(page: Page) {
   await page.keyboard.press('Enter');
 }
 
-// WebKit before scroll anchoring, and any page that turns it off, keep the scroll offset as content above grows.
-for (const anchoring of ['auto', 'none']) {
-  test(`keeps the text a reader is on still while an answer above it grows, with scroll anchoring ${anchoring}`, async ({
+// WebKit before scroll anchoring, and any page that turns it off, keep the scroll offset as content above grows; a
+// page that scrolls smoothly would ease each correction in, losing what the next growth adds before it lands.
+for (const [anchoring, behavior] of [
+  ['auto', 'auto'],
+  ['none', 'auto'],
+  ['none', 'smooth'],
+]) {
+  test(`keeps the text a reader is on still while an answer above it grows, with scroll anchoring ${anchoring} and ${behavior} scrolling`, async ({
     page,
   }) => {
     await askAboutFirstWord(page);
@@ -29,6 +34,7 @@ for (const anchoring of ['auto', 'none']) {
       const below = document.querySelector('[data-block-id="p"]')!.getBoundingClientRect().bottom;
       window.scrollTo(0, window.scrollY + below + 2);
     }, anchoring);
+    await page.evaluate((value) => (document.documentElement.style.scrollBehavior = value), behavior);
     await expect.poll(() => topOf(page, 'r')).toBeGreaterThan(0);
     const before = await topOf(page, 'r');
     for (const chunk of ['\n\nTwo', '\n\nThree', '\n\nFour']) {
@@ -37,6 +43,8 @@ for (const anchoring of ['auto', 'none']) {
       await page.evaluate(() => new Promise(requestAnimationFrame));
       expect(Math.abs((await topOf(page, 'r')) - before)).toBeLessThanOrEqual(1);
     }
+    await page.waitForTimeout(500);
+    expect(Math.abs((await topOf(page, 'r')) - before)).toBeLessThanOrEqual(1);
   });
 }
 

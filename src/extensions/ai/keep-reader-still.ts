@@ -20,5 +20,6 @@ export function keepReaderStill(root: HTMLElement, shell: Element, change: () =>
   const mark = () => (next === null ? root.getBoundingClientRect().bottom : next.getBoundingClientRect().top);
   const before = mark();
   change();
-  scroller.scrollTop += mark() - before;
+  // An explicit behaviour, as a page's smooth `scroll-behavior` would ease the correction in and lose part of it.
+  scroller.scrollBy({ top: mark() - before, behavior: 'instant' });
 }

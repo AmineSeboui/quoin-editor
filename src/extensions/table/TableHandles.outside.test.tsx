@@ -1,8 +1,7 @@
 import { act, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { Command } from '../../engine';
-import { addRow, moveColumn } from '../../engine/commands/table-commands';
-import { setColumnAlign } from '../../engine/commands/table-commands';
+import { addRow, moveColumn, moveRow, setColumnAlign } from '../../engine/commands/table-commands';
 import { cellKey } from '../../engine/blocks/table-spec';
 import { replaceInlineStep } from '../../engine/transform/replace-inline-step';
 import { text } from '../../engine/model/inline';
@@ -43,6 +42,28 @@ describe('the menu of a row or a column, when a change from outside reaches the 
     mounted.caretIn(1, 1);
     press('Column 2 options');
     remotely(mounted, setColumnAlign('t', 1, 'right'));
+    expect(menu('Column 2 options')).not.toBeNull();
+    remotely(mounted, moveColumn('t', 1, 0));
+    expect(screen.queryByRole('menu')).toBeNull();
+  });
+
+  it('stays open while a collaborator types in the row it was opened for, and closes once that row moves', () => {
+    const mounted = mount();
+    mounted.caretIn(1, 0);
+    press('Row 2 options');
+    typeRemotely(mounted, 1, 0, 'x');
+    typeRemotely(mounted, 2, 1, 'y');
+    typeRemotely(mounted, 1, 1, 'z');
+    expect(menu('Row 2 options')).not.toBeNull();
+    remotely(mounted, moveRow('t', 1, 2));
+    expect(screen.queryByRole('menu')).toBeNull();
+  });
+
+  it('stays open while a collaborator types in the column it was opened for, and closes once that column moves', () => {
+    const mounted = mount();
+    mounted.caretIn(1, 1);
+    press('Column 2 options');
+    typeRemotely(mounted, 2, 1, 'x');
     expect(menu('Column 2 options')).not.toBeNull();
     remotely(mounted, moveColumn('t', 1, 0));
     expect(screen.queryByRole('menu')).toBeNull();

@@ -1,4 +1,5 @@
 import type * as Y from 'yjs';
+import { sharedChange } from '../../engine/collab/apply-remote';
 import type { CommandFactories } from '../../engine/commands/chain';
 import type { Editor } from '../../engine/extension/editor';
 import { getPluginState } from '../../engine/state/editor-state';
@@ -109,8 +110,7 @@ export function startPresence(
       for (const listener of [...link.listeners]) listener({ joined, left });
     heard = true;
     if (samePeers(peers, before)) return;
-    const tr = editor.createTransaction().setOrigin('remote').setMeta('addToHistory', false);
-    editor.dispatch(tr.setMeta(PRESENCE, peers));
+    editor.dispatch(sharedChange(editor, []).setMeta(PRESENCE, peers));
   };
   const changed = () => {
     if (!writing) refresh();

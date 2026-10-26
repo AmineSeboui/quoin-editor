@@ -1,5 +1,5 @@
 import type * as Y from 'yjs';
-import { applyRemote } from '../engine/collab/apply-remote';
+import { applyRemote, sharedChange } from '../engine/collab/apply-remote';
 import type { CommandFactories } from '../engine/commands/chain';
 import type { Editor } from '../engine/extension/editor';
 import { sameDoc } from '../engine/model/same-doc';
@@ -7,7 +7,6 @@ import type { Transaction } from '../engine/state/transaction';
 import { replaceDocStep } from '../engine/transform/replace-doc-step';
 import { holdSelection, restoreSelection, type HeldSelection } from './carets';
 import { writeLocalSteps } from './local-to-yjs';
-import { ownChange } from './own-change';
 import { readShared } from './read-shared';
 import { requiredRegions } from './required-regions';
 import { seedOrLoad, type Seed } from './seed';
@@ -55,7 +54,7 @@ export function bind(
     if (steps.length === 0) return;
     if (transaction.origin !== history.manager)
       return applyRemote(editor, steps, structural ? restoreSelection(text, shared.layout, held) : null);
-    const tr = ownChange(editor, steps, history.hint());
+    const tr = sharedChange(editor, steps, history.hint(), 'history');
     written.add(tr);
     editor.dispatch(tr);
   };

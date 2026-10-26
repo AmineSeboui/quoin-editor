@@ -6,9 +6,10 @@ import { describeBuilt } from '../test/support/built-dist';
 import { entryBundle } from './measure-size.mjs';
 
 const root = resolve(__dirname, '..');
-// The collaboration extension's name and its warning, `applyRemote`'s transaction, and the class of a collaborator's
-// caret, which no other code of the package holds.
-const FEATURE = ['"collaboration"', 'the shared document', 'setOrigin("remote")', 'quoin-presence-caret'];
+// The collaboration extension's name and its warning, the transaction `applyRemote` builds with its origin given, and
+// the class of a collaborator's caret, which no other code of the package holds.
+const REMOTE_CHANGE = 'createTransaction().setOrigin(';
+const FEATURE = ['"collaboration"', 'the shared document', REMOTE_CHANGE, 'quoin-presence-caret'];
 
 // An import of the package as esbuild writes it, and names only Yjs code holds.
 const YJS = [/from\s*"yjs"|require\("yjs"\)|import\("yjs"\)/, /UndoManager|observeDeep|insertEmbed/];
@@ -43,6 +44,6 @@ describeBuilt('the built core entries', ['index.js', 'headless.js', 'engine.js',
     }
     const adapter = await entryBundle(root, 'yjs');
     for (const pattern of YJS) expect(adapter).toMatch(pattern);
-    expect(adapter).toContain('setOrigin("remote")');
+    expect(adapter).toContain(REMOTE_CHANGE);
   });
 });

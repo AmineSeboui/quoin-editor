@@ -35,6 +35,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 - A caret in a block that a new `blocks` array changes on both sides of it stays on its character, rather than moving by the length of the later change.
 
 ### Known limits
+- With presence, a collaborator's caret can stay off its character after a style change that reflows the text without resizing its block, until the next change, scroll or resize.
 - With `quoin-editor/yjs`, a table cell whose region concurrent row and column edits took out cannot be selected or typed into until the table is rewritten, as by adding or removing a row or a column. This is as in 1.0.0.
 
 ## 1.0.0 (2026-10-23)

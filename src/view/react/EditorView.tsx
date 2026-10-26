@@ -67,7 +67,7 @@ export function EditorView({
   const blocks = useEditorState(controller, (state) => state.doc.blocks);
   const shells = useBlockElements(blocks, renderers);
 
-  useIsomorphicLayoutEffect(() => controller.attach(root.current!), [controller]);
+  useIsomorphicLayoutEffect(() => (root.current ? controller.attach(root.current) : undefined), [controller]);
 
   return (
     <QuoinEditorContext.Provider value={controller}>

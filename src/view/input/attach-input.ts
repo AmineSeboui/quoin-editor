@@ -1,5 +1,6 @@
 import { attachClipboard } from '../clipboard/attach-clipboard';
 import type { ViewController } from '../controller/view-controller';
+import { listen } from '../dom/listen';
 import { createSinkComposition } from '../selection/sink-composition';
 import { handleBeforeInput, isComposingInput } from './before-input';
 import { createCompositionHandlers } from './composition';
@@ -54,11 +55,13 @@ export function attachInput(controller: ViewController, root: HTMLElement): Atta
 
   const detachClipboard = attachClipboard(controller, root, catchUp);
 
-  root.addEventListener('keydown', onKeyDown);
-  root.addEventListener('beforeinput', onBeforeInput);
-  root.addEventListener('input', onInput);
-  root.addEventListener('compositionstart', onCompositionStart);
-  root.addEventListener('compositionend', onCompositionEnd);
+  const unlisten = listen(root, {
+    keydown: onKeyDown,
+    beforeinput: onBeforeInput,
+    input: onInput,
+    compositionstart: onCompositionStart,
+    compositionend: onCompositionEnd,
+  });
 
   function observe(host: HTMLElement): void {
     if (!observed.has(host)) observed.set(host, fallback.observe(host));
@@ -77,11 +80,7 @@ export function attachInput(controller: ViewController, root: HTMLElement): Atta
       composition.release();
       sinkComposition.release();
       detachClipboard();
-      root.removeEventListener('keydown', onKeyDown);
-      root.removeEventListener('beforeinput', onBeforeInput);
-      root.removeEventListener('input', onInput);
-      root.removeEventListener('compositionstart', onCompositionStart);
-      root.removeEventListener('compositionend', onCompositionEnd);
+      unlisten();
       for (const stop of observed.values()) stop();
       observed.clear();
     },

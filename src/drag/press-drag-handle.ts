@@ -2,6 +2,7 @@ import type { CanvasUiStore } from '../canvas/ui-store';
 import { moveBlocksTo } from '../engine/commands/move-blocks-to';
 import { menuTargets } from '../gutter/block-menu-items';
 import type { ViewController } from '../view';
+import { listen } from '../view/dom/listen';
 import { createAutoScroll } from '../view/selection/auto-scroll';
 import { measureDrag, rootOrigin, spanBetween, type DragLayout } from './drag-layout';
 import type { DragOverlayHandle } from './DragOverlay';
@@ -74,11 +75,9 @@ function followPress(press: HandlePress, root: HTMLElement, view: Window): () =>
   function finish(): void {
     if (done) return;
     done = true;
-    doc.removeEventListener('pointermove', onPointerMove);
-    doc.removeEventListener('pointerup', onPointerUp);
-    doc.removeEventListener('pointercancel', finish);
-    view.removeEventListener('blur', finish);
-    view.removeEventListener('keydown', onKeyDown, true);
+    unlistenDocument();
+    unlistenBlur();
+    unlistenKeys();
     scroll.stop();
     unsubscribe();
     if (active === null) return;
@@ -120,11 +119,9 @@ function followPress(press: HandlePress, root: HTMLElement, view: Window): () =>
     finish();
   }
 
-  doc.addEventListener('pointermove', onPointerMove);
-  doc.addEventListener('pointerup', onPointerUp);
-  doc.addEventListener('pointercancel', finish);
-  view.addEventListener('blur', finish);
-  view.addEventListener('keydown', onKeyDown, true);
+  const unlistenDocument = listen(doc, { pointermove: onPointerMove, pointerup: onPointerUp, pointercancel: finish });
+  const unlistenBlur = listen(view, { blur: finish });
+  const unlistenKeys = listen(view, { keydown: onKeyDown }, true);
   return finish;
 }
 

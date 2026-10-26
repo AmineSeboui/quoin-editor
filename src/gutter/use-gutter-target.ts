@@ -3,6 +3,7 @@ import { useCanvasUi, type CanvasUiStore } from '../canvas/ui-store';
 import type { EditorState } from '../engine';
 import { headBlockId } from '../engine/commands/block-helpers';
 import type { ViewController } from '../view';
+import { listen } from '../view/dom/listen';
 import { useEditorState } from '../view/react/use-editor-state';
 
 const headOf = (state: EditorState) => headBlockId(state.selection);
@@ -40,16 +41,7 @@ export function useGutterTarget(
     const onFocusIn = () => setFocusWithin(true);
     const onFocusOut = (event: FocusEvent) => setFocusWithin(root.contains(event.relatedTarget as Node | null));
     setFocusWithin(root.contains(root.ownerDocument.activeElement));
-    root.addEventListener('pointermove', onPointerMove);
-    root.addEventListener('pointerleave', onPointerLeave);
-    root.addEventListener('focusin', onFocusIn);
-    root.addEventListener('focusout', onFocusOut);
-    return () => {
-      root.removeEventListener('pointermove', onPointerMove);
-      root.removeEventListener('pointerleave', onPointerLeave);
-      root.removeEventListener('focusin', onFocusIn);
-      root.removeEventListener('focusout', onFocusOut);
-    };
+    return listen(root, { pointermove: onPointerMove, pointerleave: onPointerLeave, focusin: onFocusIn, focusout: onFocusOut });
   }, [controller, store, gutter]);
 
   const fallback = focusWithin ? head : null;

@@ -235,7 +235,7 @@ describe('dragging a block by its handle', () => {
           watched.includes(type) && !removed.mock.calls.some(([gone, was]) => gone === type && was === listener),
       ),
     );
-    expect(spies[0].added).toHaveBeenCalledWith('pointermove', expect.any(Function));
+    expect(spies[0].added.mock.calls.map(([type]) => type)).toContain('pointermove');
     expect(kept.map(([type]) => type)).toEqual([]);
   });
 });

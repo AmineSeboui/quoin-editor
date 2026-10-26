@@ -4,6 +4,7 @@ import { BlockCanvas } from '../canvas/BlockCanvas';
 import type { QuoinEditorHandle } from '../canvas/canvas-props';
 import type { QuoinBlock } from '../types';
 import { ownsNode, watchCanvasFocus } from './canvas-focus';
+import { defineExtension } from '../engine';
 import { menuShown, portalledMenu } from './test-support/portalled-menu';
 
 const md = (id: string, markdown: string): QuoinBlock => ({ id, type: 'MARKDOWN', data: { markdown } });
@@ -63,5 +64,19 @@ describe('focus that belongs to a canvas', () => {
     stop();
     act(() => button('Mine').focus());
     expect(heard).toEqual([true, false]);
+  });
+
+  it("belongs to the innermost canvas when one is drawn inside another's tree", () => {
+    const inner = createRef<QuoinEditorHandle>();
+    const outer = createRef<QuoinEditorHandle>();
+    function Nested() {
+      return <BlockCanvas ref={inner} blocks={[md('i', 'in')]} onChange={() => {}} extensions={[portalledMenu('Inner')]} />;
+    }
+    const nest = defineExtension({ name: 'nest', ui: { overlays: [Nested] } });
+    render(<BlockCanvas ref={outer} blocks={[md('o', 'out')]} onChange={() => {}} extensions={[nest]} />);
+    const menu = screen.getByRole('button', { name: 'Inner' });
+    act(() => menu.focus());
+    expect(ownsNode(inner.current!.controller, menu)).toBe(true);
+    expect(ownsNode(outer.current!.controller, menu)).toBe(false);
   });
 });

@@ -13,6 +13,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 - Docs: the `onError` of `yjsCollaboration` is the adapter's own, apart from the canvas's; pass both the same handler (collaboration page).
 
 ### Fixed
+- A canvas drawn inside another canvas's tree owns its own menus and popovers: focus in them no longer counts as focus in the outer canvas, which kept the inner canvas's presence, comments and AI from seeing it as their own.
 - With `quoin-editor/yjs`, a row two people add to a table at the same moment, followed by a move of the table and a new column, no longer has one client write cell text at the wrong place, which split it across cells for the others.
 - With `quoin-editor/yjs`, deleting a table while someone adds or removes one of its rows or columns no longer leaves hidden regions in the line after it, over which Enter threw: the cell text shows at the end of that line.
 - Presence on a second editor given a `yjsCollaboration` that already serves one, which stays unconnected, no longer writes to the awareness: unmounting it no longer takes the person and their selection out while the first canvas is still mounted.

@@ -44,6 +44,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 - A caret in a block that a new `blocks` array changes on both sides of it stays on its character, rather than moving by the length of the later change.
 
 ### Known limits
+- A task's checkbox and an embed's frame in the canvas still get no name when a host's `task` or `frameTitle` label is empty or blank, and a `taskLabel` or `frameTitle` of spaces only gives `toHTML`, `QuoinView` and `QuoinDiff` a blank name.
 - With presence, a collaborator's caret can stay off its character after a style change that reflows the text without resizing its block, until the next change, scroll or resize.
 - With `quoin-editor/yjs`, a table cell whose region concurrent row and column edits took out cannot be selected or typed into until the table is rewritten, as by adding or removing a row or a column. This is as in 1.0.0.
 

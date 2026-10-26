@@ -33,20 +33,20 @@ export function RemoteCarets({ controller, labels }: { controller: ViewControlle
       frame = view.requestAnimationFrame(update);
     };
     // The text can move with no change of the editor's: a scroller inside the canvas scrolls, a host reflows as a font
-    // arrives, or the canvas is resized.
+    // arrives, or the canvas is resized. A scroll places the carets at once, in the frame it is drawn.
     const observer = new ResizeObserver(later);
     const update = () => carets.forEach((caret) => placeCaret(controller, root, caret, observer));
     update();
     observer.observe(root);
     const unsubscribe = controller.editor.subscribe(later);
     const fonts = root.ownerDocument.fonts;
-    root.addEventListener('scroll', later, { capture: true, passive: true });
+    root.addEventListener('scroll', update, { capture: true, passive: true });
     fonts?.addEventListener('loadingdone', later);
     return () => {
       view.cancelAnimationFrame(frame);
       unsubscribe();
       observer.disconnect();
-      root.removeEventListener('scroll', later, { capture: true });
+      root.removeEventListener('scroll', update, { capture: true });
       fonts?.removeEventListener('loadingdone', later);
     };
   }, [controller, shown]);

@@ -124,6 +124,24 @@ test.describe('presence between two pages', () => {
     expect(await bea.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(640);
   });
 
+  test('moves a caret with a table scrolled under it in the frame of the scroll', async ({ page }) => {
+    const bea = await twoPages(page, 'wide-table', '', '&table=1');
+    const near = page.getByRole('textbox', { name: 'Row 2, column 2', exact: true });
+    await near.click();
+    await expect(near).toBeFocused();
+    await expect(caretOf(bea, 'Ada Lovelace')).toBeVisible();
+    const moved = await bea.evaluate(async () => {
+      const scroller = document.querySelector<HTMLElement>('.quoin-table-scroll')!;
+      const caret = document.querySelector<HTMLElement>('.quoin-presence-caret')!;
+      const before = caret.getBoundingClientRect().left;
+      const scrolled = new Promise((resolve) => scroller.addEventListener('scroll', resolve, { once: true }));
+      scroller.scrollLeft += 40;
+      await scrolled;
+      return before - caret.getBoundingClientRect().left;
+    });
+    expect(Math.abs(moved - 40)).toBeLessThan(1);
+  });
+
   test('puts a caret on its character when the canvas is scaled, and again when its text reflows', async ({ page }) => {
     const bea = await twoPages(page);
     await caretAt(page, 'b', 5);

@@ -63,6 +63,15 @@ describe('dropping data', () => {
     expect(editor.state.selection).toMatchObject({ kind: 'text', head: { block: 'b', offset: 3 } });
   });
 
+  it('moves the caret to where it lands as a drop, a move of the writer', () => {
+    const { editor, controller, hosts, dropAt } = mount();
+    const origins: string[] = [];
+    editor.subscribe((_, tr) => tr?.selectionSet && origins.push(tr.origin));
+    dropAt(hosts.b, 2);
+    handleDrop(controller, dragEvent('drop', fakeTransfer({ 'text/plain': 'X' }).transfer, 5, 10));
+    expect(origins[0]).toBe('drop');
+  });
+
   it('replaces a block selection with what is dropped elsewhere by moving the caret first', () => {
     const { editor, controller, hosts, dropAt, markdown } = mount();
     controller.dispatch(editor.createTransaction().setSelection(blockRangeSelection('a', 'b')));

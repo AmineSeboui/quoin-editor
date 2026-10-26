@@ -75,11 +75,14 @@ function afterEdit(tr: Transaction, value: CommentsState, state: EditorState): C
   return { ...value, pending };
 }
 
+const WRITER_MOVES: readonly string[] = ['input', 'history', 'drop'];
+
 // A thread a click opened, focus left in the text, closes once the writer moves the caret out of its text, or anywhere
-// once its text is gone. Only the writer's own moves count: not a collaborator's, nor one your code makes.
+// once its text is gone. Only the writer's own moves count, an undo, a redo and a drop included: not a collaborator's,
+// nor one your code makes.
 function afterMove(tr: Transaction, value: CommentsState, state: EditorState): CommentsState {
   const { open } = value;
-  if (open === null || open.focus || !tr.selectionSet || tr.origin !== 'input') return value;
+  if (open === null || open.focus || !tr.selectionSet || !WRITER_MOVES.includes(tr.origin)) return value;
   const { selection } = state;
   const here = selection?.kind === 'text' ? commentIdsAt(state.doc, selection.head) : [];
   return open.ids.some((id) => here.includes(id)) ? value : { ...value, active: null, open: null };

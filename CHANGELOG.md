@@ -11,6 +11,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 ### Changed
 - Under a collaboration, `editor.chain().undo().run()` and `editor.chain().redo().run()` undo and redo when the chain holds nothing else. A chain that holds other commands as well still does nothing.
 - `Transaction` and `ViewController` keep their private state in native private fields, so a proxy around one of them, such as Vue's `reactive` or Valtio's `proxy`, cannot read it and its methods throw: wrap the object that holds them, not these instances.
+- The transaction that moves the caret to where text is dropped has the `drop` origin, rather than `command`.
 - Docs: chains merge the meta of every part, so a key one part set is seen on the whole chain (extensions page).
 - Docs: two clients can hold a table's alignment as no `align` or as `align: [null, null]`, which the editor and `QuoinDiff` treat as equal; a host comparing saved JSON should normalise `align` (collaboration page).
 - Docs: typing into a block whose region another edit took out can bring along text waiting before it, which then shows one block higher on every client (collaboration page).
@@ -28,7 +29,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 - With `quoin-editor/ai`, the room kept under a block for its answer no longer adds to the block's bottom padding or to the row gap of a flex or grid canvas under a block another block follows: the answer takes that space first, and the room makes up only the rest. Padding the block paints, with a bottom border or a background, is left to the block.
 - With `quoin-editor/ai`, an answer growing above the part of the page being read no longer pushes that text down in a browser without scroll anchoring, such as WebKit before it, or on a page that turns it off, smooth `scroll-behavior` or not, and in a canvas that scrolls itself.
 - With `quoin-editor/comments`, a thread just resolved or deleted no longer comes back for a moment when your store sets new copies of threads that have not changed before it records the resolution. It comes back once your store, having resolved or removed it, reopens it.
-- With `quoin-editor/comments`, a selection your code sets, as a command or an AI answer does, no longer closes a thread a click opened, "Text removed" included: only the writer's own caret moves close it.
+- With `quoin-editor/comments`, a selection your code sets, as a command or an AI answer does, no longer closes a thread a click opened, "Text removed" included: only the writer's own caret moves close it, an undo, a redo and a drop included.
 - With `quoin-editor/comments`, a thread a click opened closes once the writer moves the caret out of its text, rather than staying open over the lines they go on to type.
 - A canvas drawn inside another canvas's tree owns its own text, menus and popovers: focus in them no longer counts as focus in the outer canvas, which kept the inner canvas's presence, comments and AI from seeing it as their own and let the outer canvas's go on as if focused.
 - With `quoin-editor/yjs`, a row two people add to a table at the same moment, followed by a move of the table and a new column, no longer has one client write cell text at the wrong place, which split it across cells for the others.

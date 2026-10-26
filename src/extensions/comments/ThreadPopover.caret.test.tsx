@@ -47,6 +47,23 @@ describe('a thread a click opened', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
+  it.each(['history', 'drop'] as const)('closes on a caret move of %s, which the writer made', (origin) => {
+    const opened = openedByClick();
+    opened.moveCaret('a', 12, origin);
+    expect(screen.queryByRole('dialog')).toBeNull();
+    const removed = openedByClick();
+    removeHello(removed);
+    removed.moveCaret('a', 1, origin);
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('once its text is gone, stays open when your code focuses the canvas elsewhere', () => {
+    const canvas = openedByClick();
+    removeHello(canvas);
+    act(() => canvas.handle().focus({ block: 'a', region: 'text', offset: 1 }));
+    expect(canvas.popover('Text removed')).not.toBeNull();
+  });
+
   it('opened on overlapping anchors, stays open while the caret is in any of them', () => {
     const canvas = mountComments(blocks(), threads());
     canvas.caret('a', 20);

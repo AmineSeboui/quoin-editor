@@ -28,9 +28,9 @@ export type DocxOptions = {
   /** Reads a picture at its resolved address, the global `fetch` by default. A picture that fails is replaced by its alt text. */
   fetchAsset?: FetchAsset;
   /**
-   * The address of the page the document comes from, such as `location.href`. A link or a file whose address is
-   * relative is linked to that address read against it; without it, it is written as its text, since Word would read
-   * it against the file's own folder.
+   * The absolute http or https address of the page the document comes from, such as `location.href`. A link or a file
+   * whose address is a relative path is linked to that address read against it; without it, it is written as its text,
+   * since Word would read it against the file's own folder. A network path or a fragment such as `#top` stays text.
    */
   baseUrl?: string;
   /** The title written into the document's properties. */

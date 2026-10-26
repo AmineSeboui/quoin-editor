@@ -4,7 +4,7 @@ import { sanitizeHref } from '../engine/markdown/urls';
 // \\host\share or //host/x as a network share it opens over SMB, so only absolute addresses of these schemes link, a
 // web address only with a host.
 const LINKED = /^(?:https?:\/\/[^/\\?#@:\s]|mailto:|tel:)/i;
-const SCHEME = /^[a-z][\w+.-]*:/i;
+const UNRESOLVED = /^(?:[a-z][\w+.-]*:|\\|\/[/\\]|#)/i;
 
 /** `baseUrl` without its user and password when it is an absolute http or https address, else undefined. */
 export function webBase(baseUrl: string | undefined): string | undefined {
@@ -18,7 +18,7 @@ export function webBase(baseUrl: string | undefined): string | undefined {
 }
 
 function resolved(href: string, baseUrl: string | undefined): string {
-  if (baseUrl === undefined || SCHEME.test(href)) return href;
+  if (baseUrl === undefined || UNRESOLVED.test(href)) return href;
   try {
     return new URL(href, baseUrl).href;
   } catch {

@@ -180,7 +180,7 @@ describe('the blocks of a Word document', () => {
     expect(doc.relationships.filter((rel) => rel.getAttribute('TargetMode') === 'External')).toEqual([]);
   });
 
-  it('link a relative address against the base the host gives, and leave an absolute one as written', async () => {
+  it('link a relative path against the base the host gives, and leave an absolute one or a fragment as written', async () => {
     const doc = await exportDocument(
       [
         { id: 'f', type: 'FILE', data: { storageKey: 'k', filename: 'local.pdf' } },
@@ -191,8 +191,20 @@ describe('the blocks of a Word document', () => {
     expect(doc.run('local.pdf').link).toBe('https://app.test/files/k');
     expect(doc.run('notes').link).toBe('https://app.test/docs/notes/a.pdf');
     expect(doc.run('site').link).toBe('HTTP://A.test');
-    expect(doc.run('top').link).toBe('https://app.test/docs/page#top');
+    expect(doc.run('top').link).toBeUndefined();
     expect(doc.run('bare').link).toBeUndefined();
+  });
+
+  it('read only a relative path against the base, and write a network path as text', async () => {
+    const doc = await exportDocument([md('p', '[net](//evil.test/x) [share](<\\\\\\\\host\\\\share>) [slash](</\\evil.test>)')], {
+      baseUrl: 'https://app.test/docs/page',
+    });
+    expect(['net', 'share', 'slash'].map((text) => [doc.run(text).link, doc.run(text).text])).toEqual([
+      [undefined, 'net'],
+      [undefined, 'share'],
+      [undefined, 'slash'],
+    ]);
+    expect(doc.relationships.filter((rel) => rel.getAttribute('TargetMode') === 'External')).toEqual([]);
   });
 
   it('write a relative address as text when the base is not an absolute web address', async () => {

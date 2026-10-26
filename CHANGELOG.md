@@ -5,11 +5,10 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 ## Unreleased
 
 ### Added
-- `toDocx` takes an optional `baseUrl`, the address of the page the document comes from: a link or a file whose address is a relative path, such as `/files/a.pdf` or `notes/a.pdf`, is linked to that address read against it, rather than written as its text. A network path (`//host/x`, `\\host\share`, `/\host`) and a fragment such as `#top` stay text. A base that is no absolute `http` or `https` address is ignored, a user and password in it are left out of the links, and an empty link stays text.
+- `toDocx` takes an optional `baseUrl`, the address of the page the document comes from: a link or a file whose address is a relative path, such as `/files/a.pdf` or `notes/a.pdf`, is linked to that address read against it, rather than written as its text. A network path (`//host/x`, `\\host\share`, `/\host`) and a fragment such as `#top` stay text. A base that is not an absolute `http` or `https` address is ignored, a user and password in it are left out of the links, and an empty link stays text.
 - `commentsExtension` takes an optional `initialLayout: 'wide' | 'narrow'`, the layout drawn on the server and in the first render before the canvas is measured, so a server-rendered wide canvas no longer shifts by 236 px as it hydrates. The default stays `'narrow'`.
 
 ### Changed
-- Under a collaboration, `editor.chain().undo().run()` and `editor.chain().redo().run()` undo and redo when the chain holds nothing else. A chain that holds other commands as well still does nothing.
 - `Transaction` and `ViewController` keep their private state in native private fields, so a proxy around one of them, such as Vue's `reactive` or Valtio's `proxy`, cannot read it and its methods throw: wrap the object that holds them, not these instances.
 - The transaction that moves the caret to where text is dropped has the `drop` origin, rather than `command`.
 - Docs: chains merge the meta of every part, so a key one part set is seen on the whole chain (extensions page).
@@ -19,6 +18,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 - Docs: the `onError` of `yjsCollaboration` is the adapter's own, apart from the canvas's; pass both the same handler (collaboration page).
 
 ### Fixed
+- Under a collaboration, `editor.chain().undo().run()` and `editor.chain().redo().run()` undo and redo when the chain holds nothing else, rather than doing nothing. A chain that holds other commands as well still does nothing.
 - A canvas rendered on the server, as with `react-dom/server`, leaves out a code token's `color` that holds what could leave the declaration or load a resource (any of `;` `{` `}` `\` `"` `'` `<` `>` `!`, a `/*`, or `url(`, `image(`, `image-set(` or `expression(`), rather than writing a value such as `red;background-image:url(...)` into the page as it is, and the canvas in the browser leaves out the same values. Other colours, such as `var(--name, #fff)`, `hsl(var(--primary))`, `color-mix()` and `light-dark()`, are drawn by the canvas as in 1.0, and now by `QuoinView` too, which uses the same rule.
 - `toHTML`, `QuoinView` and `QuoinDiff` no longer write an empty accessible name: an empty `taskLabel` names a task with no text `Task` (in `QuoinDiff`, the `emptyTask` label, and `Task` when that is empty too), and a frame whose `frameTitle` is empty is titled with its provider's name, or with its page's address when the provider has no name.
 - `toDocx` writes a link to an `http` or `https` address with no host, such as `http:foo` or `http://?x`, as its text, as it does other targets Word cannot open, rather than as a hyperlink.
@@ -27,7 +27,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 - With presence, a collaborator's caret, and with `quoin-editor/ai` an answer, in a scroller that sits inside another box that clips what overflows, such as a table in a custom block, is clipped by both, rather than only by the nearest one.
 - With presence, a collaborator's caret in a wide table moves with the table as it scrolls, rather than a frame behind it.
 - With `quoin-editor/ai`, the room kept under a block for its answer no longer adds to the block's bottom padding or to the row gap of a flex or grid canvas under a block another block follows: the answer takes that space first, and the room makes up only the rest. Padding the block paints, with a bottom border or a background, is left to the block.
-- With `quoin-editor/ai`, an answer growing above the part of the page being read no longer pushes that text down in a browser without scroll anchoring, such as WebKit before it, or on a page that turns it off, smooth `scroll-behavior` or not, and in a canvas that scrolls itself.
+- With `quoin-editor/ai`, an answer growing above the part of the page being read no longer pushes that text down in a browser without scroll anchoring, such as Safari, or on a page that turns scroll anchoring off, smooth `scroll-behavior` or not, and in a canvas that scrolls itself.
 - With `quoin-editor/comments`, a thread just resolved or deleted no longer comes back for a moment when your store sets new copies of threads that have not changed before it records the resolution. It comes back once your store, having resolved or removed it, reopens it.
 - With `quoin-editor/comments`, a selection your code sets, as a command or an AI answer does, no longer closes a thread a click opened, "Text removed" included: only the writer's own caret moves close it, an undo, a redo and a drop included.
 - With `quoin-editor/comments`, a thread a click opened closes once the writer moves the caret out of its text, rather than staying open over the lines they go on to type.

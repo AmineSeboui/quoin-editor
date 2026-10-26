@@ -10,6 +10,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 
 ### Changed
 - Under a collaboration, `editor.chain().undo().run()` and `editor.chain().redo().run()` undo and redo when the chain holds nothing else. A chain that holds other commands as well still does nothing.
+- `Transaction` and `ViewController` keep their private state in native private fields, so a proxy around one of them, such as Vue's `reactive` or Valtio's `proxy`, cannot read it and its methods throw: wrap the object that holds them, not these instances.
 - Docs: chains merge the meta of every part, so a key one part set is seen on the whole chain (extensions page).
 - Docs: two clients can hold a table's alignment as no `align` or as `align: [null, null]`, which the editor and `QuoinDiff` treat as equal; a host comparing saved JSON should normalise `align` (collaboration page).
 - Docs: typing into a block whose region another edit took out can bring along text waiting before it, which then shows one block higher on every client (collaboration page).

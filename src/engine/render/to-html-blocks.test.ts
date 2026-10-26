@@ -46,6 +46,7 @@ describe('toHTML text blocks', () => {
     const emoji = md('- [ ] <span data-atom="emoji" data-attr-name="tada"></span>');
     expect(toHTML([emoji])).toContain('aria-label="Task"');
     expect(toHTML([emoji], { taskLabel: 'T\u00e2che' })).toContain('aria-label="T\u00e2che"');
+    expect(toHTML([emoji], { taskLabel: '' })).toContain('aria-label="Task"');
   });
 
   it('nests blocks inside the list item or toggle they follow', () => {

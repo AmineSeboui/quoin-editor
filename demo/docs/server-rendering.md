@@ -55,7 +55,7 @@ export const serverBlockTypes = [
 
 Each component of these definitions can still be a client component, in a file of its own that starts with `'use client'`, as an `editor` with hooks has to be. A `preview` that is not marked as one runs on the server, so it uses no hook, effect or browser API.
 
-`toHTML` titles a frame with its provider's name and names the checkbox of a task with no text `Task`. Pass `frameTitle` and `taskLabel` to name them in the reader's language, for example `frameTitle={(provider) => titles[provider] ?? provider}`. The canvas's English frame titles are `englishEmbedLabels.frameTitle` in `quoin-editor/embed`, a client entry, so a Server Component keeps a copy of its own.
+`toHTML` titles a frame with its provider's name and names the checkbox of a task with no text `Task`, an English word. Pass `frameTitle` and `taskLabel` to name them in the reader's language, for example `frameTitle={(provider) => titles[provider] ?? provider}`. The canvas's English frame titles are `englishEmbedLabels.frameTitle` in `quoin-editor/embed`, a client entry, so a Server Component keeps a copy of its own. A name is never left empty: an empty `taskLabel` gives `Task`, a `frameTitle` that returns an empty string gives the provider's name, and a provider with no name gives the page's address.
 
 ## Comparing two versions
 

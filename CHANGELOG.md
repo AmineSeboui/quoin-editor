@@ -18,6 +18,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 
 ### Fixed
 - A canvas rendered on the server, as with `react-dom/server`, draws a code token's `color` only when it is a single colour value, as `QuoinView` does, rather than writing a value such as `red;background-image:url(...)` into the page as it is.
+- `toHTML`, `QuoinView` and `QuoinDiff` no longer write an empty accessible name: an empty `taskLabel` names a task with no text `Task` (in `QuoinDiff`, the `emptyTask` label, and `Task` when that is empty too), and a frame whose `frameTitle` is empty is titled with its provider's name, or with its page's address when the provider has no name.
 - `toDocx` writes a link to an `http` or `https` address with no host, such as `http:foo`, as its text, as it does other targets Word cannot open, rather than as a hyperlink.
 - A canvas drawn by a renderer that sets no refs on its elements, such as react-test-renderer without `createNodeMock`, renders again without attaching to an element it was not given, as in 1.0.
 - With presence, a long collaborator name at the end of a line is cut off where the avatars' gutter begins, rather than over the avatars.

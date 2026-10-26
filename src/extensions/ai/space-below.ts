@@ -6,11 +6,12 @@ function rowGap(parent: Element | null): number {
 }
 
 /**
- * The room a host already leaves under a block that an answer can use: the block's bottom padding when no bottom border
- * is drawn under it, and the row gap of a flex column or grid it is laid out in.
+ * The room a host already leaves under a block that an answer can use: the block's bottom padding when it draws nothing
+ * there, no bottom border and no background, and the row gap of a flex column or grid it is laid out in.
  */
 export function spaceBelow(shell: Element): { padding: number; gap: number } {
-  const { borderBottomWidth, paddingBottom } = getComputedStyle(shell);
-  const padding = parseFloat(borderBottomWidth) > 0 ? 0 : parseFloat(paddingBottom) || 0;
+  const own = getComputedStyle(shell);
+  const drawn = parseFloat(own.borderBottomWidth) || own.backgroundColor + own.backgroundImage !== 'rgba(0, 0, 0, 0)none';
+  const padding = drawn ? 0 : parseFloat(own.paddingBottom) || 0;
   return { padding, gap: rowGap(shell.parentElement) };
 }

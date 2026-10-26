@@ -116,3 +116,18 @@ test('shows the answer only where every box around its text that clips lets it',
     )
     .toBeLessThanOrEqual(right + 1);
 });
+
+test('draws the answer under a block whose background shows in its bottom padding, not over that padding', async ({
+  page,
+}) => {
+  await askAboutFirstWord(page);
+  await page.addStyleTag({ content: '.quoin [data-block-id="p"] { padding-bottom: 20px; background: rgb(255 240 200) }' });
+  await push(page, 'One');
+  await expect(ghost(page)).toHaveText('One');
+  const gap = () =>
+    page.evaluate(() => {
+      const layer = document.querySelector('.quoin-ai-layer')!.getBoundingClientRect();
+      return Math.round(layer.top - document.querySelector('[data-block-id="p"]')!.getBoundingClientRect().bottom);
+    });
+  await expect.poll(gap).toBe(4);
+});

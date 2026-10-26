@@ -1,6 +1,7 @@
 import { useRef, type CSSProperties } from 'react';
 import { getPluginState, type EditorState } from '../../engine';
 import { headBlockId } from '../../engine/commands/block-helpers';
+import { sameValue } from '../../engine/model/same-value';
 import { useEditorState, type ViewController } from '../../view';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
 import type { PresenceLabels } from './presence-labels';
@@ -27,8 +28,6 @@ function groupsOf(state: EditorState): readonly Group[] {
   return [...byBlock];
 }
 
-const sameGroups = (a: readonly Group[], b: readonly Group[]) => JSON.stringify(a) === JSON.stringify(b);
-
 function place(controller: ViewController, root: HTMLElement, group: HTMLElement): void {
   const shell = controller.blockElement(group.dataset.block ?? '');
   group.style.visibility = shell === undefined ? 'hidden' : '';
@@ -39,7 +38,7 @@ function place(controller: ViewController, root: HTMLElement, group: HTMLElement
 
 /** Avatars at the end of the first line of each block someone else's selection is in, named for screen readers. */
 export function PresenceAvatars({ controller, labels }: { controller: ViewController; labels: PresenceLabels }) {
-  const groups = useEditorState(controller, groupsOf, sameGroups);
+  const groups = useEditorState(controller, groupsOf, sameValue);
   const box = useRef<HTMLDivElement>(null);
 
   // Placed in place rather than through React state, as the gutter is, once the frame's edits have reached the blocks.

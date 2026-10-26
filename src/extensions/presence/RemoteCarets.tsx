@@ -1,5 +1,6 @@
 import { useRef, type CSSProperties } from 'react';
 import { getPluginState, type EditorState } from '../../engine';
+import { sameValue } from '../../engine/model/same-value';
 import { useEditorState, type ViewController } from '../../view';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
 import { placeCaret } from './place-caret';
@@ -13,14 +14,12 @@ const shownOf = (state: EditorState): readonly Shown[] =>
     selection?.kind === 'text' ? [{ client, name, color, idle }] : [],
   );
 
-const sameShown = (a: readonly Shown[], b: readonly Shown[]) => JSON.stringify(a) === JSON.stringify(b);
-
 /**
  * Each collaborator's caret, a line in their colour with their name, drawn over the text rather than in it, so it
  * changes nothing of the caret's moves, the selection, composition or copying. Hidden from assistive technology.
  */
 export function RemoteCarets({ controller, labels }: { controller: ViewController; labels: PresenceLabels }) {
-  const shown = useEditorState(controller, shownOf, sameShown);
+  const shown = useEditorState(controller, shownOf, sameValue);
   const box = useRef<HTMLDivElement>(null);
 
   useIsomorphicLayoutEffect(() => {

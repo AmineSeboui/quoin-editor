@@ -18,9 +18,27 @@ function ruleOf(source: string, selectors: readonly string[]): string {
 
 const LINK = /color:\s*var\(--quoin-([\w-]+)\)/.exec(ruleOf(linksCss, ['.quoin-view a[href]', '.quoin-diff a[href]']))?.[1] ?? '';
 
+const tokenIn = (source: string, selectors: readonly string[], property: string) =>
+  new RegExp(`(?:^|;)\\s*${property}:\\s*(?:var\\(--quoin-([\\w-]+)\\)|(inherit))`).exec(ruleOf(source, selectors));
+
+// A link in inserted or deleted words is painted on their wash: in their colour when it inherits it, else in its own.
+const WASHED = ['ins', 'del'].map((tag) => {
+  const words = [`.quoin-diff ${tag}`];
+  const linkColour = tokenIn(diffCss, ['.quoin-diff ins a[href]', '.quoin-diff del a[href]'], 'color');
+  return {
+    tag,
+    link: linkColour?.[2] ? tokenIn(diffCss, words, 'color')?.[1] : (linkColour?.[1] ?? LINK),
+    wash: tokenIn(diffCss, words, 'background-color')?.[1],
+  };
+});
+
 describe.each<Theme>(['light', 'dark'])('static links in the %s theme', (theme) => {
   it('are written at 4.5:1 or more on the page', () => {
     expect(contrastRatio(token(theme, LINK), token(theme, 'background'))).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it.each(WASHED)('are written at 4.5:1 or more on the wash of $tag words', ({ link, wash }) => {
+    expect(contrastRatio(token(theme, link ?? ''), token(theme, wash ?? ''))).toBeGreaterThanOrEqual(4.5);
   });
 });
 

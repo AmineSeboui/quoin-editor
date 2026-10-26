@@ -229,10 +229,14 @@ describe('dragging a block by its handle', () => {
     moveTo(20, 60);
     cleanup();
     const watched = ['pointermove', 'pointerup', 'pointercancel', 'keydown', 'blur'];
+    const capture = (options?: boolean | EventListenerOptions) => (typeof options === 'boolean' ? options : !!options?.capture);
     const kept = spies.flatMap(({ added, removed }) =>
       added.mock.calls.filter(
-        ([type, listener]) =>
-          watched.includes(type) && !removed.mock.calls.some(([gone, was]) => gone === type && was === listener),
+        ([type, listener, options]) =>
+          watched.includes(type) &&
+          !removed.mock.calls.some(
+            ([gone, was, flags]) => gone === type && was === listener && capture(flags) === capture(options),
+          ),
       ),
     );
     expect(spies[0].added.mock.calls.map(([type]) => type)).toContain('pointermove');

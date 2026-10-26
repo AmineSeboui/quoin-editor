@@ -16,6 +16,7 @@ import { loadImages } from './images';
 import { numberingXml } from './numbering-xml';
 import { contentTypesXml, corePropertiesXml, documentRelationshipsXml, packageRelationshipsXml } from './package-xml';
 import { stylesXml } from './styles-xml';
+import { webBase } from './word-link';
 import { zipArchive } from './zip';
 
 export type { FetchAsset } from './fetch-asset';
@@ -63,7 +64,7 @@ export async function toDocx(blocks: readonly QuoinBlock[], options: DocxOptions
       concurrency: options.imageConcurrency ?? IMAGE_CONCURRENCY,
     },
   );
-  const ctx = createContext({ schema, resolveAssetUrl, baseUrl: options.baseUrl, headings: collectHeadings(engine, schema), images });
+  const ctx = createContext({ schema, resolveAssetUrl, baseUrl: webBase(options.baseUrl), headings: collectHeadings(engine, schema), images });
   const mainPart = documentXml(groupBlocks(engine), ctx);
   const archive = await zipArchive([
     { path: '[Content_Types].xml', data: encode(contentTypesXml(ctx.media)) },

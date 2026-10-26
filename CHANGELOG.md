@@ -5,7 +5,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 ## Unreleased
 
 ### Added
-- `toDocx` takes an optional `baseUrl`, the address of the page the document comes from: a link or a file whose address is relative is linked to that address read against it, rather than written as its text.
+- `toDocx` takes an optional `baseUrl`, the address of the page the document comes from: a link or a file whose address is relative is linked to that address read against it, rather than written as its text. A base that is no absolute `http` or `https` address is ignored, a user and password in it are left out of the links, and an empty link stays text.
 - `commentsExtension` takes an optional `initialLayout: 'wide' | 'narrow'`, the layout drawn on the server and in the first render before the canvas is measured, so a server-rendered wide canvas no longer shifts by 236 px as it hydrates. The default stays `'narrow'`.
 
 ### Changed

@@ -32,6 +32,37 @@ describe('replaceDocStep', () => {
     expect(map(pos('a', 0), -1)).toEqual(pos('a', 0));
   });
 
+  it('maps a position between two changes to one region through each change on its own', () => {
+    const { map } = replaceDocStep(createDoc([para('a', 'one, two three!')])).apply(
+      createDoc([para('a', 'one two three')]),
+    );
+    expect(map(pos('a', 6))).toEqual(pos('a', 7));
+    expect(map(pos('a', 3), -1)).toEqual(pos('a', 3));
+    expect(map(pos('a', 3))).toEqual(pos('a', 4));
+    expect(map(pos('a', 13), -1)).toEqual(pos('a', 14));
+    expect(map(pos('a', 13))).toEqual(pos('a', 15));
+  });
+
+  it('collapses a position inside text deleted on one side of an untouched word to where that text was', () => {
+    const { map } = replaceDocStep(createDoc([para('a', 'b two d')])).apply(
+      createDoc([para('a', 'aaa two ccc')]),
+    );
+    expect(map(pos('a', 1))).toEqual(pos('a', 0));
+    expect(map(pos('a', 5))).toEqual(pos('a', 3));
+    expect(map(pos('a', 10))).toEqual(pos('a', 6));
+  });
+
+  it('maps a change of more than a thousand characters as one replaced span', () => {
+    const { map } = replaceDocStep(createDoc([para('a', `<${'y'.repeat(600)}>`)])).apply(
+      createDoc([para('a', `<${'x'.repeat(600)}>`)]),
+    );
+    expect(map(pos('a', 300))).toEqual(pos('a', 1));
+    expect(map(pos('a', 601))).toEqual(pos('a', 601));
+    const inserted = replaceDocStep(createDoc([para('a', `a${'z'.repeat(1200)}b`)])).apply(createDoc([para('a', 'ab')]));
+    expect(inserted.map(pos('a', 1), -1)).toEqual(pos('a', 1));
+    expect(inserted.map(pos('a', 1))).toEqual(pos('a', 1201));
+  });
+
   it('collapses a position inside deleted text to where the deletion was', () => {
     const { map } = replaceDocStep(createDoc([para('a', 'ho')])).apply(before);
     expect(map(pos('a', 1))).toEqual(pos('a', 1));

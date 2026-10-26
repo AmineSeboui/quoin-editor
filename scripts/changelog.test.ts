@@ -31,6 +31,24 @@ describe('the 1.0.0 heading', () => {
   });
 });
 
+const unreleased = sectionOf(changelog, '## Unreleased');
+
+describe('the Unreleased section', () => {
+  it('sits first, above the dated 1.0.0 section, while package.json stays at 1.0.0', () => {
+    const releases = [...changelog.matchAll(/^## (.+)$/gm)].map(([, title]) => title);
+    expect(releases.slice(0, 2)).toEqual(['Unreleased', heading.slice(3)]);
+    expect(isDated(heading)).toBe(true);
+    expect(version).toBe('1.0.0');
+  });
+
+  it('sorts its changes under Changed and Fixed, each a list', () => {
+    const headings = [...unreleased.matchAll(/^### (.+)$/gm)].map(([, title]) => title);
+    expect(headings.length).toBeGreaterThan(0);
+    expect(headings.every((title) => ['Changed', 'Fixed'].includes(title))).toBe(true);
+    for (const title of headings) expect(sectionOf(unreleased, `### ${title}`).trim()).toMatch(/^- /);
+  });
+});
+
 describe('the changelog', () => {
   it('has a 1.0.0 section above every 0.x release', () => {
     const versions = [...changelog.matchAll(/^## (\d+\.\d+\.\d+)/gm)].map(([, version]) => version);

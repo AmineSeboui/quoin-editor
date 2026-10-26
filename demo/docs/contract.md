@@ -68,6 +68,8 @@ An editor with no canvas, such as one made with `createEditor` from `quoin-edito
 
 You can hand the canvas a new `blocks` array at any time to load, undo or merge a document. A new array replaces what the canvas shows when it differs from the last array you supplied.
 
+A caret in a block the new array changes stays on its character: text added or removed before it, after it or on both sides moves it with the text, and a caret inside text you removed goes to where that text was.
+
 When you echo `onChange` back into `blocks`, as every sample above does, the last array you supplied is the edited document, so `setBlocks(saved)` differs from it and resets the canvas with nothing more to do.
 
 The case that needs care is a host that does not echo edits back. There, the last array you supplied is still the original, and an array structurally equal to it is ignored: a "discard changes" button that re-supplies the original document does nothing. The same goes for restoring a copy of a state from the last 256 changes the canvas reported, which reads as a late echo of the canvas's own output. To force a reset, remount the canvas with a React `key`. The sample below uses a `key` so it works either way.

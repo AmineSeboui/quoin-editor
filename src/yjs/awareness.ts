@@ -1,4 +1,5 @@
 import * as Y from 'yjs';
+import { isRecord } from '../engine/model/is-record';
 import type { EngineDoc, Pos, Selection } from '../engine/model/types';
 import type { Schema } from '../engine/schema/types';
 import { blockRangeSelection, nodeSelection, textSelection, validateSelection } from '../engine/state/selection';
@@ -43,8 +44,6 @@ export function toAware(shared: Shared, selection: Selection | null): AwareSelec
     selection.kind === 'node' ? [selection.block, selection.block] : [selection.anchor, selection.head];
   return { anchor: { block: anchor }, head: { block: head } };
 }
-
-const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
 
 // What another client wrote is read with care: any of it can be missing or of another type.
 function textPos(shared: Shared | null, doc: EngineDoc, value: Record<string, unknown>): Pos | null {

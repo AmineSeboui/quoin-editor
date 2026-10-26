@@ -17,12 +17,11 @@ const changedIn = (left: BlockAttrs = {}, right: BlockAttrs = {}) =>
 export function changedAttributes({ before, after }: BlockChange, codec: BlockCodec): string[] {
   const left = codec.toEngineBlocks(before);
   const right = codec.toEngineBlocks(after);
-  const names = Array.from({ length: Math.max(left.length, right.length) }, (_, at) =>
-    changedIn(left[at]?.attrs, right[at]?.attrs),
-  );
+  const pairs = Array.from({ length: Math.max(left.length, right.length) }, (_, at) => [left[at], right[at]] as const);
+  const both = pairs.filter(([was, is]) => was && is);
   return [
-    ...(left[0].type === right[0].type ? [] : ['type']),
-    ...(left[0].indent === right[0].indent ? [] : ['indent']),
-    ...new Set(names.flat()),
+    ...(both.some(([was, is]) => was.type !== is.type) ? ['type'] : []),
+    ...(both.some(([was, is]) => was.indent !== is.indent) ? ['indent'] : []),
+    ...new Set(pairs.flatMap(([was, is]) => changedIn(was?.attrs, is?.attrs))),
   ];
 }

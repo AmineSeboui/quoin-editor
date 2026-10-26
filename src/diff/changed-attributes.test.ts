@@ -19,6 +19,11 @@ describe('changedAttributes', () => {
     expect(named('Intro', 'Intro\n\n> Quote')).toEqual(['kind']);
   });
 
+  it('names a change of indent or type in a later piece', () => {
+    expect(named('Intro\n\n- a\n  - b', 'Intro\n\n- a\n- b')).toEqual(['indent']);
+    expect(named('Intro\n\nText', 'Intro\n\n```\nText\n```')).toContain('type');
+  });
+
   it('names nothing when every piece keeps its attributes', () => {
     expect(named('Intro\n\n## Title', 'Intro\n\n## Heading')).toEqual([]);
   });

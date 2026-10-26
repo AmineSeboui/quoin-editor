@@ -166,6 +166,35 @@ test.describe('presence between two pages', () => {
     await expect(caret).toBeHidden();
   });
 
+  test("cuts a caret's name off at the edge of the table it is in, as the table cuts its text", async ({ page }) => {
+    const bea = await twoPages(page, 'wide-table', '', '&table=1');
+    const cell = page.getByRole('textbox', { name: 'Row 2, column 8', exact: true });
+    await cell.click();
+    await expect(cell).toBeFocused();
+    await page.evaluate(() => {
+      const { controller } = window.__quoin;
+      const selection = controller!.editor.state.selection;
+      if (selection?.kind === 'text') controller!.focus({ ...selection.head, offset: 0 });
+    });
+    await expect(caretOf(bea, 'Ada Lovelace')).toBeAttached();
+    await bea.evaluate(() => {
+      const scroller = document.querySelector<HTMLElement>('.quoin-table-scroll')!;
+      const at = scroller.querySelector('[aria-label="Row 2, column 8"]')!.getBoundingClientRect().left;
+      scroller.scrollLeft += at - (scroller.getBoundingClientRect().right - 20);
+    });
+    const edges = () =>
+      bea.evaluate(() => {
+        const caret = document.querySelector<HTMLElement>('.quoin-presence-caret')!;
+        const name = caret.querySelector('.quoin-presence-name')!.getBoundingClientRect();
+        const inset = getComputedStyle(caret).clipPath.match(/-?[\d.]+/g)?.map(Number);
+        const cut = inset === undefined ? Infinity : caret.getBoundingClientRect().right - inset[1];
+        const table = document.querySelector('.quoin-table-scroll')!.getBoundingClientRect().right;
+        return { shown: Math.min(name.right, cut) <= table + 1, name: name.right > table };
+      });
+    await expect.poll(edges).toEqual({ shown: true, name: true });
+    await expect(caretOf(bea, 'Ada Lovelace')).toBeVisible();
+  });
+
   test('puts a caret on its character when the canvas is scaled, and again when its text reflows', async ({ page }) => {
     const bea = await twoPages(page);
     await caretAt(page, 'b', 5);

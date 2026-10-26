@@ -35,8 +35,9 @@ function inside(box: DOMRect, area: DOMRect): boolean {
 
 /**
  * Puts a collaborator's caret over the character its selection's head is at, in the root's own pixels however the
- * root is scaled, or hides it where that character is not drawn or is scrolled out of the boxes that clip it. The host
- * is given to `observer`, so a reflow of its text places the caret again.
+ * root is scaled, or hides it where that character is not drawn or is scrolled out of the boxes that clip it; near
+ * their edges the caret and its name are cut off where they are. The host is given to `observer`, so a reflow of its
+ * text places the caret again.
  */
 export function placeCaret(
   controller: ViewController,
@@ -49,7 +50,8 @@ export function placeCaret(
   const head = peer?.selection?.kind === 'text' ? peer.selection.head : null;
   const host = head && controller.registry.get(head.block, head.region);
   const box = host ? caretBox(host, (head as Pos).offset) : null;
-  const shown = box !== null && clipBoxes(host!, root).every((area) => inside(box, area));
+  const areas = host ? clipBoxes(host, root) : [];
+  const shown = box !== null && areas.every((area) => inside(box, area));
   caret.style.visibility = shown ? '' : 'hidden';
   if (!shown) return;
   observer.observe(host!);
@@ -59,4 +61,6 @@ export function placeCaret(
   const top = (box.top - origin.top) / scale - root.clientTop + root.scrollTop;
   caret.style.transform = `translate(${left}px, ${top}px)`;
   caret.style.height = `${box.height / scale}px`;
+  const cut = (past: (area: DOMRect) => number) => `${Math.max(...areas.map(past)) / scale + 1}px`;
+  caret.style.clipPath = areas[0] ? `inset(-99px ${cut((a) => box.left - a.right)} -99px ${cut((a) => a.left - box.left)})` : '';
 }

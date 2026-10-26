@@ -1,6 +1,7 @@
 import { inlineLength } from '../engine/model/inline';
 import { addMarkStep, removeMarkStep } from '../engine/transform/mark-steps';
 import { replaceInlineStep } from '../engine/transform/replace-inline-step';
+import type { Inline } from '../engine/model/types';
 import type { Step } from '../engine/transform/step';
 import { isAtomEmbed } from './doc-shape';
 import { inlineOfOps, type InsertOp } from './inline-codec';
@@ -10,11 +11,18 @@ import { markFromAttribute } from './marks-codec';
 export type DeltaOp = { insert?: unknown; retain?: number; delete?: number; attributes?: Record<string, unknown> };
 
 // The seg of a region that the place `at` of the text is in: inside it or at either of its ends.
-function segAt(layout: Layout, at: number, item: boolean): { seg: Seg; rel: number } | null {
+export function segAt(layout: Layout, at: number, item: boolean): { seg: Seg; rel: number } | null {
   const span = spanAt(layout, at, item);
   const rel = at - spanStart(layout, span);
   const seg = span.segs.find((candidate) => candidate.at <= rel && rel <= candidate.at + candidate.length);
   return seg === undefined ? null : { seg, rel };
+}
+
+// The step that replaces `removed` characters at a place of a seg by `inline`, with the layout grown to match.
+function replaceAt(layout: Layout, { seg, rel }: { seg: Seg; rel: number }, removed: number, inline: Inline): Step {
+  const from = offsetIn(seg, rel);
+  grow(layout, seg, rel, inlineLength(inline) - removed);
+  return replaceInlineStep(seg.region.entry.id, seg.region.name, from, from + removed, inline);
 }
 
 function formatSteps(layout: Layout, at: number, length: number, attributes: Record<string, unknown>): Step[] {
@@ -52,18 +60,12 @@ export function textSteps(layout: Layout, delta: readonly DeltaOp[]): Step[] | n
     } else if (op.delete !== undefined) {
       const found = segAt(layout, at, true);
       if (found === null || found.rel + op.delete > found.seg.at + found.seg.length) return null;
-      const from = offsetIn(found.seg, found.rel);
-      const { entry, name } = found.seg.region;
-      steps.push(replaceInlineStep(entry.id, name, from, from + op.delete, []));
-      grow(layout, found.seg, found.rel, -op.delete);
+      steps.push(replaceAt(layout, found, op.delete, []));
     } else {
       const found = typeof op.insert === 'string' || isAtomEmbed(op.insert) ? segAt(layout, at, false) : null;
       if (found === null) return null;
       const inline = inlineOfOps([op as InsertOp]);
-      const from = offsetIn(found.seg, found.rel);
-      const { entry, name } = found.seg.region;
-      steps.push(replaceInlineStep(entry.id, name, from, from, inline));
-      grow(layout, found.seg, found.rel, inlineLength(inline));
+      steps.push(replaceAt(layout, found, 0, inline));
       at += inlineLength(inline);
     }
   }

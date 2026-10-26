@@ -28,15 +28,20 @@ describe('a thread a click opened', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
-  it('stays open when a collaborator moves the caret out of its text', () => {
+  it('stays open when a collaborator or your code moves the caret out of its text', () => {
     const canvas = openedByClick();
     canvas.moveCaret('a', 1, 'remote');
+    canvas.moveCaret('a', 1, 'ai');
+    canvas.moveCaret('a', 1, 'command');
     expect(canvas.popover('Comment on "hello"')).not.toBeNull();
   });
 
-  it('once its text is gone, closes on the next move of the writer', () => {
+  it('once its text is gone, stays open through a selection your code sets and closes on the next move of the writer', () => {
     const canvas = openedByClick();
     removeHello(canvas);
+    expect(canvas.popover('Text removed')).not.toBeNull();
+    canvas.moveCaret('a', 2, 'ai');
+    canvas.moveCaret('a', 3, 'command');
     expect(canvas.popover('Text removed')).not.toBeNull();
     canvas.moveCaret('a', 1);
     expect(screen.queryByRole('dialog')).toBeNull();

@@ -1,7 +1,6 @@
 import { createPluginKey, type EditorState, type PluginSpec, type Selection, type Transaction } from '../../engine';
 import { commentIdsAt, type AnchorRange } from './comment-anchors';
 import type { CommentThread } from './comment-threads';
-import { foreignOrigins } from '../../engine/state/transaction';
 import { mapPendingRanges } from './pending-ranges';
 
 /** Text a thread is being created for, drawn as a pending anchor until the host answers. */
@@ -74,10 +73,10 @@ function afterEdit(tr: Transaction, value: CommentsState, state: EditorState): C
 }
 
 // A thread a click opened, focus left in the text, closes once the writer moves the caret out of its text, or anywhere
-// once its text is gone. A collaborator's change never closes it.
+// once its text is gone. Only the writer's own moves count: not a collaborator's, nor one your code makes.
 function afterMove(tr: Transaction, value: CommentsState, state: EditorState): CommentsState {
   const { open } = value;
-  if (open === null || open.focus || !tr.selectionSet || foreignOrigins.includes(tr.origin)) return value;
+  if (open === null || open.focus || !tr.selectionSet || tr.origin !== 'input') return value;
   const { selection } = state;
   const here = selection?.kind === 'text' ? commentIdsAt(state.doc, selection.head) : [];
   return open.ids.some((id) => here.includes(id)) ? value : { ...value, active: null, open: null };

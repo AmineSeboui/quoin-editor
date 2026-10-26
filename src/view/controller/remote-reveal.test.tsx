@@ -124,3 +124,18 @@ describe('a block selected by a change of a collaborator, without bringing it in
     expect(reveals).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('the caret move of a collaborator drawn in the same render as a command', () => {
+  it('leaves the command to bring the block it selects into view', () => {
+    const { controller, reveals } = mountScrolled('around');
+    act(() => controller.focus());
+    reveals.mockClear();
+    act(() => {
+      const { editor } = controller;
+      editor.dispatch(editor.createTransaction().setOrigin('remote').setMeta('presence', true));
+      editor.dispatch(editor.createTransaction().setSelection(nodeSelection('d2')));
+    });
+    expect(controller.editor.state.selection).toEqual(nodeSelection('d2'));
+    expect(reveals).toHaveBeenCalledTimes(1);
+  });
+});

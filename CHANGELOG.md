@@ -9,6 +9,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 
 ### Fixed
 - A block that a collaborator's change leaves selected as a whole comes into view with the writer's next change, rather than only once the selection leaves it and comes back.
+- A collaborator's caret move drawn in the same render as a change from your code, such as a command that selects a block below the fold, no longer keeps that change from scrolling it into view. A collaborator's change to the document still scrolls nothing.
 - A caret in a block that a new `blocks` array changes on both sides of it stays on its character, rather than moving by the length of the later change.
 
 ## 1.0.0 (2026-10-23)

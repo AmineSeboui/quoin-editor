@@ -98,7 +98,7 @@ export class ViewController {
   attach(root: HTMLElement): () => void {
     this.detachRoot?.();
     const binding = bindRoot(this, root, this.cross, (_, tr) => {
-      this.quiet ||= tr?.origin === 'remote';
+      this.quiet ||= tr?.origin === 'remote' && tr.docChanged;
       this.outside.committed(tr);
       this.nodeReveal.follow(this.editor.state.selection);
       this.drawn.syncTabStop();
@@ -177,7 +177,8 @@ export class ViewController {
   }
 
   // A change made outside edit() reaches the hosts when React draws them, so the selection is written back once that
-  // has happened, and focus follows a host the change replaced. A collaborator's change scrolls nothing doing so.
+  // has happened, and focus follows a host the change replaced. A collaborator's change to the document scrolls nothing
+  // doing so; one that only moves their caret leaves the rest of the render to scroll as it would.
   afterRender(): void {
     const { quiet } = this;
     this.quiet = false;

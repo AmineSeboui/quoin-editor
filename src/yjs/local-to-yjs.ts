@@ -1,9 +1,8 @@
-import * as Y from 'yjs';
 import { blockById } from '../engine/model/doc';
 import { sliceInline } from '../engine/model/inline';
 import type { EngineBlock, EngineDoc, Inline, Mark } from '../engine/model/types';
 import type { Step } from '../engine/transform/step';
-import { definedEntries } from './doc-shape';
+import { attrsMap } from './doc-shape';
 import { regionOf } from './layout';
 import { markAttribute } from './marks-codec';
 import { deleteContent, formatContent, insertContent, type Shared } from './shared';
@@ -45,8 +44,8 @@ function setAttrs({ shared, after, params }: Context): void {
   const id = params.block as string;
   const { map } = shared.layout.entries.get(id)!;
   const next = blockById(after, id)!.attrs;
-  const attrs = map.get('attrs');
-  if (!(attrs instanceof Y.Map)) return void map.set('attrs', new Y.Map<unknown>(definedEntries(next)));
+  const attrs = attrsMap(map, next);
+  if (attrs === null) return;
   for (const key of Object.keys(params.patch as Params)) {
     if (next[key] === undefined) attrs.delete(key);
     else attrs.set(key, next[key]);

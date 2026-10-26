@@ -1,8 +1,8 @@
-import * as Y from 'yjs';
+import type * as Y from 'yjs';
 import { equalInline, inlineLength } from '../engine/model/inline';
 import { sameValue } from '../engine/model/same-value';
 import type { BlockAttrs, EngineBlock, Inline } from '../engine/model/types';
-import { definedEntries, deleteText, regionStart } from './doc-shape';
+import { attrsMap, definedEntries, deleteText, regionStart } from './doc-shape';
 import { insertInline } from './inline-codec';
 import { changedSpan } from './inline-span';
 import { indexOf, placeEntries, regionOf, spanStart, type Entry } from './layout';
@@ -11,11 +11,8 @@ import { deleteContent, insertContent, reread, type Shared } from './shared';
 import { insertBlocks, removeBlock } from './write-blocks';
 
 function syncAttrs(map: Y.Map<unknown>, before: BlockAttrs, after: BlockAttrs): void {
-  const current = map.get('attrs');
-  if (!(current instanceof Y.Map)) {
-    map.set('attrs', new Y.Map<unknown>(definedEntries(after)));
-    return;
-  }
+  const current = attrsMap(map, after);
+  if (current === null) return;
   const kept = new Map(definedEntries(after));
   for (const key of [...current.keys()]) if (!kept.has(key)) current.delete(key);
   for (const [key, value] of kept) if (!sameValue(before[key], value)) current.set(key, value);

@@ -24,7 +24,13 @@ const START = [
 const ORIGINAL = 'abcdefghijklmnopqrstuvwx';
 const TOKENS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
-type Turn = { by: number; kind: 'insert' | 'split' | 'join' | 'retype'; block: number; offset: number; deliver: [number, number] | null };
+type Turn = {
+  by: number;
+  kind: 'insert' | 'split' | 'join' | 'retype';
+  block: number;
+  offset: number;
+  deliver: [number, number] | null;
+};
 
 const turn = (clients: number): fc.Arbitrary<Turn> =>
   fc.record({
@@ -47,8 +53,8 @@ export type TokenRun = [clients: number, seedAll: boolean, triggers: readonly Tr
 
 /**
  * Two or three clients, whether all of them seed the document at once, edits that leave the text out of shape, and
- * what each client then does in turn: type a token at a caret, press Enter, Backspace at a start, or give a block with no
- * region one.
+ * what each client then does in turn: type a token at a caret, press Enter, Backspace at a start, or give a block with
+ * no region one.
  */
 export const tokenRun: fc.Arbitrary<TokenRun> = fc
   .constantFrom(2, 3)

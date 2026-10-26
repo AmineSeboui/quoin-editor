@@ -12,6 +12,7 @@ import { linkOf } from './comments-link';
 import { CommentsOverlay } from './CommentsOverlay';
 import { commentsDecorations } from './comments-decorations';
 import { commentsKey, commentsPlugin } from './comments-plugin';
+import { watchEnded } from './watch-ended';
 
 export type CommentsOptions = {
   /** The host's threads, from `createCommentThreads`, which the host sets again as they change. */
@@ -62,7 +63,10 @@ export function commentsExtension(options: CommentsOptions): Extension {
     // One watcher per editor however many views mount it at once, so the host is asked once per thread.
     onMount(editor) {
       const link = linkOf(editor);
-      if (link.mounts++ === 0) link.stopWatching = watchCreates(editor, host.onCreate, link);
+      if (link.mounts++ === 0) {
+        const stops = [watchCreates(editor, host.onCreate, link), watchEnded(editor, host.threads)];
+        link.stopWatching = () => stops.forEach((stop) => stop());
+      }
       return () => {
         if (--link.mounts > 0) return;
         link.stopWatching?.();

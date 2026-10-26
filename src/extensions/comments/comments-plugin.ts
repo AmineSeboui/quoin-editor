@@ -10,12 +10,12 @@ export type PendingAnchor = {
   readonly selection: Selection;
 };
 
-/** A thread this canvas ended, and the host's copy of it then: once the host sets another, the host is followed. */
+/** A thread this canvas ended, and the host's copy of it then: once the host's store differs, the host is followed. */
 export type EndedThread = { readonly id: string; readonly seen: CommentThread | undefined };
 
-/** Whether a thread is one this canvas ended that the host has not set anew since. */
+/** Whether a thread is one this canvas ended that the host's store still holds as it was then, open or not. */
 export const isEnded = (ended: readonly EndedThread[], id: string, current: CommentThread | undefined): boolean =>
-  ended.some((thread) => thread.id === id && thread.seen === current);
+  ended.some((thread) => thread.id === id && thread.seen?.resolved === current?.resolved);
 
 /** The thread popover: the threads to choose from, and whether it takes focus as it opens. */
 export type OpenThreads = { readonly ids: readonly string[]; readonly focus: boolean };
@@ -34,7 +34,8 @@ export type CommentsAction =
   | { readonly type: 'activate'; readonly id: string | null }
   | { readonly type: 'open'; readonly open: OpenThreads }
   | { readonly type: 'close' }
-  | { readonly type: 'forget'; readonly id: string; readonly seen?: CommentThread };
+  | { readonly type: 'forget'; readonly id: string; readonly seen?: CommentThread }
+  | { readonly type: 'caught'; readonly kept: readonly EndedThread[] };
 
 export const commentsKey = createPluginKey<CommentsState>('comments');
 
@@ -63,6 +64,8 @@ function act(value: CommentsState, action: CommentsAction): CommentsState {
       const ended = [...value.ended.filter(({ id }) => id !== action.id), { id: action.id, seen: action.seen }];
       return { ...value, active, open, ended };
     }
+    case 'caught':
+      return { ...value, ended: action.kept };
   }
 }
 

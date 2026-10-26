@@ -36,6 +36,20 @@ describe('the undo history of a collaboration', () => {
     expect(client.editor.commands.undo()).toBe(true);
   });
 
+  it('counts the frame from the latest disconnect', async () => {
+    const { client } = typed();
+    client.unmount();
+    await Promise.resolve();
+    vi.advanceTimersByTime(5);
+    const unmount = client.editor.mount();
+    vi.advanceTimersByTime(9);
+    unmount();
+    await Promise.resolve();
+    vi.advanceTimersByTime(3);
+    client.editor.mount();
+    expect(client.editor.commands.undo()).toBe(true);
+  });
+
   it('is let go when the collaboration stays disconnected longer, and a later connect starts afresh', async () => {
     const { doc, client } = typed();
     client.unmount();

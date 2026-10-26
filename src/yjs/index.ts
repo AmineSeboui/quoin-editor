@@ -54,6 +54,7 @@ export function yjsCollaboration(options: YjsCollaborationOptions): YjsCollabora
   const origins = { local: { user }, untracked: {} };
   let history: UndoHistory | undefined;
   let binding: Binding | null = null;
+  let disconnects = 0;
   const collaboration: YjsCollaboration = {
     doc,
     text,
@@ -75,14 +76,13 @@ export function yjsCollaboration(options: YjsCollaborationOptions): YjsCollabora
       return () => {
         current.stop();
         if (binding === current) binding = null;
-        // Kept through a connect that follows within a frame, as StrictMode's or a quick remount's.
-        queueMicrotask(() =>
-          (globalThis.requestAnimationFrame ?? setTimeout)(() => {
-            if (binding !== null) return;
-            history?.manager.destroy();
-            history = undefined;
-          }),
-        );
+        // Kept through a connect within a frame of the latest disconnect, as StrictMode's or a quick remount's.
+        const at = ++disconnects;
+        setTimeout(() => {
+          if (binding !== null || at !== disconnects) return;
+          history?.manager.destroy();
+          history = undefined;
+        }, 16);
       };
     },
     onLocalTransaction: (tr, state) => {

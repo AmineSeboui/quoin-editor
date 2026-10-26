@@ -6,10 +6,10 @@ export const WIDE_CANVAS = 800;
 
 /**
  * Whether the canvas an element is drawn in is wide, measured on the canvas's border box, which the room the comments
- * reserve inside it does not change.
+ * reserve inside it does not change; `initial` until it is measured, as on the server.
  */
-export function useCanvasWide(box: RefObject<HTMLElement | null>): boolean {
-  const [wide, setWide] = useState(false);
+export function useCanvasWide(box: RefObject<HTMLElement | null>, initial: boolean): boolean {
+  const [wide, setWide] = useState(initial);
   useIsomorphicLayoutEffect(() => {
     const canvas = box.current?.parentElement;
     if (!canvas) return undefined;

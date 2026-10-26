@@ -5,6 +5,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 ## Unreleased
 
 ### Changed
+- `commentsExtension` takes an optional `initialLayout: 'wide' | 'narrow'`, the layout drawn on the server and in the first render before the canvas is measured, so a server-rendered wide canvas no longer shifts by 236 px as it hydrates. The default stays `'narrow'`.
 - Under a collaboration, `editor.chain().undo().run()` and `editor.chain().redo().run()` undo and redo when the chain holds nothing else. A chain that holds other commands as well still does nothing.
 - Docs: chains merge the meta of every part, so a key one part set is seen on the whole chain (extensions page).
 - Docs: two clients can hold a table's alignment as no `align` or as `align: [null, null]`, which the editor and `QuoinDiff` treat as equal; a host comparing saved JSON should normalise `align` (collaboration page).

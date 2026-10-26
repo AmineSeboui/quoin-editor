@@ -24,6 +24,11 @@ export type CommentsOptions = {
   onReply(threadId: string, body: string): Promise<void>;
   onResolve(threadId: string): Promise<void>;
   onDelete(threadId: string): Promise<void>;
+  /**
+   * The layout drawn on the server and in the first render in the browser, until the canvas is measured: the threads
+   * beside a canvas `'wide'` enough for them, or markers and a sheet. `'narrow'` by default.
+   */
+  initialLayout?: 'wide' | 'narrow';
   /** Every string comments show or speak, English by default. A key left out stays English. */
   labels?: Partial<CommentsLabels>;
 };

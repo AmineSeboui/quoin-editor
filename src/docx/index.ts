@@ -26,6 +26,12 @@ export type DocxOptions = {
   resolveAssetUrl?: (storageKey: string) => string;
   /** Reads a picture at its resolved address, the global `fetch` by default. A picture that fails is replaced by its alt text. */
   fetchAsset?: FetchAsset;
+  /**
+   * The address of the page the document comes from, such as `location.href`. A link or a file whose address is
+   * relative is linked to that address read against it; without it, it is written as its text, since Word would read
+   * it against the file's own folder.
+   */
+  baseUrl?: string;
   /** The title written into the document's properties. */
   title?: string;
   /**
@@ -57,7 +63,7 @@ export async function toDocx(blocks: readonly QuoinBlock[], options: DocxOptions
       concurrency: options.imageConcurrency ?? IMAGE_CONCURRENCY,
     },
   );
-  const ctx = createContext({ schema, resolveAssetUrl, headings: collectHeadings(engine, schema), images });
+  const ctx = createContext({ schema, resolveAssetUrl, baseUrl: options.baseUrl, headings: collectHeadings(engine, schema), images });
   const mainPart = documentXml(groupBlocks(engine), ctx);
   const archive = await zipArchive([
     { path: '[Content_Types].xml', data: encode(contentTypesXml(ctx.media)) },

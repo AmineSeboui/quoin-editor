@@ -180,6 +180,28 @@ describe('the blocks of a Word document', () => {
     expect(doc.relationships.filter((rel) => rel.getAttribute('TargetMode') === 'External')).toEqual([]);
   });
 
+  it('link a relative address against the base the host gives, and leave an absolute one as written', async () => {
+    const doc = await exportDocument(
+      [
+        { id: 'f', type: 'FILE', data: { storageKey: 'k', filename: 'local.pdf' } },
+        md('p', '[notes](notes/a.pdf) [site](HTTP://A.test) [top](#top) [bare](http:foo)'),
+      ],
+      { resolveAssetUrl: (key) => `/files/${key}`, baseUrl: 'https://app.test/docs/page' },
+    );
+    expect(doc.run('local.pdf').link).toBe('https://app.test/files/k');
+    expect(doc.run('notes').link).toBe('https://app.test/docs/notes/a.pdf');
+    expect(doc.run('site').link).toBe('HTTP://A.test');
+    expect(doc.run('top').link).toBe('https://app.test/docs/page#top');
+    expect(doc.run('bare').link).toBeUndefined();
+  });
+
+  it('write a relative address as text when the base is not an absolute web address', async () => {
+    for (const baseUrl of ['/docs/', 'file:///docs/', 'javascript:alert(1)']) {
+      const doc = await exportDocument([md('p', '[notes](notes/a.pdf)')], { baseUrl });
+      expect(doc.run('notes').link).toBeUndefined();
+    }
+  });
+
   it('write a file whose address is unsafe as its name, unlinked', async () => {
     const doc = await exportDocument([{ id: 'f', type: 'FILE', data: { storageKey: 'k', filename: 'f.pdf' } }], {
       resolveAssetUrl: () => 'javascript:alert(1)',

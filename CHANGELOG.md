@@ -2,7 +2,7 @@
 
 Every release of `quoin-editor` is listed here, newest first, in the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). From 1.0.0 the package follows [semantic versioning](https://semver.org/): a breaking change waits for the next major version. Until then, Quoin was 0.x and a minor version could contain breaking changes; those known at release were marked "Breaking". The 0.x sections are kept as they were released, "Docs" headings included. Moving from 0.4 to 1.0 is covered step by step in [MIGRATION.md](MIGRATION.md). Review finding ids such as F-17 are those of the 0.4.0 review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73).
 
-## Unreleased
+## 1.0.1 (2026-10-26)
 
 ### Added
 - `toDocx` takes an optional `baseUrl`, the address of the page the document comes from: a link or a file whose address is a relative path, such as `/files/a.pdf` or `notes/a.pdf`, is linked to that address read against it, rather than written as its text. A network path (`//host/x`, `\\host\share`, `/\host`) and a fragment such as `#top` stay text. A base that is not an absolute `http` or `https` address is ignored, a user and password in it are left out of the links, and an empty link stays text.

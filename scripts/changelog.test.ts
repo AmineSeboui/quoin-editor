@@ -31,29 +31,31 @@ describe('the 1.0.0 heading', () => {
   });
 });
 
-const unreleased = sectionOf(changelog, '## Unreleased');
+const titles = [...changelog.matchAll(/^## (.+)$/gm)].map(([, title]) => title);
+const versionHeading = releaseHeading(changelog, version);
+const newest = sectionOf(changelog, `## ${titles[0]}`);
 
-describe('the Unreleased section', () => {
-  it('sits first, above the dated 1.0.0 section, while package.json stays at 1.0.0', () => {
-    const releases = [...changelog.matchAll(/^## (.+)$/gm)].map(([, title]) => title);
-    expect(releases.slice(0, 2)).toEqual(['Unreleased', heading.slice(3)]);
-    expect(isDated(heading)).toBe(true);
-    expect(version).toBe('1.0.0');
+describe('the newest section', () => {
+  it('is Unreleased above the dated section of the package version, or that dated section', () => {
+    expect(isDated(versionHeading)).toBe(true);
+    expect(titles.slice(0, 2)).toContain(versionHeading.slice(3));
+    expect(titles[0] === 'Unreleased' || titles[0] === versionHeading.slice(3)).toBe(true);
   });
 
-  it('sorts its changes under Added, Changed, Fixed and Known limits, each a list', () => {
-    const headings = [...unreleased.matchAll(/^### (.+)$/gm)].map(([, title]) => title);
+  it.skipIf(titles[0] === heading.slice(3))('sorts its changes under Added, Changed, Fixed and Known limits, each a list', () => {
+    const headings = [...newest.matchAll(/^### (.+)$/gm)].map(([, title]) => title);
     expect(headings.length).toBeGreaterThan(0);
     expect(headings.every((title) => ['Added', 'Changed', 'Fixed', 'Known limits'].includes(title))).toBe(true);
-    for (const title of headings) expect(sectionOf(unreleased, `### ${title}`).trim()).toMatch(/^- /);
+    for (const title of headings) expect(sectionOf(newest, `### ${title}`).trim()).toMatch(/^- /);
   });
 });
 
 describe('the changelog', () => {
-  it('has a 1.0.0 section above every 0.x release', () => {
+  it('has a 1.0.0 section above every 0.x release and below every 1.x one', () => {
     const versions = [...changelog.matchAll(/^## (\d+\.\d+\.\d+)/gm)].map(([, version]) => version);
-    expect(versions[0]).toBe('1.0.0');
-    expect(versions).toEqual(['1.0.0', '0.4.2', '0.4.1', '0.4.0', '0.3.0', '0.2.0', '0.1.1', '0.1.0']);
+    const at = versions.indexOf('1.0.0');
+    expect(versions.slice(0, at).every((later) => later.startsWith('1.'))).toBe(true);
+    expect(versions.slice(at)).toEqual(['1.0.0', '0.4.2', '0.4.1', '0.4.0', '0.3.0', '0.2.0', '0.1.1', '0.1.0']);
   });
 
   it('sorts the 1.0.0 changes under Added, Changed, Removed, Fixed and Security, then the known gaps', () => {

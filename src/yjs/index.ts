@@ -75,6 +75,14 @@ export function yjsCollaboration(options: YjsCollaborationOptions): YjsCollabora
       return () => {
         current.stop();
         if (binding === current) binding = null;
+        // Kept through a connect that follows within a frame, as StrictMode's or a quick remount's.
+        queueMicrotask(() =>
+          (globalThis.requestAnimationFrame ?? setTimeout)(() => {
+            if (binding !== null) return;
+            history?.manager.destroy();
+            history = undefined;
+          }),
+        );
       };
     },
     onLocalTransaction: (tr, state) => {

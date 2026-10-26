@@ -13,7 +13,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 
 ### Fixed
 - Presence on a second editor given a `yjsCollaboration` that already serves one, which stays unconnected, no longer writes to the awareness: unmounting it no longer takes the person and their selection out while the first canvas is still mounted.
-- An editor that disconnects from a `yjsCollaboration` and connects again keeps what it can undo and redo, rather than starting with an empty history.
+- An editor that disconnects from a `yjsCollaboration` and connects again within a frame, as StrictMode or a quick remount does, keeps what it can undo and redo. A collaboration left disconnected longer lets its undo history go, as in 1.0.
 - `yjsCollaboration` reports to its `onError` a change from the shared document that does not apply to the editor, as the error applying it raised, before the editor takes the document as the shared text reads, rather than recovering in silence.
 - A block that a collaborator's change leaves selected as a whole comes into view with the writer's next change, rather than only once the selection leaves it and comes back.
 - A collaborator's caret move drawn in the same render as a change from your code, such as a command that selects a block below the fold, no longer keeps that change from scrolling it into view. A collaborator's change to the document still scrolls nothing.

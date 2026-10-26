@@ -121,14 +121,13 @@ function reader(required: RequiredRegions) {
       }
       order[0]?.segs.unshift(...leading);
       const blocks = [...entries.values()].map((kept): EngineBlock => {
-        const { type, indent } = markers.get(kept)!;
-        const attrs = markers.get(kept)!.attrs?.toJSON() ?? {};
-        for (const name of required(type, attrs)) {
+        const { type, indent, attrs } = markers.get(kept)!;
+        for (const name of required(type)) {
           if (!kept.regions.some((region) => region.name === name)) kept.regions.push({ name, entry: kept, segs: [] });
         }
         const inline = (segs: readonly Seg[]) => inlineOfOps(segs.flatMap((seg) => held.get(seg)!));
         const regions = kept.regions.map(({ name, segs }) => [name, inline(segs)]);
-        return { id: kept.id, type, indent, attrs, regions: Object.fromEntries(regions) };
+        return { id: kept.id, type, indent, attrs: attrs?.toJSON() ?? {}, regions: Object.fromEntries(regions) };
       });
       const layout = createLayout(spans, entries, clean, { read, leading: new Set(leading), unread });
       return { doc: createDoc(blocks), layout };
@@ -148,7 +147,7 @@ function reader(required: RequiredRegions) {
  * - characters outside a region join the region before them in the text, or the first region of the document when
  *   no region comes before them, and are dropped when the document has no region;
  * - a marker's missing type reads as '', its missing indent as 0 and its missing attrs as none;
- * - a region `required` names for the block's type and attrs that the text does not hold reads as empty.
+ * - a region `required` names for the block's type that the text does not hold reads as empty.
  */
 export function readShared(
   text: Y.Text,

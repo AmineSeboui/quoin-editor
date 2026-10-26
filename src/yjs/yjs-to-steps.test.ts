@@ -21,7 +21,10 @@ const block = (id: string, value: string): EngineBlock => ({
 function observed(doc: EngineDoc, given: EngineDoc = doc) {
   const shared = new Y.Doc().getText('quoin');
   writeBlocks(shared, 0, doc.blocks);
-  const mirror = { text: shared, layout: readShared(shared).layout, stale: false, required: noRequiredRegions };
+  const errors: Error[] = [];
+  const onError = (error: Error) => void errors.push(error);
+  const { layout } = readShared(shared);
+  const mirror = { text: shared, layout, stale: false, required: noRequiredRegions, onError };
   const seen: Step[][] = [];
   let current = given;
   shared.observeDeep((events) => {
@@ -30,7 +33,7 @@ function observed(doc: EngineDoc, given: EngineDoc = doc) {
     current = steps.reduce((changed, step) => step.apply(changed).doc, current);
   });
   const after = () => current;
-  return { shared, seen, after };
+  return { shared, seen, after, errors };
 }
 
 const kinds = (seen: Step[][]) => seen.map((steps) => steps.map((step) => step.stepType));
@@ -78,9 +81,10 @@ describe('reading a change of the shared text as engine steps', () => {
 
   it('replaces the whole document when its steps do not fit the one it is given', () => {
     const stale = createDoc([block('a', '')]);
-    const { shared, seen, after } = observed(createDoc([block('a', 'one')]), stale);
+    const { shared, seen, after, errors } = observed(createDoc([block('a', 'one')]), stale);
     shared.insert(5, '!', {});
     expect(kinds(seen)).toEqual([['replaceDoc']]);
     expect(after().blocks).toEqual([block('a', 'one!')]);
+    expect(errors).toEqual([expect.any(Error)]);
   });
 });

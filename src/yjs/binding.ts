@@ -35,12 +35,12 @@ export type Binding = {
 export function bind(
   editor: Editor<CommandFactories>,
   text: Y.Text,
-  { origins, seed }: { origins: Origins; seed: Seed },
+  { origins, seed, onError }: { origins: Origins; seed: Seed; onError: (error: Error) => void },
 ): Binding {
   const doc = text.doc!;
   const required = requiredRegions(editor.state.schema);
   const layout = seedOrLoad(editor, text, { origin: origins.local, seed, required });
-  const shared: Shared = { text, layout, stale: false, required };
+  const shared: Shared = { text, layout, stale: false, required, onError };
   const history = undoHistory(text, origins.local);
   const ours = (origin: unknown) => origin === origins.local || origin === origins.untracked;
   let held: HeldSelection = null;

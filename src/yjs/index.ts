@@ -24,7 +24,10 @@ export type YjsCollaborationOptions = {
   user: CollaborationUser;
   /** Whether an empty shared document takes the editor's blocks on connect. */
   seed?: Seed;
-  /** Hears about a second editor connected while one already is; it stays unconnected. Logged when absent. */
+  /**
+   * Hears about a second editor connected while one already is, which stays unconnected, and about a change to the
+   * shared document that did not apply to the editor, which then takes the document as it reads. Logged when absent.
+   */
   onError?: (error: Error) => void;
 };
 
@@ -60,7 +63,7 @@ export function yjsCollaboration(options: YjsCollaborationOptions): YjsCollabora
         onError(new Error('A Yjs collaboration connects one editor at a time; this editor stays unconnected.'));
         return () => undefined;
       }
-      const current = bind(editor, text, { origins, seed });
+      const current = bind(editor, text, { origins, seed, onError });
       binding = current;
       return () => {
         current.stop();

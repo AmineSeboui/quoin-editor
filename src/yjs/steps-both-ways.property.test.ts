@@ -47,8 +47,10 @@ describe('a step written to a shared text and read back on another client', () =
         const [mine, theirs] = docs.map((ydoc) => ydoc.getText('quoin'));
         writeBlocks(mine, 0, doc.blocks);
         flush();
-        const local = { text: mine, layout: readShared(mine).layout, stale: false, required: noRequiredRegions };
-        const remote = { text: theirs, layout: readShared(theirs).layout, stale: false, required: noRequiredRegions };
+        const errors: Error[] = [];
+        const shape = { stale: false, required: noRequiredRegions, onError: (error: Error) => void errors.push(error) };
+        const local = { text: mine, layout: readShared(mine).layout, ...shape };
+        const remote = { text: theirs, layout: readShared(theirs).layout, ...shape };
         let seen = doc;
         const kinds: string[] = [];
         theirs.observeDeep((events) => {
@@ -65,6 +67,7 @@ describe('a step written to a shared text and read back on another client', () =
         expect(layoutShape(local.layout)).toEqual(layoutShape(readShared(mine).layout));
         expect(layoutShape(remote.layout)).toEqual(layoutShape(readShared(theirs).layout));
         if (CONTENT.includes(step.stepType)) expect(kinds).not.toContain('replaceDoc');
+        expect(errors).toEqual([]);
       }),
       { seed: 20261021, numRuns: 1000 },
     );

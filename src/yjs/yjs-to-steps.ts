@@ -59,18 +59,17 @@ function contentSteps(shared: Shared, events: readonly YEvent[], doc: EngineDoc)
  * The engine steps of a change to the shared text, against the editor's document `doc`, which is what the text read
  * as before it, with the layout moved on. A change to the characters of regions, a split, a join or a change of a
  * block's marker is read as its own steps; anything else is read as one replacement of the document, which keeps the
- * blocks the change left alone, and is `structural`. A change that should have been read as steps but did not apply is
- * reported to `shared.onError`, with the error it raised, before that replacement.
+ * blocks the change left alone, and is `structural`. A change that should have been read as steps but did not apply
+ * comes with the error it raised, as `failed`.
  */
 export function readRemote(
   shared: Shared,
   events: readonly YEvent[],
   doc: EngineDoc,
-): { steps: Step[]; structural: boolean } {
+): { steps: Step[]; structural: boolean; failed?: Error } {
   try {
     return { steps: contentSteps(shared, events, doc), structural: false };
   } catch (error) {
-    if (error !== REREAD) shared.onError(error as Error);
     const read = readShared(shared.text, shared.required);
     shared.layout = read.layout;
     const blocks = read.doc.blocks.map((block) => {
@@ -78,6 +77,7 @@ export function readRemote(
       return held !== undefined && sameValue(held, block) ? held : block;
     });
     const next = createDoc(blocks);
-    return { steps: sameDoc(next, doc) ? [] : [replaceDocStep(next)], structural: true };
+    const failed = error === REREAD ? undefined : (error as Error);
+    return { steps: sameDoc(next, doc) ? [] : [replaceDocStep(next)], structural: true, failed };
   }
 }

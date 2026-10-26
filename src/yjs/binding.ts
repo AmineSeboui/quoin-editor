@@ -41,7 +41,7 @@ export function bind(
   const layout = seedOrLoad(editor, text, { origin: origins.local, seed, required });
   // Taken once the text is seeded, so that undo never takes the seeding back.
   const history = options.history();
-  const shared: Shared = { text, layout, stale: false, required, onError };
+  const shared: Shared = { text, layout, stale: false, required };
   const ours = (origin: unknown) => origin === origins.local || origin === origins.untracked;
   let held: HeldSelection = null;
   const written = new WeakSet<Transaction>();
@@ -50,13 +50,16 @@ export function bind(
   };
   const observer = (events: Y.YEvent<Y.AbstractType<unknown>>[], transaction: Y.Transaction) => {
     if (ours(transaction.origin)) return;
-    const { steps, structural } = readRemote(shared, events, editor.state.doc);
-    if (steps.length === 0) return;
-    if (transaction.origin !== history.manager)
-      return applyRemote(editor, steps, structural ? restoreSelection(text, shared.layout, held) : null);
-    const tr = sharedChange(editor, steps, history.hint(), 'history');
-    written.add(tr);
-    editor.dispatch(tr);
+    const { steps, structural, failed } = readRemote(shared, events, editor.state.doc);
+    if (steps.length > 0 && transaction.origin !== history.manager) {
+      applyRemote(editor, steps, structural ? restoreSelection(text, shared.layout, held) : null);
+    } else if (steps.length > 0) {
+      const tr = sharedChange(editor, steps, history.hint(), 'history');
+      written.add(tr);
+      editor.dispatch(tr);
+    }
+    // Reported once the editor has taken the shared document, so that a handler that throws leaves no drift behind.
+    if (failed) onError(failed);
   };
   // A change written over a text that is out of shape can read back as another document: the editor takes that one.
   const settle = () => {

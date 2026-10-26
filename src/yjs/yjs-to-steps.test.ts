@@ -22,13 +22,12 @@ function observed(doc: EngineDoc, given: EngineDoc = doc) {
   const shared = new Y.Doc().getText('quoin');
   writeBlocks(shared, 0, doc.blocks);
   const errors: Error[] = [];
-  const onError = (error: Error) => void errors.push(error);
-  const { layout } = readShared(shared);
-  const mirror = { text: shared, layout, stale: false, required: noRequiredRegions, onError };
+  const mirror = { text: shared, layout: readShared(shared).layout, stale: false, required: noRequiredRegions };
   const seen: Step[][] = [];
   let current = given;
   shared.observeDeep((events) => {
-    const { steps } = readRemote(mirror, events, current);
+    const { steps, failed } = readRemote(mirror, events, current);
+    if (failed) errors.push(failed);
     seen.push(steps);
     current = steps.reduce((changed, step) => step.apply(changed).doc, current);
   });

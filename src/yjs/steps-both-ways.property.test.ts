@@ -48,13 +48,14 @@ describe('a step written to a shared text and read back on another client', () =
         writeBlocks(mine, 0, doc.blocks);
         flush();
         const errors: Error[] = [];
-        const shape = { stale: false, required: noRequiredRegions, onError: (error: Error) => void errors.push(error) };
-        const local = { text: mine, layout: readShared(mine).layout, ...shape };
-        const remote = { text: theirs, layout: readShared(theirs).layout, ...shape };
+        const local = { text: mine, layout: readShared(mine).layout, stale: false, required: noRequiredRegions };
+        const remote = { text: theirs, layout: readShared(theirs).layout, stale: false, required: noRequiredRegions };
         let seen = doc;
         const kinds: string[] = [];
         theirs.observeDeep((events) => {
-          for (const read of readRemote(remote, events, seen).steps) {
+          const { steps, failed } = readRemote(remote, events, seen);
+          if (failed) errors.push(failed);
+          for (const read of steps) {
             kinds.push(read.stepType);
             seen = read.apply(seen).doc;
           }

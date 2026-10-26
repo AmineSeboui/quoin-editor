@@ -29,13 +29,11 @@ function markerSteps(shared: Shared, event: YEvent, doc: EngineDoc): Step[] {
     if (fields!.attrs !== target) return [];
     return [setAttrsStep(block.id, Object.fromEntries(keys.map((key) => [key, target.get(key)])))];
   }
-  if (keys.includes('id')) throw REREAD;
-  if (keys.every((key) => key === 'indent')) return [setIndentStep(block.id, fields!.indent)];
-  const { type, indent, attrs } = fields!;
-  // A region read as empty for the old type, or one the new type needs, changes how the block's regions are read.
-  const empty = shared.layout.entries.get(block.id)!.regions.some((region) => region.segs.length === 0);
-  if (empty || shared.required(type).some((name) => !Object.hasOwn(block.regions, name))) throw REREAD;
-  return [replaceBlockStep({ ...block, type, indent, attrs: attrs?.toJSON() ?? {} })];
+  // How a block's regions are read depends on its type, so a new type reads the block again.
+  if (keys.includes('id') || keys.includes('type')) throw REREAD;
+  const { indent, attrs } = fields!;
+  if (keys.every((key) => key === 'indent')) return [setIndentStep(block.id, indent)];
+  return [replaceBlockStep({ ...block, indent, attrs: attrs?.toJSON() ?? {} })];
 }
 
 function contentSteps(shared: Shared, events: readonly YEvent[], doc: EngineDoc): Step[] {

@@ -8,6 +8,7 @@ import { md } from '../engine/test-support/editor-fixtures';
 import { readShared } from './read-shared';
 import { requiredRegions } from './required-regions';
 import { linkedDocs, peer, type Peer } from './test-support/peers';
+import { runEdit, type Edit } from './test-support/random-edits';
 
 const TABLE: QuoinBlock = { id: 't', type: 'TABLE', data: { rows: [['one', 'two'], ['three', 'four']], header: true } };
 
@@ -63,5 +64,27 @@ describe('a table edited by two clients at once', () => {
     expect(two.editor.getBlocks()).toEqual(one.editor.getBlocks());
     expect([one, two].every(readsAsShown)).toBe(true);
     expect(errors).toEqual([]);
+  });
+
+  it('reads a line the same way once another client changes its type as a fresh reading does', () => {
+    const { docs, deliver, flush } = linkedDocs([2, 1]);
+    const start = [md('a', 'one **two** three'), { ...TABLE, data: { ...TABLE.data, align: [null, null] } }, md('c', 'six')];
+    const one = peer(docs[0], 'a', start);
+    flush();
+    const two = peer(docs[1], 'b');
+    const turns: [Peer, Edit][] = [
+      [one, { kind: 'insert', at: { kind: 'node', at: 40 }, pick: 0 }],
+      [one, { kind: 'retype', at: { kind: 'range', anchor: [0, 0, 'end'], head: [0, 0, 'start'] }, pick: 0 }],
+      [two, { kind: 'retype', at: { kind: 'range', anchor: [0, 0, 'end'], head: [0, 0, 'start'] }, pick: 0 }],
+      [two, { kind: 'retype', at: { kind: 'range', anchor: [0, 0, 0], head: [0, 0, 0] }, pick: 0 }],
+      [two, { kind: 'table', at: { kind: 'blocks', anchor: 0, head: 0 }, pick: 0 }],
+      [one, { kind: 'move', at: { kind: 'node', at: 0 }, pick: 15 }],
+    ];
+    turns.forEach(([client, edit], i) => runEdit(client.editor, edit, `x${i}`));
+    deliver(1);
+    expect(readsAsShown(two)).toBe(true);
+    flush();
+    expect(two.editor.getBlocks()).toEqual(one.editor.getBlocks());
+    expect([one, two].every(readsAsShown)).toBe(true);
   });
 });

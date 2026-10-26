@@ -8,6 +8,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 - Under a collaboration, `editor.chain().undo().run()` and `editor.chain().redo().run()` undo and redo when the chain holds nothing else. A chain that holds other commands as well still does nothing.
 
 ### Fixed
+- A block that a collaborator's change leaves selected as a whole comes into view with the writer's next change, rather than only once the selection leaves it and comes back.
 - A caret in a block that a new `blocks` array changes on both sides of it stays on its character, rather than moving by the length of the later change.
 
 ## 1.0.0 (2026-10-23)

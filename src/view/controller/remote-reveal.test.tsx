@@ -112,3 +112,15 @@ describe('a remote change followed by others before the canvas draws it', () => 
     expect(scroller.scrollTop).toBe(0);
   });
 });
+
+describe('a block selected by a change of a collaborator, without bringing it into view,', () => {
+  it('comes into view on the next change made here that leaves it selected', () => {
+    const { controller, reveals, selectNode, remove } = mountScrolled('around');
+    act(() => controller.focus());
+    selectNode('d1');
+    remove('d1', 'remote');
+    expect(reveals).not.toHaveBeenCalled();
+    act(() => controller.dispatch(controller.editor.createTransaction().setSelection(nodeSelection('d2'))));
+    expect(reveals).toHaveBeenCalledTimes(1);
+  });
+});

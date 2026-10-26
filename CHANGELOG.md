@@ -16,6 +16,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 - Docs: the `onError` of `yjsCollaboration` is the adapter's own, apart from the canvas's; pass both the same handler (collaboration page).
 
 ### Fixed
+- `toDocx` writes a link to an `http` or `https` address with no host, such as `http:foo`, as its text, as it does other targets Word cannot open, rather than as a hyperlink.
 - A canvas drawn by a renderer that sets no refs on its elements, such as react-test-renderer without `createNodeMock`, renders again without attaching to an element it was not given, as in 1.0.
 - With presence, a long collaborator name at the end of a line is cut off where the avatars' gutter begins, rather than over the avatars.
 - With presence, a collaborator's caret near the side of a wide table, and its name, are cut off at the table's side as the table's text is, rather than drawn whole past it.

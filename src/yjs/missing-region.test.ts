@@ -85,4 +85,28 @@ describe('a text block whose region start is lost', () => {
     expect(lines(two)).toEqual(lines(one));
     expect([one, two].every(readsAsShown)).toBe(true);
   });
+
+  it('shows the text of a region its new type does not have in the region that type has', () => {
+    const { one, two, flush } = clients([md('p', 'first'), md('r', 'next')]);
+    one.editor.commands.setSelection(caret('p', 1));
+    one.editor.commands.setBlockType('CALLOUT');
+    two.editor.commands.setSelection(caret('p', 1));
+    two.editor.commands.setBlockType('TOGGLE');
+    flush();
+    expect(one.editor.state.doc.blocks[0].type).toBe('TOGGLE');
+    expect(lines(one)).toEqual([
+      ['p', 'first'],
+      ['r', 'next'],
+    ]);
+    expect(lines(two)).toEqual(lines(one));
+    two.editor.commands.setSelection(caret('p', 5));
+    expect(two.editor.insertText('!')).toBe(true);
+    flush();
+    expect(lines(one)).toEqual([
+      ['p', 'first!'],
+      ['r', 'next'],
+    ]);
+    expect(lines(two)).toEqual(lines(one));
+    expect([one, two].every(readsAsShown)).toBe(true);
+  });
 });

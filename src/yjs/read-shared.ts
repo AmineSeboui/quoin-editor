@@ -71,14 +71,22 @@ function reader(required: RequiredRegions) {
   }
 
   function embed(value: unknown): void {
-    const name = regionNameOf(value);
+    let name = regionNameOf(value);
     stray = null;
-    if (name !== null && entry !== null && !entry.regions.some((region) => region.name === name)) {
-      const region: Region = { name, entry, segs: [] };
-      entry.regions.push(region);
-      order.push(region);
-      open = opened(region);
-      return;
+    const missing = (one: string) => !entry!.regions.some((region) => region.name === one);
+    if (name !== null && entry !== null) {
+      // A region its type does not have, which two type changes at once can leave, reads as one the type lacks.
+      const needed = required(markers.get(entry)!.type);
+      const lacking = needed.includes(name) ? undefined : needed.find(missing);
+      clean &&= lacking === undefined;
+      name = lacking ?? name;
+      if (missing(name)) {
+        const region: Region = { name, entry, segs: [] };
+        entry.regions.push(region);
+        order.push(region);
+        open = opened(region);
+        return;
+      }
     }
     clean = false;
     if (open !== null) open = opened(open.region);
@@ -133,6 +141,8 @@ function reader(required: RequiredRegions) {
  * client and never written back, so concurrent changes that leave the text out of shape are read, not repaired:
  * - a block starts at each marker; a later marker of an id already read, or one without an id, starts a stretch that
  *   is not read at all;
+ * - a region start of a region the block's type does not have reads as the first region the type needs and the block
+ *   lacks so far, when there is one;
  * - a region start the block already has, or an embed that is neither a marker, a region start nor an atom, is
  *   skipped, and the region before it goes on after it;
  * - characters outside a region join the region before them in the text, or the first region of the document when

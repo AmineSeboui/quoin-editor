@@ -12,6 +12,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 - A collaborator's caret move drawn in the same render as a change from your code, such as a command that selects a block below the fold, no longer keeps that change from scrolling it into view. A collaborator's change to the document still scrolls nothing.
 - A table's row or column menu stays open while a collaborator types in its own row or column. It still closes when a change from elsewhere moves that row or column.
 - A table cell whose region start concurrent edits took out of the shared Yjs text reads as an empty cell that can be selected and typed into, rather than a cell nobody could reach.
+- Two people changing one block's type at the same moment no longer hide the block's text: text left in a region the winning type does not have shows in that type's own region.
 - A caret in a block that a new `blocks` array changes on both sides of it stays on its character, rather than moving by the length of the later change.
 
 ## 1.0.0 (2026-10-23)

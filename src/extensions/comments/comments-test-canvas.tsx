@@ -36,7 +36,8 @@ export function mountComments(
   const onError = vi.fn();
   const currentUser = { id: 'me', name: 'Grace Hopper' };
   const extension = commentsExtension({ threads: store, currentUser, ...calls, ...options });
-  const mounted = mountTypingCanvas(blocks, { extensions: [extension], onError, ...canvas });
+  const extensions = [extension, ...(canvas.extensions ?? [])];
+  const mounted = mountTypingCanvas(blocks, { onError, ...canvas, extensions });
   const anchor = (id: string) => mounted.container.querySelector<HTMLElement>(`[data-comment="${id}"]`)!;
   const click = (element: Element) => act(() => void fireEvent.click(element));
   const mod = () => (mounted.handle().controller.isMac ? { metaKey: true } : { ctrlKey: true });

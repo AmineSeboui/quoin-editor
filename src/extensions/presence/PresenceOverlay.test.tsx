@@ -7,6 +7,7 @@ import type { QuoinEditorHandle } from '../../canvas/canvas-props';
 import type { QuoinBlock } from '../../types';
 import { yjsCollaboration } from '../../yjs/index';
 import { FakeAwareness } from '../../yjs/test-support/fake-awareness';
+import { nestedCanvas } from '../test-support/nested-canvas';
 import { portalledMenu } from '../test-support/portalled-menu';
 import { presenceExtension } from './presence-extension';
 
@@ -22,7 +23,8 @@ const at = (block: string, offset: number) => ({
   offset,
 });
 
-function setup({ readOnly = false, otherCanvas = false } = {}) {
+function setup({ readOnly = false, otherCanvas = false, nested = false } = {}) {
+  const inner = nestedCanvas();
   const awareness = new FakeAwareness(1);
   const collaboration = yjsCollaboration({
     doc: new Y.Doc(),
@@ -30,6 +32,7 @@ function setup({ readOnly = false, otherCanvas = false } = {}) {
     awareness,
   });
   const extensions = [collaborationExtension(collaboration), presenceExtension(collaboration), portalledMenu('Menu')];
+  if (nested) extensions.push(inner.extension);
   const handle: { current: QuoinEditorHandle | null } = { current: null };
   let setReadOnly: (value: boolean) => void = () => undefined;
   function Host() {
@@ -50,6 +53,7 @@ function setup({ readOnly = false, otherCanvas = false } = {}) {
   return {
     awareness,
     handle,
+    inner: inner.inner,
     view,
     setReadOnly: (value: boolean) => act(() => setReadOnly(value)),
   };
@@ -108,6 +112,15 @@ describe('presence on a canvas', () => {
     settle();
     expect(awareness.getLocalState()?.selection).toMatchObject({ head: at('a', 3) });
     act(() => screen.getByRole('button', { name: 'Their menu' }).focus());
+    expect(awareness.getLocalState()?.selection).toBeNull();
+  });
+
+  it("stops writing its selection once focus moves into a canvas drawn inside this one's tree", () => {
+    const { awareness, handle, inner } = setup({ nested: true });
+    act(() => handle.current!.focus({ block: 'a', region: 'text', offset: 3 }));
+    settle();
+    expect(awareness.getLocalState()?.selection).toMatchObject({ head: at('a', 3) });
+    act(() => inner.current!.focus());
     expect(awareness.getLocalState()?.selection).toBeNull();
   });
 

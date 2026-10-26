@@ -1,6 +1,7 @@
 import { act, cleanup, screen, within } from '@testing-library/react';
 import { axe } from 'vitest-axe';
 import { paragraph } from '../../blocks/void/test-canvas';
+import { nestedCanvas } from '../test-support/nested-canvas';
 import { portalledMenu } from '../test-support/portalled-menu';
 import { mountAi } from './ai-test-canvas';
 
@@ -148,5 +149,17 @@ describe('a Space on an empty line', () => {
     canvas.key(' ');
     expect(screen.queryByRole('combobox')).not.toBeNull();
     page.remove();
+  });
+
+  it("opens the AI menu again on an emptied line once focus went into a canvas drawn inside this one's tree", () => {
+    const { extension, inner } = nestedCanvas();
+    const canvas = mountAi([paragraph('a', 'Text'), paragraph('b', '')], {}, { extensions: [extension] });
+    canvas.caret('b', 0);
+    canvas.type('a');
+    canvas.key('Backspace');
+    act(() => inner.current!.focus());
+    canvas.caret('b', 0);
+    canvas.key(' ');
+    expect(screen.queryByRole('combobox')).not.toBeNull();
   });
 });

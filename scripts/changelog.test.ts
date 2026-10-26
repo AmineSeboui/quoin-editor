@@ -41,10 +41,10 @@ describe('the Unreleased section', () => {
     expect(version).toBe('1.0.0');
   });
 
-  it('sorts its changes under Changed, Fixed and Known limits, each a list', () => {
+  it('sorts its changes under Added, Changed, Fixed and Known limits, each a list', () => {
     const headings = [...unreleased.matchAll(/^### (.+)$/gm)].map(([, title]) => title);
     expect(headings.length).toBeGreaterThan(0);
-    expect(headings.every((title) => ['Changed', 'Fixed', 'Known limits'].includes(title))).toBe(true);
+    expect(headings.every((title) => ['Added', 'Changed', 'Fixed', 'Known limits'].includes(title))).toBe(true);
     for (const title of headings) expect(sectionOf(unreleased, `### ${title}`).trim()).toMatch(/^- /);
   });
 });

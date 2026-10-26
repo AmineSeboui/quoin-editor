@@ -2,6 +2,7 @@ import { useCallback, useRef, type RefObject } from 'react';
 import type { ViewController } from '../../view';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
 import { clipOf } from '../overflow-clip';
+import { keepReaderStill } from './keep-reader-still';
 
 const ROOM = '--quoin-ai-room';
 const GAP = 4;
@@ -23,7 +24,7 @@ function place(controller: ViewController, root: HTMLElement, layer: HTMLElement
   layer.style.transform = `translate(${left}px, ${top}px)`;
   layer.style.width = `${text.width / scale}px`;
   clipAside(layer, text, clipOf(host, root), scale);
-  root.style.setProperty(ROOM, `${layer.offsetHeight + 2 * GAP}px`);
+  keepReaderStill(root, shell, () => root.style.setProperty(ROOM, `${layer.offsetHeight + 2 * GAP}px`));
 }
 
 // Under text inside a scroller of the canvas, such as a wide table's, the answer shows only where that text can.

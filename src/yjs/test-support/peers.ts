@@ -8,9 +8,13 @@ import { yjsCollaboration, type YjsCollaborationOptions } from '../index';
 
 const SYNC = 'sync';
 
-/** Two documents that exchange updates only when told to, as two clients of a slow provider. */
-export function linkedDocs() {
+/**
+ * Two documents that exchange updates only when told to, as two clients of a slow provider. Their client ids, which
+ * decide how Yjs orders concurrent inserts, are fixed, so a run plays out the same way each time.
+ */
+export function linkedDocs(ids: readonly [number, number] = [1, 2]) {
   const docs = [new Y.Doc(), new Y.Doc()] as const;
+  docs.forEach((doc, i) => (doc.clientID = ids[i]));
   const pending: [Uint8Array[], Uint8Array[]] = [[], []];
   docs.forEach((doc, from) =>
     doc.on('update', (update: Uint8Array, origin: unknown) => {

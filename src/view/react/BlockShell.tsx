@@ -32,7 +32,7 @@ export const BlockShell = memo(function BlockShell({ block, renderers }: BlockSh
 
   useIsomorphicLayoutEffect(() => {
     const element = ref.current;
-    return hidden || element === null ? undefined : controller.registerBlockElement(block.id, element);
+    return hidden || !element ? undefined : controller.registerBlockElement(block.id, element);
   }, [controller, block.id, hidden]);
 
   if (hidden) return null;

@@ -1,5 +1,6 @@
 import type { EditorState, EngineBlock, EngineDoc, Pos, Transaction } from '../../engine';
 import { regionLength } from '../../engine/commands/block-helpers';
+import { blockById } from '../../engine/model/doc';
 import { comparePos, orderedRange } from '../../engine/model/position';
 import { primaryRegion, selectedBlockIds } from '../../engine/state/selection';
 
@@ -23,8 +24,8 @@ export type TargetRange = { readonly block: string; readonly region: string; rea
 
 export function targetOfBlocks(state: EditorState, ids: readonly string[]): AiTarget | null {
   const { doc, schema } = state;
-  const first = doc.blocks[doc.index.get(ids[0]) ?? -1];
-  const last = doc.blocks[doc.index.get(ids[ids.length - 1]) ?? -1];
+  const first = blockById(doc, ids[0]);
+  const last = blockById(doc, ids[ids.length - 1]);
   if (first === undefined || last === undefined) return null;
   const start = primaryRegion(schema, first);
   const end = primaryRegion(schema, last);
@@ -50,7 +51,7 @@ function nearestKept(tr: Transaction, target: AiTarget): EngineBlock | undefined
   const { doc } = tr.before;
   const first = doc.index.get(target.from.block) ?? 0;
   const last = doc.index.get(target.to.block) ?? first;
-  const kept = (block: EngineBlock | undefined) => block && tr.doc.blocks[tr.doc.index.get(block.id) ?? -1];
+  const kept = (block: EngineBlock | undefined) => block && blockById(tr.doc, block.id);
   for (let step = 1; first - step >= 0 || last + step < doc.blocks.length; step++) {
     const found = kept(doc.blocks[first - step]) ?? kept(doc.blocks[last + step]);
     if (found) return found;
@@ -62,7 +63,7 @@ function nearestKept(tr: Transaction, target: AiTarget): EngineBlock | undefined
 // answer goes as blocks of their own after it, or before it from the start of a block with text.
 function edgeOf(tr: Transaction, target: AiTarget): AiTarget | null {
   const point = tr.mapPos(target.from, -1);
-  const block = tr.doc.blocks[tr.doc.index.get(point.block) ?? -1] ?? nearestKept(tr, target);
+  const block = blockById(tr.doc, point.block) ?? nearestKept(tr, target);
   if (block === undefined) return null;
   const region = primaryRegion(tr.before.schema, block) ?? '';
   const length = region === '' ? 0 : regionLength(block, region);

@@ -27,9 +27,9 @@ describe('the threads beside the document', () => {
     expect(railEntries(doc, [thread('late'), gone], ended).map(({ thread: { id } }) => id)).toEqual(['late']);
   });
 
-  it('follow the host again once it sets that thread anew, as when it reopens it', () => {
+  it('leave it out while the host sets copies of it that are still open, as a store that rebuilds its threads does', () => {
     const ended = [{ id: 'gone', seen: thread('gone') }];
-    expect(railEntries(doc, [thread('gone')], ended).map(({ thread: { id } }) => id)).toEqual(['gone']);
+    expect(railEntries(doc, [thread('gone')], ended).map(({ thread: { id } }) => id)).toEqual([]);
   });
 
   it('leave out an anchor whose thread the host does not know yet', () => {

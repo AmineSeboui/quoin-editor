@@ -2,6 +2,52 @@
 
 Every release of `quoin-editor` is listed here, newest first, in the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). From 1.0.0 the package follows [semantic versioning](https://semver.org/): a breaking change waits for the next major version. Until then, Quoin was 0.x and a minor version could contain breaking changes; those known at release were marked "Breaking". The 0.x sections are kept as they were released, "Docs" headings included. Moving from 0.4 to 1.0 is covered step by step in [MIGRATION.md](MIGRATION.md). Review finding ids such as F-17 are those of the 0.4.0 review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73).
 
+## Unreleased
+
+### Added
+- `toDocx` takes an optional `baseUrl`, the address of the page the document comes from: a link or a file whose address is a relative path, such as `/files/a.pdf` or `notes/a.pdf`, is linked to that address read against it, rather than written as its text. A network path (`//host/x`, `\\host\share`, `/\host`) and a fragment such as `#top` stay text. A base that is not an absolute `http` or `https` address is ignored, a user and password in it are left out of the links, and an empty link stays text.
+- `commentsExtension` takes an optional `initialLayout: 'wide' | 'narrow'`, the layout drawn on the server and in the first render before the canvas is measured, so a server-rendered wide canvas no longer shifts by 236 px as it hydrates. The default stays `'narrow'`.
+
+### Changed
+- `Transaction` and `ViewController` keep their private state in native private fields, so a proxy around one of them, such as Vue's `reactive` or Valtio's `proxy`, cannot read it and its methods throw: wrap the object that holds them, not these instances.
+- The transaction that moves the caret to where text is dropped has the `drop` origin, rather than `command`.
+- Docs: chains merge the meta of every part, so a key one part set is seen on the whole chain (extensions page).
+- Docs: two clients can hold a table's alignment as no `align` or as `align: [null, null]`, which the editor and `QuoinDiff` treat as equal; a host comparing saved JSON should normalise `align` (collaboration page).
+- Docs: typing into a block whose region another edit took out can bring along text waiting before it, which then shows one block higher on every client (collaboration page).
+- Docs: edits a headless editor makes while unmounted stay local and are not sent when it connects again (collaboration page).
+- Docs: the `onError` of `yjsCollaboration` is the adapter's own, apart from the canvas's; pass both the same handler (collaboration page).
+
+### Fixed
+- Under a collaboration, `editor.chain().undo().run()` and `editor.chain().redo().run()` undo and redo when the chain holds nothing else, rather than doing nothing. A chain that holds other commands as well still does nothing.
+- A canvas rendered on the server, as with `react-dom/server`, leaves out a code token's `color` that holds what could leave the declaration or load a resource (any of `;` `{` `}` `\` `"` `'` `<` `>` `!`, a `/*`, or `url(`, `image(`, `image-set(` or `expression(`), rather than writing a value such as `red;background-image:url(...)` into the page as it is, and the canvas in the browser leaves out the same values. Other colours, such as `var(--name, #fff)`, `hsl(var(--primary))`, `color-mix()` and `light-dark()`, are drawn by the canvas as in 1.0, and now by `QuoinView` too, which uses the same rule.
+- `toHTML`, `QuoinView` and `QuoinDiff` no longer write an empty accessible name: an empty `taskLabel` names a task with no text `Task` (in `QuoinDiff`, the `emptyTask` label, and `Task` when that is empty too), and a frame whose `frameTitle` is empty is titled with its provider's name, or with its page's address when the provider has no name.
+- `toDocx` writes a link to an `http` or `https` address with no host, such as `http:foo` or `http://?x`, as its text, as it does other targets Word cannot open, rather than as a hyperlink.
+- With presence, a long collaborator name at the end of a line is cut off where the avatars' gutter begins, rather than over the avatars.
+- With presence, a collaborator's caret near the side of a wide table, and its name, are cut off at the table's side as the table's text is, rather than drawn whole past it.
+- With presence, a collaborator's caret, and with `quoin-editor/ai` an answer, in a scroller that sits inside another box that clips what overflows, such as a table in a custom block, is clipped by both, rather than only by the nearest one.
+- With presence, a collaborator's caret in a wide table moves with the table as it scrolls, rather than a frame behind it.
+- With `quoin-editor/ai`, the room kept under a block for its answer no longer adds to the block's bottom padding or to the row gap of a flex or grid canvas under a block another block follows: the answer takes that space first, and the room makes up only the rest. Padding the block paints, with a bottom border or a background, is left to the block.
+- With `quoin-editor/ai`, an answer growing above the part of the page being read no longer pushes that text down in a browser without scroll anchoring, such as Safari, or on a page that turns scroll anchoring off, smooth `scroll-behavior` or not, and in a canvas that scrolls itself.
+- With `quoin-editor/comments`, a thread just resolved or deleted no longer comes back for a moment when your store sets new copies of threads that have not changed before it records the resolution. It comes back once your store, having resolved or removed it, reopens it.
+- With `quoin-editor/comments`, a selection your code sets, as a command or an AI answer does, no longer closes a thread a click opened, "Text removed" included: only the writer's own caret moves close it, an undo, a redo and a drop included.
+- With `quoin-editor/comments`, a thread a click opened closes once the writer moves the caret out of its text, rather than staying open over the lines they go on to type.
+- A canvas drawn inside another canvas's tree owns its own text, menus and popovers: focus in them no longer counts as focus in the outer canvas, which kept the inner canvas's presence, comments and AI from seeing it as their own and let the outer canvas's go on as if focused.
+- With `quoin-editor/yjs`, a row two people add to a table at the same moment, followed by a move of the table and a new column, no longer has one client write cell text at the wrong place, which split it across cells for the others.
+- With `quoin-editor/yjs`, deleting a table while someone adds or removes one of its rows or columns no longer leaves hidden regions in the line after it, over which Enter threw: the cell text shows at the end of that line.
+- Presence on a second editor given a `yjsCollaboration` that already serves one, which stays unconnected, no longer writes to the awareness: unmounting it no longer takes the person and their selection out while the first canvas is still mounted.
+- An editor that disconnects from a `yjsCollaboration` and connects again within a frame, as StrictMode or a quick remount does, keeps what it can undo and redo. A collaboration left disconnected longer lets its undo history go, as in 1.0.
+- `yjsCollaboration` reports to its `onError` a change from the shared document that does not apply to the editor, as the error applying it raised, before the editor takes the document as the shared text reads, rather than recovering in silence.
+- A block that a collaborator's change leaves selected as a whole comes into view with the writer's next change, rather than only once the selection leaves it and comes back.
+- A collaborator's caret move drawn in the same render as a change from your code, such as a command that selects a block below the fold, no longer keeps that change from scrolling it into view. A collaborator's change to the document still scrolls nothing.
+- A table's row or column menu stays open while a collaborator types in its own row or column. It still closes when a change from elsewhere moves that row or column.
+- Two people changing one block's type at the same moment no longer hide the block's text: text left in a region the winning type does not have shows in that type's own region.
+- A caret in a block that a new `blocks` array changes on both sides of it stays on its character, rather than moving by the length of the later change.
+
+### Known limits
+- A task's checkbox and an embed's frame in the canvas still get no name when a host's `task` or `frameTitle` label is empty or blank, and a `taskLabel` or `frameTitle` of spaces only gives `toHTML`, `QuoinView` and `QuoinDiff` a blank name.
+- With presence, a collaborator's caret can stay off its character after a style change that reflows the text without resizing its block, until the next change, scroll or resize.
+- With `quoin-editor/yjs`, a table cell whose region concurrent row and column edits took out cannot be selected or typed into until the table is rewritten, as by adding or removing a row or a column. This is as in 1.0.0.
+
 ## 1.0.0 (2026-10-23)
 
 Quoin 1.0 replaces the 0.4 canvas, a card per block with a textarea opened to edit it, by an editor of its own: an engine with no dependency, a view that types into the page in place, and a canvas UI on top. A 0.4 document loads as it is, and the 0.4 `BlockCanvas` props keep their names. [MIGRATION.md](MIGRATION.md) lists what a 0.4 host changes.

@@ -106,6 +106,8 @@ describe('the local selection written to awareness', () => {
     peer.unmount();
     expect(peer.awareness.getLocalState()?.selection).toBeNull();
     expect(peer.awareness.listeners.size).toBe(0);
+    // The collaboration lets its undo history go a frame after it disconnects.
+    vi.advanceTimersByTime(16);
     expect(vi.getTimerCount()).toBe(0);
   });
 });

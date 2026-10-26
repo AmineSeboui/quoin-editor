@@ -4,7 +4,6 @@ import type { ViewController } from '../controller/view-controller';
 import { entersAsNode } from '../navigation/node-entry';
 import { caretPosAt, hostAt } from '../selection/pointer-targets';
 import { pasteTransfer, transferFiles } from './paste-transfer';
-import { dispatchSelection } from '../controller/dispatch-selection';
 
 const DROPPABLE = ['Files', 'text/plain', 'text/html'];
 
@@ -34,7 +33,7 @@ export function handleDrop(controller: ViewController, event: DragEvent): void {
     return;
   }
   const pos = dropPos(controller, event.clientX, event.clientY);
-  if (pos) dispatchSelection(controller, textSelection(pos));
+  if (pos) controller.dispatch(controller.editor.createTransaction().setSelection(textSelection(pos)).setOrigin('drop'));
   pasteTransfer(controller, dataTransfer);
 }
 

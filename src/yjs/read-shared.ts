@@ -71,14 +71,24 @@ function reader(required: RequiredRegions) {
   }
 
   function embed(value: unknown): void {
-    const name = regionNameOf(value);
+    let name = regionNameOf(value);
     stray = null;
-    if (name !== null && entry !== null && !entry.regions.some((region) => region.name === name)) {
-      const region: Region = { name, entry, segs: [] };
-      entry.regions.push(region);
-      order.push(region);
-      open = opened(region);
-      return;
+    const missing = (one: string) => !entry!.regions.some((region) => region.name === one);
+    if (name !== null && entry !== null) {
+      // A region a text block's type does not have, which concurrent type changes or table edits can leave, reads as
+      // one the type lacks, or as none.
+      const needed = required(markers.get(entry)!.type);
+      if (needed.length > 0 && !needed.includes(name)) {
+        clean = false;
+        name = needed.find(missing) ?? null;
+      }
+      if (name !== null && missing(name)) {
+        const region: Region = { name, entry, segs: [] };
+        entry.regions.push(region);
+        order.push(region);
+        open = opened(region);
+        return;
+      }
     }
     clean = false;
     if (open !== null) open = opened(open.region);
@@ -132,6 +142,8 @@ function reader(required: RequiredRegions) {
  * client and never written back, so concurrent changes that leave the text out of shape are read, not repaired:
  * - a block starts at each marker; a later marker of an id already read, or one without an id, starts a stretch that
  *   is not read at all;
+ * - in a block whose type needs regions, a region start of a region the type does not have reads as the first region
+ *   the type needs and the block lacks so far, or is skipped when there is none;
  * - a region start the block already has, or an embed that is neither a marker, a region start nor an atom, is
  *   skipped, and the region before it goes on after it;
  * - characters outside a region join the region before them in the text, or the first region of the document when

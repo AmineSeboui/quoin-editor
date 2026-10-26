@@ -1,12 +1,12 @@
 import { useRef, type CSSProperties } from 'react';
-import { getPluginState, type EditorState, type Selection } from '../../engine';
+import { getPluginState, type EditorState } from '../../engine';
+import { headBlockId } from '../../engine/commands/block-helpers';
+import { sameValue } from '../../engine/model/same-value';
 import { useEditorState, type ViewController } from '../../view';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
+import { followLayout } from './follow-layout';
 import type { PresenceLabels } from './presence-labels';
 import { presenceKey, type Peer } from './presence-plugin';
-
-const headBlock = (selection: Selection): string =>
-  selection.kind === 'node' ? selection.block : selection.kind === 'blocks' ? selection.head : selection.head.block;
 
 const initials = (name: string) =>
   name
@@ -23,13 +23,11 @@ function groupsOf(state: EditorState): readonly Group[] {
   const byBlock = new Map<string, Pick<Peer, 'client' | 'name' | 'color'>[]>();
   for (const { client, name, color, selection } of getPluginState(state, presenceKey)) {
     if (selection === null) continue;
-    const block = headBlock(selection);
+    const block = headBlockId(selection)!;
     byBlock.set(block, [...(byBlock.get(block) ?? []), { client, name, color }]);
   }
   return [...byBlock];
 }
-
-const sameGroups = (a: readonly Group[], b: readonly Group[]) => JSON.stringify(a) === JSON.stringify(b);
 
 function place(controller: ViewController, root: HTMLElement, group: HTMLElement): void {
   const shell = controller.blockElement(group.dataset.block ?? '');
@@ -41,30 +39,15 @@ function place(controller: ViewController, root: HTMLElement, group: HTMLElement
 
 /** Avatars at the end of the first line of each block someone else's selection is in, named for screen readers. */
 export function PresenceAvatars({ controller, labels }: { controller: ViewController; labels: PresenceLabels }) {
-  const groups = useEditorState(controller, groupsOf, sameGroups);
+  const groups = useEditorState(controller, groupsOf, sameValue);
   const box = useRef<HTMLDivElement>(null);
 
   // Placed in place rather than through React state, as the gutter is, once the frame's edits have reached the blocks.
   useIsomorphicLayoutEffect(() => {
     const root = controller.root;
-    const view = root?.ownerDocument.defaultView;
-    if (!root || !view || box.current === null) return undefined;
+    if (!root || box.current === null) return undefined;
     const children = Array.from(box.current.children) as HTMLElement[];
-    const update = () => children.forEach((group) => place(controller, root, group));
-    update();
-    let frame = 0;
-    const later = () => {
-      view.cancelAnimationFrame(frame);
-      frame = view.requestAnimationFrame(update);
-    };
-    const unsubscribe = controller.editor.subscribe(later);
-    const observer = new ResizeObserver(later);
-    observer.observe(root);
-    return () => {
-      view.cancelAnimationFrame(frame);
-      unsubscribe();
-      observer.disconnect();
-    };
+    return followLayout(controller, root, () => children.forEach((group) => place(controller, root, group)));
   }, [controller, groups]);
 
   return (

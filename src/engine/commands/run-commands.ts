@@ -3,7 +3,7 @@ import { sameSelection } from '../state/selection';
 import { Transaction, UNFILTERED, type TransactionOrigin } from '../state/transaction';
 import type { Command } from './command';
 
-/** The dispatch a chain hands its commands, so a command that applies its change elsewhere can refuse a chain. */
+/** The dispatch a chain of several commands hands them, so a command applying its change elsewhere can refuse it. */
 export const chainDispatches = new WeakSet<(tr: Transaction) => void>();
 
 const movesHistory = (tr: Transaction) => tr.getMeta('history') !== undefined;
@@ -44,7 +44,7 @@ export function runCommands(
     parts.push(tr);
     current = applyTransaction(current, tr);
   };
-  chainDispatches.add(collect);
+  if (commands.length > 1) chainDispatches.add(collect);
   for (const command of commands) {
     if (!command(current, collect)) return { ok: false, tr: null };
   }

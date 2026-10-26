@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, type RefObject } from 'react';
+import { listen } from '../../view/dom/listen';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
 
 /**
@@ -32,11 +33,6 @@ export function useOutsidePress(
       if (touched !== null && !inside(event.target)) latest.current(touched);
       touched = null;
     };
-    doc.addEventListener('pointerdown', down, true);
-    doc.addEventListener('click', click, true);
-    return () => {
-      doc.removeEventListener('pointerdown', down, true);
-      doc.removeEventListener('click', click, true);
-    };
+    return listen(doc, { pointerdown: down, click }, true);
   }, [element, ownerDocument]);
 }

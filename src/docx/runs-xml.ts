@@ -15,9 +15,9 @@ const textXml = (text: string) => text.split(/\r\n|\r|\n/).map(lineXml).join('<w
 export const runXml = (text: string, props: RunProps = {}): string =>
   text === '' ? '' : xmlElement('w:r', {}, runPropertiesXml(props) + textXml(text));
 
-function linkOf(marks: readonly Mark[]): string | null {
+function linkOf(marks: readonly Mark[], baseUrl: string | undefined): string | null {
   const link = marks.find((mark) => mark.type === 'link');
-  return link ? wordLink(link.attrs?.href ?? '') : null;
+  return link ? wordLink(link.attrs?.href ?? '', baseUrl) : null;
 }
 
 function nodeRun(node: InlineNode, ctx: DocxContext, base: RunProps, linked: boolean): string {
@@ -37,7 +37,7 @@ export function runsXml(inline: Inline | undefined, ctx: DocxContext, base: RunP
     runs = '';
   };
   for (const node of inline ?? []) {
-    const href = linkOf(node.marks);
+    const href = linkOf(node.marks, ctx.baseUrl);
     if (href !== open) {
       flush();
       open = href;

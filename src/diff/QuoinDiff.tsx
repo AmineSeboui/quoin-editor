@@ -50,6 +50,6 @@ export function QuoinDiff({ before, after, blockTypes, labels, highlight, classN
   const { blocks, marks } = diffDocument(before, after, schema);
   const slots = new Map<HtmlElement, ReactNode>();
   const render = diffRenderer(marks, words, viewRenderer({ blockTypes, highlight }, slots));
-  const nodes = documentNodes(blocks, { ...options, schema, taskLabel: options.taskLabel ?? words.emptyTask }, render);
+  const nodes = documentNodes(blocks, { ...options, schema, taskLabel: options.taskLabel || words.emptyTask }, render);
   return createElement('div', { className: className ? `quoin-diff ${className}` : 'quoin-diff' }, ...reactNodes(settledDiff(nodes), slots));
 }

@@ -1,9 +1,13 @@
 import type { ViewController } from '../view';
 import { focusOwners } from '../view/react/focus-owners';
 
-/** Whether `node` is in the canvas, or in a menu, popover or toolbar the canvas portals out of it. */
+/**
+ * Whether `node` is in the canvas, or in a menu, popover or toolbar the canvas portals out of it: an element that took
+ * focus belongs to the innermost canvas around it in React's tree, even one drawn inside another canvas's root.
+ */
 export function ownsNode(controller: ViewController, node: EventTarget | null): boolean {
-  return focusOwners.get(node!) === controller || !!controller.root?.contains(node as Node | null);
+  const owner = focusOwners.get(node!);
+  return owner ? owner === controller : !!controller.root?.contains(node as Node | null);
 }
 
 /**

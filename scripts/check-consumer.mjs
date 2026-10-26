@@ -1,7 +1,8 @@
 import { execFileSync } from 'node:child_process';
-import { cpSync, mkdirSync, mkdtempSync, readdirSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { yjsInstalls } from './consumer-yjs.mjs';
 import { codeSamples, readText, root, samplePages } from './docs-sources.mjs';
 import { specifier } from './entry-outputs.mjs';
 import { packageEntries } from './package-entries.mjs';
@@ -25,10 +26,6 @@ run(
   ],
   work,
 );
-// yjs is an optional peer, so the package installs without it; the yjs entry and its README sample then need it. Its
-// lib0 is held at the last release whose declarations TypeScript 5.4 reads: later ones write Uint8Array<ArrayBuffer>,
-// which needs TypeScript 5.7.
-run('npm', ['install', '--no-audit', '--no-fund', 'yjs@13.6.33', 'lib0@0.2.111'], work);
 
 const samples = join(work, 'samples');
 mkdirSync(samples);
@@ -46,17 +43,24 @@ for (const { slug, path } of samplePages()) {
   });
 }
 
-writeFileSync(
-  join(work, 'tsconfig.json'),
-  JSON.stringify({
-    compilerOptions: {
-      target: 'ES2022', lib: ['ES2022', 'DOM', 'DOM.Iterable'], module: 'ESNext', moduleResolution: 'bundler',
-      jsx: 'react-jsx', strict: true, noEmit: true, skipLibCheck: false, isolatedModules: true, types: [],
-    },
-    include: ['samples'],
-  }),
-);
-run(join(work, 'node_modules', '.bin', 'tsc'), ['-p', '.'], work);
+// yjs is an optional peer, so the package installs without it; the yjs entry and its samples then need it.
+for (const { uninstall = [], install, skipLibCheck } of yjsInstalls) {
+  if (uninstall.length > 0) run('npm', ['uninstall', '--no-audit', '--no-fund', ...uninstall], work);
+  run('npm', ['install', '--no-audit', '--no-fund', ...install], work);
+  writeFileSync(
+    join(work, 'tsconfig.json'),
+    JSON.stringify({
+      compilerOptions: {
+        target: 'ES2022', lib: ['ES2022', 'DOM', 'DOM.Iterable'], module: 'ESNext', moduleResolution: 'bundler',
+        jsx: 'react-jsx', strict: true, noEmit: true, skipLibCheck, isolatedModules: true, types: [],
+      },
+      include: ['samples'],
+    }),
+  );
+  run(join(work, 'node_modules', '.bin', 'tsc'), ['-p', '.'], work);
+  const versionOf = (name) => JSON.parse(readFileSync(join(work, 'node_modules', name, 'package.json'))).version;
+  console.log(`Typechecked against yjs ${versionOf('yjs')}, lib0 ${versionOf('lib0')}, skipLibCheck ${skipLibCheck}.`);
+}
 
 // Every entry resolves, and so does the manifest, which tooling reads from a package it is given.
 const resolver = JSON.stringify(join(work, 'resolve-probe.cjs'));
@@ -80,4 +84,4 @@ if (react === '18') {
   run(process.execPath, ['server-render.mjs'], work);
 }
 
-console.log(`The packed package typechecks for a consumer on React ${react} and TypeScript 5.4, with every entry and every sample of the README, the migration guide and the docs.`);
+console.log(`The packed package typechecks for a consumer on React ${react} and TypeScript 5.4, with every entry and every sample of the README, the migration guide and the docs, against yjs with lib0 held and as installed today.`);

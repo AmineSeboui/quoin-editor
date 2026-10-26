@@ -1,7 +1,9 @@
 import { useCallback, useRef, type RefObject } from 'react';
 import type { ViewController } from '../../view';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
-import { clipOf } from '../overflow-clip';
+import { clipBoxes } from '../overflow-clip';
+import { keepReaderStill } from './keep-reader-still';
+import { spaceBelow } from './space-below';
 
 const ROOM = '--quoin-ai-room';
 const GAP = 4;
@@ -18,19 +20,20 @@ function place(controller: ViewController, root: HTMLElement, layer: HTMLElement
   const scale = origin.width / root.offsetWidth || 1;
   const below = shell.getBoundingClientRect();
   const text = host.getBoundingClientRect();
+  const { padding, gap } = spaceBelow(shell);
   const left = (text.left - origin.left) / scale - root.clientLeft + root.scrollLeft;
-  const top = (below.bottom - origin.top) / scale - root.clientTop + root.scrollTop + GAP;
+  const top = (below.bottom - origin.top) / scale - padding - root.clientTop + root.scrollTop + GAP;
   layer.style.transform = `translate(${left}px, ${top}px)`;
   layer.style.width = `${text.width / scale}px`;
-  clipAside(layer, text, clipOf(host, root), scale);
-  root.style.setProperty(ROOM, `${layer.offsetHeight + 2 * GAP}px`);
+  clipAside(layer, text, clipBoxes(host, root), scale);
+  const room = Math.max(0, layer.offsetHeight + 2 * GAP - padding - gap);
+  keepReaderStill(root, shell, () => root.style.setProperty(ROOM, `${room}px`));
 }
 
-// Under text inside a scroller of the canvas, such as a wide table's, the answer shows only where that text can.
-function clipAside(layer: HTMLElement, text: DOMRect, clip: HTMLElement | null, scale: number): void {
-  const area = clip?.getBoundingClientRect();
-  const start = area === undefined ? 0 : Math.max(0, area.left - text.left) / scale;
-  const end = area === undefined ? 0 : Math.max(0, text.right - area.right) / scale;
+// Under text inside scrollers of the canvas, such as a wide table's, the answer shows only where that text can.
+function clipAside(layer: HTMLElement, text: DOMRect, areas: DOMRect[], scale: number): void {
+  const start = Math.max(0, ...areas.map((area) => area.left - text.left)) / scale;
+  const end = Math.max(0, ...areas.map((area) => text.right - area.right)) / scale;
   layer.style.clipPath = start > 0 || end > 0 ? `inset(0 ${end}px 0 ${start}px)` : '';
   if (start + end >= text.width / scale && text.width > 0) layer.style.visibility = 'hidden';
 }

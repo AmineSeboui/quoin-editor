@@ -1,5 +1,5 @@
 import type * as Y from 'yjs';
-import { applyRemote } from '../engine/collab/apply-remote';
+import { applyRemote, sharedChange } from '../engine/collab/apply-remote';
 import type { CommandFactories } from '../engine/commands/chain';
 import type { Editor } from '../engine/extension/editor';
 import { sameDoc } from '../engine/model/same-doc';
@@ -7,12 +7,11 @@ import type { Transaction } from '../engine/state/transaction';
 import { replaceDocStep } from '../engine/transform/replace-doc-step';
 import { holdSelection, restoreSelection, type HeldSelection } from './carets';
 import { writeLocalSteps } from './local-to-yjs';
-import { ownChange } from './own-change';
 import { readShared } from './read-shared';
 import { requiredRegions } from './required-regions';
 import { seedOrLoad, type Seed } from './seed';
 import type { Shared } from './shared';
-import { undoHistory, type UndoHistory } from './undo-history';
+import type { UndoHistory } from './undo-history';
 import { readRemote } from './yjs-to-steps';
 
 export type Origins = {
@@ -24,7 +23,6 @@ export type Origins = {
 
 export type Binding = {
   readonly editor: Editor<CommandFactories>;
-  readonly history: UndoHistory;
   readonly shared: Shared;
   local(tr: Transaction): void;
   travel(direction: 'undo' | 'redo'): boolean;
@@ -35,13 +33,15 @@ export type Binding = {
 export function bind(
   editor: Editor<CommandFactories>,
   text: Y.Text,
-  { origins, seed }: { origins: Origins; seed: Seed },
+  options: { origins: Origins; seed: Seed; onError: (error: Error) => void; history: () => UndoHistory },
 ): Binding {
+  const { origins, seed, onError } = options;
   const doc = text.doc!;
   const required = requiredRegions(editor.state.schema);
   const layout = seedOrLoad(editor, text, { origin: origins.local, seed, required });
+  // Taken once the text is seeded, so that undo never takes the seeding back.
+  const history = options.history();
   const shared: Shared = { text, layout, stale: false, required };
-  const history = undoHistory(text, origins.local);
   const ours = (origin: unknown) => origin === origins.local || origin === origins.untracked;
   let held: HeldSelection = null;
   const written = new WeakSet<Transaction>();
@@ -50,13 +50,16 @@ export function bind(
   };
   const observer = (events: Y.YEvent<Y.AbstractType<unknown>>[], transaction: Y.Transaction) => {
     if (ours(transaction.origin)) return;
-    const { steps, structural } = readRemote(shared, events, editor.state.doc);
-    if (steps.length === 0) return;
-    if (transaction.origin !== history.manager)
-      return applyRemote(editor, steps, structural ? restoreSelection(text, shared.layout, held) : null);
-    const tr = ownChange(editor, steps, history.hint());
-    written.add(tr);
-    editor.dispatch(tr);
+    const { steps, structural, failed } = readRemote(shared, events, editor.state.doc);
+    if (steps.length > 0 && transaction.origin !== history.manager) {
+      applyRemote(editor, steps, structural ? restoreSelection(text, shared.layout, held) : null);
+    } else if (steps.length > 0) {
+      const tr = sharedChange(editor, steps, history.hint(), 'history');
+      written.add(tr);
+      editor.dispatch(tr);
+    }
+    // Reported once the editor has taken the shared document, so that a handler that throws leaves no drift behind.
+    if (failed) onError(failed);
   };
   // A change written over a text that is out of shape can read back as another document: the editor takes that one.
   const settle = () => {
@@ -69,7 +72,6 @@ export function bind(
   text.observeDeep(observer);
   return {
     editor,
-    history,
     shared,
     local(tr) {
       if (written.has(tr)) return;
@@ -84,7 +86,6 @@ export function bind(
     stop() {
       doc.off('beforeTransaction', hold);
       text.unobserveDeep(observer);
-      history.destroy();
     },
   };
 }

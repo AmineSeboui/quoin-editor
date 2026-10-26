@@ -14,6 +14,15 @@ const ai = {
   push: (page: Page, chunk: string) => page.evaluate((text) => window.__quoinAi!.push(text), chunk),
   end: (page: Page) => page.evaluate(() => window.__quoinAi!.end()),
 };
+// A collaborator's name fades 2 seconds after their last move; a scan that starts before the fade and runs through it
+// reads the half-faded name. Scanned once every name has faded, as the names of collaborators who keep still do.
+async function scan(page: Page) {
+  for (const caret of await page.locator('.quoin-presence-caret').all()) {
+    await expect(caret).toHaveAttribute('data-idle', '', { timeout: 4000 });
+  }
+  return axeViolations(page, 'all', '.quoin');
+}
+
 const head = (page: Page) =>
   page.evaluate(() => {
     const selection = window.__quoin.controller!.editor.state.selection;
@@ -82,7 +91,7 @@ test.describe('collaboration, presence, comments and AI together on two pages', 
     await expect.poll(() => markdown(bea, 'p')).toBe(anchored);
     await expect(rail(bea).getByRole('button', { name: /^Make/ })).toContainText('1 comment');
     await expect(bea.locator('.quoin-ai-ghost')).toHaveText('One more');
-    expect(await axeViolations(bea, 'all', '.quoin')).toEqual([]);
+    expect(await scan(bea)).toEqual([]);
     await page.keyboard.press('Escape');
     await expect(hostOf(page, 'p')).toBeFocused();
     await expect(caretOf(bea, 'Ada Lovelace')).toBeVisible();
@@ -100,8 +109,8 @@ test.describe('collaboration, presence, comments and AI together on two pages', 
     await expect(caretOf(page, 'Bea')).toBeVisible();
     await expect.poll(() => caretWhereItIs(page, 'Bea', bea)).toBe(true);
     await expect.poll(() => caretWhereItIs(bea, 'Ada Lovelace', page)).toBe(true);
-    expect(await axeViolations(page, 'all', '.quoin')).toEqual([]);
-    expect(await axeViolations(bea, 'all', '.quoin')).toEqual([]);
+    expect(await scan(page)).toEqual([]);
+    expect(await scan(bea)).toEqual([]);
     expect(await changes(page)).toBe(before + 1);
   });
 

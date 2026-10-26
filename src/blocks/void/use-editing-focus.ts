@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, type RefObject, type SyntheticEvent } from 'react';
+import { listen } from '../../view/dom/listen';
 
 const FOCUSABLE = [
   'input:not([disabled])',
@@ -48,13 +49,11 @@ export function useEditingFocus(
     const leaveUnlessInside = (event: Event) => {
       if (!inside.current.has(event)) stop();
     };
-    doc.addEventListener('pointerdown', leaveForCanvas, true);
-    doc.addEventListener('pointerdown', leaveUnlessInside);
-    doc.addEventListener('focusin', leaveUnlessInside);
+    const unlistenCapture = listen(doc, { pointerdown: leaveForCanvas }, true);
+    const unlisten = listen(doc, { pointerdown: leaveUnlessInside, focusin: leaveUnlessInside });
     return () => {
-      doc.removeEventListener('pointerdown', leaveForCanvas, true);
-      doc.removeEventListener('pointerdown', leaveUnlessInside);
-      doc.removeEventListener('focusin', leaveUnlessInside);
+      unlistenCapture();
+      unlisten();
     };
   }, [root, editing, stop]);
 

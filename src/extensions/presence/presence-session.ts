@@ -1,4 +1,5 @@
 import type * as Y from 'yjs';
+import { sharedChange } from '../../engine/collab/apply-remote';
 import type { CommandFactories } from '../../engine/commands/chain';
 import type { Editor } from '../../engine/extension/editor';
 import { getPluginState } from '../../engine/state/editor-state';
@@ -47,8 +48,11 @@ export function startPresence(
   let timer: ReturnType<typeof setTimeout> | undefined;
   let dirty = false;
 
+  // An editor the collaboration did not connect, as a second one it was given, leaves awareness to the first.
+  const bound = sharedOf() !== null;
   // This client's own writes change nothing it draws, so they are not read back.
   const put = (field: string, value: unknown) => {
+    if (!bound) return;
     writing = true;
     try {
       awareness.setLocalStateField(field, value);
@@ -106,8 +110,7 @@ export function startPresence(
       for (const listener of [...link.listeners]) listener({ joined, left });
     heard = true;
     if (samePeers(peers, before)) return;
-    const tr = editor.createTransaction().setOrigin('remote').setMeta('addToHistory', false);
-    editor.dispatch(tr.setMeta(PRESENCE, peers));
+    editor.dispatch(sharedChange(editor, []).setMeta(PRESENCE, peers));
   };
   const changed = () => {
     if (!writing) refresh();
@@ -145,6 +148,6 @@ export function startPresence(
       });
     },
   };
-  namedBy.set(awareness, session);
+  if (bound) namedBy.set(awareness, session);
   return session;
 }

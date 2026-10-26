@@ -24,6 +24,14 @@ export const isAtomEmbed = (embed: unknown): embed is { atom: string; attrs: Rec
 
 export const definedEntries = (attrs: BlockAttrs) => Object.entries(attrs).filter(([, value]) => value !== undefined);
 
+/** The attrs map of a block's marker, or null once one holding `attrs` is put in place of a value that is not a map. */
+export function attrsMap(marker: Y.Map<unknown>, attrs: BlockAttrs): Y.Map<unknown> | null {
+  const current = marker.get('attrs');
+  if (current instanceof Y.Map) return current;
+  marker.set('attrs', new Y.Map<unknown>(definedEntries(attrs)));
+  return null;
+}
+
 /** The marker that starts a block: a map of its `id`, `type`, `indent` and `attrs`, the last a map of its own. */
 export function markerOf(block: EngineBlock): Y.Map<unknown> {
   return new Y.Map<unknown>([

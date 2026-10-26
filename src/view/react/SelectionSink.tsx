@@ -22,7 +22,7 @@ export function SelectionSink({ label = 'Selected content', blockLabel }: Select
 
   useIsomorphicLayoutEffect(() => {
     const sink = ref.current;
-    return sink === null ? undefined : controller.registerSink(sink);
+    return sink ? controller.registerSink(sink) : undefined;
   }, [controller]);
 
   return (

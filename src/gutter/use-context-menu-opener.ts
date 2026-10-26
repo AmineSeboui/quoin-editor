@@ -3,6 +3,7 @@ import type { CanvasUiStore } from '../canvas/ui-store';
 import { isTextFlow } from '../engine/commands/block-helpers';
 import { blockById } from '../engine/model/doc';
 import type { ViewController } from '../view';
+import { listen } from '../view/dom/listen';
 import { NATIVE_INTERACTION } from '../view/selection/native-interaction';
 import { openBlockMenuAt } from './block-menu-state';
 
@@ -53,11 +54,6 @@ export function useContextMenuOpener(
       hidden.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX, clientY }));
     };
 
-    root.addEventListener('mousedown', onMouseDown);
-    root.addEventListener('contextmenu', onContextMenu);
-    return () => {
-      root.removeEventListener('mousedown', onMouseDown);
-      root.removeEventListener('contextmenu', onContextMenu);
-    };
+    return listen(root, { mousedown: onMouseDown, contextmenu: onContextMenu });
   }, [controller, store, trigger]);
 }

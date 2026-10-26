@@ -38,73 +38,67 @@ function docOf(blocks: EngineBlock[]): EngineDoc {
 }
 
 function reader(json: StepJSON) {
-  const read = <T>(key: string, accept: (value: unknown) => value is T): T => {
+  return <T>(key: string, accept: (value: unknown) => value is T): T => {
     const value = json[key];
     if (!accept(value)) throw new StepError(`invalid "${key}" in a ${json.stepType} step`);
     return value;
   };
-  return {
-    string: (key: string) => read(key, isString),
-    integer: (key: string) => read(key, isInteger),
-    inline: (key: string) => read(key, isInline),
-    record: (key: string) => read(key, isRecord),
-    mark: (key: string) => read(key, isMark),
-    markOrType: (key: string) => read(key, isMarkOrType),
-    block: (key: string) => read(key, isBlock),
-    blocks: (key: string) => read(key, areBlocks),
-    created: (key: string) => read(key, isCreated),
-  };
 }
 
 export function stepFromJSON(json: StepJSON): Step {
-  const get = reader(json);
+  const read = reader(json);
   switch (json.stepType) {
     case 'replaceInline':
       return replaceInlineStep(
-        get.string('block'),
-        get.string('region'),
-        get.integer('from'),
-        get.integer('to'),
-        get.inline('slice'),
+        read('block', isString),
+        read('region', isString),
+        read('from', isInteger),
+        read('to', isInteger),
+        read('slice', isInline),
       );
     case 'addMark':
       return addMarkStep(
-        get.string('block'),
-        get.string('region'),
-        get.integer('from'),
-        get.integer('to'),
-        get.mark('mark'),
+        read('block', isString),
+        read('region', isString),
+        read('from', isInteger),
+        read('to', isInteger),
+        read('mark', isMark),
       );
     case 'removeMark':
       return removeMarkStep(
-        get.string('block'),
-        get.string('region'),
-        get.integer('from'),
-        get.integer('to'),
-        get.markOrType('mark'),
+        read('block', isString),
+        read('region', isString),
+        read('from', isInteger),
+        read('to', isInteger),
+        read('mark', isMarkOrType),
       );
     case 'setAttrs':
-      return setAttrsStep(get.string('block'), patchFromJSON(get.record('patch')));
+      return setAttrsStep(read('block', isString), patchFromJSON(read('patch', isRecord)));
     case 'setIndent':
-      return setIndentStep(get.string('block'), get.integer('indent'));
+      return setIndentStep(read('block', isString), read('indent', isInteger));
     case 'insertBlocks':
-      return insertBlocksStep(get.integer('index'), get.blocks('blocks'));
+      return insertBlocksStep(read('index', isInteger), read('blocks', areBlocks));
     case 'removeBlocks':
-      return removeBlocksStep(get.integer('index'), get.integer('count'));
+      return removeBlocksStep(read('index', isInteger), read('count', isInteger));
     case 'moveBlocks':
-      return moveBlocksStep(get.integer('from'), get.integer('count'), get.integer('to'));
+      return moveBlocksStep(read('from', isInteger), read('count', isInteger), read('to', isInteger));
     case 'replaceBlock':
-      return replaceBlockStep(get.block('block'));
+      return replaceBlockStep(read('block', isBlock));
     case 'replaceDoc':
-      return replaceDocStep(docOf(get.blocks('blocks')));
+      return replaceDocStep(docOf(read('blocks', areBlocks)));
     case 'splitBlock':
-      return splitBlockStep(get.string('block'), get.string('region'), get.integer('offset'), get.created('created'));
+      return splitBlockStep(
+        read('block', isString),
+        read('region', isString),
+        read('offset', isInteger),
+        read('created', isCreated),
+      );
     case 'joinBlocks':
       return joinBlocksStep(
-        get.string('target'),
-        get.string('targetRegion'),
-        get.string('source'),
-        get.string('sourceRegion'),
+        read('target', isString),
+        read('targetRegion', isString),
+        read('source', isString),
+        read('sourceRegion', isString),
       );
     default:
       throw new StepError(`unknown step type "${json.stepType}"`);

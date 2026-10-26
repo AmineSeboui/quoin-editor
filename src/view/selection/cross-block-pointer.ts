@@ -1,6 +1,7 @@
 import type { Pos, Selection } from '../../engine';
 import { blockRangeSelection, nodeSelection, sameSelection, textSelection } from '../../engine/state/selection';
 import { domToPos } from '../controller/dom-selection';
+import { listen } from '../dom/listen';
 import type { HostEntry } from '../controller/host-registry';
 import type { ViewController } from '../controller/view-controller';
 import { entryEdge } from '../navigation/neighbour-block';
@@ -36,6 +37,7 @@ export function createCrossBlockPointer(controller: ViewController): CrossBlockP
       const doc = root.ownerDocument;
       const view = doc.defaultView as Window;
       let press: Press | null = null;
+      let unfollow = () => {};
       let last = { x: 0, y: 0 };
       let preventMouseDown = false;
       const scroll = createAutoScroll(root, () => follow(last.x, last.y));
@@ -76,10 +78,7 @@ export function createCrossBlockPointer(controller: ViewController): CrossBlockP
       }
 
       function release(): boolean {
-        doc.removeEventListener('pointermove', onPointerMove);
-        doc.removeEventListener('pointerup', end);
-        doc.removeEventListener('pointercancel', end);
-        view.removeEventListener('blur', end);
+        unfollow();
         scroll.stop();
         press = null;
         const dragged = controller.dragging;
@@ -133,10 +132,12 @@ export function createCrossBlockPointer(controller: ViewController): CrossBlockP
         } else {
           return;
         }
-        doc.addEventListener('pointermove', onPointerMove);
-        doc.addEventListener('pointerup', end);
-        doc.addEventListener('pointercancel', end);
-        view.addEventListener('blur', end);
+        const unfollowDocument = listen(doc, { pointermove: onPointerMove, pointerup: end, pointercancel: end });
+        const unfollowView = listen(view, { blur: end });
+        unfollow = () => {
+          unfollowDocument();
+          unfollowView();
+        };
       }
 
       function onMouseDown(event: MouseEvent): void {
@@ -144,12 +145,10 @@ export function createCrossBlockPointer(controller: ViewController): CrossBlockP
         preventMouseDown = false;
       }
 
-      root.addEventListener('pointerdown', onPointerDown);
-      root.addEventListener('mousedown', onMouseDown);
+      const unlisten = listen(root, { pointerdown: onPointerDown, mousedown: onMouseDown });
       return () => {
         release();
-        root.removeEventListener('pointerdown', onPointerDown);
-        root.removeEventListener('mousedown', onMouseDown);
+        unlisten();
       };
     },
   };

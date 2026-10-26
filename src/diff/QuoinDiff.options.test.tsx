@@ -30,4 +30,11 @@ describe('QuoinDiff takes the drawing options of QuoinView', () => {
     const html = renderToStaticMarkup(<QuoinDiff before={[task]} after={[task]} taskLabel={TACHE} />);
     expect(html).toContain(`aria-label="${TACHE}"`);
   });
+
+  it('names an empty task with its own label when told an empty name', () => {
+    const html = renderToStaticMarkup(<QuoinDiff before={[task]} after={[task]} taskLabel="" />);
+    expect(html).toContain('aria-label="Task"');
+    const blank = renderToStaticMarkup(<QuoinDiff before={[task]} after={[task]} labels={{ emptyTask: '' }} />);
+    expect(blank).toContain('aria-label="Task"');
+  });
 });

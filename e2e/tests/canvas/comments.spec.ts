@@ -110,6 +110,19 @@ test('Mod+Alt+M moves focus into a thread a click opened', async ({ page }) => {
   await expect(thread(page, 'about this').getByRole('textbox', { name: 'Reply' })).toBeFocused();
 });
 
+test('a thread a click opened stays while the caret moves in its text and closes once it moves out', async ({ page }) => {
+  await openComments(page);
+  await hostOf(page, 'q').locator('[data-comment="seeded"]').click();
+  await caretSettled(page, hostOf(page, 'q'));
+  await expect(thread(page, 'about this')).toBeVisible();
+  await page.keyboard.press('ArrowRight');
+  await page.waitForTimeout(100);
+  await expect(thread(page, 'about this')).toBeVisible();
+  for (let i = 0; i < 7; i++) await page.keyboard.press('ArrowRight');
+  await expect(thread(page, 'about this')).toBeHidden();
+  await expect(hostOf(page, 'q')).toBeFocused();
+});
+
 test('grows the canvas to the threads beside it, which a selection of the page leaves out', async ({ page }) => {
   await openComments(page);
   await rail(page).getByRole('button').nth(1).click();

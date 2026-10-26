@@ -24,7 +24,13 @@ const START = [
 const ORIGINAL = 'abcdefghijklmnopqrstuvwx';
 const TOKENS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
-type Turn = { by: number; kind: 'insert' | 'split' | 'join' | 'retype'; block: number; offset: number; deliver: [number, number] | null };
+type Turn = {
+  by: number;
+  kind: 'insert' | 'split' | 'join' | 'retype';
+  block: number;
+  offset: number;
+  deliver: [number, number] | null;
+};
 
 const turn = (clients: number): fc.Arbitrary<Turn> =>
   fc.record({
@@ -47,8 +53,8 @@ export type TokenRun = [clients: number, seedAll: boolean, triggers: readonly Tr
 
 /**
  * Two or three clients, whether all of them seed the document at once, edits that leave the text out of shape, and
- * what each client then does in turn: type a token at a caret, press Enter, Backspace at a start, or give a block with no
- * region one.
+ * what each client then does in turn: type a token at a caret, press Enter, Backspace at a start, or give a block with
+ * no region one.
  */
 export const tokenRun: fc.Arbitrary<TokenRun> = fc
   .constantFrom(2, 3)
@@ -144,14 +150,16 @@ function play(client: Peer, { kind, block, offset }: Turn, token: string): boole
 
 /**
  * Plays a run with updates delivered between pairs of clients in the order the run gives, then all of them. Returns
- * what went wrong, or null when every original letter and typed token is in the converged document exactly once and
- * every client holds the same blocks.
+ * what went wrong, or null when no client reported a change that did not apply, every original letter and typed token
+ * is in the converged document exactly once and every client holds the same blocks.
  */
 export function playTokenRun([clients, seedAll, triggers, turns]: TokenRun): string | null {
   const { docs, deliver, flush } = meshDocs(clients);
-  const peers = [peer(docs[0], 'a', START)];
+  const errors: string[] = [];
+  const onError = (error: Error) => void errors.push(`${error.message} ${String(error.cause)}`);
+  const peers = [peer(docs[0], 'a', START, { onError })];
   if (!seedAll) flush();
-  for (let i = 1; i < clients; i++) peers.push(peer(docs[i], 'abc'[i], seedAll ? START : []));
+  for (let i = 1; i < clients; i++) peers.push(peer(docs[i], 'abc'[i], seedAll ? START : [], { onError }));
   flush();
   const typed: string[] = [];
   triggers.forEach((edit, i) => {
@@ -163,6 +171,7 @@ export function playTokenRun([clients, seedAll, triggers, turns]: TokenRun): str
     if (step.deliver !== null && step.deliver[0] !== step.deliver[1]) deliver(...step.deliver);
   });
   flush();
+  if (errors.length > 0) return errors.join('\n');
   const text = written(peers[0].editor.state.doc);
   const wrong = [...ORIGINAL, ...typed].filter((letter) => text.split(letter).length !== 2);
   if (wrong.length > 0 || text.length !== ORIGINAL.length + typed.length) return `${text}: ${wrong.join('')}`;

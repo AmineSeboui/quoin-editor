@@ -71,11 +71,23 @@ test.describe('presence between two pages', () => {
       const bea = await twoPages(page, 'sample', ada);
       await caretAtEnd(page, 'b');
       await caretAt(bea, 'b', 0);
+      // Each state of the typing page has its caret at the end of the line, so a jump that later recovers is caught too.
+      await page.evaluate(() => {
+        const { editor } = window.__quoin.controller!;
+        const misplaced: unknown[] = [];
+        Object.assign(window, { __misplaced: misplaced });
+        editor.subscribe(() => {
+          const { selection } = editor.state;
+          const line = String(editor.getBlocks().find((block) => block.id === 'b')?.data.markdown);
+          if (selection?.kind !== 'text' || selection.head.offset !== line.length) misplaced.push([selection, line]);
+        });
+      });
       const typed = 'abcdefghijklmnopqrst';
       await Promise.all([page.keyboard.type(typed, { delay: 35 }), bea.keyboard.type('XYZXYZXYZ', { delay: 55 })]);
       const expected = ['# Title', `XYZXYZXYZFirst paragraph.${typed}`];
       await expect.poll(() => markdown(page)).toEqual(expected);
       await expect.poll(() => markdown(bea)).toEqual(expected);
+      expect(await page.evaluate(() => (window as unknown as { __misplaced: unknown[] }).__misplaced)).toEqual([]);
     });
   }
 
@@ -122,6 +134,77 @@ test.describe('presence between two pages', () => {
       })
       .toBe(true);
     expect(await bea.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(640);
+  });
+
+  test('moves a caret with a table scrolled under it in the frame of the scroll', async ({ page }) => {
+    const bea = await twoPages(page, 'wide-table', '', '&table=1');
+    const near = page.getByRole('textbox', { name: 'Row 2, column 2', exact: true });
+    await near.click();
+    await expect(near).toBeFocused();
+    const caret = caretOf(bea, 'Ada Lovelace');
+    const cell = bea.getByRole('textbox', { name: 'Row 2, column 2', exact: true });
+    await expect
+      .poll(async () => {
+        const [line, box] = [await caret.boundingBox(), await cell.boundingBox()];
+        return line !== null && box !== null && line.x >= box.x - 2 && line.x <= box.x + box.width;
+      })
+      .toBe(true);
+    const moved = await bea.evaluate(async () => {
+      const scroller = document.querySelector<HTMLElement>('.quoin-table-scroll')!;
+      const caret = document.querySelector<HTMLElement>('.quoin-presence-caret')!;
+      const before = caret.getBoundingClientRect().left;
+      const scrolled = new Promise((resolve) => scroller.addEventListener('scroll', resolve, { once: true }));
+      scroller.scrollLeft += 40;
+      await scrolled;
+      return before - caret.getBoundingClientRect().left;
+    });
+    expect(Math.abs(moved - 40)).toBeLessThan(1);
+  });
+
+  test('hides a caret that a clipping box around the scroller it is in cuts off', async ({ page }) => {
+    const bea = await twoPages(page, 'wide-table', '', '&table=1');
+    await bea.evaluate(() => {
+      Object.assign(document.querySelector<HTMLElement>('[data-block-id="t"]')!.style, { overflowX: 'clip', width: '300px' });
+      document.querySelector<HTMLElement>('.quoin-table-scroll')!.style.width = '600px';
+    });
+    const cell = page.getByRole('textbox', { name: 'Row 2, column 5', exact: true });
+    await cell.click();
+    await expect(cell).toBeFocused();
+    const caret = caretOf(bea, 'Ada Lovelace');
+    await expect(caret).toBeAttached();
+    const { left, right } = await bea.evaluate(() => document.querySelector('[data-block-id="t"]')!.getBoundingClientRect());
+    const at = await bea.evaluate(() => document.querySelector('.quoin-presence-caret')!.getBoundingClientRect().left);
+    expect(at < left || at > right).toBe(true);
+    await expect(caret).toBeHidden();
+  });
+
+  test("cuts a caret's name off at the edge of the table it is in, as the table cuts its text", async ({ page }) => {
+    const bea = await twoPages(page, 'wide-table', '', '&table=1');
+    const cell = page.getByRole('textbox', { name: 'Row 2, column 8', exact: true });
+    await cell.click();
+    await expect(cell).toBeFocused();
+    await page.evaluate(() => {
+      const { controller } = window.__quoin;
+      const selection = controller!.editor.state.selection;
+      if (selection?.kind === 'text') controller!.focus({ ...selection.head, offset: 0 });
+    });
+    await expect(caretOf(bea, 'Ada Lovelace')).toBeAttached();
+    await bea.evaluate(() => {
+      const scroller = document.querySelector<HTMLElement>('.quoin-table-scroll')!;
+      const at = scroller.querySelector('[aria-label="Row 2, column 8"]')!.getBoundingClientRect().left;
+      scroller.scrollLeft += at - (scroller.getBoundingClientRect().right - 20);
+    });
+    const edges = () =>
+      bea.evaluate(() => {
+        const caret = document.querySelector<HTMLElement>('.quoin-presence-caret')!;
+        const name = caret.querySelector('.quoin-presence-name')!.getBoundingClientRect();
+        const inset = getComputedStyle(caret).clipPath.match(/-?[\d.]+/g)?.map(Number);
+        const cut = inset === undefined ? Infinity : caret.getBoundingClientRect().right - inset[1];
+        const table = document.querySelector('.quoin-table-scroll')!.getBoundingClientRect().right;
+        return { shown: Math.min(name.right, cut) <= table + 1, name: name.right > table };
+      });
+    await expect.poll(edges).toEqual({ shown: true, name: true });
+    await expect(caretOf(bea, 'Ada Lovelace')).toBeVisible();
   });
 
   test('puts a caret on its character when the canvas is scaled, and again when its text reflows', async ({ page }) => {

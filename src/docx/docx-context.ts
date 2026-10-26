@@ -14,6 +14,7 @@ export type PlacedImage = { readonly rId: string; readonly image: LoadedImage; r
 export type DocxContext = {
   readonly schema: Schema;
   readonly resolveAssetUrl: (storageKey: string) => string | null;
+  readonly baseUrl?: string;
   readonly headings: readonly Heading[];
   readonly bookmarks: ReadonlyMap<string, string>;
   readonly relationships: Relationship[];
@@ -28,12 +29,12 @@ export type DocxContext = {
 // The styles and numbering parts take the first two relationship ids.
 const FIRST_RELATIONSHIP = 3;
 
-export type ContextInput = Pick<DocxContext, 'schema' | 'resolveAssetUrl' | 'headings'> & {
+export type ContextInput = Pick<DocxContext, 'schema' | 'resolveAssetUrl' | 'baseUrl' | 'headings'> & {
   readonly images: ReadonlyMap<string, LoadedImage | null>;
 };
 
 // Bookmark names starting with an underscore are hidden in Word's bookmark list.
-export function createContext({ schema, resolveAssetUrl, headings, images }: ContextInput): DocxContext {
+export function createContext({ schema, resolveAssetUrl, baseUrl, headings, images }: ContextInput): DocxContext {
   const bookmarks = new Map(headings.map(({ blockId }, at) => [blockId, `_q${at + 1}`]));
   const relationships: Relationship[] = [];
   const lists: ListNumbering[] = [];
@@ -54,6 +55,7 @@ export function createContext({ schema, resolveAssetUrl, headings, images }: Con
   return {
     schema,
     resolveAssetUrl,
+    baseUrl,
     headings,
     bookmarks,
     relationships,

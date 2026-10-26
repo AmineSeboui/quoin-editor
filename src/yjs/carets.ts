@@ -1,6 +1,7 @@
 import * as Y from 'yjs';
 import type { Pos, Selection } from '../engine/model/types';
-import { offsetIn, pointOf, regionOf, spanAt, spanStart, type Layout } from './layout';
+import { offsetIn, pointOf, regionOf, spanStart, type Layout } from './layout';
+import { segAt } from './text-steps';
 
 export type HeldSelection = { anchor: Y.RelativePosition; head: Y.RelativePosition } | null;
 
@@ -12,10 +13,10 @@ export function relative(text: Y.Text, layout: Layout, pos: Pos): Y.RelativePosi
 export function absolute(text: Y.Text, layout: Layout, held: Y.RelativePosition): Pos | null {
   const found = Y.createAbsolutePositionFromRelativePosition(held, text.doc!);
   if (found === null || found.type !== text) return null;
-  const span = spanAt(layout, found.index);
-  const rel = found.index - spanStart(layout, span);
-  const seg = span.segs.find((candidate) => candidate.at <= rel && rel <= candidate.at + candidate.length);
-  return seg === undefined ? null : { block: seg.region.entry.id, region: seg.region.name, offset: offsetIn(seg, rel) };
+  const at = segAt(layout, found.index, false);
+  if (at === null) return null;
+  const { seg, rel } = at;
+  return { block: seg.region.entry.id, region: seg.region.name, offset: offsetIn(seg, rel) };
 }
 
 /**

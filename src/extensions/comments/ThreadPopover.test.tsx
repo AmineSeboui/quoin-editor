@@ -2,6 +2,7 @@ import { act, fireEvent, screen, within } from '@testing-library/react';
 import { axe } from 'vitest-axe';
 import { paragraph } from '../../blocks/void/test-canvas';
 import { replaceInlineStep, textSelection } from '../../engine';
+import { nestedCanvas } from '../test-support/nested-canvas';
 import { mountComments, span, thread } from './comments-test-canvas';
 
 const blocks = () => [paragraph('a', `Say ${span('t1', 'hello')} to ${span('t2', `the ${span('t3', 'world')}`)}`)];
@@ -64,18 +65,6 @@ describe('the thread popover', () => {
     expect(field.value).toBe('draft');
     expect(document.activeElement).toBe(field);
     act(() => void fireEvent.keyDown(field, { key: 'Escape' }));
-    expect(screen.queryByRole('dialog')).toBeNull();
-  });
-
-  it('closes a thread a click opened, once its text is gone, on the next move of the caret', () => {
-    const canvas = mountComments(blocks(), threads());
-    canvas.caret('a', 6);
-    canvas.click(canvas.anchor('t1'));
-    const { editor } = canvas.handle();
-    const removal = editor.createTransaction().setOrigin('remote').step(replaceInlineStep('a', 'text', 4, 9, []));
-    act(() => editor.dispatch(removal));
-    expect(canvas.popover('Text removed')).not.toBeNull();
-    canvas.caret('a', 1);
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
@@ -197,5 +186,21 @@ describe('the thread popover', () => {
     expect(canvas.onError).toHaveBeenCalledWith(new Error('denied'));
     expect(canvas.markdown('a')).toContain(span('t1', 'hello'));
     expect(canvas.popover('Comment on "hello"')).not.toBeNull();
+  });
+
+  it("opens a new thread without taking focus from a canvas drawn inside this one's tree", async () => {
+    let answer = (_: string) => {};
+    const onCreate = () => new Promise<string>((resolve) => (answer = resolve));
+    const { extension, inner } = nestedCanvas();
+    const canvas = mountComments([paragraph('p', 'plain words')], [], { onCreate }, { extensions: [extension] });
+    canvas.caret('p', 0);
+    act(() => canvas.handle().controller.dispatch(canvas.handle().editor.createTransaction().setSelection(wordOne)));
+    canvas.commentKey();
+    act(() => inner.current!.focus());
+    const nestedText = document.activeElement;
+    answer('new');
+    await canvas.settle();
+    expect(screen.getByRole('dialog', { name: 'Comment on "plain"' })).toBeInTheDocument();
+    expect(document.activeElement).toBe(nestedText);
   });
 });

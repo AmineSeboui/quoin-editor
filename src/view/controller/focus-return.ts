@@ -1,3 +1,5 @@
+import { listen } from '../dom/listen';
+
 // A press places the caret itself once focus has moved. Focus that comes back any other way, by Tab for one, finds the
 // caret the browser left in the host, which a render or a model change made while focus was away has made stale.
 export function watchFocusReturn(
@@ -17,12 +19,10 @@ export function watchFocusReturn(
   const onFocusOut = (event: FocusEvent) => {
     if (!root.contains(event.relatedTarget as Node | null)) pressed = false;
   };
-  root.addEventListener('pointerdown', onPointerDown, true);
-  root.addEventListener('focusin', onFocusIn);
-  root.addEventListener('focusout', onFocusOut);
+  const unlistenPress = listen(root, { pointerdown: onPointerDown }, true);
+  const unlistenFocus = listen(root, { focusin: onFocusIn, focusout: onFocusOut });
   return () => {
-    root.removeEventListener('pointerdown', onPointerDown, true);
-    root.removeEventListener('focusin', onFocusIn);
-    root.removeEventListener('focusout', onFocusOut);
+    unlistenPress();
+    unlistenFocus();
   };
 }

@@ -35,16 +35,16 @@ export class Cursor {
   line = '';
   offset = 0;
   column = 0;
-  private partialTab = false;
+  #partialTab = false;
 
   reset(line: string): void {
     this.line = line;
     this.offset = 0;
     this.column = 0;
-    this.partialTab = false;
+    this.#partialTab = false;
   }
 
-  private scan(): { index: number; column: number } {
+  #scan(): { index: number; column: number } {
     let index = this.offset;
     let column = this.column;
     for (; index < this.line.length; index++) {
@@ -57,7 +57,7 @@ export class Cursor {
   }
 
   get indent(): number {
-    return this.scan().column - this.column;
+    return this.#scan().column - this.column;
   }
 
   get indented(): boolean {
@@ -65,11 +65,11 @@ export class Cursor {
   }
 
   get blank(): boolean {
-    return this.scan().index >= this.line.length;
+    return this.#scan().index >= this.line.length;
   }
 
   get text(): string {
-    return this.line.slice(this.scan().index);
+    return this.line.slice(this.#scan().index);
   }
 
   get next(): string | undefined {
@@ -77,17 +77,17 @@ export class Cursor {
   }
 
   advanceToNonspace(): void {
-    const { index, column } = this.scan();
+    const { index, column } = this.#scan();
     this.offset = index;
     this.column = column;
-    this.partialTab = false;
+    this.#partialTab = false;
   }
 
   advance(count: number, columns = false): void {
     let remaining = count;
     while (remaining > 0 && this.offset < this.line.length) {
       if (this.line[this.offset] !== '\t') {
-        this.partialTab = false;
+        this.#partialTab = false;
         this.offset++;
         this.column++;
         remaining--;
@@ -95,32 +95,32 @@ export class Cursor {
       }
       const width = TAB_STOP - (this.column % TAB_STOP);
       if (!columns) {
-        this.partialTab = false;
+        this.#partialTab = false;
         this.column += width;
         this.offset++;
         remaining--;
         continue;
       }
       const step = Math.min(width, remaining);
-      this.partialTab = width > remaining;
+      this.#partialTab = width > remaining;
       this.column += step;
-      if (!this.partialTab) this.offset++;
+      if (!this.#partialTab) this.offset++;
       remaining -= step;
     }
   }
 
   rest(): string {
-    if (!this.partialTab) return this.line.slice(this.offset);
+    if (!this.#partialTab) return this.line.slice(this.offset);
     return ' '.repeat(TAB_STOP - (this.column % TAB_STOP)) + this.line.slice(this.offset + 1);
   }
 
   mark(): Snapshot {
-    return { offset: this.offset, column: this.column, partialTab: this.partialTab };
+    return { offset: this.offset, column: this.column, partialTab: this.#partialTab };
   }
 
   restore(snapshot: Snapshot): void {
     this.offset = snapshot.offset;
     this.column = snapshot.column;
-    this.partialTab = snapshot.partialTab;
+    this.#partialTab = snapshot.partialTab;
   }
 }

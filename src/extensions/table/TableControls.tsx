@@ -45,7 +45,9 @@ export function TableControls({ controller, labels }: { controller: ViewControll
     useCallback((state: EditorState) => (blockId === null ? null : tableBlock(state.doc, blockId)), [blockId]),
   );
 
-  if (held?.menu && held.opened && block && !sameMenuCells(held.opened, block, held.target, held.menu)) setHeld(null);
+  if (held?.menu && held.opened && block && held.opened !== block) {
+    setHeld(sameMenuCells(held.opened, block, held.target, held.menu) ? { ...held, opened: block } : null);
+  }
 
   useEffect(() => {
     if (!readOnly && block !== null) return;

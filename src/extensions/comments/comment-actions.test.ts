@@ -5,14 +5,14 @@ import { createCommentThreads } from './comment-threads';
 import { commentsExtension } from './comments-extension';
 import { linkOf } from './comments-link';
 import { commentsKey } from './comments-plugin';
-import { commentsTransaction } from './comment-open';
+import { commentsTransaction, openIds } from './comment-open';
 
 const span = (id: string, inner: string) => `<span data-comment="${id}">${inner}</span>`;
 const texts = (editor: Editor) => editor.getBlocks().map((block) => block.data.markdown);
 
-function mounted() {
+function mounted(threads = createCommentThreads()) {
   const extension = commentsExtension({
-    threads: createCommentThreads(),
+    threads,
     currentUser: { id: 'u1', name: 'Ada' },
     onCreate: () => Promise.resolve('t9'),
     onReply: () => Promise.resolve(),
@@ -35,6 +35,19 @@ describe('ending a thread', () => {
     const seen = { id: 't1', resolved: false, comments: [] };
     await endThread(editor, link, () => Promise.resolve(), 't1', createCommentThreads([seen]));
     expect(getPluginState(editor.state, commentsKey).ended).toEqual([{ id: 't1', seen }]);
+  });
+
+  it('follows the host once its store has caught up, as when it reopens the thread', async () => {
+    const seen = { id: 't1', resolved: false, comments: [] };
+    const store = createCommentThreads([seen]);
+    const { editor, link } = mounted(store);
+    await endThread(editor, link, () => Promise.resolve(), 't1', store);
+    store.set([{ ...seen }]);
+    expect(openIds(editor.state, store, ['t1'])).toEqual([]);
+    store.set([{ ...seen, resolved: true }]);
+    store.set([{ ...seen }]);
+    expect(openIds(editor.state, store, ['t1'])).toEqual(['t1']);
+    expect(getPluginState(editor.state, commentsKey).ended).toEqual([]);
   });
 
   it('tells the host, then takes its marks off in one undo step and closes it', async () => {

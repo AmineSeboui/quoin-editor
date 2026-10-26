@@ -67,7 +67,7 @@ export function EditorView({
   const blocks = useEditorState(controller, (state) => state.doc.blocks);
   const shells = useBlockElements(blocks, renderers);
 
-  useIsomorphicLayoutEffect(() => (root.current === null ? undefined : controller.attach(root.current)), [controller]);
+  useIsomorphicLayoutEffect(() => (root.current ? controller.attach(root.current) : undefined), [controller]);
 
   return (
     <QuoinEditorContext.Provider value={controller}>
@@ -78,7 +78,7 @@ export function EditorView({
         role="group"
         aria-label={label}
         aria-describedby={hintId}
-        onFocus={(event) => focusOwners.set(event.target, controller)}
+        onFocusCapture={(event) => focusOwners.set(event.target, controller)}
       >
         <BlockDomIdScope.Provider value={blockIdScope}>
           <UnsupportedBlockLabel.Provider value={unsupportedBlockLabel}>

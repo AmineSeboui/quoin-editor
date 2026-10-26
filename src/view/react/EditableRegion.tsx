@@ -49,7 +49,7 @@ export function EditableRegion({ block, region, label, id, placeholder, classNam
 
   useIsomorphicLayoutEffect(() => {
     const host = ref.current;
-    return host === null ? undefined : controller.registry.register(block, region, host);
+    return host ? controller.registry.register(block, region, host) : undefined;
   }, [controller, block, region]);
 
   useIsomorphicLayoutEffect(() => {

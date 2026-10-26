@@ -48,4 +48,11 @@ describe('a foreign document', () => {
     editor.setBlocks([md('a', 'XXXX o'), md('b', 'below')]);
     expect(editor.state.selection).toEqual(caret('a', 5));
   });
+
+  it('maps the caret through host changes on both sides of it in one block', () => {
+    const { editor } = startEditor([md('a', 'Hello world'), md('b', 'below')]);
+    editor.commands.setSelection(caret('a', 6));
+    editor.setBlocks([md('a', 'XHello worldY'), md('b', 'below')]);
+    expect(editor.state.selection).toEqual(caret('a', 7));
+  });
 });

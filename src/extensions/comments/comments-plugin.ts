@@ -1,7 +1,6 @@
 import { createPluginKey, type EditorState, type PluginSpec, type Selection, type Transaction } from '../../engine';
-import { commentAnchors, type AnchorRange } from './comment-anchors';
+import { commentIdsAt, type AnchorRange } from './comment-anchors';
 import type { CommentThread } from './comment-threads';
-import { foreignOrigins } from '../../engine/state/transaction';
 import { mapPendingRanges } from './pending-ranges';
 
 /** Text a thread is being created for, drawn as a pending anchor until the host answers. */
@@ -11,12 +10,12 @@ export type PendingAnchor = {
   readonly selection: Selection;
 };
 
-/** A thread this canvas ended, and the host's copy of it then: once the host sets another, the host is followed. */
+/** A thread this canvas ended, and the host's copy of it then: once the host's store differs, the host is followed. */
 export type EndedThread = { readonly id: string; readonly seen: CommentThread | undefined };
 
-/** Whether a thread is one this canvas ended that the host has not set anew since. */
+/** Whether a thread is one this canvas ended that the host's store still holds as it was then, open or not. */
 export const isEnded = (ended: readonly EndedThread[], id: string, current: CommentThread | undefined): boolean =>
-  ended.some((thread) => thread.id === id && thread.seen === current);
+  ended.some((thread) => thread.id === id && thread.seen?.resolved === current?.resolved);
 
 /** The thread popover: the threads to choose from, and whether it takes focus as it opens. */
 export type OpenThreads = { readonly ids: readonly string[]; readonly focus: boolean };
@@ -35,7 +34,8 @@ export type CommentsAction =
   | { readonly type: 'activate'; readonly id: string | null }
   | { readonly type: 'open'; readonly open: OpenThreads }
   | { readonly type: 'close' }
-  | { readonly type: 'forget'; readonly id: string; readonly seen?: CommentThread };
+  | { readonly type: 'forget'; readonly id: string; readonly seen?: CommentThread }
+  | { readonly type: 'caught'; readonly kept: readonly EndedThread[] };
 
 export const commentsKey = createPluginKey<CommentsState>('comments');
 
@@ -64,6 +64,8 @@ function act(value: CommentsState, action: CommentsAction): CommentsState {
       const ended = [...value.ended.filter(({ id }) => id !== action.id), { id: action.id, seen: action.seen }];
       return { ...value, active, open, ended };
     }
+    case 'caught':
+      return { ...value, ended: action.kept };
   }
 }
 
@@ -73,13 +75,17 @@ function afterEdit(tr: Transaction, value: CommentsState, state: EditorState): C
   return { ...value, pending };
 }
 
-// A thread a click opened, focus left in the text, whose text is gone closes when the writer next moves the caret: a
-// collaborator's change never closes it, nor does anything while focus is in it.
+const WRITER_MOVES: readonly string[] = ['input', 'history', 'drop'];
+
+// A thread a click opened, focus left in the text, closes once the writer moves the caret out of its text, or anywhere
+// once its text is gone. Only the writer's own moves count, an undo, a redo and a drop included: not a collaborator's,
+// nor one your code makes.
 function afterMove(tr: Transaction, value: CommentsState, state: EditorState): CommentsState {
   const { open } = value;
-  if (open === null || open.focus || !tr.selectionSet || foreignOrigins.includes(tr.origin)) return value;
-  const anchors = commentAnchors(state.doc);
-  return open.ids.some((id) => anchors.has(id)) ? value : { ...value, active: null, open: null };
+  if (open === null || open.focus || !tr.selectionSet || !WRITER_MOVES.includes(tr.origin)) return value;
+  const { selection } = state;
+  const here = selection?.kind === 'text' ? commentIdsAt(state.doc, selection.head) : [];
+  return open.ids.some((id) => here.includes(id)) ? value : { ...value, active: null, open: null };
 }
 
 export const commentsPlugin: PluginSpec<CommentsState> = {

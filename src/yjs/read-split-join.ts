@@ -24,7 +24,8 @@ function split(layout: Layout, delta: readonly DeltaOp[], required: RequiredRegi
   const region = span.entry.regions.at(-1);
   const seg = region?.segs[0];
   const rel = at - spanStart(layout, span);
-  if (marker === null || seg === undefined || rel < seg.at || rel > seg.at + seg.length) return null;
+  if (marker === null || layout.entries.has(marker.id) || seg === undefined) return null;
+  if (rel < seg.at || rel > seg.at + seg.length) return null;
   if (required(marker.type).some((needed) => needed !== name)) return null;
   const { id, type, indent, attrs } = marker;
   const created = { id, type, indent, attrs: attrs?.toJSON() ?? {}, region: name, regions: {} };

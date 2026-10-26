@@ -1,8 +1,8 @@
-import * as Y from 'yjs';
+import type * as Y from 'yjs';
 import { equalInline, inlineLength } from '../engine/model/inline';
 import { sameValue } from '../engine/model/same-value';
 import type { BlockAttrs, EngineBlock, Inline } from '../engine/model/types';
-import { definedEntries, deleteText, regionStart } from './doc-shape';
+import { attrsMap, definedEntries, deleteText, regionStart } from './doc-shape';
 import { insertInline } from './inline-codec';
 import { changedSpan } from './inline-span';
 import { indexOf, placeEntries, regionOf, spanStart, type Entry } from './layout';
@@ -11,11 +11,8 @@ import { deleteContent, insertContent, reread, type Shared } from './shared';
 import { insertBlocks, removeBlock } from './write-blocks';
 
 function syncAttrs(map: Y.Map<unknown>, before: BlockAttrs, after: BlockAttrs): void {
-  const current = map.get('attrs');
-  if (!(current instanceof Y.Map)) {
-    map.set('attrs', new Y.Map<unknown>(definedEntries(after)));
-    return;
-  }
+  const current = attrsMap(map, after);
+  if (current === null) return;
   const kept = new Map(definedEntries(after));
   for (const key of [...current.keys()]) if (!kept.has(key)) current.delete(key);
   for (const [key, value] of kept) if (!sameValue(before[key], value)) current.set(key, value);
@@ -39,8 +36,9 @@ function keptNames(before: readonly string[], after: readonly string[]): Set<str
 function syncRegions(shared: Shared, entry: Entry, before: EngineBlock, after: EngineBlock): void {
   const { text, layout } = shared;
   const names = Object.keys(after.regions);
-  const kept = keptNames(Object.keys(before.regions), names);
-  const queue = Object.entries(before.regions);
+  // In the order the text holds them, which concurrent edits can leave other than the order of the block's regions.
+  const queue = entry.regions.map(({ name }): [string, Inline] => [name, before.regions[name]]);
+  const kept = keptNames(queue.map(([name]) => name), names);
   let at = spanStart(layout, entry.span) + 1;
   const dropGone = () => {
     while (queue.length > 0 && !kept.has(queue[0][0])) deleteText(text, at, 1 + inlineLength(queue.shift()![1]));

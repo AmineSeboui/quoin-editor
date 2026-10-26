@@ -57,11 +57,11 @@ describe('the runs of a Word document', () => {
   });
 
   it('link only absolute web, mail and phone addresses, writing any other target as its text and marks', async () => {
-    const targets = ['\\\\\\\\host\\\\share', '//host.test/x', 'notes/a.pdf', '/files/a.pdf', '#top', 'mention:user:1'];
+    const targets = ['\\\\\\\\host\\\\share', '//host.test/x', 'notes/a.pdf', '/files/a.pdf', '#top', 'mention:user:1', 'http:foo', 'HtTpS:x', 'https:///x', 'http://?x', 'http://@/', 'http://:80/'];
     const markdown = targets.map((target, at) => `[**t${at}**](<${target}>)`).join(' ');
     const doc = await exportDocument([line(markdown), line('[w](https://a.test) [m](mailto:a@b.test) [p](tel:+1555) [h](HTTP://A.test)')]);
     const [others, kept] = doc.paragraphs;
-    expect(others.runs.filter(({ text }) => /^t\d$/.test(text)).map(({ link, props }) => [link, props])).toEqual(
+    expect(others.runs.filter(({ text }) => /^t\d+$/.test(text)).map(({ link, props }) => [link, props])).toEqual(
       targets.map(() => [undefined, { b: '' }]),
     );
     expect(kept.runs.filter(({ link }) => link !== undefined).map(({ text }) => text)).toEqual(['w', 'm', 'p', 'h']);

@@ -10,7 +10,7 @@ import { xmlElement } from './xml';
 
 /** A paragraph of `text`, linked to `href` when Word can open it safely. */
 export function linkParagraphXml(href: string | null, text: string, ctx: DocxContext, indent: number): string {
-  const safe = href === null ? null : wordLink(href);
+  const safe = href === null ? null : wordLink(href, ctx.baseUrl);
   const runs = safe ? xmlElement('w:hyperlink', { 'r:id': ctx.link(safe) }, runXml(text, { style: 'Hyperlink' })) : runXml(text);
   return paragraphXml({ indent: indentOf(indent) }, runs);
 }

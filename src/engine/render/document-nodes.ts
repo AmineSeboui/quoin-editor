@@ -21,7 +21,7 @@ export function documentNodes(blocks: readonly QuoinBlock[], options: HTMLOption
     embeds: options.embeds ?? 'link',
     embedProviders: [...(options.embedProviders ?? []), ...coreEmbedProviders],
     headings: collectHeadings(engine, schema),
-    taskLabel: options.taskLabel ?? 'Task',
+    taskLabel: options.taskLabel || 'Task',
     frameTitle: options.frameTitle ?? String,
   };
   return groupNodes(groupBlocks(engine), env, render);

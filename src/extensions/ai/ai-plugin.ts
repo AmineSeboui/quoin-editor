@@ -1,5 +1,6 @@
 import { createPluginKey, getPluginState, Transaction, type EditorState, type PluginSpec } from '../../engine';
 import { regionLength } from '../../engine/commands/block-helpers';
+import { blockById } from '../../engine/model/doc';
 import { closeStreaming } from './streaming-markdown';
 import { mapTarget, type AiTarget } from './ai-target';
 
@@ -81,7 +82,7 @@ function caretBlock(state: EditorState): string | null {
 }
 
 function hasText(state: EditorState, id: string): boolean {
-  const block = state.doc.blocks[state.doc.index.get(id) ?? -1];
+  const block = blockById(state.doc, id);
   return block !== undefined && Object.keys(block.regions).some((region) => regionLength(block, region) > 0);
 }
 

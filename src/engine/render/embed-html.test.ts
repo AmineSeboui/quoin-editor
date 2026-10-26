@@ -155,6 +155,15 @@ describe('host embed providers', () => {
     );
   });
 
+  it('titles a frame with its provider name when the host makes nothing of it, and with its page when it has no name', () => {
+    expect(framed('https://video.acme.test/clip-1', { embedProviders: [acme], frameTitle: () => '' })).toBe(
+      frame('https://embed.acme.test/clip-1', 'acme'),
+    );
+    expect(framed('https://video.acme.test/clip-1', { embedProviders: [{ ...acme, name: '' }] })).toBe(
+      frame('https://embed.acme.test/clip-1', 'https://video.acme.test/clip-1'),
+    );
+  });
+
   it('titles a frame with what the host makes of its provider name', () => {
     expect(framed('https://video.acme.test/clip-1', { embedProviders: [acme], frameTitle: (name) => `${name} player` })).toBe(
       frame('https://embed.acme.test/clip-1', 'acme player'),

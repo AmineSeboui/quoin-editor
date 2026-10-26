@@ -3,6 +3,7 @@ import type { CollaborationAdapter, CollaborationHistory } from '../engine/colla
 import { bind, type Binding } from './binding';
 import type { Seed } from './seed';
 import { holdBinding } from './bound';
+import { undoHistory, type UndoHistory } from './undo-history';
 
 export type CollaborationUser = { readonly name: string; readonly color?: string };
 
@@ -24,7 +25,10 @@ export type YjsCollaborationOptions = {
   user: CollaborationUser;
   /** Whether an empty shared document takes the editor's blocks on connect. */
   seed?: Seed;
-  /** Hears about a second editor connected while one already is; it stays unconnected. Logged when absent. */
+  /**
+   * Hears about a second editor connected while one already is, which stays unconnected, and about a change to the
+   * shared document that did not apply to the editor, which then takes the document as it reads. Logged when absent.
+   */
   onError?: (error: Error) => void;
 };
 
@@ -48,7 +52,9 @@ export function yjsCollaboration(options: YjsCollaborationOptions): YjsCollabora
   const onError = options.onError ?? ((error: Error) => console.error(error));
   const text = doc.getText(field);
   const origins = { local: { user }, untracked: {} };
+  let history: UndoHistory | undefined;
   let binding: Binding | null = null;
+  let disconnects = 0;
   const collaboration: YjsCollaboration = {
     doc,
     text,
@@ -60,11 +66,23 @@ export function yjsCollaboration(options: YjsCollaborationOptions): YjsCollabora
         onError(new Error('A Yjs collaboration connects one editor at a time; this editor stays unconnected.'));
         return () => undefined;
       }
-      const current = bind(editor, text, { origins, seed });
+      const current = bind(editor, text, {
+        origins,
+        seed,
+        onError,
+        history: () => (history ??= undoHistory(text, origins.local)),
+      });
       binding = current;
       return () => {
         current.stop();
         if (binding === current) binding = null;
+        // Kept through a connect within a frame of the latest disconnect, as StrictMode's or a quick remount's.
+        const at = ++disconnects;
+        setTimeout(() => {
+          if (binding !== null || at !== disconnects) return;
+          history?.manager.destroy();
+          history = undefined;
+        }, 16);
       };
     },
     onLocalTransaction: (tr, state) => {
@@ -73,8 +91,8 @@ export function yjsCollaboration(options: YjsCollaborationOptions): YjsCollabora
     history: {
       undo: () => binding?.travel('undo') ?? false,
       redo: () => binding?.travel('redo') ?? false,
-      canUndo: () => binding?.history.manager.canUndo() ?? false,
-      canRedo: () => binding?.history.manager.canRedo() ?? false,
+      canUndo: () => binding !== null && history!.manager.canUndo(),
+      canRedo: () => binding !== null && history!.manager.canRedo(),
     },
   };
   holdBinding(collaboration, () => binding);

@@ -48,6 +48,27 @@ for (const [anchoring, behavior] of [
   });
 }
 
+test('keeps the text a reader is on still while an answer above it grows in a canvas that scrolls itself', async ({ page }) => {
+  await askAboutFirstWord(page);
+  await push(page, 'One');
+  await expect(ghost(page)).toHaveText('One');
+  await page.evaluate(() => {
+    const root = document.querySelector<HTMLElement>('.quoin.quoin-editor')!;
+    document.documentElement.style.overflowAnchor = 'none';
+    Object.assign(root.style, { overflowAnchor: 'none', overflowY: 'auto', height: '120px', paddingBottom: '2000px' });
+    const below = document.querySelector('[data-block-id="p"]')!.getBoundingClientRect().bottom;
+    root.scrollTop = below - root.getBoundingClientRect().top + 2;
+  });
+  await page.evaluate(() => new Promise(requestAnimationFrame));
+  const before = await topOf(page, 'r');
+  for (const chunk of ['\n\nTwo', '\n\nThree', '\n\nFour']) {
+    await push(page, chunk);
+    await expect(ghost(page)).toContainText(chunk.trim());
+    await page.evaluate(() => new Promise(requestAnimationFrame));
+    expect(Math.abs((await topOf(page, 'r')) - before)).toBeLessThanOrEqual(1);
+  }
+});
+
 const spacing = (page: Page) =>
   page.evaluate(() => {
     const layer = document.querySelector('.quoin-ai-layer')!.getBoundingClientRect();

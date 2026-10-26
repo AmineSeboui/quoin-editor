@@ -25,10 +25,9 @@ export type UndoHistory = {
   travel(direction: 'undo' | 'redo', editor: Editor<CommandFactories>): boolean;
   /** The selection to restore while an undo or redo applies. */
   hint(): Selection | null;
-  destroy(): void;
 };
 
-/** A `Y.UndoManager` over the shared text that tracks only `origin`, the changes of this client. */
+/** A `Y.UndoManager` over the shared text that tracks only `origin`, the changes of this client, across connections. */
 export function undoHistory(text: Y.Text, origin: object): UndoHistory {
   const manager = new Y.UndoManager(text, { trackedOrigins: new Set([origin]), captureTimeout: Infinity });
   let group: string | null = null;
@@ -63,6 +62,5 @@ export function undoHistory(text: Y.Text, origin: object): UndoHistory {
       }
     },
     hint: () => hint,
-    destroy: () => manager.destroy(),
   };
 }

@@ -3,6 +3,7 @@ import type { CollaborationAdapter, CollaborationHistory } from '../engine/colla
 import { bind, type Binding } from './binding';
 import type { Seed } from './seed';
 import { holdBinding } from './bound';
+import { undoHistory, type UndoHistory } from './undo-history';
 
 export type CollaborationUser = { readonly name: string; readonly color?: string };
 
@@ -51,6 +52,7 @@ export function yjsCollaboration(options: YjsCollaborationOptions): YjsCollabora
   const onError = options.onError ?? ((error: Error) => console.error(error));
   const text = doc.getText(field);
   const origins = { local: { user }, untracked: {} };
+  let history: UndoHistory | undefined;
   let binding: Binding | null = null;
   const collaboration: YjsCollaboration = {
     doc,
@@ -63,7 +65,12 @@ export function yjsCollaboration(options: YjsCollaborationOptions): YjsCollabora
         onError(new Error('A Yjs collaboration connects one editor at a time; this editor stays unconnected.'));
         return () => undefined;
       }
-      const current = bind(editor, text, { origins, seed, onError });
+      const current = bind(editor, text, {
+        origins,
+        seed,
+        onError,
+        history: () => (history ??= undoHistory(text, origins.local)),
+      });
       binding = current;
       return () => {
         current.stop();
@@ -76,8 +83,8 @@ export function yjsCollaboration(options: YjsCollaborationOptions): YjsCollabora
     history: {
       undo: () => binding?.travel('undo') ?? false,
       redo: () => binding?.travel('redo') ?? false,
-      canUndo: () => binding?.history.manager.canUndo() ?? false,
-      canRedo: () => binding?.history.manager.canRedo() ?? false,
+      canUndo: () => binding !== null && history!.manager.canUndo(),
+      canRedo: () => binding !== null && history!.manager.canRedo(),
     },
   };
   holdBinding(collaboration, () => binding);

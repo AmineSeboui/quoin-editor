@@ -12,7 +12,7 @@ import { readShared } from './read-shared';
 import { requiredRegions } from './required-regions';
 import { seedOrLoad, type Seed } from './seed';
 import type { Shared } from './shared';
-import { undoHistory, type UndoHistory } from './undo-history';
+import type { UndoHistory } from './undo-history';
 import { readRemote } from './yjs-to-steps';
 
 export type Origins = {
@@ -24,7 +24,6 @@ export type Origins = {
 
 export type Binding = {
   readonly editor: Editor<CommandFactories>;
-  readonly history: UndoHistory;
   readonly shared: Shared;
   local(tr: Transaction): void;
   travel(direction: 'undo' | 'redo'): boolean;
@@ -35,13 +34,15 @@ export type Binding = {
 export function bind(
   editor: Editor<CommandFactories>,
   text: Y.Text,
-  { origins, seed, onError }: { origins: Origins; seed: Seed; onError: (error: Error) => void },
+  options: { origins: Origins; seed: Seed; onError: (error: Error) => void; history: () => UndoHistory },
 ): Binding {
+  const { origins, seed, onError } = options;
   const doc = text.doc!;
   const required = requiredRegions(editor.state.schema);
   const layout = seedOrLoad(editor, text, { origin: origins.local, seed, required });
+  // Taken once the text is seeded, so that undo never takes the seeding back.
+  const history = options.history();
   const shared: Shared = { text, layout, stale: false, required, onError };
-  const history = undoHistory(text, origins.local);
   const ours = (origin: unknown) => origin === origins.local || origin === origins.untracked;
   let held: HeldSelection = null;
   const written = new WeakSet<Transaction>();
@@ -69,7 +70,6 @@ export function bind(
   text.observeDeep(observer);
   return {
     editor,
-    history,
     shared,
     local(tr) {
       if (written.has(tr)) return;
@@ -84,7 +84,6 @@ export function bind(
     stop() {
       doc.off('beforeTransaction', hold);
       text.unobserveDeep(observer);
-      history.destroy();
     },
   };
 }

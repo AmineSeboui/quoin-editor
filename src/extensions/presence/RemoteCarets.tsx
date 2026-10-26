@@ -3,6 +3,7 @@ import { getPluginState, type EditorState } from '../../engine';
 import { sameValue } from '../../engine/model/same-value';
 import { useEditorState, type ViewController } from '../../view';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
+import { followLayout } from './follow-layout';
 import { placeCaret } from './place-caret';
 import type { PresenceLabels } from './presence-labels';
 import { presenceKey, type Peer } from './presence-plugin';
@@ -24,31 +25,9 @@ export function RemoteCarets({ controller, labels }: { controller: ViewControlle
 
   useIsomorphicLayoutEffect(() => {
     const root = controller.root;
-    const view = root?.ownerDocument.defaultView;
-    if (!root || !view || box.current === null) return undefined;
+    if (!root || box.current === null) return undefined;
     const carets = Array.from(box.current.children) as HTMLElement[];
-    let frame = 0;
-    const later = () => {
-      view.cancelAnimationFrame(frame);
-      frame = view.requestAnimationFrame(update);
-    };
-    // The text can move with no change of the editor's: a scroller inside the canvas scrolls, a host reflows as a font
-    // arrives, or the canvas is resized. A scroll places the carets at once, in the frame it is drawn.
-    const observer = new ResizeObserver(later);
-    const update = () => carets.forEach((caret) => placeCaret(controller, root, caret, observer));
-    update();
-    observer.observe(root);
-    const unsubscribe = controller.editor.subscribe(later);
-    const fonts = root.ownerDocument.fonts;
-    root.addEventListener('scroll', update, { capture: true, passive: true });
-    fonts?.addEventListener('loadingdone', later);
-    return () => {
-      view.cancelAnimationFrame(frame);
-      unsubscribe();
-      observer.disconnect();
-      root.removeEventListener('scroll', update, { capture: true });
-      fonts?.removeEventListener('loadingdone', later);
-    };
+    return followLayout(controller, root, (observer) => carets.forEach((caret) => placeCaret(controller, root, caret, observer)));
   }, [controller, shown]);
 
   return (

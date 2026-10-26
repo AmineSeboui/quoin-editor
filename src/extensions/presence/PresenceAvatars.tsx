@@ -4,6 +4,7 @@ import { headBlockId } from '../../engine/commands/block-helpers';
 import { sameValue } from '../../engine/model/same-value';
 import { useEditorState, type ViewController } from '../../view';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
+import { followLayout } from './follow-layout';
 import type { PresenceLabels } from './presence-labels';
 import { presenceKey, type Peer } from './presence-plugin';
 
@@ -44,24 +45,9 @@ export function PresenceAvatars({ controller, labels }: { controller: ViewContro
   // Placed in place rather than through React state, as the gutter is, once the frame's edits have reached the blocks.
   useIsomorphicLayoutEffect(() => {
     const root = controller.root;
-    const view = root?.ownerDocument.defaultView;
-    if (!root || !view || box.current === null) return undefined;
+    if (!root || box.current === null) return undefined;
     const children = Array.from(box.current.children) as HTMLElement[];
-    const update = () => children.forEach((group) => place(controller, root, group));
-    update();
-    let frame = 0;
-    const later = () => {
-      view.cancelAnimationFrame(frame);
-      frame = view.requestAnimationFrame(update);
-    };
-    const unsubscribe = controller.editor.subscribe(later);
-    const observer = new ResizeObserver(later);
-    observer.observe(root);
-    return () => {
-      view.cancelAnimationFrame(frame);
-      unsubscribe();
-      observer.disconnect();
-    };
+    return followLayout(controller, root, () => children.forEach((group) => place(controller, root, group)));
   }, [controller, groups]);
 
   return (

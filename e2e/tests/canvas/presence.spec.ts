@@ -71,11 +71,23 @@ test.describe('presence between two pages', () => {
       const bea = await twoPages(page, 'sample', ada);
       await caretAtEnd(page, 'b');
       await caretAt(bea, 'b', 0);
+      // Each state of the typing page has its caret at the end of the line, so a jump that later recovers is caught too.
+      await page.evaluate(() => {
+        const { editor } = window.__quoin.controller!;
+        const misplaced: unknown[] = [];
+        Object.assign(window, { __misplaced: misplaced });
+        editor.subscribe(() => {
+          const { selection } = editor.state;
+          const line = String(editor.getBlocks().find((block) => block.id === 'b')?.data.markdown);
+          if (selection?.kind !== 'text' || selection.head.offset !== line.length) misplaced.push([selection, line]);
+        });
+      });
       const typed = 'abcdefghijklmnopqrst';
       await Promise.all([page.keyboard.type(typed, { delay: 35 }), bea.keyboard.type('XYZXYZXYZ', { delay: 55 })]);
       const expected = ['# Title', `XYZXYZXYZFirst paragraph.${typed}`];
       await expect.poll(() => markdown(page)).toEqual(expected);
       await expect.poll(() => markdown(bea)).toEqual(expected);
+      expect(await page.evaluate(() => (window as unknown as { __misplaced: unknown[] }).__misplaced)).toEqual([]);
     });
   }
 

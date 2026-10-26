@@ -85,7 +85,11 @@ import type { QuoinBlock } from 'quoin-editor/engine';
 import { toDocx } from 'quoin-editor/docx';
 
 export async function downloadDocx(blocks: QuoinBlock[]): Promise<void> {
-  const blob = await toDocx(blocks, { title: 'Release notes', resolveAssetUrl: (key) => `/files/${key}` });
+  const blob = await toDocx(blocks, {
+    title: 'Release notes',
+    resolveAssetUrl: (key) => `/files/${key}`,
+    baseUrl: location.href,
+  });
   const link = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'notes.docx' });
   link.click();
   URL.revokeObjectURL(link.href);

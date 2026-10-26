@@ -1,4 +1,5 @@
 import { createPluginKey, type PluginSpec, type Selection } from '../../engine';
+import { sameItems } from '../../engine/model/same-items';
 import { mapSelection, sameSelection } from '../../engine/state/selection';
 
 /** A collaborator as this editor draws it: `idle` once its selection has not moved for a while. */
@@ -22,8 +23,7 @@ export const samePeer = (a: Peer, b: Peer): boolean =>
   a.idle === b.idle &&
   sameSelection(a.selection, b.selection);
 
-export const samePeers = (a: readonly Peer[], b: readonly Peer[]): boolean =>
-  a.length === b.length && a.every((peer, i) => samePeer(peer, b[i]));
+export const samePeers = (a: readonly Peer[], b: readonly Peer[]): boolean => sameItems(a, b, samePeer);
 
 const NO_PEERS: readonly Peer[] = [];
 

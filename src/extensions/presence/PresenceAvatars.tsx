@@ -1,12 +1,10 @@
 import { useRef, type CSSProperties } from 'react';
-import { getPluginState, type EditorState, type Selection } from '../../engine';
+import { getPluginState, type EditorState } from '../../engine';
+import { headBlockId } from '../../engine/commands/block-helpers';
 import { useEditorState, type ViewController } from '../../view';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
 import type { PresenceLabels } from './presence-labels';
 import { presenceKey, type Peer } from './presence-plugin';
-
-const headBlock = (selection: Selection): string =>
-  selection.kind === 'node' ? selection.block : selection.kind === 'blocks' ? selection.head : selection.head.block;
 
 const initials = (name: string) =>
   name
@@ -23,7 +21,7 @@ function groupsOf(state: EditorState): readonly Group[] {
   const byBlock = new Map<string, Pick<Peer, 'client' | 'name' | 'color'>[]>();
   for (const { client, name, color, selection } of getPluginState(state, presenceKey)) {
     if (selection === null) continue;
-    const block = headBlock(selection);
+    const block = headBlockId(selection)!;
     byBlock.set(block, [...(byBlock.get(block) ?? []), { client, name, color }]);
   }
   return [...byBlock];

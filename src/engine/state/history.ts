@@ -64,7 +64,8 @@ function groupKey(selection: Selection | null): string | null {
   return selection?.kind === 'text' ? JSON.stringify([selection.head.block, selection.head.region]) : null;
 }
 
-function groupOf(tr: Transaction): string | null {
+/** The group a change undoes with: typing in one place, or changes named as one group; null for one undone alone. */
+export function groupOf(tr: Transaction): string | null {
   if (tr.getMeta<boolean>('closeHistory') === true) return null;
   return tr.getMeta<string>(HISTORY_GROUP) ?? (tr.origin === 'input' ? groupKey(tr.before.selection) : null);
 }

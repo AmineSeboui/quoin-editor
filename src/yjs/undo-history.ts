@@ -2,21 +2,11 @@ import * as Y from 'yjs';
 import type { CommandFactories } from '../engine/commands/chain';
 import type { Editor } from '../engine/extension/editor';
 import type { Selection } from '../engine/model/types';
-import { HISTORY_GROUP } from '../engine/state/history';
+import { groupOf } from '../engine/state/history';
 import type { Transaction } from '../engine/state/transaction';
 
 const GROUP_DELAY = 500;
 const SELECTION = 'selection';
-
-// The editor's own rule for which changes undo together: typing in one place, or changes named as one group.
-function groupOf(tr: Transaction): string | null {
-  if (tr.getMeta<boolean>('closeHistory') === true) return null;
-  const named = tr.getMeta<string>(HISTORY_GROUP);
-  if (named !== undefined) return named;
-  const before = tr.before.selection;
-  if (tr.origin !== 'input' || before?.kind !== 'text') return null;
-  return JSON.stringify([before.head.block, before.head.region]);
-}
 
 export type UndoHistory = {
   readonly manager: Y.UndoManager;

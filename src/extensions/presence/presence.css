@@ -43,6 +43,15 @@
   opacity: 0;
 }
 
+/* A name cut short at the end of a line stops where the avatars' gutter, and the comments' room beside it, begin. */
+.quoin.quoin-editor:has(> .quoin-presence-avatars) > .quoin-presence-carets {
+  clip-path: inset(-99px calc(var(--quoin-comments-room, 0px) + 24px) -99px 0);
+}
+
+.quoin.quoin-editor:has(> .quoin-presence-avatars):dir(rtl) > .quoin-presence-carets {
+  clip-path: inset(-99px 0 -99px calc(var(--quoin-comments-room, 0px) + 24px));
+}
+
 /* A gutter of its own at the end of every line holds the avatars, so they never cover text. */
 .quoin.quoin-editor:has(> .quoin-presence-avatars) {
   padding-inline-end: 24px;

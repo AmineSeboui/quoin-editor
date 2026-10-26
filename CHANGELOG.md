@@ -13,6 +13,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 - Docs: the `onError` of `yjsCollaboration` is the adapter's own, apart from the canvas's; pass both the same handler (collaboration page).
 
 ### Fixed
+- With presence, a long collaborator name at the end of a line is cut off where the avatars' gutter begins, rather than over the avatars.
 - With presence, a collaborator's caret near the side of a wide table, and its name, are cut off at the table's side as the table's text is, rather than drawn whole past it.
 - With presence, a collaborator's caret, and with `quoin-editor/ai` an answer, in a scroller that sits inside another box that clips what overflows, such as a table in a custom block, is clipped by both, rather than only by the nearest one.
 - With presence, a collaborator's caret in a wide table moves with the table as it scrolls, rather than a frame behind it.

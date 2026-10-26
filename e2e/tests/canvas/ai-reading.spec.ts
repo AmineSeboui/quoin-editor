@@ -62,3 +62,28 @@ test("keeps room for an answer that uses the block's own padding and the gap of 
   }
   await expect.poll(() => spacing(page)).toEqual({ above: 4, below: 4 });
 });
+
+test('shows the answer only where every box around its text that clips lets it', async ({ page }) => {
+  await askAboutFirstWord(page);
+  await push(page, 'Get');
+  await expect(ghost(page)).toHaveText('Get');
+  await page.evaluate(() => {
+    const shell = document.querySelector<HTMLElement>('[data-block-id="p"]')!;
+    const host = shell.querySelector<HTMLElement>('[data-quoin-host]')!;
+    const scroller = document.createElement('div');
+    Object.assign(scroller.style, { overflowX: 'auto', width: '600px' });
+    host.replaceWith(scroller);
+    scroller.append(host);
+    Object.assign(shell.style, { overflowX: 'clip', width: '300px' });
+    host.style.width = '1200px';
+  });
+  const right = await page.locator('[data-block-id="p"]').evaluate((shell) => shell.getBoundingClientRect().right);
+  await expect
+    .poll(() =>
+      page.locator('.quoin-ai-layer').evaluate((layer) => {
+        const inset = getComputedStyle(layer).clipPath.match(/[\d.]+/g)?.map(Number) ?? [0, 0];
+        return layer.getBoundingClientRect().right - inset[1];
+      }),
+    )
+    .toBeLessThanOrEqual(right + 1);
+});

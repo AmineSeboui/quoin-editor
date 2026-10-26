@@ -142,6 +142,23 @@ test.describe('presence between two pages', () => {
     expect(Math.abs(moved - 40)).toBeLessThan(1);
   });
 
+  test('hides a caret that a clipping box around the scroller it is in cuts off', async ({ page }) => {
+    const bea = await twoPages(page, 'wide-table', '', '&table=1');
+    await bea.evaluate(() => {
+      Object.assign(document.querySelector<HTMLElement>('[data-block-id="t"]')!.style, { overflowX: 'clip', width: '300px' });
+      document.querySelector<HTMLElement>('.quoin-table-scroll')!.style.width = '600px';
+    });
+    const cell = page.getByRole('textbox', { name: 'Row 2, column 5', exact: true });
+    await cell.click();
+    await expect(cell).toBeFocused();
+    const caret = caretOf(bea, 'Ada Lovelace');
+    await expect(caret).toBeAttached();
+    const { left, right } = await bea.evaluate(() => document.querySelector('[data-block-id="t"]')!.getBoundingClientRect());
+    const at = await bea.evaluate(() => document.querySelector('.quoin-presence-caret')!.getBoundingClientRect().left);
+    expect(at < left || at > right).toBe(true);
+    await expect(caret).toBeHidden();
+  });
+
   test('puts a caret on its character when the canvas is scaled, and again when its text reflows', async ({ page }) => {
     const bea = await twoPages(page);
     await caretAt(page, 'b', 5);

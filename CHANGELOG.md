@@ -13,6 +13,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 - Docs: the `onError` of `yjsCollaboration` is the adapter's own, apart from the canvas's; pass both the same handler (collaboration page).
 
 ### Fixed
+- With presence, a collaborator's caret, and with `quoin-editor/ai` an answer, in a scroller that sits inside another box that clips what overflows, such as a table in a custom block, is clipped by both, rather than only by the nearest one.
 - With presence, a collaborator's caret in a wide table moves with the table as it scrolls, rather than a frame behind it.
 - With `quoin-editor/ai`, the room kept under a block for its answer no longer adds to the block's bottom padding or to the row gap of a flex or grid canvas: the answer takes that space first, and the room makes up only the rest.
 - With `quoin-editor/ai`, an answer growing above the part of the page being read no longer pushes that text down in a browser without scroll anchoring, such as WebKit before it, or on a page that turns it off.

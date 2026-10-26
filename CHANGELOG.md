@@ -13,6 +13,8 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 - Docs: the `onError` of `yjsCollaboration` is the adapter's own, apart from the canvas's; pass both the same handler (collaboration page).
 
 ### Fixed
+- With `quoin-editor/yjs`, a row two people add to a table at the same moment, followed by a move of the table and a new column, no longer has one client write cell text at the wrong place, which split it across cells for the others.
+- With `quoin-editor/yjs`, deleting a table while someone adds or removes one of its rows or columns no longer leaves hidden regions in the line after it, over which Enter threw: the cell text shows at the end of that line.
 - Presence on a second editor given a `yjsCollaboration` that already serves one, which stays unconnected, no longer writes to the awareness: unmounting it no longer takes the person and their selection out while the first canvas is still mounted.
 - An editor that disconnects from a `yjsCollaboration` and connects again within a frame, as StrictMode or a quick remount does, keeps what it can undo and redo. A collaboration left disconnected longer lets its undo history go, as in 1.0.
 - `yjsCollaboration` reports to its `onError` a change from the shared document that does not apply to the editor, as the error applying it raised, before the editor takes the document as the shared text reads, rather than recovering in silence.
@@ -21,6 +23,9 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 - A table's row or column menu stays open while a collaborator types in its own row or column. It still closes when a change from elsewhere moves that row or column.
 - Two people changing one block's type at the same moment no longer hide the block's text: text left in a region the winning type does not have shows in that type's own region.
 - A caret in a block that a new `blocks` array changes on both sides of it stays on its character, rather than moving by the length of the later change.
+
+### Known limits
+- With `quoin-editor/yjs`, a table cell whose region concurrent row and column edits took out cannot be selected or typed into until the table is rewritten, as by adding or removing a row or a column. This is as in 1.0.0.
 
 ## 1.0.0 (2026-10-23)
 

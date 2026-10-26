@@ -4,6 +4,9 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 
 ## Unreleased
 
+### Changed
+- Under a collaboration, `editor.chain().undo().run()` and `editor.chain().redo().run()` undo and redo when the chain holds nothing else. A chain that holds other commands as well still does nothing.
+
 ### Fixed
 - A caret in a block that a new `blocks` array changes on both sides of it stays on its character, rather than moving by the length of the later change.
 

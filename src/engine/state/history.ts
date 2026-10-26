@@ -40,7 +40,7 @@ export const historyKey = createPluginKey<HistoryState>('history');
 /**
  * A history kept outside the editor, as the state of a plugin named `HISTORY_PROVIDER`: undo and redo run it in place
  * of their own, asking it only whether they could when they are given no dispatch. It applies what it undoes itself, so
- * they refuse to run inside a chain, whose later commands would be built on the state before it.
+ * they refuse to run inside a chain of several commands, whose other commands would be built on the state before it.
  */
 export type HistoryProvider = Readonly<Record<Direction, (dryRun: boolean) => boolean>>;
 export const HISTORY_PROVIDER = 'historyProvider';

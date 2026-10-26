@@ -27,6 +27,16 @@ describe('undo through the shared document', () => {
     expect(one.editor.can().undo()).toBe(false);
   });
 
+  it('undoes and redoes from a chain that holds nothing else', () => {
+    const { one } = twoPeers();
+    one.editor.commands.setSelection(caret('a', 5));
+    one.editor.insertText('!');
+    expect(one.editor.chain().undo().run()).toBe(true);
+    expect(one.editor.getBlocks()[0]).toEqual(md('a', 'hello'));
+    expect(one.editor.chain().redo().run()).toBe(true);
+    expect(one.editor.getBlocks()[0]).toEqual(md('a', 'hello!'));
+  });
+
   it('undoes only its own changes, and the other client sees the undo', () => {
     const { one, two, flush } = twoPeers();
     one.editor.commands.setSelection(caret('a', 5));

@@ -45,14 +45,22 @@ describe('undo and redo with a history kept elsewhere', () => {
     expect(editor.getBlocks()).toEqual([md('a', 'xy')]);
   });
 
-  it('refuse to run inside a chain, in either order, and leave the editor as it was', () => {
+  it('refuse to run inside a chain with other commands, in either order, and leave the editor as it was', () => {
     const { editor, provider } = provided(true);
     const before = editor.state;
     expect(editor.chain().undo().selectAll().run()).toBe(false);
     expect(editor.chain().selectAll().redo().run()).toBe(false);
-    expect(editor.chain().undo().run()).toBe(false);
+    expect(editor.chain().undo().undo().run()).toBe(false);
     expect(editor.state).toBe(before);
     expect(provider.undo).not.toHaveBeenCalled();
     expect(provider.redo).not.toHaveBeenCalled();
+  });
+
+  it('go through the provider from a chain that holds nothing else', () => {
+    const { editor, provider } = provided(true);
+    expect(editor.chain().undo().run()).toBe(true);
+    expect(editor.chain().redo().run()).toBe(true);
+    expect(provider.undo.mock.calls).toEqual([[false]]);
+    expect(provider.redo.mock.calls).toEqual([[false]]);
   });
 });

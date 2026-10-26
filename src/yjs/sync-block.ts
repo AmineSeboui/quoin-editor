@@ -36,8 +36,9 @@ function keptNames(before: readonly string[], after: readonly string[]): Set<str
 function syncRegions(shared: Shared, entry: Entry, before: EngineBlock, after: EngineBlock): void {
   const { text, layout } = shared;
   const names = Object.keys(after.regions);
-  const kept = keptNames(Object.keys(before.regions), names);
-  const queue = Object.entries(before.regions);
+  // In the order the text holds them, which concurrent edits can leave other than the order of the block's regions.
+  const queue = entry.regions.map(({ name }): [string, Inline] => [name, before.regions[name]]);
+  const kept = keptNames(queue.map(([name]) => name), names);
   let at = spanStart(layout, entry.span) + 1;
   const dropGone = () => {
     while (queue.length > 0 && !kept.has(queue[0][0])) deleteText(text, at, 1 + inlineLength(queue.shift()![1]));

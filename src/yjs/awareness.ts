@@ -45,6 +45,9 @@ export function toAware(shared: Shared, selection: Selection | null): AwareSelec
   return { anchor: { block: anchor }, head: { block: head } };
 }
 
+const blockOf = (doc: EngineDoc, value: Record<string, unknown>): string | null =>
+  typeof value.block === 'string' && doc.index.has(value.block) ? value.block : null;
+
 // What another client wrote is read with care: any of it can be missing or of another type.
 function textPos(shared: Shared | null, doc: EngineDoc, value: Record<string, unknown>): Pos | null {
   if (shared !== null && value.rel !== undefined) {
@@ -55,13 +58,11 @@ function textPos(shared: Shared | null, doc: EngineDoc, value: Record<string, un
       // A relative position that does not parse falls back to the block and offset beside it.
     }
   }
-  const { block, region, offset } = value;
+  const { region, offset } = value;
+  const block = blockOf(doc, value);
   const placed = typeof region === 'string' && typeof offset === 'number' && Number.isInteger(offset) && offset >= 0;
-  return placed && typeof block === 'string' && doc.index.has(block) ? { block, region, offset } : null;
+  return placed && block !== null ? { block, region, offset } : null;
 }
-
-const blockOf = (doc: EngineDoc, value: Record<string, unknown>): string | null =>
-  typeof value.block === 'string' && doc.index.has(value.block) ? value.block : null;
 
 /** The selection another client wrote, in this editor's document, or null when it names nothing that is here. */
 export function fromAware(shared: Shared | null, doc: EngineDoc, schema: Schema, value: unknown): Selection | null {

@@ -139,6 +139,48 @@ describe('a block selected by a change of a collaborator, without bringing it in
   });
 });
 
+describe('a block selected and left in place by changes of collaborators', () => {
+  const outsideChange = (controller: ViewController) =>
+    act(() => {
+      const { editor } = controller;
+      editor.dispatch(editor.createTransaction().setMeta('unfurl', true).setMeta('addToHistory', false));
+    });
+
+  it('stays where it is through a change from elsewhere, and comes into view with the next change made here', () => {
+    const { controller, reveals, selectNode, remove } = mountScrolled('around');
+    act(() => controller.focus());
+    selectNode('d1');
+    remove('d1', 'remote');
+    outsideChange(controller);
+    expect(reveals).not.toHaveBeenCalled();
+    act(() => controller.dispatch(controller.editor.createTransaction().setSelection(nodeSelection('d2'))));
+    expect(reveals).toHaveBeenCalledTimes(1);
+  });
+
+  it('stays where it is when focus comes back to the canvas', () => {
+    const { controller, reveals, selectNode, remove } = mountScrolled('around');
+    act(() => controller.focus());
+    selectNode('d1');
+    remove('d1', 'remote');
+    const active = document.activeElement!;
+    act(() => void active.dispatchEvent(new FocusEvent('focusin', { bubbles: true, relatedTarget: null })));
+    expect(reveals).not.toHaveBeenCalled();
+  });
+
+  it('is not brought back into view by a change from elsewhere after a caret move of a collaborator', () => {
+    const { controller, reveals, selectNode } = mountScrolled('around');
+    act(() => controller.focus());
+    selectNode('d1');
+    act(() => {
+      const { editor } = controller;
+      editor.dispatch(editor.createTransaction().setOrigin('remote').setMeta('presence', true));
+    });
+    outsideChange(controller);
+    expect(controller.editor.state.selection).toEqual(nodeSelection('d1'));
+    expect(reveals).not.toHaveBeenCalled();
+  });
+});
+
 describe('the caret move of a collaborator drawn in the same render as a command', () => {
   it('leaves the command to bring the block it selects into view', () => {
     const { controller, reveals } = mountScrolled('around');

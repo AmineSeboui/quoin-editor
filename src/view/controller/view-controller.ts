@@ -175,7 +175,7 @@ export class ViewController {
     this.refreshHosts();
     this.#cross.sync();
     if (focused && doc !== null && ownsFocus(this, doc)) this.#keepFocus();
-    this.syncSelectionToDom();
+    this.syncSelectionToDom(true);
     return handled;
   }
 
@@ -228,8 +228,8 @@ export class ViewController {
     return this.#ownerDocument()?.getSelection() ?? null;
   }
 
-  syncSelectionToDom(): void {
-    writeModelSelection(this, this.#ownerDocument(), () => this.#binding?.selectionSync.suppressNext());
+  syncSelectionToDom(local?: boolean): void {
+    writeModelSelection(this, this.#ownerDocument(), () => this.#binding?.selectionSync.suppressNext(), local);
   }
 
   // A pointer drag across hosts sets the model selection itself, while the browser keeps extending its own. Leaving

@@ -20,7 +20,12 @@ export function movedSelection(controller: ViewController, doc: Document | null,
  * held by the sink. Where no sink is drawn, a node selection falls back to its shell, and a caret left behind in a host
  * would be read back on the next key, so a block range empties the native selection.
  */
-export function writeModelSelection(controller: ViewController, doc: Document | null, moved: () => void): void {
+export function writeModelSelection(
+  controller: ViewController,
+  doc: Document | null,
+  moved: () => void,
+  local?: boolean,
+): void {
   const domSelection = doc?.getSelection();
   if (focusingSink(controller) || controller.composingKey !== null || !doc || !domSelection || !ownsFocus(controller, doc)) {
     return;
@@ -30,6 +35,6 @@ export function writeModelSelection(controller: ViewController, doc: Document | 
   if (heldBySink(selection) && controller.sink !== null) focusSink(controller);
   else if (selection?.kind === 'blocks') domSelection.removeAllRanges();
   else writeSelection(controller.registry, selection, domSelection, (id) => controller.blockElement(id));
-  controller.nodeReveal.show(selection);
+  controller.nodeReveal.show(selection, local);
   if (!samePoints(before, selectionPoints(domSelection))) moved();
 }

@@ -7,8 +7,9 @@ export type NodeReveal = {
   pressed(block: string): void;
   /** Forgets the block shown once the selection leaves it, however it leaves, so coming back brings it into view. */
   follow(selection: Selection | null): void;
-  show(selection: Selection | null): void;
-  /** Has the next show leave the block a selection holds where it is, and the one after bring it into view. */
+  /** Brings the block into view once; a change made here also brings in the block a settle left where it was. */
+  show(selection: Selection | null, local?: boolean): void;
+  /** Counts the block a selection holds as shown, and as owed to the next change made here if it was not shown yet. */
   settle(selection: Selection | null): void;
 };
 
@@ -19,25 +20,29 @@ export type NodeReveal = {
 export function createNodeReveal(element: (block: string) => HTMLElement | undefined): NodeReveal {
   let shown: string | null = null;
   let pressed: string | null = null;
-  let settled: string | null = null;
+  let owed: string | null = null;
   return {
     pressed(block) {
       pressed = block;
     },
     follow(selection) {
-      if (nodeOf(selection) !== shown) shown = null;
+      const block = nodeOf(selection);
+      if (block !== shown) shown = null;
+      if (block !== owed) owed = null;
     },
     settle(selection) {
-      settled = nodeOf(selection);
-    },
-    show(selection) {
       const block = nodeOf(selection);
-      const still = block === settled;
-      if (block !== null && !still && block !== shown && block !== pressed) {
+      if (block !== shown) owed = block;
+      shown = block;
+    },
+    show(selection, local) {
+      const block = nodeOf(selection);
+      if (block !== null && block !== pressed && (block !== shown || (local && block === owed))) {
         element(block)?.scrollIntoView({ block: 'nearest' });
       }
-      shown = still ? null : block;
-      pressed = settled = null;
+      if (local) owed = null;
+      shown = block;
+      pressed = null;
     },
   };
 }

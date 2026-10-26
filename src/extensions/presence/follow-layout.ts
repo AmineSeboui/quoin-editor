@@ -1,4 +1,5 @@
 import type { ViewController } from '../../view';
+import { listen } from '../../view/dom/listen';
 
 /**
  * Calls `place` now and whenever what it places may have moved with no change of its own: after each change of the
@@ -22,13 +23,13 @@ export function followLayout(
   observer.observe(root);
   const unsubscribe = controller.editor.subscribe(later);
   const fonts = root.ownerDocument.fonts;
-  root.addEventListener('scroll', update, { capture: true, passive: true });
-  fonts?.addEventListener('loadingdone', later);
+  const unlistenScroll = listen(root, { scroll: update }, { capture: true, passive: true });
+  const unlistenFonts = fonts && listen(fonts, { loadingdone: later });
   return () => {
     view.cancelAnimationFrame(frame);
     unsubscribe();
     observer.disconnect();
-    root.removeEventListener('scroll', update, { capture: true });
-    fonts?.removeEventListener('loadingdone', later);
+    unlistenScroll();
+    unlistenFonts?.();
   };
 }

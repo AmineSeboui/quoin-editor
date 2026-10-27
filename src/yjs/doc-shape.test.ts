@@ -7,6 +7,7 @@ import { sameDoc } from '../engine/model/same-doc';
 import { writeBlocks } from './doc-shape';
 import { readShared } from './read-shared';
 import { arbitraryEngineDoc } from './test-support/engine-doc-arbitrary';
+import { heldPlainly } from './test-support/layout-shape';
 
 function stored(blocks: readonly EngineBlock[]) {
   const shared = new Y.Doc().getText('quoin');
@@ -76,7 +77,7 @@ describe('the shape of a shared document', () => {
       fc.property(arbitraryEngineDoc, (doc) => {
         const back = readShared(stored(doc.blocks));
         expect(sameDoc(back.doc, doc)).toBe(true);
-        expect(back.layout.clean).toBe(true);
+        expect(heldPlainly(back.layout)).toBe(true);
       }),
       { seed: 20261021, numRuns: 500 },
     );

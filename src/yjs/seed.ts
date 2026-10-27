@@ -29,7 +29,7 @@ export function seedOrLoad(
     text.doc!.transact(() => (maps = writeBlocks(text, 0, blocks)), origin);
     const entries = blocks.map((block, i) => cleanEntry(block, maps[i]));
     const spans = [emptySpan(), ...entries.map((entry) => entry.span)];
-    return createLayout(spans, new Map(entries.map((entry) => [entry.id, entry])), true);
+    return createLayout(spans, new Map(entries.map((entry) => [entry.id, entry])));
   }
   const { doc, layout } = readShared(text, required);
   if (!sameDoc(doc, editor.state.doc)) applyRemote(editor, [replaceDocStep(doc)]);

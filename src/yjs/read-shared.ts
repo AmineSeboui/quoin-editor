@@ -20,7 +20,6 @@ function reader(required: RequiredRegions) {
   let entry: Entry | null = null;
   let open: Seg | null = null;
   let stray: Stray | null = null;
-  let clean = true;
 
   const segFor = (region: Region, host: Span, at: number, ops: InsertOp[] = []): Seg => {
     const seg: Seg = { host, region, at, length: 0 };
@@ -39,7 +38,6 @@ function reader(required: RequiredRegions) {
       open.length += length;
       held.get(open)!.push(op);
     } else if (span.index === 0 || span.entry !== null) {
-      clean = false;
       if (stray === null) {
         stray = { host: span, at: span.length, length: 0, ops: [], after: order[order.length - 1] ?? null };
         strays.push(stray);
@@ -61,12 +59,9 @@ function reader(required: RequiredRegions) {
       span.entry = entry;
       entries.set(entry.id, entry);
       markers.set(entry, fields!);
-    } else {
-      clean = false;
-      if (fields !== null) {
-        span.copyOf = entries.get(fields.id)!;
-        span.copyOf.copies.push(span);
-      }
+    } else if (fields !== null) {
+      span.copyOf = entries.get(fields.id)!;
+      span.copyOf.copies.push(span);
     }
   }
 
@@ -78,10 +73,7 @@ function reader(required: RequiredRegions) {
       // A region a text block's type does not have, which concurrent type changes or table edits can leave, reads as
       // one the type lacks, or as none.
       const needed = required(markers.get(entry)!.type);
-      if (needed.length > 0 && !needed.includes(name)) {
-        clean = false;
-        name = needed.find(missing) ?? null;
-      }
+      if (needed.length > 0 && !needed.includes(name)) name = needed.find(missing) ?? null;
       if (name !== null && missing(name)) {
         const region: Region = { name, entry, segs: [] };
         entry.regions.push(region);
@@ -90,7 +82,6 @@ function reader(required: RequiredRegions) {
         return;
       }
     }
-    clean = false;
     if (open !== null) open = opened(open.region);
   }
 
@@ -131,7 +122,7 @@ function reader(required: RequiredRegions) {
         const regions = kept.regions.map(({ name, segs }) => [name, inline(segs)]);
         return { id: kept.id, type, indent, attrs: attrs?.toJSON() ?? {}, regions: Object.fromEntries(regions) };
       });
-      const layout = createLayout(spans, entries, clean, { read, leading: new Set(leading), unread });
+      const layout = createLayout(spans, entries, { read, leading: new Set(leading), unread });
       return { doc: createDoc(blocks), layout };
     },
   };

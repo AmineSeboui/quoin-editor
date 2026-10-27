@@ -1,4 +1,5 @@
 import { spanStart, type Layout } from '../layout';
+import { isPlain } from '../plain';
 
 /** Where a layout puts each block and the characters of each of its regions, as positions in the whole text. */
 export const layoutShape = (layout: Layout) =>
@@ -13,3 +14,7 @@ export const layoutShape = (layout: Layout) =>
       ]),
     }))
     .sort((a, b) => a.at - b.at);
+
+/** Whether the text holds exactly the blocks of a layout, each as a client writes one, and nothing else. */
+export const heldPlainly = ({ spans }: Layout) =>
+  spans[0].length === 0 && spans.slice(1).every((span) => span.entry !== null && isPlain(span.entry));

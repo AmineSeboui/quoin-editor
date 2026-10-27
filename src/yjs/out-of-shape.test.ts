@@ -4,6 +4,7 @@ import type { QuoinBlock } from '../engine/model/quoin-block';
 import { removeBlocksStep, replaceBlockStep } from '../engine/transform/block-steps';
 import { caret, md } from '../engine/test-support/editor-fixtures';
 import { readShared } from './read-shared';
+import { heldPlainly } from './test-support/layout-shape';
 import { meshDocs } from './test-support/mesh';
 import { peer, type Peer } from './test-support/peers';
 
@@ -67,7 +68,7 @@ describe('a split or join in one block of a text another edit left out of shape'
     const { one, two, flush } = clients(blocks, options);
     trigger(one, two);
     flush();
-    expect(readShared(one.collaboration.text).layout.clean).toBe(false);
+    expect(heldPlainly(readShared(one.collaboration.text).layout)).toBe(false);
     one.editor.commands.setSelection(caret('line', 5));
     one.editor.commands.splitBlock();
     two.editor.commands.setSelection(caret('line', 8));

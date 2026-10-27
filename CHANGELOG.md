@@ -2,6 +2,11 @@
 
 Every release of `quoin-editor` is listed here, newest first, in the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). From 1.0.0 the package follows [semantic versioning](https://semver.org/): a breaking change waits for the next major version. Until then, Quoin was 0.x and a minor version could contain breaking changes; those known at release were marked "Breaking". The 0.x sections are kept as they were released, "Docs" headings included. Moving from 0.4 to 1.0 is covered step by step in [MIGRATION.md](MIGRATION.md). Review finding ids such as F-17 are those of the 0.4.0 review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73).
 
+## Unreleased
+
+### Fixed
+- A task's checkbox and an embed's frame are never left with an empty or blank name. In the canvas, a `task` label that is empty or only white space names the checkbox `Task`, and a `frameTitle` label that returns one titles the frame with its provider's name, or with its page's address when the provider has no name. `toHTML`, `QuoinView` and `QuoinDiff` treat a `taskLabel`, an `emptyTask` label, a `frameTitle` or a provider name of only white space as empty too, rather than writing it as the name.
+
 ## 1.0.1 (2026-10-26)
 
 ### Added

@@ -7,9 +7,10 @@ import { createLayout, emptySpan, type Entry, type Layout, type Region, type Seg
 import { noRequiredRegions, type RequiredRegions } from './required-regions';
 
 type Op = { insert: unknown; attributes?: Record<string, unknown> };
+type Reader = ReturnType<typeof reader>;
 type Stray = { host: Span; at: number; length: number; ops: InsertOp[]; after: Region | null };
 
-/** Reads a shared text op by op, as `readShared` does once it is given the ops of its delta. */
+/** Reads a shared text op by op, as `readItems` gives them. */
 export function reader(required: RequiredRegions) {
   const spans = [emptySpan()];
   const entries = new Map<string, Entry>();
@@ -148,6 +149,32 @@ export function readShared(
   required: RequiredRegions = noRequiredRegions,
 ): { doc: EngineDoc; layout: Layout } {
   const read = reader(required);
-  for (const op of text.toDelta() as Op[]) read.read(op);
+  readItems(text, () => read, read);
   return read.finish();
+}
+
+/**
+ * Gives each item of the text, as Y.Text.toDelta gives it with the formatting in force from the start of the text, to
+ * `read`, then to the reader `readerOf` gives for each marker from that marker on, without building the delta of the
+ * whole text. Content the Y.Text API never writes is given one value at a time, as embeds.
+ */
+export function readItems(
+  text: Y.Text,
+  readerOf: (marker: Y.Map<unknown>) => Pick<Reader, 'read'> | undefined,
+  read?: Pick<Reader, 'read'>,
+): void {
+  const attributes = new Map<string, unknown>();
+  for (let item = text._start; item !== null; item = item.right) {
+    const { content } = item;
+    if (item.deleted) continue;
+    if (content instanceof Y.ContentFormat) {
+      if (content.value === null) attributes.delete(content.key);
+      else attributes.set(content.key, content.value);
+      continue;
+    }
+    for (const insert of content instanceof Y.ContentString ? [content.str] : content.getContent()) {
+      if (insert instanceof Y.Map) read = readerOf(insert);
+      read?.read({ insert, attributes: Object.fromEntries(attributes) });
+    }
+  }
 }

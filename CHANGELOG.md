@@ -9,6 +9,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 - A collaborator's change to a block's type reads only that block again from the shared document, rather than the whole document: at 20,000 blocks it takes about 8 ms, against about 75 ms before, close to the 5 ms of a collaborator's typing. A block that concurrent edits left out of shape still reads the whole document, as before.
 - The caret stays on its character when a collaborator's change reads blocks of the shared document again, such as turning the paragraph above it into a code block: it was put back by the layout from before the change and could jump within its block or into another one.
 - A change another writer makes to the `id` in a block's marker in the shared `Y.Text` is read: the editor takes the document as the text now reads, where it kept showing the block under its old id.
+- Content in the shared `Y.Text` that the `Y.Text` API never writes, such as values put in through `Y.Array` on the same name, is read the same way when the whole document is read as when one block is read again: each value counts as an embed that is skipped, so the positions the editor holds match those of Yjs.
 
 ## 1.0.1 (2026-10-26)
 

@@ -43,16 +43,16 @@ export function bind(
   const history = options.history();
   const shared: Shared = { text, layout, stale: false, required };
   const ours = (origin: unknown) => origin === origins.local || origin === origins.untracked;
-  let held: HeldSelection = null;
+  const held = new WeakMap<Y.Transaction, HeldSelection>();
   const written = new WeakSet<Transaction>();
   const hold = (transaction: Y.Transaction) => {
-    if (!ours(transaction.origin)) held = holdSelection(text, shared.layout, editor.state.selection);
+    if (!ours(transaction.origin)) held.set(transaction, holdSelection(text, shared.layout, editor.state.selection));
   };
   const observer = (events: Y.YEvent<Y.AbstractType<unknown>>[], transaction: Y.Transaction) => {
     if (ours(transaction.origin)) return;
     const { steps, structural, failed } = readRemote(shared, events, editor.state.doc);
     if (steps.length > 0 && transaction.origin !== history.manager) {
-      applyRemote(editor, steps, structural ? restoreSelection(text, shared.layout, held) : null);
+      applyRemote(editor, steps, structural ? restoreSelection(text, shared.layout, held.get(transaction)) : null);
     } else if (steps.length > 0) {
       const tr = sharedChange(editor, steps, history.hint(), 'history');
       written.add(tr);

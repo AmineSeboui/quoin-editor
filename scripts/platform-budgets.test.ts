@@ -18,7 +18,7 @@ const COLLABORATION = 12_400;
 describe('the budgets of the platform entries', () => {
   it('hold the collaboration, comments and AI entries to what each added to the main entry when it landed', () => {
     expect(['yjs', 'presence', 'comments', 'ai'].map(budgetOf)).toEqual([
-      { added: incrementalBudget(8_111) },
+      { added: incrementalBudget(8_498) },
       { added: incrementalBudget(4_534) },
       { added: incrementalBudget(6_560) },
       { added: incrementalBudget(8_769) },

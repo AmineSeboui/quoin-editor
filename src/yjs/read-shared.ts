@@ -9,7 +9,8 @@ import { noRequiredRegions, type RequiredRegions } from './required-regions';
 type Op = { insert: unknown; attributes?: Record<string, unknown> };
 type Stray = { host: Span; at: number; length: number; ops: InsertOp[]; after: Region | null };
 
-function reader(required: RequiredRegions) {
+/** Reads a shared text op by op, as `readShared` does once it is given the ops of its delta. */
+export function reader(required: RequiredRegions) {
   const spans = [emptySpan()];
   const entries = new Map<string, Entry>();
   const markers = new Map<Entry, Marker>();

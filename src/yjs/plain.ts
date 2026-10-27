@@ -17,13 +17,16 @@ export function isPlain({ span, regions }: Entry): boolean {
   return span.length === end;
 }
 
-/** The entry of a block written out cleanly in place of `entry`, keeping its marker and the copies of its id. */
-export function rewritten(entry: Entry, block: EngineBlock, map: Y.Map<unknown> = entry.map): Entry {
-  const next = cleanEntry(block, map);
+/** `next`, to stand in place of `entry`, given the copies of its id. */
+export function adopted(entry: Entry, next: Entry): Entry {
   next.copies.push(...entry.copies);
   for (const copy of next.copies) copy.copyOf = next;
   return next;
 }
+
+/** The entry of a block written out cleanly in place of `entry`, keeping its marker and the copies of its id. */
+export const rewritten = (entry: Entry, block: EngineBlock, map: Y.Map<unknown> = entry.map): Entry =>
+  adopted(entry, cleanEntry(block, map));
 
 /**
  * Whether a region written where the span at `index` starts, as blocks put in before it or as the first region of the

@@ -21,16 +21,18 @@ const REREAD = new Error('reread');
 function markerSteps(shared: Shared, event: YEvent, doc: EngineDoc): Step[] {
   const target = event.target as Y.Map<unknown>;
   const marker = (target.parent === shared.text ? target : target.parent) as Y.Map<unknown>;
+  const keys = [...(event as Y.YMapEvent<unknown>).keysChanged];
+  // Which spans are read, and as which blocks, depends on the ids of markers.
+  if (target === marker && keys.includes('id')) throw REREAD;
   const fields = readMarker(marker);
   const block = fields === null ? undefined : blockById(doc, fields.id);
   if (block === undefined || shared.layout.entries.get(block.id)?.map !== marker) return [];
-  const keys = [...(event as Y.YMapEvent<unknown>).keysChanged];
   if (target !== marker) {
     if (fields!.attrs !== target) return [];
     return [setAttrsStep(block.id, Object.fromEntries(keys.map((key) => [key, target.get(key)])))];
   }
   // How a block's regions are read depends on its type, so a new type reads the block again.
-  if (keys.includes('id') || keys.includes('type')) throw REREAD;
+  if (keys.includes('type')) throw REREAD;
   const { indent, attrs } = fields!;
   if (keys.every((key) => key === 'indent')) return [setIndentStep(block.id, indent)];
   return [replaceBlockStep({ ...block, indent, attrs: attrs?.toJSON() ?? {} })];

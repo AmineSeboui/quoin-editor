@@ -35,6 +35,9 @@ function observed(doc: EngineDoc, given: EngineDoc = doc) {
   return { shared, seen, after, errors };
 }
 
+const markers = (shared: Y.Text) =>
+  (shared.toDelta() as { insert: unknown }[]).flatMap(({ insert }) => (insert instanceof Y.Map ? [insert] : []));
+
 const kinds = (seen: Step[][]) => seen.map((steps) => steps.map((step) => step.stepType));
 
 describe('reading a change of the shared text as engine steps', () => {
@@ -85,5 +88,13 @@ describe('reading a change of the shared text as engine steps', () => {
     expect(kinds(seen)).toEqual([['replaceDoc']]);
     expect(after().blocks).toEqual([block('a', 'one!')]);
     expect(errors).toEqual([expect.any(Error)]);
+  });
+
+  it('reads a change of the id of a marker as one replacement of the document', () => {
+    const doc = createDoc([block('a', 'one'), block('b', 'two')]);
+    const { shared, seen, after } = observed(doc);
+    markers(shared)[1].set('id', 'z');
+    expect(kinds(seen)).toEqual([['replaceDoc']]);
+    expect(after()).toEqual(readShared(shared).doc);
   });
 });

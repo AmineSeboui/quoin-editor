@@ -34,14 +34,12 @@ export type Layout = {
  */
 export type Strays = { readonly read: readonly Seg[]; readonly leading: ReadonlySet<Seg>; readonly unread: boolean };
 
-const NO_STRAYS: Strays = { read: [], leading: new Set(), unread: false };
-
 export const emptySpan = (): Span => ({ length: 0, entry: null, segs: [], index: 0 });
 
 export const createLayout = (
   spans: Span[],
   entries: Map<string, Entry>,
-  strays: Strays = NO_STRAYS,
+  strays: Strays = { read: [], leading: new Set(), unread: false },
 ): Layout => ({
   spans,
   entries,

@@ -39,14 +39,13 @@ export function undoHistory(text: Y.Text, origin: object): UndoHistory {
       before = tr.before.selection;
     },
     travel(direction, editor) {
-      const stack = direction === 'undo' ? manager.undoStack : manager.redoStack;
-      const item = stack.at(-1);
+      const item = manager[`${direction}Stack`].at(-1);
       if (item === undefined) return false;
       hint = (item.meta.get(SELECTION) as Selection | null | undefined) ?? null;
       before = editor.state.selection;
       group = null;
       try {
-        return (direction === 'undo' ? manager.undo() : manager.redo()) !== null;
+        return manager[direction]() !== null;
       } finally {
         hint = null;
       }

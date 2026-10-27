@@ -2,12 +2,9 @@ import type * as Y from 'yjs';
 import { applyRemote, sharedChange } from '../engine/collab/apply-remote';
 import type { CommandFactories } from '../engine/commands/chain';
 import type { Editor } from '../engine/extension/editor';
-import { sameDoc } from '../engine/model/same-doc';
 import type { Transaction } from '../engine/state/transaction';
-import { replaceDocStep } from '../engine/transform/replace-doc-step';
 import { holdSelection, restoreSelection, type HeldSelection } from './carets';
 import { writeLocalSteps } from './local-to-yjs';
-import { readShared } from './read-shared';
 import { requiredRegions } from './required-regions';
 import { seedOrLoad, type Seed } from './seed';
 import type { Shared } from './shared';
@@ -64,9 +61,7 @@ export function bind(
   // A change written over a text that is out of shape can read back as another document: the editor takes that one.
   const settle = () => {
     shared.stale = false;
-    const read = readShared(text, required);
-    shared.layout = read.layout;
-    if (!sameDoc(read.doc, editor.state.doc)) applyRemote(editor, [replaceDocStep(read.doc)]);
+    shared.layout = seedOrLoad(editor, text, { origin: origins.local, seed: false, required });
   };
   doc.on('beforeTransaction', hold);
   text.observeDeep(observer);

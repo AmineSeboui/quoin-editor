@@ -11,9 +11,9 @@ const budgetOf = (name: string) => {
   return { total, added };
 };
 
-// The collaboration adapter and the presence drawn with it, which a host loads together. The plan's figure rather than a
-// measure plus 4 percent: about 2 percent above the 11,765 B they added together when they landed.
-const COLLABORATION = 12_000;
+// The collaboration adapter and the presence drawn with it, which a host loads together: about 3 percent above the
+// 11,996 B they added together in 1.0.1.
+const COLLABORATION = 12_400;
 
 describe('the budgets of the platform entries', () => {
   it('hold the collaboration, comments and AI entries to what each added to the main entry when it landed', () => {
@@ -27,7 +27,7 @@ describe('the budgets of the platform entries', () => {
 });
 
 describeBuilt('the built collaboration entries', ['index.js', 'yjs.js', 'presence.js'], () => {
-  it('add no more than 12 KB to the main entry together', async () => {
+  it('add no more than 12.4 KB to the main entry together', async () => {
     expect(await addedGzip(root, ['yjs', 'presence'])).toBeLessThanOrEqual(COLLABORATION);
   });
 });

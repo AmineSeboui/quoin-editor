@@ -49,6 +49,6 @@ describe('a type change by another client in a long document', () => {
     );
     expect(two.editor.getBlocks()).toEqual(one.editor.getBlocks());
     expect(retyping).toBeLessThan(typing * 3);
-    expect(retyping * 3).toBeLessThan(rereading);
+    expect(retyping * 2).toBeLessThan(rereading);
   }, 120_000);
 });

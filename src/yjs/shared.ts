@@ -9,7 +9,7 @@ import type { RequiredRegions } from './required-regions';
 
 /**
  * A shared text, where it holds each block, and the regions each block type needs. `stale` says a change was written
- * over a layout that was not clean, so the text may now read as a document other than the editor's.
+ * over a text out of shape, so the text may now read as a document other than the editor's.
  */
 export type Shared = { readonly text: Y.Text; layout: Layout; stale: boolean; readonly required: RequiredRegions };
 

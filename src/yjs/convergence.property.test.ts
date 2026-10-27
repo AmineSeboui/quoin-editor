@@ -42,6 +42,12 @@ const TABLE: QuoinBlock = {
 };
 const WITH_TABLE = [md('a', 'one **two** three'), TABLE, md('c', 'six')];
 
+const retypeTurn = fc.record({
+  by: fc.constantFrom(0, 1),
+  edit: arbitraryEdit(['retype', 'retype', 'retype', 'insert', 'delete', 'split', 'join', 'mark']),
+  deliver: fc.constantFrom(null, 0, 1),
+});
+
 const tableTurn = fc.record({
   by: fc.constantFrom(0, 1),
   edit: arbitraryEdit(TABLE_KINDS),
@@ -62,7 +68,9 @@ function converges(start: readonly QuoinBlock[]) {
     turns.forEach(({ by, edit, deliver: to }, i) => {
       runEdit(peers[by].editor, edit, `${'xy'[by]}${i}`);
       expect(matchesShared(peers[by])).toBe(true);
-      if (to !== null) deliver(to);
+      if (to === null) return;
+      deliver(to);
+      expect(matchesShared(peers[to])).toBe(true);
     });
     flush();
     expect(peers[1].editor.getBlocks()).toEqual(peers[0].editor.getBlocks());
@@ -78,6 +86,13 @@ describe('two editors on two synced documents', () => {
       seed: 20261021,
       numRuns: 300,
       examples: [[SPLIT_OF_A_COPY]],
+    });
+  });
+
+  it('converge after random concurrent changes of the types of the same blocks and of others', () => {
+    fc.assert(fc.property(fc.array(retypeTurn, { minLength: 1, maxLength: 16 }), converges(START)), {
+      seed: 20261027,
+      numRuns: 300,
     });
   });
 

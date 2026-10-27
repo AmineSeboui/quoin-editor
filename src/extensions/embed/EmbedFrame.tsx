@@ -7,7 +7,6 @@ import { focusNode } from '../../blocks/void/select-node';
 import { useNodeKeys } from '../../blocks/void/use-node-keys';
 import type { ViewController } from '../../view';
 import { useEditorState } from '../../view/react/use-editor-state';
-import type { EmbedLabels } from './embed-labels';
 import { playerHeight } from './embed-player';
 import type { EmbedMatch } from './providers';
 import { useCoverPress } from './use-cover-press';
@@ -16,7 +15,7 @@ type EmbedFrameProps = {
   blockId: string;
   controller: ViewController;
   match: EmbedMatch;
-  labels: EmbedLabels;
+  title: string;
   readOnly: boolean;
 };
 
@@ -25,7 +24,7 @@ type EmbedFrameProps = {
  * sending focus into a frame the editor could never take it back from. The cover lifts while the block is selected as a
  * whole, and Enter on the selected block moves focus into the frame, which is otherwise kept out of the tab order.
  */
-export function EmbedFrame({ blockId, controller, match, labels, readOnly }: EmbedFrameProps) {
+export function EmbedFrame({ blockId, controller, match, title, readOnly }: EmbedFrameProps) {
   const root = useRef<HTMLDivElement>(null);
   const frame = useRef<HTMLIFrameElement>(null);
   const selected = useEditorState(
@@ -47,7 +46,7 @@ export function EmbedFrame({ blockId, controller, match, labels, readOnly }: Emb
       <iframe
         ref={frame}
         src={match.src}
-        title={labels.frameTitle(match.provider)}
+        title={title}
         sandbox={EMBED_FRAME.sandbox}
         loading={EMBED_FRAME.loading}
         referrerPolicy={EMBED_FRAME.referrerpolicy}

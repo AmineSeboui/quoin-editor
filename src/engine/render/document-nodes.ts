@@ -5,6 +5,7 @@ import { groupBlocks } from './block-groups';
 import { blockNode } from './block-node';
 import { coreEmbedProviders } from './embed-providers';
 import { engineBlocksOf } from './engine-blocks';
+import { firstNamed } from './first-named';
 import { groupNodes } from './group-nodes';
 import type { BlockRenderer, HtmlEnv } from './html-env';
 import type { HtmlNode } from './html-node';
@@ -21,7 +22,7 @@ export function documentNodes(blocks: readonly QuoinBlock[], options: HTMLOption
     embeds: options.embeds ?? 'link',
     embedProviders: [...(options.embedProviders ?? []), ...coreEmbedProviders],
     headings: collectHeadings(engine, schema),
-    taskLabel: options.taskLabel || 'Task',
+    taskLabel: firstNamed(options.taskLabel, 'Task'),
     frameTitle: options.frameTitle ?? String,
   };
   return groupNodes(groupBlocks(engine), env, render);

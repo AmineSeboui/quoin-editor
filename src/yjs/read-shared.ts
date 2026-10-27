@@ -7,9 +7,11 @@ import { createLayout, emptySpan, type Entry, type Layout, type Region, type Seg
 import { noRequiredRegions, type RequiredRegions } from './required-regions';
 
 type Op = { insert: unknown; attributes?: Record<string, unknown> };
+type Reader = ReturnType<typeof reader>;
 type Stray = { host: Span; at: number; length: number; ops: InsertOp[]; after: Region | null };
 
-function reader(required: RequiredRegions) {
+/** Reads a shared text op by op, as `readItems` gives them. */
+export function reader(required: RequiredRegions) {
   const spans = [emptySpan()];
   const entries = new Map<string, Entry>();
   const markers = new Map<Entry, Marker>();
@@ -20,7 +22,6 @@ function reader(required: RequiredRegions) {
   let entry: Entry | null = null;
   let open: Seg | null = null;
   let stray: Stray | null = null;
-  let clean = true;
 
   const segFor = (region: Region, host: Span, at: number, ops: InsertOp[] = []): Seg => {
     const seg: Seg = { host, region, at, length: 0 };
@@ -39,7 +40,6 @@ function reader(required: RequiredRegions) {
       open.length += length;
       held.get(open)!.push(op);
     } else if (span.index === 0 || span.entry !== null) {
-      clean = false;
       if (stray === null) {
         stray = { host: span, at: span.length, length: 0, ops: [], after: order[order.length - 1] ?? null };
         strays.push(stray);
@@ -61,12 +61,9 @@ function reader(required: RequiredRegions) {
       span.entry = entry;
       entries.set(entry.id, entry);
       markers.set(entry, fields!);
-    } else {
-      clean = false;
-      if (fields !== null) {
-        span.copyOf = entries.get(fields.id)!;
-        span.copyOf.copies.push(span);
-      }
+    } else if (fields !== null) {
+      span.copyOf = entries.get(fields.id)!;
+      span.copyOf.copies.push(span);
     }
   }
 
@@ -78,10 +75,7 @@ function reader(required: RequiredRegions) {
       // A region a text block's type does not have, which concurrent type changes or table edits can leave, reads as
       // one the type lacks, or as none.
       const needed = required(markers.get(entry)!.type);
-      if (needed.length > 0 && !needed.includes(name)) {
-        clean = false;
-        name = needed.find(missing) ?? null;
-      }
+      if (needed.length > 0 && !needed.includes(name)) name = needed.find(missing) ?? null;
       if (name !== null && missing(name)) {
         const region: Region = { name, entry, segs: [] };
         entry.regions.push(region);
@@ -90,7 +84,6 @@ function reader(required: RequiredRegions) {
         return;
       }
     }
-    clean = false;
     if (open !== null) open = opened(open.region);
   }
 
@@ -131,7 +124,7 @@ function reader(required: RequiredRegions) {
         const regions = kept.regions.map(({ name, segs }) => [name, inline(segs)]);
         return { id: kept.id, type, indent, attrs: attrs?.toJSON() ?? {}, regions: Object.fromEntries(regions) };
       });
-      const layout = createLayout(spans, entries, clean, { read, leading: new Set(leading), unread });
+      const layout = createLayout(spans, entries, { read, leading: new Set(leading), unread });
       return { doc: createDoc(blocks), layout };
     },
   };
@@ -156,6 +149,32 @@ export function readShared(
   required: RequiredRegions = noRequiredRegions,
 ): { doc: EngineDoc; layout: Layout } {
   const read = reader(required);
-  for (const op of text.toDelta() as Op[]) read.read(op);
+  readItems(text, () => read, read);
   return read.finish();
+}
+
+/**
+ * Gives each item of the text, as Y.Text.toDelta gives it with the formatting in force from the start of the text, to
+ * `read`, then to the reader `readerOf` gives for each marker from that marker on, without building the delta of the
+ * whole text. Content the Y.Text API never writes is given one value at a time, as embeds.
+ */
+export function readItems(
+  text: Y.Text,
+  readerOf: (marker: Y.Map<unknown>) => Pick<Reader, 'read'> | undefined,
+  read?: Pick<Reader, 'read'>,
+): void {
+  const attributes = new Map<string, unknown>();
+  for (let item = text._start; item !== null; item = item.right) {
+    const { content } = item;
+    if (item.deleted) continue;
+    if (content instanceof Y.ContentFormat) {
+      if (content.value === null) attributes.delete(content.key);
+      else attributes.set(content.key, content.value);
+      continue;
+    }
+    for (const insert of content instanceof Y.ContentString ? [content.str] : content.getContent()) {
+      if (insert instanceof Y.Map) read = readerOf(insert);
+      read?.read({ insert, attributes: Object.fromEntries(attributes) });
+    }
+  }
 }

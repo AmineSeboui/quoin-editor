@@ -37,4 +37,17 @@ describe('QuoinDiff takes the drawing options of QuoinView', () => {
     const blank = renderToStaticMarkup(<QuoinDiff before={[task]} after={[task]} labels={{ emptyTask: '' }} />);
     expect(blank).toContain('aria-label="Task"');
   });
+
+  it('names an empty task with its own label when told a name of only white space', () => {
+    expect(renderToStaticMarkup(<QuoinDiff before={[task]} after={[task]} taskLabel="  " />)).toContain('aria-label="Task"');
+    const blank = renderToStaticMarkup(<QuoinDiff before={[task]} after={[task]} labels={{ emptyTask: ' ' }} />);
+    expect(blank).toContain('aria-label="Task"');
+  });
+
+  it('titles a frame with its provider name when told a title that is empty or only white space', () => {
+    for (const title of ['', '  ']) {
+      const html = renderToStaticMarkup(<QuoinDiff before={[]} after={[video]} embeds="iframe" frameTitle={() => title} />);
+      expect(html).toMatch(/<iframe [^>]*title="youtube"/);
+    }
+  });
 });

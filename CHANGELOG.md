@@ -2,6 +2,18 @@
 
 Every release of `quoin-editor` is listed here, newest first, in the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). From 1.0.0 the package follows [semantic versioning](https://semver.org/): a breaking change waits for the next major version. Until then, Quoin was 0.x and a minor version could contain breaking changes; those known at release were marked "Breaking". The 0.x sections are kept as they were released, "Docs" headings included. Moving from 0.4 to 1.0 is covered step by step in [MIGRATION.md](MIGRATION.md). Review finding ids such as F-17 are those of the 0.4.0 review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73).
 
+## Unreleased
+
+### Fixed
+- A task's checkbox and an embed's frame are never left with an empty or blank name. In the canvas, a `task` label that is empty or only white space names the checkbox `Task`, and a `frameTitle` label that returns one titles the frame with its provider's name, or with its page's address when the provider has no name. `toHTML`, `QuoinView` and `QuoinDiff` treat a `taskLabel`, an `emptyTask` label, a `frameTitle` or a provider name of only white space as empty too, rather than writing it as the name.
+- With `quoin-editor/yjs`, a collaborator's change to a block's type reads only that block again from the shared document, rather than the whole document, as does a collaborator's change to the rows or columns of a table, or any other change that only puts in or takes out the start of a region: at 20,000 blocks a type change takes about 8 ms, against about 75 ms before, close to the 5 ms of a collaborator's typing. A block that concurrent edits left out of shape still reads the whole document, as before.
+- With `quoin-editor/yjs`, the caret stays on its character when a collaborator's change reads blocks of the shared document again, such as turning the paragraph above it into a code block: it was put back by the layout from before the change and could jump within its block or into another one.
+- With `quoin-editor/yjs`, a change another writer makes to the `id` in a block's marker in the shared `Y.Text` is read: the editor takes the document as the text now reads, where it kept showing the block under its old id.
+- With `quoin-editor/yjs`, content in the shared `Y.Text` that the `Y.Text` API never writes, such as values put in through `Y.Array` on the same name, counts as one skipped embed per value, rather than being dropped, so the positions the editor holds match those of Yjs.
+
+### Known limits
+- In the canvas, a task's text box still takes a `task` label that is empty or only white space as its name.
+
 ## 1.0.1 (2026-10-26)
 
 ### Added

@@ -63,6 +63,11 @@ describe('a markdown block in the canvas', () => {
     expect(screen.getByRole('checkbox')).toHaveAttribute('aria-label', 'Task');
   });
 
+  it.each(['', '  '])('names a task checkbox Task when the canvas labels name it %j', (task) => {
+    mountCanvas([md('t', '- [ ] ')], { labels: { task } });
+    expect(screen.getByRole('checkbox')).toHaveAttribute('aria-label', 'Task');
+  });
+
   it('names every host and control in the words the canvas labels give', () => {
     const labels = {
       paragraph: 'Paragraphe',

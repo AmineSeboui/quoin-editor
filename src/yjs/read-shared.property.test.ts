@@ -6,6 +6,7 @@ import { sameDoc } from '../engine/model/same-doc';
 import { writeBlocks } from './doc-shape';
 import { spanStart } from './layout';
 import { readShared } from './read-shared';
+import { heldPlainly } from './test-support/layout-shape';
 import { arbitraryToken, writeTokens } from './test-support/tokens';
 
 const OBJECT = '\uFFFC';
@@ -60,7 +61,7 @@ describe('reading a shared text whatever it holds', () => {
         writeBlocks(again, 0, doc.blocks);
         const back = readShared(again);
         expect(sameDoc(back.doc, doc)).toBe(true);
-        expect(back.layout.clean).toBe(true);
+        expect(heldPlainly(back.layout)).toBe(true);
       }),
       { seed: 20261021, numRuns: 500 },
     );

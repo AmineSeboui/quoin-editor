@@ -32,8 +32,8 @@ export function holdSelection(text: Y.Text, layout: Layout, selection: Selection
   }
 }
 
-export function restoreSelection(text: Y.Text, layout: Layout, held: HeldSelection): Selection | null {
-  if (held === null) return null;
+export function restoreSelection(text: Y.Text, layout: Layout, held: HeldSelection | undefined): Selection | null {
+  if (!held) return null;
   const [anchor, head] = [absolute(text, layout, held.anchor), absolute(text, layout, held.head)];
   return anchor === null || head === null ? null : { kind: 'text', anchor, head };
 }

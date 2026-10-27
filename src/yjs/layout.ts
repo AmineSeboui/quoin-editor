@@ -18,12 +18,11 @@ export type Entry = {
 
 /**
  * Where each block and region of the document sits in the shared text, so that a change by offset needs no scan of the
- * text. A layout is `clean` when the text holds exactly the blocks, one region start before each region's characters.
+ * text.
  */
 export type Layout = {
   readonly spans: Span[];
   readonly entries: Map<string, Entry>;
-  clean: boolean;
   readonly strays: Strays;
   readonly starts: number[];
   valid: number;
@@ -35,19 +34,15 @@ export type Layout = {
  */
 export type Strays = { readonly read: readonly Seg[]; readonly leading: ReadonlySet<Seg>; readonly unread: boolean };
 
-const NO_STRAYS: Strays = { read: [], leading: new Set(), unread: false };
-
 export const emptySpan = (): Span => ({ length: 0, entry: null, segs: [], index: 0 });
 
 export const createLayout = (
   spans: Span[],
   entries: Map<string, Entry>,
-  clean: boolean,
-  strays: Strays = NO_STRAYS,
+  strays: Strays = { read: [], leading: new Set(), unread: false },
 ): Layout => ({
   spans,
   entries,
-  clean,
   strays,
   starts: [],
   valid: 0,

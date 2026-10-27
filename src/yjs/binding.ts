@@ -2,12 +2,9 @@ import type * as Y from 'yjs';
 import { applyRemote, sharedChange } from '../engine/collab/apply-remote';
 import type { CommandFactories } from '../engine/commands/chain';
 import type { Editor } from '../engine/extension/editor';
-import { sameDoc } from '../engine/model/same-doc';
 import type { Transaction } from '../engine/state/transaction';
-import { replaceDocStep } from '../engine/transform/replace-doc-step';
 import { holdSelection, restoreSelection, type HeldSelection } from './carets';
 import { writeLocalSteps } from './local-to-yjs';
-import { readShared } from './read-shared';
 import { requiredRegions } from './required-regions';
 import { seedOrLoad, type Seed } from './seed';
 import type { Shared } from './shared';
@@ -43,16 +40,16 @@ export function bind(
   const history = options.history();
   const shared: Shared = { text, layout, stale: false, required };
   const ours = (origin: unknown) => origin === origins.local || origin === origins.untracked;
-  let held: HeldSelection = null;
+  const held = new WeakMap<Y.Transaction, HeldSelection>();
   const written = new WeakSet<Transaction>();
   const hold = (transaction: Y.Transaction) => {
-    if (!ours(transaction.origin)) held = holdSelection(text, shared.layout, editor.state.selection);
+    if (!ours(transaction.origin)) held.set(transaction, holdSelection(text, shared.layout, editor.state.selection));
   };
   const observer = (events: Y.YEvent<Y.AbstractType<unknown>>[], transaction: Y.Transaction) => {
     if (ours(transaction.origin)) return;
     const { steps, structural, failed } = readRemote(shared, events, editor.state.doc);
     if (steps.length > 0 && transaction.origin !== history.manager) {
-      applyRemote(editor, steps, structural ? restoreSelection(text, shared.layout, held) : null);
+      applyRemote(editor, steps, structural ? restoreSelection(text, shared.layout, held.get(transaction)) : null);
     } else if (steps.length > 0) {
       const tr = sharedChange(editor, steps, history.hint(), 'history');
       written.add(tr);
@@ -64,9 +61,7 @@ export function bind(
   // A change written over a text that is out of shape can read back as another document: the editor takes that one.
   const settle = () => {
     shared.stale = false;
-    const read = readShared(text, required);
-    shared.layout = read.layout;
-    if (!sameDoc(read.doc, editor.state.doc)) applyRemote(editor, [replaceDocStep(read.doc)]);
+    shared.layout = seedOrLoad(editor, text, { origin: origins.local, seed: false, required });
   };
   doc.on('beforeTransaction', hold);
   text.observeDeep(observer);

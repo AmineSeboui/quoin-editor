@@ -52,7 +52,7 @@ export const packageEntries = [
   // Word documents written in a browser, a worker or Node, loaded alone like the view: most of it is the block reading.
   { name: 'docx', source: 'src/docx/index.ts', client: false, total: 25_891 },
   // Measured as what it adds to the main entry, like a feature: the engine entry it loads is a part of the main entry.
-  { name: 'yjs', source: 'src/yjs.ts', client: false, added: incrementalBudget(8_111) },
+  { name: 'yjs', source: 'src/yjs.ts', client: false, added: incrementalBudget(8_498) },
   // Collaborators drawn in the canvas: a client entry, apart from the adapter, which a worker or a server can load alone.
   { name: 'presence', source: 'src/presence.ts', client: true, added: incrementalBudget(4_534) },
   // Threads the host keeps, which no catalogue option could carry, so it stays out of the catalogue as presence does.

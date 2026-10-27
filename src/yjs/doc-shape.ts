@@ -4,8 +4,7 @@ import { inlineOps } from './inline-codec';
 
 // Y.Text.delete starts from a search marker without the formatting in force there, so it can take a mark's end that
 // stands just before the deleted characters for one that changes nothing, and drop it; a delta walks from the start.
-export const deleteText = (text: Y.Text, at: number, length: number): void =>
-  text.applyDelta(at > 0 ? [{ retain: at }, { delete: length }] : [{ delete: length }]);
+export const deleteText = (text: Y.Text, at: number, length: number): void => writeOps(text, at, [{ delete: length }]);
 
 /** The embed before a region's characters, naming the region. */
 export type RegionStart = { readonly r: string };
@@ -69,7 +68,7 @@ function blockOps(block: EngineBlock, map: Y.Map<unknown>, open?: string): Inser
 }
 
 // One delta for the whole write: each insertion with formatting walks the text from its start.
-const writeOps = (text: Y.Text, at: number, ops: Insert[]) => text.applyDelta(at > 0 ? [{ retain: at }, ...ops] : ops);
+const writeOps = (text: Y.Text, at: number, ops: object[]) => text.applyDelta(at > 0 ? [{ retain: at }, ...ops] : ops);
 
 /**
  * Writes `block` at `at` with the marker `map`, its regions in order. With `open`, it stops after the start of that

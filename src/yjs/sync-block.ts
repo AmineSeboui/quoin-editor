@@ -73,8 +73,7 @@ export function syncBlock(shared: Shared, before: EngineBlock, after: EngineBloc
     insertBlocks(shared, next, [after]);
     return;
   }
-  if (before.type !== after.type) entry.map.set('type', after.type);
-  if (before.indent !== after.indent) entry.map.set('indent', after.indent);
+  for (const key of ['type', 'indent'] as const) if (before[key] !== after[key]) entry.map.set(key, after[key]);
   syncAttrs(entry.map, before.attrs, after.attrs);
   if (plain) {
     const gains = Object.keys(before.regions).length === 0 && Object.keys(after.regions).length > 0;

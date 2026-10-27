@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import * as Y from 'yjs';
 import { text } from '../engine/model/inline';
 import { readShared } from './read-shared';
+import { heldPlainly } from './test-support/layout-shape';
 import { writeTokens, type Token } from './test-support/tokens';
 
 const marker = (id: unknown, type = 'MARKDOWN'): Token => ({ kind: 'marker', id, type, indent: 0, attrs: null });
@@ -25,7 +26,7 @@ describe('the document every client reads from a shared text', () => {
       { id: 'd', type: 'DIVIDER', indent: 0, attrs: {}, regions: {} },
       { id: 'b', type: 'MARKDOWN', indent: 0, attrs: {}, regions: {} },
     ]);
-    expect(layout.clean).toBe(true);
+    expect(heldPlainly(layout)).toBe(true);
   });
 
   it('gives text before the first marker to the first region of the document', () => {
@@ -74,7 +75,7 @@ describe('the document every client reads from a shared text', () => {
   it('skips embeds it does not know, and the marks of markers and region starts', () => {
     const { doc, layout } = read(marker('a'), region('text'), chars('on'), { kind: 'embed' }, chars('e'));
     expect(doc.blocks[0].regions).toEqual({ text: [text('one')] });
-    expect(layout.clean).toBe(false);
+    expect(heldPlainly(layout)).toBe(false);
   });
 
   it('reads missing fields of a marker as an untyped, unindented block with no attrs', () => {

@@ -164,6 +164,15 @@ describe('host embed providers', () => {
     );
   });
 
+  it('takes a title or a provider name of only white space for none', () => {
+    expect(framed('https://video.acme.test/clip-1', { embedProviders: [acme], frameTitle: () => '  ' })).toBe(
+      frame('https://embed.acme.test/clip-1', 'acme'),
+    );
+    expect(framed('https://video.acme.test/clip-1', { embedProviders: [{ ...acme, name: ' ' }], frameTitle: () => ' ' })).toBe(
+      frame('https://embed.acme.test/clip-1', 'https://video.acme.test/clip-1'),
+    );
+  });
+
   it('titles a frame with what the host makes of its provider name', () => {
     expect(framed('https://video.acme.test/clip-1', { embedProviders: [acme], frameTitle: (name) => `${name} player` })).toBe(
       frame('https://embed.acme.test/clip-1', 'acme player'),

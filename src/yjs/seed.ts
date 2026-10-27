@@ -5,7 +5,7 @@ import type { Editor } from '../engine/extension/editor';
 import { sameDoc } from '../engine/model/same-doc';
 import { replaceDocStep } from '../engine/transform/replace-doc-step';
 import { writeBlocks } from './doc-shape';
-import { cleanEntry, createLayout, emptySpan, type Layout } from './layout';
+import { cleanEntry, createLayout, emptySpan, placeEntries, type Layout } from './layout';
 import { readShared } from './read-shared';
 import type { RequiredRegions } from './required-regions';
 
@@ -27,9 +27,9 @@ export function seedOrLoad(
   if (text.length === 0 && seed === 'if-empty') {
     let maps: Y.Map<unknown>[] = [];
     text.doc!.transact(() => (maps = writeBlocks(text, 0, blocks)), origin);
-    const entries = blocks.map((block, i) => cleanEntry(block, maps[i]));
-    const spans = [emptySpan(), ...entries.map((entry) => entry.span)];
-    return createLayout(spans, new Map(entries.map((entry) => [entry.id, entry])), true);
+    const layout = createLayout([emptySpan()], new Map());
+    placeEntries(layout, 1, 0, blocks.map((block, i) => cleanEntry(block, maps[i])));
+    return layout;
   }
   const { doc, layout } = readShared(text, required);
   if (!sameDoc(doc, editor.state.doc)) applyRemote(editor, [replaceDocStep(doc)]);

@@ -2,6 +2,7 @@ import type * as Y from 'yjs';
 import { sharedChange } from '../../engine/collab/apply-remote';
 import type { CommandFactories } from '../../engine/commands/chain';
 import type { Editor } from '../../engine/extension/editor';
+import { isRecord } from '../../engine/model/is-record';
 import { getPluginState } from '../../engine/state/editor-state';
 import { sameSelection } from '../../engine/state/selection';
 import { fromAware, toAware } from '../../yjs/awareness';
@@ -18,10 +19,8 @@ const COLOR = /^(#[\da-f]{3,8}|[a-z]+|(rgba?|hsla?|hwb|lab|lch|oklab|oklch)\([\d
 const safeColor = (value: unknown) => (typeof value === 'string' && COLOR.test(value) ? value : undefined);
 
 type User = { name: string; color?: unknown };
-const userOf = (state: Record<string, unknown>): User | null => {
-  const { user } = state;
-  return typeof user === 'object' && user !== null && typeof (user as User).name === 'string' ? (user as User) : null;
-};
+const userOf = ({ user }: Record<string, unknown>): User | null =>
+  isRecord(user) && typeof user.name === 'string' ? (user as User) : null;
 
 // The session that last named its user in each awareness, which alone takes the user out of it.
 const namedBy = new WeakMap<YjsAwareness, object>();

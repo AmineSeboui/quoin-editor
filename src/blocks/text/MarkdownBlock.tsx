@@ -3,10 +3,10 @@
 import { useLabels } from '../../i18n/use-labels';
 import { EditableRegion, type BlockRenderProps, type BlockRenderer } from '../../view';
 import { useRegionDomId } from '../../view/react/block-dom-id';
+import { TaskCheckbox } from '../../view/react/TaskCheckbox';
 import { headingLevel } from '../../engine/render/heading-level';
 import { useOrderedNumber } from '../../view/react/use-ordered-number';
 import { ListMarker } from './ListMarker';
-import { TaskCheckbox } from './TaskCheckbox';
 
 const REGION = 'text';
 
@@ -41,7 +41,7 @@ function TaskItem({ block, controller }: BlockRenderProps) {
   const hostId = useRegionDomId(block.id, REGION);
   return (
     <div className="quoin-task" data-checked={block.attrs.checked === true}>
-      <TaskCheckbox block={block} controller={controller} labelledBy={hostId} />
+      <TaskCheckbox block={block} controller={controller} label={labels.task} labelledBy={hostId} />
       <EditableRegion id={hostId} block={block.id} region={REGION} label={labels.task} />
     </div>
   );

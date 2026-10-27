@@ -1,3 +1,4 @@
+import { firstNamed } from '../../engine/render/first-named';
 import { flipCommand } from '../input/flip-block';
 import { onBlock } from './block-command';
 import type { BlockRenderProps } from './block-renderer-types';
@@ -10,7 +11,7 @@ type TaskCheckboxProps = Pick<BlockRenderProps, 'block' | 'controller'> & {
   labelledBy?: string;
 };
 
-export function TaskCheckbox({ block, controller, label = 'Task', labelledBy }: TaskCheckboxProps) {
+export function TaskCheckbox({ block, controller, label, labelledBy }: TaskCheckboxProps) {
   const checked = block.attrs.checked === true;
   const flip = flipCommand(block);
   const readOnly = useReadOnly(controller);
@@ -20,7 +21,7 @@ export function TaskCheckbox({ block, controller, label = 'Task', labelledBy }: 
       role="checkbox"
       aria-checked={checked}
       aria-readonly={readOnly ? 'true' : undefined}
-      aria-label={label}
+      aria-label={firstNamed(label, 'Task')}
       aria-labelledby={labelledBy}
       className="quoin-task-box"
       contentEditable={false}

@@ -114,6 +114,18 @@ describe('QuoinView', () => {
       '<div class="quoin-view"><div data-math=""><k data-d="true">x</k></div><p>a <span data-math=""><k data-d="false">y</k></span> b</p></div>',
     );
   });
+
+  it('names a task and titles a frame by default when told a name that is empty or only white space', () => {
+    const blocks = [
+      { id: 't', type: 'MARKDOWN', data: { markdown: '- [ ] ' } },
+      { id: 'v', type: 'EMBED', data: { url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', provider: 'youtube' } },
+    ];
+    for (const name of ['', '  ']) {
+      const html = renderToStaticMarkup(<QuoinView blocks={blocks} embeds="iframe" taskLabel={name} frameTitle={() => name} />);
+      expect(html).toContain('aria-label="Task"');
+      expect(html).toMatch(/<iframe [^>]*title="youtube"/);
+    }
+  });
 });
 
 describe('the view entry', () => {

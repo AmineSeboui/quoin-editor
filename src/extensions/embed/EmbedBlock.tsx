@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { str } from '../../engine/blocks/data-fields';
+import { firstNamed } from '../../engine/render/first-named';
 import type { BlockRenderProps } from '../../view';
 import { useReadOnly } from '../../view/react/use-read-only';
 import { EmbedFrame } from './EmbedFrame';
@@ -25,7 +26,13 @@ export function EmbedBlock({ block, controller, feature }: EmbedBlockProps) {
       {match === null ? (
         <LinkCard controller={controller} blockId={block.id} url={url} readOnly={readOnly} linkRef={link} />
       ) : (
-        <EmbedFrame blockId={block.id} controller={controller} match={match} labels={labels} readOnly={readOnly} />
+        <EmbedFrame
+          blockId={block.id}
+          controller={controller}
+          match={match}
+          title={firstNamed(labels.frameTitle(match.provider), match.provider, url)}
+          readOnly={readOnly}
+        />
       )}
     </div>
   );

@@ -3,6 +3,7 @@ import { sanitizeAssetUrl, sanitizeHref } from '../markdown/urls';
 import type { EngineBlock } from '../model/types';
 import { alignAttr, indentAttr } from './block-attrs';
 import { EMBED_FRAME, embedFrame } from './embed-provider';
+import { firstNamed } from './first-named';
 import { inlineOf, type BlockView, type HtmlEnv } from './html-env';
 import { element, type Attr, type HtmlNode } from './html-node';
 
@@ -51,7 +52,7 @@ export function embedNode(block: EngineBlock, view: BlockView, env: HtmlEnv): Ht
   if (!href) return '';
   const frame = env.embeds === 'iframe' ? embedFrame(href, env.embedProviders) : null;
   if (frame) {
-    const attrs: Attr[] = [['src', frame.src], ['title', env.frameTitle(frame.name) || frame.name || href], ...Object.entries(EMBED_FRAME)];
+    const attrs: Attr[] = [['src', frame.src], ['title', firstNamed(env.frameTitle(frame.name), frame.name, href)], ...Object.entries(EMBED_FRAME)];
     return element('iframe', [...attrs, indentAttr(view.excess)]);
   }
   return paragraph(view, link(href, href));

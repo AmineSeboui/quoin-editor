@@ -3,6 +3,7 @@ import type { CodeHighlighter } from '../blocks/code/code-highlighter';
 import type { QuoinBlock } from '../engine/model/quoin-block';
 import { createSchema } from '../engine/schema/create-schema';
 import { documentNodes } from '../engine/render/document-nodes';
+import { firstNamed } from '../engine/render/first-named';
 import type { HtmlElement } from '../engine/render/html-node';
 import type { HTMLOptions } from '../engine/render/to-html';
 import type { AnyBlockDefinition } from '../registry';
@@ -50,6 +51,6 @@ export function QuoinDiff({ before, after, blockTypes, labels, highlight, classN
   const { blocks, marks } = diffDocument(before, after, schema);
   const slots = new Map<HtmlElement, ReactNode>();
   const render = diffRenderer(marks, words, viewRenderer({ blockTypes, highlight }, slots));
-  const nodes = documentNodes(blocks, { ...options, schema, taskLabel: options.taskLabel || words.emptyTask }, render);
+  const nodes = documentNodes(blocks, { ...options, schema, taskLabel: firstNamed(options.taskLabel, words.emptyTask) }, render);
   return createElement('div', { className: className ? `quoin-diff ${className}` : 'quoin-diff' }, ...reactNodes(settledDiff(nodes), slots));
 }

@@ -47,6 +47,16 @@ describe('an embed', () => {
     expect(frame('Lecteur acme')).toHaveAttribute('src', 'https://embed.acme.test/1');
   });
 
+  it.each(['', '  '])('is titled with its provider name, or else its address, when the labels title it %j', (title) => {
+    const acme: EmbedProvider = { name: ' ', match: (url) => (url.hostname === 'acme.test' ? 'https://embed.acme.test/1' : null) };
+    mountEmbeds([embedBlock(YOUTUBE), embedBlock('https://acme.test/clip', 'a')], {
+      providers: [acme],
+      labels: { frameTitle: () => title },
+    });
+    expect(frame('youtube')).toHaveAttribute('src', YOUTUBE_FRAME);
+    expect(frame('https://acme.test/clip')).toHaveAttribute('src', 'https://embed.acme.test/1');
+  });
+
   it('is a card linking to its address, with no frame, when no provider frames it', () => {
     mountEmbeds([embedBlock('https://www.example.com/page?x=1')]);
     const card = screen.getByRole('group', { name: 'Embed' });

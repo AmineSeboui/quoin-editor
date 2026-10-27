@@ -60,8 +60,8 @@ function textPos(shared: Shared | null, doc: EngineDoc, value: Record<string, un
   }
   const { region, offset } = value;
   const block = blockOf(doc, value);
-  const placed = typeof region === 'string' && typeof offset === 'number' && Number.isInteger(offset) && offset >= 0;
-  return placed && block !== null ? { block, region, offset } : null;
+  const placed = typeof region === 'string' && Number.isInteger(offset) && (offset as number) >= 0;
+  return placed && block !== null ? { block, region, offset: offset as number } : null;
 }
 
 /** The selection another client wrote, in this editor's document, or null when it names nothing that is here. */

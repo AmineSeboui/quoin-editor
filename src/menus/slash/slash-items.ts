@@ -82,7 +82,10 @@ const refuse = () => false;
  * A command under Custom for each registered block type the palette offers and no built-in command inserts. `onError`
  * gives the canvas's current error handler, which hears a definition that could not seed its data.
  */
-export function blockTypeSlashItems(definitions: AnyBlockDefinition[], onError: ErrorHandler = () => undefined): SlashItem[] {
+export function blockTypeSlashItems(
+  definitions: AnyBlockDefinition[],
+  onError: ErrorHandler = () => undefined,
+): SlashItem[] {
   return paletteBlocks(definitions)
     .filter((definition) => !BUILT_IN_TYPES.has(definition.type))
     .map((definition) => ({

@@ -93,9 +93,9 @@ export function AltTextPopover({ blockId, controller, anchor, opener, alt, decor
     event.preventDefault();
     close(true);
   };
-  // Tab moves between the field, the checkbox and Save, which WebKit's own Tab skips, and out of either end stores the text: the
-  // popover is drawn at the end of the page, where Tab out of it would leave the page. The popover's own focus scope
-  // would wrap Tab round instead.
+  // Tab moves between the field, the checkbox and Save, which WebKit's own Tab skips, and out of either end stores the
+  // text: the popover is drawn at the end of the page, where Tab out of it would leave the page. The popover's own focus
+  // scope would wrap Tab round instead.
   const onKeyDown = (event: KeyboardEvent<HTMLFormElement>) => {
     if (event.key !== 'Tab' || isComposingKey(controller, event.nativeEvent)) return;
     const controls = [...event.currentTarget.elements];

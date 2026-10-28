@@ -79,14 +79,14 @@ An editor receives these props. The canvas always passes every one of them; all 
 | Prop | Purpose |
 | --- | --- |
 | `data` | The block's data. |
-| `onChange` | Writes the whole next `data`, not a patch. Everything written while the editor is open undoes in one step. |
+| `onChange` | Writes the whole next `data`, not a patch. Writes to one block that each follow the last within the history's grouping window (500 ms by default) undo together, as one step. |
 | `blockId` | The id of the block. |
 | `index` | The block's index in the flat `blocks` array, counting from 0 with nested (indented) blocks included, kept current as blocks move. Only a block whose position changed draws again, so reading it costs nothing while another block is typed in. |
 | `onRemove` | Removes the block as one undo step and puts the caret where deleting the selected block puts it: at the end of the block above, or at the start of the one below when it was first. |
 | `onInsertBlock` | Inserts a new block of the given type after this one. |
 | `onDone` | Closes the editor and leaves the block selected. |
 
-A preview receives `data`, `blockId` (passed by the canvas and by `QuoinView`, though optional in the type) and, on an editable canvas only, `onChange`. That `onChange` writes through the same path as an editor's, with one undo step per block, so a preview can hold a control that changes the block without opening the editor, such as a checkbox. It is not passed on a read-only canvas or in `QuoinView`, so disable or hide such a control without it:
+A preview receives `data`, `blockId` (passed by the canvas and by `QuoinView`, though optional in the type) and, on an editable canvas only, `onChange`. That `onChange` writes through the same path as an editor's, so writes to one block that each follow the last within the history's grouping window undo together, and a preview can hold a control that changes the block without opening the editor, such as a checkbox. It is not passed on a read-only canvas or in `QuoinView`, so disable or hide such a control without it:
 
 ```tsx
 import type { BlockPreviewProps } from 'quoin-editor';

@@ -64,8 +64,8 @@ const samePlace = (segment, before) =>
   segment.length === before.length && segment.every((field, i) => i === 0 || field === before[i]);
 
 /**
- * The mappings without a segment that maps to the same source place as the one before it on its line: a lookup finds
- * the same place either way.
+ * The mappings without a segment that maps to the same source place as the one before it on its line: a greatest lower
+ * bound lookup, the one browsers and Node make, finds the same place either way. A least upper bound lookup can differ.
  */
 export const withoutRepeatedSegments = (mappings) =>
   encodeMappings(decodeMappings(mappings).map((segments) => segments.filter((segment, i) => i === 0 || !samePlace(segment, segments[i - 1]))));

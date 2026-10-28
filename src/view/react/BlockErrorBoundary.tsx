@@ -7,7 +7,6 @@ type State = { block: EngineBlock; failed: boolean };
 
 class Boundary extends Component<Props, State> {
   state: State = { block: this.props.block, failed: false };
-  private logged = false;
 
   static getDerivedStateFromError(): Partial<State> {
     return { failed: true };
@@ -18,10 +17,7 @@ class Boundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: unknown) {
-    const { report } = this.props;
-    if (report) report(error instanceof Error ? error : new Error(String(error)));
-    else if (!this.logged) console.error(error);
-    this.logged = true;
+    this.props.report?.(error instanceof Error ? error : new Error(String(error)));
   }
 
   render() {

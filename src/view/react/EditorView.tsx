@@ -34,7 +34,7 @@ export type EditorViewProps = {
   unsupportedBlockLabel?: string;
   /** The accessible name of what a block draws in place of itself when its renderer throws. */
   blockErrorLabel?: string;
-  /** Told of each error a block's renderer throws; without it the first for each block is written to the console. */
+  /** Told of each error a block's renderer throws, besides React's own report of a caught error. */
   onBlockError?: (error: Error) => void;
   /** The text of the host an empty document draws. */
   placeholder?: string;

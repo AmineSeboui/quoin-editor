@@ -6,7 +6,8 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 
 ### Fixed
 - The attributes an extension's block decoration puts on its block's element are filtered to the names that start with `data-` or `aria-`: a decoration with `style`, `className`, an event handler or `dangerouslySetInnerHTML` no longer reaches the element, and can no longer make React throw.
-- A renderer that throws while drawing its block no longer unmounts the whole canvas: that block draws a fallback named by the new `blockError` label (`Block could not be drawn`) in its own element, the other blocks keep working, the error goes to `onError` (or once to the console for that block), and the block is drawn again when its data changes. `EditorView` takes `blockErrorLabel` and `onBlockError` for the same.
+- A renderer that throws while drawing its block no longer unmounts the whole canvas: that block draws a fallback named by the new `blockError` label (`Block could not be drawn`) in its own element, the other blocks keep working, the error goes to `onError` when one is given, and React reports it as it does any caught error, and the block is drawn again when its data changes. `EditorView` takes `blockErrorLabel` and `onBlockError` for the same.
+- ArrowUp and ArrowDown pass over a text block whose renderer threw, rather than putting the caret in a block that has no text to hold it.
 
 ## 1.0.2 (2026-10-27)
 

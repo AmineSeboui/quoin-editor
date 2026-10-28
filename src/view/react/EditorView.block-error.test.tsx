@@ -1,6 +1,8 @@
 import { act, render, screen } from '@testing-library/react';
 import type { QuoinBlock } from '../../engine/model/quoin-block';
 import type { BlockRenderer } from './block-renderer-types';
+import { insertText } from '../../engine/commands/insert-text';
+import type { ViewController } from '../controller/view-controller';
 import { Editor, hostOf, md } from './test-harness';
 
 const Fragile: BlockRenderer = ({ block }) => {
@@ -25,6 +27,23 @@ describe('a renderer that throws while drawing its block', () => {
   });
   afterEach(() => logged.mockRestore());
 
+  it('keeps the other blocks editable while the fallback is shown', () => {
+    let controller!: ViewController;
+    const blocks = [md('a', 'one'), fragile('f', true), md('b', 'two')];
+    const { container } = render(
+      <Editor
+        options={{ blocks, onChange: () => {} }}
+        view={{ renderers: { FRAGILE: Fragile } }}
+        onController={(created) => (controller = created)}
+      />,
+    );
+    expect(screen.getByRole('group', { name: 'Block could not be drawn' })).toBeInTheDocument();
+    act(() => controller.focus({ block: 'b', region: 'text', offset: 3 }));
+    act(() => controller.run(insertText('!')));
+    expect(hostOf(container, 'b')).toHaveTextContent('two!');
+    expect(controller.editor.toMarkdown()).toContain('two!');
+  });
+
   it('draws a named fallback in the shell of its block and leaves the other blocks alone', () => {
     const { container } = mount([md('a', 'one'), fragile('f', true), md('b', 'two')]);
     const shell = container.querySelector('[data-block-id="f"]')!;
@@ -44,13 +63,6 @@ describe('a renderer that throws while drawing its block', () => {
     mount([fragile('f', true)], { onBlockError });
     expect(onBlockError).toHaveBeenCalledTimes(1);
     expect(onBlockError.mock.calls[0][0]).toEqual(new Error('cannot draw'));
-  });
-
-  it('writes to the console once for its block when the host has no onBlockError', () => {
-    const { again } = mount([fragile('f', true, 1)]);
-    again([fragile('f', true, 2)]);
-    const reports = logged.mock.calls.filter((call) => call[0] instanceof Error && call[0].message === 'cannot draw');
-    expect(reports).toHaveLength(1);
   });
 
   it('draws the block again when its data changes and the throw stops', () => {

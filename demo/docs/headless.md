@@ -30,6 +30,10 @@ Everything in it is re-exported from the main `quoin-editor` entry too. Both ent
 
 `EditorView` keeps the element it drew for each block until the block or the `renderers` object changes, so a keystroke redraws one block. Define the `renderers` object and its components once, at module level or in a `useMemo`: a new object on every render redraws every block on every keystroke, and a component declared inside a render is a new type each time, so React mounts each block it draws again and the block loses its state.
 
+## A block that cannot be drawn
+
+A renderer that throws while drawing its block does not unmount the editor: that block draws a fallback inside its own element, and the other blocks keep working. `EditorView` takes `blockErrorLabel`, the accessible name and text of the fallback (`Block could not be drawn` by default), and `onBlockError`, called with each error a renderer throws, besides React's own report of a caught error. The block is drawn again when its data changes. The attributes a block decoration puts on its block's element are limited to the names that start with `data-` or `aria-`.
+
 ## The Mod key
 
 The editor `useQuoinEditor` creates and its `ViewController` each default to the same platform check, so they agree: Mod is Command on a Mac and Control elsewhere for both. A host that calls `createEditor` and builds a `ViewController` itself and passes `isMac` to one must pass the same `isMac` to the other: the editor reads it for its keymap and the controller for the keys it handles itself, and the two must agree.

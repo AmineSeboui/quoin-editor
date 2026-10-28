@@ -4,6 +4,9 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 
 ## Unreleased
 
+### Changed
+- The default `--quoin-warning` and `--quoin-input` reach 3:1 where they did not. Light `--quoin-warning` goes from `oklch(0.65 0.16 65)` to `oklch(0.6 0.16 65)`, the rule of a warning callout against its wash from 2.84:1 to 3.40:1 (dark stays at 7.82:1). `--quoin-input`, the border of the outline button, goes from `oklch(0.922 0 0)` (1.26:1 on the page) to `oklch(0.62 0 0)` (3.64:1) in light, and from `oklch(1 0 0 / 15%)` to the opaque `oklch(0.56 0 0)` (4.25:1 on the page, 3.85:1 on a popover) in dark. A host that sets these tokens keeps its own values.
+
 ### Fixed
 - The attributes an extension's block decoration puts on its block's element are filtered to the names that start with `data-` or `aria-`: a decoration with `style`, `className`, an event handler or `dangerouslySetInnerHTML` no longer reaches the element, and can no longer make React throw.
 - A renderer that throws while drawing its block no longer unmounts the whole canvas: that block draws a fallback named by the new `blockError` label (`Block could not be drawn`) in its own element, the other blocks keep working, the error goes to `onError` when one is given, and React reports it as it does any caught error, and the block is drawn again when its data changes. `EditorView` takes `blockErrorLabel` and `onBlockError` for the same.

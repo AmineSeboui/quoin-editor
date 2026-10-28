@@ -18,7 +18,7 @@ description: Every colour and radius comes from a --quoin- token, the stylesheet
   --quoin-popover: oklch(1 0 0);
   --quoin-popover-foreground: oklch(0.145 0 0);
   --quoin-border: oklch(0.922 0 0);
-  --quoin-input: oklch(0.922 0 0);
+  --quoin-input: oklch(0.62 0 0);
   --quoin-ring: oklch(0.45 0 0);
   --quoin-primary: oklch(0.205 0 0);
   --quoin-primary-foreground: oklch(0.985 0 0);
@@ -27,7 +27,7 @@ description: Every colour and radius comes from a --quoin- token, the stylesheet
   --quoin-destructive: oklch(0.55 0.245 27.325);
   --quoin-info: oklch(0.55 0.17 250);
   --quoin-success: oklch(0.55 0.14 155);
-  --quoin-warning: oklch(0.65 0.16 65);
+  --quoin-warning: oklch(0.6 0.16 65);
   --quoin-radius: 0.625rem;
 }
 
@@ -41,7 +41,7 @@ description: Every colour and radius comes from a --quoin- token, the stylesheet
   --quoin-popover: oklch(0.205 0 0);
   --quoin-popover-foreground: oklch(0.985 0 0);
   --quoin-border: oklch(1 0 0 / 10%);
-  --quoin-input: oklch(1 0 0 / 15%);
+  --quoin-input: oklch(0.56 0 0);
   --quoin-ring: oklch(0.708 0 0);
   --quoin-primary: oklch(0.922 0 0);
   --quoin-primary-foreground: oklch(0.205 0 0);
@@ -99,6 +99,8 @@ Point the prefixed names at your own in one block on `.quoin`. The canvas root c
 ```
 
 `--quoin-info`, `--quoin-success` and `--quoin-warning` are read only by the callout block, for its rule and the wash behind it, never for type. If your own theme has no equivalent, leave those three out of the block and the defaults above stand; the rest of the editor does not touch them. `--quoin-comment`, `--quoin-comment-active` and `--quoin-comment-edge` mark the text threads are anchored to; keep the two tints pale enough for your body and palette text.
+
+`--quoin-input` is the border of the outline button and of the other fields, and `--quoin-warning` is the rule of a warning callout. A border or rule that carries meaning needs 3:1 against what it sits on, so give `--quoin-input` a value that reaches 3:1 against `--quoin-background` and `--quoin-popover`, and `--quoin-warning` one that reaches 3:1 against its own wash (the warning colour at 15% over the page). Quoin's defaults do, and a host that sets these tokens keeps its own values.
 
 `--quoin-ring` colours the keyboard focus outline, which is solid and drawn at full strength, so it should reach 3:1 against both `--quoin-background` and `--quoin-popover`. A pale value, such as the grey many shadcn themes keep for `--ring`, fails that, so give `--quoin-ring` a value of its own that does.
 

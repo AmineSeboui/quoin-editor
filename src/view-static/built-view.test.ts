@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { expect, it } from 'vitest';
-import { describeBuilt, dist, reachedChunks } from '../../test/support/built-dist';
+import { describeBuilt, dist, importsFrom, mappedSources, reachedChunks } from '../../test/support/built-dist';
 
 const RENDER = `
   const { createElement } = await import('react');
@@ -34,10 +34,11 @@ describeBuilt('the built view entry', ['view.js', 'engine.js'], () => {
   });
 
   it('loads no module of the canvas, the client view or React DOM', () => {
-    const code = reachedChunks('view.js').map((file) => readFileSync(resolve(dist, file), 'utf8'));
-    const sources = code.flatMap((text) => [...text.matchAll(/^\/\/ (src\/\S+)$/gm)].map(([, path]) => path));
+    const chunks = reachedChunks('view.js');
+    const code = chunks.map((file) => readFileSync(resolve(dist, file), 'utf8'));
+    const sources = mappedSources(chunks);
     expect(sources).toContain('src/view-static/QuoinView.tsx');
     expect(sources.filter((path) => /^src\/(?:view|canvas|menus|hooks|ui|extensions)\/|^src\/index\.ts$/.test(path))).toEqual([]);
-    expect(code.filter((text) => /from\s*"react-dom|['"]use client['"]/.test(text))).toEqual([]);
+    expect(code.filter((text) => importsFrom(text, 'react-dom') || /['"]use client['"]/.test(text))).toEqual([]);
   });
 });

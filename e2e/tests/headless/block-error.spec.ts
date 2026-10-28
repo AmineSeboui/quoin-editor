@@ -11,7 +11,6 @@ test("arrow keys pass over a block whose renderer threw", async ({ page }) => {
     .poll(() => modelSelection(page))
     .toMatchObject({ kind: "text", head: { block: "a" } });
   await page.keyboard.press("ArrowDown");
-  console.log(JSON.stringify(await modelSelection(page)));
   await expect
     .poll(() => modelSelection(page))
     .toMatchObject({ kind: "text", head: { block: "c" } });

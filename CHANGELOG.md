@@ -4,6 +4,9 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 
 ## Unreleased
 
+### Added
+- An image can be marked as deliberately decorative: its data takes `decorative: true` (stored only when true, kept by lossless markdown and `quoin-editor/yjs` like `alt`), and the alt text popover has a "Decorative image" checkbox that stores it and clears the alt text; typing alt text unchecks it. An editable canvas draws a "No alt text" badge, which opens the popover, on an image with an empty alt text that is not decorative; a read-only canvas, `QuoinView` and `toHTML` draw none. Output is unchanged: both cases are written with `alt=""`. New labels `decorativeImage` and `noAltBadge`.
+
 ### Changed
 - The default `--quoin-warning` and `--quoin-input` reach 3:1 where they did not. Light `--quoin-warning` goes from `oklch(0.65 0.16 65)` to `oklch(0.6 0.16 65)`, the rule of a warning callout against its wash from 2.84:1 to 3.40:1 (dark stays at 7.82:1). `--quoin-input`, the border of the outline button, goes from `oklch(0.922 0 0)` (1.26:1 on the page) to `oklch(0.62 0 0)` (3.64:1) in light, and from `oklch(1 0 0 / 15%)` to the opaque `oklch(0.56 0 0)` (4.25:1 on the page, 3.85:1 on a popover) in dark. A host that sets these tokens keeps its own values.
 

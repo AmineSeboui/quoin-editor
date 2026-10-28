@@ -111,6 +111,8 @@ test('alt text typed in its popover is stored by Save, Tab or a click away, and 
   };
   await editAlt('By Tab');
   await page.keyboard.press('Tab');
+  await expect(page.getByRole('checkbox', { name: 'Decorative image' })).toBeFocused();
+  await page.keyboard.press('Tab');
   await expect(page.getByRole('button', { name: 'Save' })).toBeFocused();
   await page.keyboard.press('Tab');
   await expect.poll(() => imageData(page)).toMatchObject({ alt: 'By Tab' });

@@ -22,6 +22,7 @@ type AltTextPopoverProps = {
   anchor: RefObject<VirtualAnchor | null>;
   opener: RefObject<HTMLElement | null>;
   alt: string;
+  decorative: boolean;
   onClose(): void;
 };
 
@@ -29,11 +30,11 @@ type AltTextPopoverProps = {
 // text or a host moving the selection off the image: on the editor itself, since the canvas's flush is refused in an
 // effect. A canvas being taken down has let go of its root first, and takes no more writes. A host change that also
 // moved the selection takes the popover down before it is drawn with the new alt text, which the draft must not replace.
-function storeAlt(controller: ViewController, blockId: string, opened: string, alt: string): void {
+function storeAlt(controller: ViewController, blockId: string, opened: string, patch: Record<string, unknown>): void {
   const { editor } = controller;
   const current = blockById(editor.state.doc, blockId)?.attrs.alt;
   if (controller.readOnly || controller.root === null || str(current) !== opened) return;
-  onBlock(blockId, setAttrs({ alt }))(editor.state, (tr) => editor.dispatch(tr));
+  onBlock(blockId, setAttrs(patch))(editor.state, (tr) => editor.dispatch(tr));
 }
 
 /**
@@ -43,10 +44,11 @@ function storeAlt(controller: ViewController, blockId: string, opened: string, a
  * hands focus back to the image. A press on the button that opened it is left to that button. It closes, storing
  * nothing, once the alt text changes under it.
  */
-export function AltTextPopover({ blockId, controller, anchor, opener, alt, onClose }: AltTextPopoverProps) {
+export function AltTextPopover({ blockId, controller, anchor, opener, alt, decorative, onClose }: AltTextPopoverProps) {
   const labels = useLabels();
   const [opened] = useState(alt);
   const [draft, setDraft] = useState(alt);
+  const [marked, setMarked] = useState(decorative);
   const fieldId = useId();
   const hintId = `${fieldId}-hint`;
   const closed = useRef(false);
@@ -55,7 +57,8 @@ export function AltTextPopover({ blockId, controller, anchor, opener, alt, onClo
   const finish = (store: boolean) => {
     if (closed.current) return false;
     closed.current = true;
-    if (store && draft !== alt) storeAlt(controller, blockId, opened, draft);
+    if (store && (draft !== alt || marked !== decorative))
+      storeAlt(controller, blockId, opened, { alt: draft, decorative: marked || undefined });
     return true;
   };
   const latestFinish = useRef(finish);
@@ -85,17 +88,17 @@ export function AltTextPopover({ blockId, controller, anchor, opener, alt, onClo
     event.preventDefault();
     close(true);
   };
-  // Tab moves between the field and Save, which WebKit's own Tab skips, and out of either end stores the text: the
+  // Tab moves between the field, the checkbox and Save, which WebKit's own Tab skips, and out of either end stores the text: the
   // popover is drawn at the end of the page, where Tab out of it would leave the page. The popover's own focus scope
   // would wrap Tab round instead.
   const onKeyDown = (event: KeyboardEvent<HTMLFormElement>) => {
     if (event.key !== 'Tab' || isComposingKey(controller, event.nativeEvent)) return;
-    const [field, save] = event.currentTarget.elements;
-    const fromField = event.target === field;
+    const controls = [...event.currentTarget.elements];
+    const next = controls[controls.indexOf(event.target as Element) + (event.shiftKey ? -1 : 1)];
     event.preventDefault();
     event.stopPropagation();
-    if (event.shiftKey === fromField) close(true);
-    else ((fromField ? save : field) as HTMLElement).focus();
+    if (next === undefined) close(true);
+    else (next as HTMLElement).focus();
   };
 
   return (
@@ -125,14 +128,28 @@ export function AltTextPopover({ blockId, controller, anchor, opener, alt, onClo
           </label>
           <Input
             id={fieldId}
-            required
+            required={!marked}
             aria-describedby={hintId}
             value={draft}
-            onChange={(event) => setDraft(event.target.value)}
+            onChange={(event) => {
+              setDraft(event.target.value);
+              setMarked(false);
+            }}
           />
           <p id={hintId} className="quoin-block-message">
             {labels.altTextHint}
           </p>
+          <label className="quoin-image-decorative text-sm">
+            <input
+              type="checkbox"
+              checked={marked}
+              onChange={(event) => {
+                setMarked(event.target.checked);
+                if (event.target.checked) setDraft('');
+              }}
+            />
+            {labels.decorativeImage}
+          </label>
           <Button type="submit" size="sm">
             {labels.save}
           </Button>

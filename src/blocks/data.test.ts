@@ -22,7 +22,7 @@ const KEYS = {
   MARKDOWN: ['markdown'],
   CALLOUT: ['tone', 'body'],
   CODE: ['language', 'code'],
-  IMAGE: ['storageKey', 'alt', 'caption', 'width', 'height', 'url', 'align', 'widthPercent'],
+  IMAGE: ['storageKey', 'alt', 'caption', 'width', 'height', 'url', 'align', 'widthPercent', 'decorative'],
   FILE: ['storageKey', 'filename', 'size', 'mime'],
 } as const;
 

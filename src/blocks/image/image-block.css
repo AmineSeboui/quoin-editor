@@ -98,3 +98,27 @@
   align-items: flex-start;
   gap: 0.5rem;
 }
+
+.quoin .quoin-image-no-alt {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid var(--quoin-background);
+  border-radius: 9999px;
+  background: var(--quoin-foreground);
+  color: var(--quoin-background);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.quoin .quoin-image-no-alt:focus-visible {
+  outline: 2px solid var(--quoin-ring);
+  outline-offset: 2px;
+}
+
+.quoin .quoin-image-decorative {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}

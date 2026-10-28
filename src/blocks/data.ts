@@ -23,7 +23,8 @@ export type CodeBlockData = { language: string; code: string };
 /**
  * `IMAGE`. `storageKey` names the uploaded file, which the host's `resolveAssetUrl` turns into a URL, unless `url`
  * links a picture instead. `caption` is inline markdown, `width` and `height` the measured size of the upload, and
- * `widthPercent` the share of the line the picture is drawn at.
+ * `widthPercent` the share of the line the picture is drawn at. `decorative` is `true`, and only then present, for a
+ * picture that is deliberately given no description.
  */
 export type ImageBlockData = {
   storageKey: string;
@@ -34,6 +35,7 @@ export type ImageBlockData = {
   url?: string;
   align?: 'left' | 'center' | 'right';
   widthPercent?: number;
+  decorative?: boolean;
 };
 
 /**

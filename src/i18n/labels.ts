@@ -172,6 +172,9 @@ export type QuoinLabels = {
   altTextHint: string;
   save: string;
   imageNoAlt: string;
+  /** The checkbox of the alt text popover that marks an image as deliberately without a description, and the badge an editable canvas draws over an image that has neither. */
+  decorativeImage: string;
+  noAltBadge: string;
   /** An empty file block: its upload button and what can be dropped or pasted on it. */
   uploadFile: string;
   dropFile: string;

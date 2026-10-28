@@ -184,6 +184,8 @@ export const englishLabels: QuoinLabels = {
   altTextHint: 'Required. Describe what the image shows for anyone who cannot see it.',
   save: 'Save',
   imageNoAlt: 'Image, no description',
+  decorativeImage: 'Decorative image',
+  noAltBadge: 'No alt text',
   uploadFile: 'Upload file',
   dropFile: 'Or drop or paste a file here.',
   fileTools: 'File tools',

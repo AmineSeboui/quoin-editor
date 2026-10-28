@@ -179,12 +179,14 @@ describe('the alt text of an image', () => {
     expect(imageData()).toEqual({ storageKey: 'cat.png', alt: 'A dog' });
   });
 
-  it('keeps its toolbar while Tab goes from its field to Save, and Tab from Save stores it and goes back to the image', async () => {
+  it('keeps its toolbar while Tab goes from its field through its checkbox to Save, and Tab from Save stores it and goes back to the image', async () => {
     const user = userEvent.setup();
     const { nodeSelect, imageData, sink } = mount();
     nodeSelect('i');
     await user.click(button('Alt text'));
     await user.type(screen.getByRole('textbox', { name: 'Alt text' }), ' asleep');
+    await user.tab();
+    expect(screen.getByRole('checkbox', { name: 'Decorative image' })).toHaveFocus();
     await user.tab();
     expect(screen.getByRole('button', { name: 'Save' })).toHaveFocus();
     expect(toolbar()).not.toBeNull();

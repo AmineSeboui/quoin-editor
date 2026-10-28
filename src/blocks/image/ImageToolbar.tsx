@@ -89,6 +89,7 @@ function ImageToolbar({ blockId, controller, editingAlt, onEditAlt }: ImageToolb
             anchor={anchor}
             opener={altButton}
             alt={str(attrs.alt)}
+            decorative={attrs.decorative === true}
             onClose={() => onEditAlt(null)}
           />
         )

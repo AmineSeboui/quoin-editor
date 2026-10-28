@@ -6,7 +6,9 @@ import { useQuoin } from '../../context';
 import { optionalNumber } from '../../engine/blocks/data-fields';
 import { EditableRegion, type BlockRenderProps } from '../../view';
 import { str } from '../../engine/blocks/data-fields';
+import { usePartAnchor } from '../void/block-part';
 import { focusNode } from '../void/select-node';
+import { AltTextPopover } from './AltTextPopover';
 import { imageSource } from './image-source';
 import { ResizeHandles } from './ResizeHandles';
 
@@ -21,12 +23,16 @@ export function ImageFigure({ block, controller, readOnly }: ImageFigureProps) {
   const frame = useRef<HTMLDivElement>(null);
   const [preview, setPreview] = useState<number | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
+  const [asking, setAsking] = useState(false);
+  const badge = useRef<HTMLButtonElement>(null);
+  const anchor = usePartAnchor(controller, block.id, '.quoin-image-frame');
   const { id, attrs, regions } = block;
   const src = imageSource(attrs, resolveAssetUrl);
   const alt = str(attrs.alt);
   const name = alt || labels.imageNoAlt;
   const percent = optionalNumber(attrs.widthPercent);
   const width = preview ?? percent;
+  const flagged = !readOnly && alt === '' && attrs.decorative !== true;
   const select = () => focusNode(controller, id);
 
   return (
@@ -48,6 +54,11 @@ export function ImageFigure({ block, controller, readOnly }: ImageFigureProps) {
             {alt}
           </div>
         )}
+        {flagged && (
+          <button ref={badge} type="button" className="quoin-image-no-alt" onClick={() => setAsking(true)}>
+            {labels.noAltBadge}
+          </button>
+        )}
         {!readOnly && (
           <ResizeHandles
             blockId={id}
@@ -59,6 +70,17 @@ export function ImageFigure({ block, controller, readOnly }: ImageFigureProps) {
           />
         )}
       </div>
+      {asking && (
+        <AltTextPopover
+          blockId={id}
+          controller={controller}
+          anchor={anchor}
+          opener={badge}
+          alt={alt}
+          decorative={attrs.decorative === true}
+          onClose={() => setAsking(false)}
+        />
+      )}
       {(!readOnly || (regions.caption?.length ?? 0) > 0) && (
         <EditableRegion
           block={id}

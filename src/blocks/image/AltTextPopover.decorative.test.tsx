@@ -1,4 +1,4 @@
-import { cleanup, screen, within } from '@testing-library/react';
+import { act, cleanup, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { QuoinBlock } from '../../types';
 import { intrinsicSize } from '../intrinsic-size';
@@ -75,5 +75,22 @@ describe('the decorative image checkbox of the alt text popover', () => {
     await user.tab();
     await user.tab();
     expect(data()).toEqual({ storageKey: 'cat.png', alt: '', decorative: true });
+  });
+
+  it('does not call the alt text required while the image is marked decorative', async () => {
+    const { user } = await open(image());
+    expect(field()).toHaveAccessibleDescription(expect.stringContaining('Required'));
+    await user.click(box());
+    expect(field()).not.toHaveAccessibleDescription(expect.stringContaining('Required'));
+    expect(screen.getByText(/Required/)).toHaveClass('invisible');
+  });
+
+  it('keeps a decorative flag the host set while it was open, storing nothing over it', async () => {
+    const { user, data, changes, handle } = await open(image({ alt: '' }));
+    await user.type(field(), 'Mine');
+    act(() => void handle().editor.setBlocks([image({ alt: '', decorative: true }), paragraph('b', 'below')]));
+    await user.keyboard('{Enter}');
+    expect(data()).toEqual({ storageKey: 'cat.png', alt: '', decorative: true });
+    expect(changes).toEqual([]);
   });
 });

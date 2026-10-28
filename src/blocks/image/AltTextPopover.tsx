@@ -17,6 +17,8 @@ import { onBlock } from '../../view/react/block-command';
 import { str } from '../../engine/blocks/data-fields';
 import { useOutsidePress } from './use-outside-press';
 
+type Opened = { alt: string; decorative: boolean };
+
 type AltTextPopoverProps = {
   blockId: string;
   controller: ViewController;
@@ -30,11 +32,13 @@ type AltTextPopoverProps = {
 // The text is also stored as the popover goes, whatever takes it down, such as the caret of a tap being read into the
 // text or a host moving the selection off the image: on the editor itself, since the canvas's flush is refused in an
 // effect. A canvas being taken down has let go of its root first, and takes no more writes. A host change that also
-// moved the selection takes the popover down before it is drawn with the new alt text, which the draft must not replace.
-function storeAlt(controller: ViewController, blockId: string, opened: string, patch: Record<string, unknown>): void {
+// moved the selection takes the popover down before it is drawn with the new alt text or flag, which the draft must not
+// replace.
+function storeAlt(controller: ViewController, blockId: string, opened: Opened, patch: Record<string, unknown>): void {
   const { editor } = controller;
-  const current = blockById(editor.state.doc, blockId)?.attrs.alt;
-  if (controller.readOnly || controller.root === null || str(current) !== opened) return;
+  const attrs = blockById(editor.state.doc, blockId)?.attrs ?? {};
+  const changed = str(attrs.alt) !== opened.alt || (attrs.decorative === true) !== opened.decorative;
+  if (controller.readOnly || controller.root === null || changed) return;
   onBlock(blockId, setAttrs(patch))(editor.state, (tr) => editor.dispatch(tr));
 }
 
@@ -43,11 +47,11 @@ function storeAlt(controller: ViewController, blockId: string, opened: string, p
  * back to the image, and Escape hands focus back keeping the alt text the image had. A press elsewhere, or a script
  * moving focus elsewhere, stores it and leaves focus where that puts it; a press on the image's toolbar or handles
  * hands focus back to the image. A press on the button that opened it is left to that button. It closes, storing
- * nothing, once the alt text changes under it.
+ * nothing, once the alt text or the decorative flag changes under it.
  */
 export function AltTextPopover({ blockId, controller, anchor, opener, alt, decorative, onClose }: AltTextPopoverProps) {
   const labels = useLabels();
-  const [opened] = useState(alt);
+  const [opened] = useState<Opened>({ alt, decorative });
   const [draft, setDraft] = useState(alt);
   const [marked, setMarked] = useState(decorative);
   const fieldId = useId();
@@ -69,7 +73,7 @@ export function AltTextPopover({ blockId, controller, anchor, opener, alt, decor
     return () => void latestFinish.current(true);
   }, []);
   useEffect(() => {
-    if (alt !== opened && finish(false)) onClose();
+    if ((alt !== opened.alt || decorative !== opened.decorative) && finish(false)) onClose();
   });
 
   // A tap gives the text focus and the caret before its click closes the popover, and the editor reads the caret only on
@@ -130,14 +134,14 @@ export function AltTextPopover({ blockId, controller, anchor, opener, alt, decor
           <Input
             id={fieldId}
             required={!marked}
-            aria-describedby={hintId}
+            aria-describedby={marked ? undefined : hintId}
             value={draft}
             onChange={(event) => {
               setDraft(event.target.value);
               setMarked(false);
             }}
           />
-          <p id={hintId} className="quoin-block-message">
+          <p id={hintId} className={marked ? 'quoin-block-message invisible' : 'quoin-block-message'}>
             {labels.altTextHint}
           </p>
           <label className="quoin-image-decorative text-sm">

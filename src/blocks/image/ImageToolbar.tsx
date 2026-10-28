@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQuoin } from '../../context';
 import { blockById } from '../../engine/model/doc';
 import type { ViewController } from '../../view';
@@ -10,6 +10,7 @@ import { useReplacePicker } from '../upload/use-replace-picker';
 import { usePartAnchor } from '../void/block-part';
 import { NodeToolbar } from '../void/NodeToolbar';
 import { selectedBlock, useToolbarBlock } from '../void/use-toolbar-block';
+import { listenForAltRequests } from './alt-request';
 import { AltTextPopover } from './AltTextPopover';
 import { hasPicture, imageSource } from './image-source';
 import { imageToolbarItems } from './image-toolbar-items';
@@ -34,6 +35,7 @@ function download(src: string | null, doc: Document): void {
 export function ImageToolbarOverlay({ controller }: { controller: ViewController }) {
   const [altFor, setAltFor] = useState<string | null>(null);
   const blockId = useToolbarBlock(controller, selectedImage, altFor);
+  useEffect(() => listenForAltRequests(controller, setAltFor), [controller]);
   if (altFor !== null && altFor !== blockId) setAltFor(null);
   if (blockId === null) return null;
   return (

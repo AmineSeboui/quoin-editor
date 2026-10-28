@@ -174,6 +174,12 @@ const docs: Record<string, QuoinBlock[]> = {
     { id: 'd', type: 'DIVIDER', data: {} },
     { id: 'q', type: 'MARKDOWN', data: { markdown: 'Below the image' } },
   ],
+  'no-alt': [
+    { id: 'p', type: 'MARKDOWN', data: { markdown: 'Above the image' } },
+    ...Array.from({ length: 40 }, (_, line) => ({ id: `p${line}`, type: 'MARKDOWN', data: { markdown: `Line ${line}` } })),
+    { id: 'img', type: 'IMAGE', data: { storageKey: 'fixture.png', alt: '', widthPercent: 50 } },
+    { id: 'q', type: 'MARKDOWN', data: { markdown: 'Below the image' } },
+  ],
   file: [
     { id: 'p', type: 'MARKDOWN', data: { markdown: 'Above the file' } },
     { id: 'f', type: 'FILE', data: { storageKey: 'notes.pdf', filename: 'notes.pdf', size: 1536, mime: 'application/pdf' } },

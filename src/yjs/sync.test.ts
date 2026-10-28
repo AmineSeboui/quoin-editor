@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { QuoinBlock } from '../engine/model/quoin-block';
 import type { Transaction } from '../engine/state/transaction';
+import { setAttrsStep } from '../engine/transform/attrs-steps';
 import { sameDoc } from '../engine/model/same-doc';
 import { caret, md, range } from '../engine/test-support/editor-fixtures';
 import { readShared } from './read-shared';
@@ -97,5 +98,19 @@ describe('an editor synced through a shared document', () => {
     one.editor.insertText('!');
     flush();
     expect(two.editor.getBlocks()).toEqual([md('a', 'hello!'), unknown]);
+  });
+});
+
+describe('a decorative image synced through a shared document', () => {
+  const image = (data: Record<string, unknown>): QuoinBlock => ({ id: 'i', type: 'IMAGE', data });
+
+  it('reaches a second editor with its flag, and drops the flag when a peer clears it', () => {
+    const { one, two, flush } = twoPeers([image({ storageKey: 'k', alt: '' })]);
+    one.editor.dispatch(one.editor.createTransaction().step(setAttrsStep('i', { decorative: true })));
+    flush();
+    expect(two.editor.getBlocks()[0].data).toEqual({ storageKey: 'k', alt: '', decorative: true });
+    two.editor.dispatch(two.editor.createTransaction().step(setAttrsStep('i', { alt: 'A cat', decorative: undefined })));
+    flush();
+    expect(one.editor.getBlocks()[0].data).toEqual({ storageKey: 'k', alt: 'A cat' });
   });
 });

@@ -88,6 +88,17 @@ describe.each<Theme>(['light', 'dark'])('%s theme', (theme) => {
     for (const surface of FIELD_SURFACES) expect(contrast(theme, field.token, surface)).toBeGreaterThanOrEqual(3);
   });
 
+  it('draws the rule of a warning callout at 3:1 or more on its wash and on the page', () => {
+    const wash = WASHES.find((w) => w.name === 'warning')!;
+    const [rule, page] = [token(theme, 'warning'), token(theme, 'background')];
+    expect(contrastOnWash(rule, rule, wash.alpha, page)).toBeGreaterThanOrEqual(3);
+    expect(contrastRatio(rule, page)).toBeGreaterThanOrEqual(3);
+  });
+
+  it('draws the input border at 3:1 or more on the page, a popover and a highlighted row', () => {
+    for (const surface of FIELD_SURFACES) expect(contrast(theme, 'input', surface)).toBeGreaterThanOrEqual(3);
+  });
+
   it('writes a placeholder at 4.5:1 or more on the page, a selected block and every background colour', () => {
     for (const surface of SURFACES) expect(contrast(theme, PLACEHOLDER, surface)).toBeGreaterThanOrEqual(4.5);
   });

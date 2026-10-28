@@ -1,6 +1,7 @@
 import { render } from '@testing-library/react';
 import { FileText } from 'lucide-react';
 import { defineBlock, blockByType, paletteBlocks, type AnyBlockDefinition } from './registry';
+import type { BlockEditorProps } from './types';
 
 const note = defineBlock({
   type: 'NOTE',
@@ -100,6 +101,25 @@ describe('registry', () => {
       // @ts-expect-error data has no `missing` field
       editor: ({ data }) => <p>{data.missing}</p>,
     });
+  });
+
+  it('checks parse against the data type its editor takes, without widening it', () => {
+    const counter = defineBlock({
+      type: 'COUNTER',
+      label: 'Counter',
+      icon: FileText,
+      editor: ({ data }: BlockEditorProps<{ count: number }>) => <p>{data.count.toFixed(0)}</p>,
+      parse: (data) => ({ count: Number(data.count ?? 0) }),
+    });
+    defineBlock({
+      type: 'BAD_COUNTER',
+      label: 'Bad counter',
+      icon: FileText,
+      editor: ({ data }: BlockEditorProps<{ count: number }>) => <p>{data.count.toFixed(0)}</p>,
+      // @ts-expect-error parse returns a shape the editor does not take
+      parse: () => ({ count: 'none' }),
+    });
+    expect(counter.parse?.({})).toEqual({ count: 0 });
   });
 
   it('accepts an interface as the data shape', () => {

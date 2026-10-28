@@ -7,7 +7,7 @@ import { specFor } from '../../engine/blocks/unknown-spec';
 import type { SlashGroup, SlashItem } from '../../extensions/ui-types';
 import { turnIntoTargets } from '../../gutter/turn-into-targets';
 import type { QuoinLabels, SlashBlockCommand } from '../../i18n/labels';
-import { paletteBlocks, type AnyBlockDefinition } from '../../registry';
+import { paletteBlocks, seedData, type AnyBlockDefinition } from '../../registry';
 
 type Details = { group: SlashGroup; keywords: readonly string[]; shortcut?: string };
 
@@ -66,14 +66,26 @@ export function builtInSlashItems(labels: QuoinLabels, definitions: readonly Any
   });
 }
 
-function initialBlock({ schema }: EditorState, { type, initialData }: AnyBlockDefinition): NewBlock {
-  const data = initialData?.();
+function initialBlock({ schema }: EditorState, definition: AnyBlockDefinition, onError: ErrorHandler): NewBlock | null {
+  const { type } = definition;
+  const data = seedData(definition, onError());
+  if (data === null) return null;
   if (data === undefined) return { type };
   return { type, ...specFor(schema, type).fromData(data, createBlockCodec(schema).context) };
 }
 
-/** A command under Custom for each registered block type the palette offers and no built-in command inserts. */
-export function blockTypeSlashItems(definitions: AnyBlockDefinition[]): SlashItem[] {
+type ErrorHandler = () => ((error: Error) => void) | undefined;
+
+const refuse = () => false;
+
+/**
+ * A command under Custom for each registered block type the palette offers and no built-in command inserts. `onError`
+ * gives the canvas's current error handler, which hears a definition that could not seed its data.
+ */
+export function blockTypeSlashItems(
+  definitions: AnyBlockDefinition[],
+  onError: ErrorHandler = () => undefined,
+): SlashItem[] {
   return paletteBlocks(definitions)
     .filter((definition) => !BUILT_IN_TYPES.has(definition.type))
     .map((definition) => ({
@@ -81,7 +93,9 @@ export function blockTypeSlashItems(definitions: AnyBlockDefinition[]): SlashIte
       title: definition.label,
       group: 'custom',
       icon: definition.icon,
-      command: ({ state }) =>
-        insertBlockToWrite(initialBlock(state, definition), opensEditor(definitions, definition.type)),
+      command: ({ state }) => {
+        const block = initialBlock(state, definition, onError);
+        return block === null ? refuse : insertBlockToWrite(block, opensEditor(definitions, definition.type));
+      },
     }));
 }

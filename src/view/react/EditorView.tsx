@@ -1,6 +1,7 @@
-import { useId, useRef, type ReactNode } from 'react';
+import { useId, useMemo, useRef, type ReactNode } from 'react';
 import type { ViewController } from '../controller/view-controller';
 import type { BlockLabel } from '../selection/selection-sink';
+import { BLOCK_ERROR, BlockErrorContext } from './block-error-context';
 import { BlockDomIdScope } from './block-dom-id';
 import { BlockPlaceholderContext, headingPlaceholder, type BlockPlaceholder } from './block-placeholder';
 import type { BlockRenderer } from './block-renderer-types';
@@ -31,6 +32,10 @@ export type EditorViewProps = {
   blockLabel?: BlockLabel;
   /** The text and accessible name of a block whose type no renderer draws, in place of the English one. */
   unsupportedBlockLabel?: string;
+  /** The accessible name of what a block draws in place of itself when its renderer throws. */
+  blockErrorLabel?: string;
+  /** Told of each error a block's renderer throws, besides React's own report of a caught error. */
+  onBlockError?: (error: Error) => void;
   /** The text of the host an empty document draws. */
   placeholder?: string;
   /** The placeholder of each empty block, by default the name of a heading and nothing for other blocks. */
@@ -56,6 +61,8 @@ export function EditorView({
   selectedContentLabel,
   blockLabel,
   unsupportedBlockLabel = UNSUPPORTED_BLOCK,
+  blockErrorLabel = BLOCK_ERROR,
+  onBlockError,
   placeholder,
   blockPlaceholder = headingPlaceholder,
   blocksSelectedLabel = BLOCKS_SELECTED,
@@ -65,6 +72,7 @@ export function EditorView({
   const hintId = useId();
   const blockIdScope = useId();
   const blocks = useEditorState(controller, (state) => state.doc.blocks);
+  const blockError = useMemo(() => ({ label: blockErrorLabel, report: onBlockError }), [blockErrorLabel, onBlockError]);
   const shells = useBlockElements(blocks, renderers);
 
   useIsomorphicLayoutEffect(() => (root.current ? controller.attach(root.current) : undefined), [controller]);
@@ -82,9 +90,11 @@ export function EditorView({
       >
         <BlockDomIdScope.Provider value={blockIdScope}>
           <UnsupportedBlockLabel.Provider value={unsupportedBlockLabel}>
-            <BlockPlaceholderContext.Provider value={blockPlaceholder}>
-              {blocks.length === 0 ? <EmptyDocumentHost placeholder={placeholder} label={paragraphLabel} /> : shells}
-            </BlockPlaceholderContext.Provider>
+            <BlockErrorContext.Provider value={blockError}>
+              <BlockPlaceholderContext.Provider value={blockPlaceholder}>
+                {blocks.length === 0 ? <EmptyDocumentHost placeholder={placeholder} label={paragraphLabel} /> : shells}
+              </BlockPlaceholderContext.Provider>
+            </BlockErrorContext.Provider>
           </UnsupportedBlockLabel.Provider>
         </BlockDomIdScope.Provider>
         {children}

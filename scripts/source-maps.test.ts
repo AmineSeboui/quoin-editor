@@ -4,6 +4,7 @@ import { SourceMap, type SourceMapPayload } from 'node:module';
 import { isAbsolute, resolve } from 'node:path';
 import { expect, it } from 'vitest';
 import { describeBuilt, dist } from '../test/support/built-dist';
+import { withoutRepeatedSegments } from './map-segments.mjs';
 
 const maps = () => readdirSync(dist).filter((file) => file.endsWith('.map'));
 const readMap = (file: string): SourceMapPayload => JSON.parse(readFileSync(resolve(dist, file), 'utf8'));
@@ -26,6 +27,10 @@ describeBuilt('the built sourcemaps', ['view.js.map', 'view.cjs.map'], () => {
 
   it('name their sources relative to the map, never by a path of the machine that built them', () => {
     expect(maps().filter((file) => readMap(file).sources.some((source) => isAbsolute(source)))).toEqual([]);
+  });
+
+  it('hold no segment that maps to the place the one before it on its line maps to', () => {
+    expect(maps().filter((file) => withoutRepeatedSegments(readMap(file).mappings) !== readMap(file).mappings)).toEqual([]);
   });
 
   it.each(['view.js', 'view.cjs'])('map a line of %s back to the line of src that wrote it', (file) => {

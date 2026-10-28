@@ -1,19 +1,22 @@
 'use client';
 
-import { useCallback, useEffect, useRef, type KeyboardEvent, type MouseEvent } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, type KeyboardEvent, type MouseEvent } from 'react';
 import { Pencil } from 'lucide-react';
 import { useQuoin } from '../../context';
 import { devWarn } from '../../dev-warn';
 import { blockTypeLabel } from '../../gutter/block-type-label';
-import type { AnyBlockDefinition } from '../../registry';
+import { parsedData, type AnyBlockDefinition } from '../../registry';
 import type { BlockPreviewProps } from '../../types';
 import { Button } from '../../ui/button';
 import type { BlockRenderProps } from '../../view';
+import { BlockErrorContext } from '../../view/react/block-error-context';
 import { useReadOnly } from '../../view/react/use-read-only';
 import { NATIVE_INTERACTION } from '../../view/selection/native-interaction';
 import { insertAfterBlock, readBlockData, writeBlockData } from './block-data';
 import { isInteractive } from './interactive-target';
-import { focusNode } from './select-node';
+import { deleteBlock } from './node-toolbar-items';
+import { focusNode, selectNode } from './select-node';
+import { useBlockIndex } from './use-block-index';
 import { useEditingFocus } from './use-editing-focus';
 import { useVoidEditing } from './use-void-editing';
 
@@ -37,12 +40,14 @@ function VoidPreview({ definition: { preview: Preview }, name, ...props }: VoidP
 
 export function VoidBlock({ block, controller, definition }: BlockRenderProps & { definition: AnyBlockDefinition }) {
   const { blockTypes, labels } = useQuoin();
+  const { report } = useContext(BlockErrorContext);
   const readOnly = useReadOnly(controller);
   const { editor: Editor, alwaysEditing = false } = definition;
   const name = blockTypeLabel(labels, block, blockTypes);
   const blockId = block.id;
   const editable = Editor !== undefined && !readOnly;
   const { editing, start, stop } = useVoidEditing(controller, blockId, editable);
+  const index = useBlockIndex(controller, blockId);
   const root = useRef<HTMLDivElement>(null);
   const focusHandlers = useEditingFocus(root, editing, stop);
   useMissingPreviewWarning(readOnly, definition);
@@ -56,18 +61,32 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
     (data: Record<string, unknown>) => writeBlockData(controller, blockId, data),
     [controller, blockId],
   );
+  // WebKit does not focus a clicked checkbox, which leaves focus on the block's shell, and the write would then hand it
+  // to the last caret. A write made while focus is elsewhere, as after an await, leaves the selection alone.
+  const onPreviewChange = useCallback(
+    (data: Record<string, unknown>) => {
+      writeBlockData(controller, blockId, data);
+      const shell = root.current?.closest('[data-block-id]');
+      const focused = root.current?.ownerDocument.activeElement ?? null;
+      if (!shell?.contains(focused)) return;
+      if (root.current?.contains(focused)) selectNode(controller, blockId);
+      else select();
+    },
+    [controller, blockId, select],
+  );
+  const onRemove = useCallback(() => deleteBlock(controller, blockId), [controller, blockId]);
   const onInsertBlock = useCallback(
     (type: string) => {
-      insertAfterBlock(controller, blockId, type, blockTypes);
+      if (!insertAfterBlock(controller, blockId, type, blockTypes, report)) return;
       stop();
       // A block left node-selected is opening its editor, which takes focus itself.
       if (controller.editor.state.selection?.kind !== 'node') controller.focus();
     },
-    [controller, blockId, blockTypes, stop],
+    [controller, blockId, blockTypes, report, stop],
   );
 
   const editorShown = editable && (alwaysEditing || editing);
-  const data = readBlockData(controller, block);
+  const data = useMemo(() => parsedData(definition, readBlockData(controller, block)), [definition, controller, block]);
 
   // Escape that closed a portalled overlay still bubbles here through the React tree, so only a key pressed in the
   // block's own DOM leaves the editor.
@@ -98,9 +117,23 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
       onDoubleClick={onDoubleClick}
     >
       {editorShown && Editor ? (
-        <Editor data={data} onChange={onChange} onInsertBlock={onInsertBlock} onDone={leave} />
+        <Editor
+          data={data}
+          onChange={onChange}
+          blockId={blockId}
+          index={index}
+          onRemove={onRemove}
+          onInsertBlock={onInsertBlock}
+          onDone={leave}
+        />
       ) : (
-        <VoidPreview definition={definition} name={name} data={data} blockId={blockId} />
+        <VoidPreview
+          definition={definition}
+          name={name}
+          data={data}
+          blockId={blockId}
+          {...(readOnly ? {} : { onChange: onPreviewChange })}
+        />
       )}
       {editable && !editorShown && (
         <Button

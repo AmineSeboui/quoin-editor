@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { expect, it } from 'vitest';
-import { describeBuilt, dist, reachedChunks } from '../../test/support/built-dist';
+import { describeBuilt, dist, importsFrom, mappedSources, reachedChunks } from '../../test/support/built-dist';
 
 const EXPORT = `
   const { toDocx } = await import(process.env.QUOIN_DOCX);
@@ -29,10 +29,11 @@ describeBuilt('the built docx entry', ['docx.js', 'docx.cjs'], () => {
   });
 
   it('loads no module of React, the canvas or the views, and carries no directive', () => {
-    const code = reachedChunks('docx.js').map((file) => readFileSync(resolve(dist, file), 'utf8'));
-    const sources = code.flatMap((text) => [...text.matchAll(/^\/\/ (src\/\S+)$/gm)].map(([, path]) => path));
+    const chunks = reachedChunks('docx.js');
+    const code = chunks.map((file) => readFileSync(resolve(dist, file), 'utf8'));
+    const sources = mappedSources(chunks);
     expect(sources).toContain('src/docx/index.ts');
     expect(sources.filter((path) => /^src\/(?:view|view-static|diff|canvas|menus|hooks|ui|extensions)\/|^src\/index\.ts$/.test(path))).toEqual([]);
-    expect(code.filter((text) => /from\s*"react|['"]use client['"]/.test(text))).toEqual([]);
+    expect(code.filter((text) => importsFrom(text, 'react') || /['"]use client['"]/.test(text))).toEqual([]);
   });
 });

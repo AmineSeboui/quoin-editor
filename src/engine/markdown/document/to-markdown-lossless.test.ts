@@ -45,6 +45,13 @@ describe('toMarkdown lossless', () => {
     expect(toMarkdown(blocks)).toBe('![A](k)\n');
   });
 
+  it('keeps the decorative flag of an image through a lossless export', () => {
+    const blocks = [block('IMAGE', { storageKey: 'k', alt: '', decorative: true })];
+    const markdown = toMarkdown(blocks, { lossless: true });
+    expect(markdown).toBe('<!-- quoin:IMAGE {"data":{"storageKey":"k","alt":"","decorative":true}} -->\n');
+    expect(readBack(markdown)).toEqual(withoutIds(blocks));
+  });
+
   it('drops a block whose type name could end the comment early', () => {
     expect(toMarkdown([md('a'), block('X --> <b>', { a: 1 }), md('b')])).toBe('a\n\nb\n');
     expect(toMarkdown([md('a'), block('X --> <b>', { a: 1 }), md('b')], { lossless: true })).toBe('a\n\nb\n');

@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { relative, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const root = resolve(__dirname, '..', '..');
@@ -45,9 +45,21 @@ export function describeBuilt(name: string, files: readonly string[], body: () =
 export function reachedChunks(entry: string): string[] {
   const files = new Set([entry]);
   for (const file of files) {
-    for (const [, from, bare] of readFileSync(resolve(dist, file), 'utf8').matchAll(/from\s*"\.\/([^"]+)"|import\s*"\.\/([^"]+)"/g)) {
-      files.add(from ?? bare);
+    for (const [, path] of readFileSync(resolve(dist, file), 'utf8').matchAll(/(?:from|import)\s*["']\.\/([^"']+)["']/g)) {
+      files.add(path);
     }
   }
   return [...files];
 }
+
+/** The modules of src that wrote the code of built files, as their sourcemaps name them, relative to the package root. */
+export const mappedSources = (files: readonly string[]): string[] =>
+  files.flatMap((file) =>
+    (JSON.parse(readFileSync(resolve(dist, `${file}.map`), 'utf8')).sources as string[]).map((source) =>
+      relative(root, resolve(dist, source)),
+    ),
+  );
+
+/** Whether code imports a module whose name starts with `name`, in either quote style. */
+export const importsFrom = (code: string, name: string): boolean =>
+  new RegExp(`(?:from|import)\\s*["']${name}`).test(code);

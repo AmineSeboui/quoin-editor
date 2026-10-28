@@ -55,6 +55,10 @@ describe('the package entry list', () => {
     });
   });
 
+  it('runs every built chunk through Rollup tree shaking after esbuild', () => {
+    expect(tsupConfig).toMatchObject({ treeshake: true });
+  });
+
   it('exports none of the chunks loaded on demand, which build under names no entry has', () => {
     const names = new Set(packageEntries.map(({ name }) => name));
     expect(lazyChunks.filter(({ name }) => names.has(name) || `./${name}` in manifest.exports)).toEqual([]);
@@ -64,8 +68,8 @@ describe('the package entry list', () => {
   it('keeps the absolute budgets of the main, headless and engine entries, and of the view, diff and docx a server loads alone', () => {
     const totals = packageEntries.filter((entry) => entry.total !== undefined).map(({ name, total }) => [name, total]);
     expect(totals).toEqual([
-      ['index', 155_000],
-      ['headless', 70_000],
+      ['index', 155_500],
+      ['headless', 70_400],
       ['engine', 52_000],
       ['view', 22_214],
       ['diff', 26_961],

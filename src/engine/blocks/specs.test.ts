@@ -33,6 +33,16 @@ describe('core block specs', () => {
     expect(roundTrip(type, data)).toEqual(data);
   });
 
+  it('keeps an image decorative flag as a known attribute, only when true', () => {
+    const data = { storageKey: 'k', alt: '', decorative: true };
+    const block = engineBlock('IMAGE', data);
+    expect(block.attrs).toMatchObject({ decorative: true });
+    expect(block.attrs.extra).toBeUndefined();
+    expect(roundTrip('IMAGE', data)).toEqual(data);
+    expect(roundTrip('IMAGE', { ...data, decorative: false })).toEqual({ storageKey: 'k', alt: '' });
+    expect(roundTrip('IMAGE', { ...data, decorative: 'yes' })).toEqual({ storageKey: 'k', alt: '' });
+  });
+
   it('parses MARKDOWN into kind attrs and a text region', () => {
     const [block] = codec.toEngineBlocks({ id: 'm', type: 'MARKDOWN', data: { markdown: '## Hi **x**' } });
     expect(block.attrs).toMatchObject({ kind: 'heading', level: 2 });

@@ -6,9 +6,10 @@ import { fixtureDataUrl } from './fixture-png';
 import { everyBlock } from './every-block-doc';
 import { EVERY_FEATURE, extensions } from './harness-extensions';
 import { noteDemo } from './note-demo';
+import { tickDemo } from './tick-demo';
 import { timeEdits } from './time-edits';
 
-const blockTypes = EVERY_FEATURE ? coreBlocks : [...coreBlocks, bookmarkDemo, noteDemo];
+const blockTypes = EVERY_FEATURE ? coreBlocks : [...coreBlocks, bookmarkDemo, noteDemo, tickDemo];
 
 const params = new URLSearchParams(location.search);
 const READ_ONLY = params.get('readonly') === '1';
@@ -173,6 +174,12 @@ const docs: Record<string, QuoinBlock[]> = {
     { id: 'd', type: 'DIVIDER', data: {} },
     { id: 'q', type: 'MARKDOWN', data: { markdown: 'Below the image' } },
   ],
+  'no-alt': [
+    { id: 'p', type: 'MARKDOWN', data: { markdown: 'Above the image' } },
+    ...Array.from({ length: 40 }, (_, line) => ({ id: `p${line}`, type: 'MARKDOWN', data: { markdown: `Line ${line}` } })),
+    { id: 'img', type: 'IMAGE', data: { storageKey: 'fixture.png', alt: '', widthPercent: 50 } },
+    { id: 'q', type: 'MARKDOWN', data: { markdown: 'Below the image' } },
+  ],
   file: [
     { id: 'p', type: 'MARKDOWN', data: { markdown: 'Above the file' } },
     { id: 'f', type: 'FILE', data: { storageKey: 'notes.pdf', filename: 'notes.pdf', size: 1536, mime: 'application/pdf' } },
@@ -183,6 +190,11 @@ const docs: Record<string, QuoinBlock[]> = {
     { id: 't', type: 'TOGGLE', data: { markdown: 'Details', open: false } },
     { id: 'tc', type: 'MARKDOWN', data: { markdown: 'Hidden detail' }, indent: 1 },
     { id: 'e', type: 'MARKDOWN', data: { markdown: 'The end' } },
+  ],
+  tick: [
+    { id: 'p', type: 'MARKDOWN', data: { markdown: 'top' } },
+    { id: 'tk', type: 'TICK_DEMO', data: { done: false } },
+    { id: 'q', type: 'MARKDOWN', data: { markdown: 'bottom' } },
   ],
   pinned: [
     { id: 'pn', type: 'NOTE_DEMO', data: { note: 'Pinned' } },

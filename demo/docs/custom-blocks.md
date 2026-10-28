@@ -67,11 +67,42 @@ A definition has these fields:
 | `type` | yes | The string stored on each block. It is how the registry finds the definition. |
 | `label` | yes | The name shown in the block menu and the slash menu. |
 | `icon` | yes | A [lucide](https://lucide.dev) icon component. Quoin depends on `lucide-react@^1`; add that same major to your own dependencies to import icons, so you do not end up with a second copy and mismatched icon types. |
-| `editor` | one of the two | The editing surface, opened by a double click, the block's Edit button or Enter on the selected block, and closed by Escape. It receives `data` and `onChange`. Call `onChange` with the whole next `data`, not a patch. Omit it for a block that is never editable here. |
-| `preview` | one of the two | What the block shows when its editor is closed, and everywhere on a read-only canvas. Omit it for an edit-only block. |
+| `editor` | one of the two | The editing surface, opened by a double click, the block's Edit button or Enter on the selected block, and closed by Escape. It receives the props listed below. Omit it for a block that is never editable here. |
+| `preview` | one of the two | What the block shows when its editor is closed, and everywhere on a read-only canvas. It receives the props listed below. Omit it for an edit-only block. |
 | `initialData` | no | Seeds `data` when a block of this type is inserted. It is checked against the editor's data type. |
+| `parse` | no | Reads the stored `data` into the shape `editor` and `preview` take, before either sees it. Use it to fill required fields and to migrate older shapes. See [Parsing stored data](#parsing-stored-data). |
 | `inSlashPalette` | no | Set to `false` to keep the type out of the slash menu. Defaults to `true`. |
 | `alwaysEditing` | no | Renders the editor permanently on an editable canvas, instead of the preview. |
+
+An editor receives these props. The canvas always passes every one of them; all but `data` and `onChange` are optional in the type, so an editor you render yourself needs only those two:
+
+| Prop | Purpose |
+| --- | --- |
+| `data` | The block's data. |
+| `onChange` | Writes the whole next `data`, not a patch. Writes to one block that each follow the last within the history's grouping window (500 ms by default) undo together, as one step. |
+| `blockId` | The id of the block. |
+| `index` | The block's index in the flat `blocks` array, counting from 0 with nested (indented) blocks included, kept current as blocks move. Only a block whose position changed draws again, so reading it costs nothing while another block is typed in. |
+| `onRemove` | Removes the block as one undo step and puts the caret where deleting the selected block puts it: at the end of the block above, or at the start of the one below when it was first. |
+| `onInsertBlock` | Inserts a new block of the given type after this one. |
+| `onDone` | Closes the editor and leaves the block selected. |
+
+A preview receives `data`, `blockId` (passed by the canvas and by `QuoinView`, though optional in the type) and, on an editable canvas only, `onChange`. That `onChange` writes through the same path as an editor's, so writes to one block that each follow the last within the history's grouping window undo together, and a preview can hold a control that changes the block without opening the editor, such as a checkbox. A write made while focus is on the block leaves the block selected as a whole, so the next key acts on it, even in Safari, which does not focus a clicked checkbox; a write made while focus is elsewhere, as after an `await`, leaves the selection where it is. It is not passed on a read-only canvas or in `QuoinView`, so disable or hide such a control without it:
+
+```tsx
+import type { BlockPreviewProps } from 'quoin-editor';
+
+function TodoPreview({ data, onChange }: BlockPreviewProps<{ done: boolean }>) {
+  return (
+    <input
+      type="checkbox"
+      aria-label="Done"
+      checked={data.done}
+      disabled={onChange === undefined}
+      onChange={() => onChange?.({ done: !data.done })}
+    />
+  );
+}
+```
 
 Supply `editor`, `preview` or both. Omitting both is a type error, because such a block could only ever draw its own label.
 
@@ -90,6 +121,45 @@ const audit = defineBlock<{ approver: string }>({
 ```
 
 **Omit `preview` only for a block you never show read-only.** A `readOnly` canvas draws previews and never editors, so such a block shows nothing there but its own label. Quoin warns once per type in the console when that happens, naming the type. The same applies to `alwaysEditing`, which is also an editor and is also not drawn on a read-only canvas.
+
+## Parsing stored data
+
+A block's `data` is whatever was stored: a block inserted before a field existed, one written by an older version of your editor, or one a server sent without a field your editor reads. Give the definition a `parse` and the canvas hands its result, never the stored data, to `editor` and `preview`; `QuoinView` and `QuoinDiff` hand it to `preview` too. Prefer it to `initialData` whenever the data has required fields, since `initialData` only seeds a block inserted in the canvas and nothing else.
+
+- **It runs when the block is drawn and writes nothing.** The stored data stays as it was until the editor or preview calls `onChange`, which writes the parsed shape it was given, changed. Opening a document never changes it by itself.
+- **It runs once per stored data.** A block drawn again with the same data, because it moved or the canvas drew again, does not parse again.
+- **It seeds new blocks.** A block inserted without `initialData` starts with `parse({})`, so `parse` should accept `{}` and return defaults, or the definition should give `initialData`. A `parse` that throws there, as a schema library's `parse` does on a missing required field, inserts nothing: from the slash menu or an editor's `onInsertBlock`, the error goes to the canvas's `onError`, or to a console warning in development when there is none.
+- **A throw is drawn as the block's error.** In the canvas, that block draws its error fallback and the error goes to `onError`, as for an editor or preview that throws; the other blocks are untouched. `QuoinView` and `QuoinDiff` draw such a block as they draw one with no `preview`, and warn once per type in the console in development.
+
+Keep a `version` in the data to migrate it as its shape changes:
+
+```tsx
+import { ListTodo } from 'lucide-react';
+import { defineBlock, type BlockEditorProps } from 'quoin-editor';
+
+type TaskData = { version: 2; title: string; owner: string };
+
+function parseTask(data: Record<string, unknown>): TaskData {
+  // Version 1 stored the title as `name` and had no owner.
+  if (data.version === undefined) return { version: 2, title: String(data.name ?? ''), owner: '' };
+  return { version: 2, title: String(data.title ?? ''), owner: String(data.owner ?? '') };
+}
+
+function TaskEditor({ data, onChange }: BlockEditorProps<TaskData>) {
+  return <input aria-label="Task" value={data.title} onChange={(event) => onChange({ ...data, title: event.target.value })} />;
+}
+
+const task = defineBlock({
+  type: 'TASK',
+  label: 'Task',
+  icon: ListTodo,
+  editor: TaskEditor,
+  preview: ({ data }) => <p>{data.title || 'Untitled task'}</p>,
+  parse: parseTask,
+});
+```
+
+`parse` is checked against the data type `editor` and `preview` take, and does not widen it.
 
 ## What the core blocks store
 

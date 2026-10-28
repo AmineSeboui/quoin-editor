@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent, type RefObject } from 'react';
 import { setAttrs } from '../../engine/commands/block-style';
 import { blockById } from '../../engine/model/doc';
+import { englishLabels } from '../../i18n/english-labels';
 import { useLabels } from '../../i18n/use-labels';
 import { bubblePart, isBubblePart } from '../../menus/bubble/bubble-part';
 import type { VirtualAnchor } from '../../menus/floating/virtual-anchor';
@@ -16,24 +17,29 @@ import { onBlock } from '../../view/react/block-command';
 import { str } from '../../engine/blocks/data-fields';
 import { useOutsidePress } from './use-outside-press';
 
+type Opened = { alt: string; decorative: boolean };
+
 type AltTextPopoverProps = {
   blockId: string;
   controller: ViewController;
   anchor: RefObject<VirtualAnchor | null>;
   opener: RefObject<HTMLElement | null>;
   alt: string;
+  decorative: boolean;
   onClose(): void;
 };
 
 // The text is also stored as the popover goes, whatever takes it down, such as the caret of a tap being read into the
 // text or a host moving the selection off the image: on the editor itself, since the canvas's flush is refused in an
 // effect. A canvas being taken down has let go of its root first, and takes no more writes. A host change that also
-// moved the selection takes the popover down before it is drawn with the new alt text, which the draft must not replace.
-function storeAlt(controller: ViewController, blockId: string, opened: string, alt: string): void {
+// moved the selection takes the popover down before it is drawn with the new alt text or flag, which the draft must not
+// replace.
+function storeAlt(controller: ViewController, blockId: string, opened: Opened, patch: Record<string, unknown>): void {
   const { editor } = controller;
-  const current = blockById(editor.state.doc, blockId)?.attrs.alt;
-  if (controller.readOnly || controller.root === null || str(current) !== opened) return;
-  onBlock(blockId, setAttrs({ alt }))(editor.state, (tr) => editor.dispatch(tr));
+  const attrs = blockById(editor.state.doc, blockId)?.attrs ?? {};
+  const changed = str(attrs.alt) !== opened.alt || (attrs.decorative === true) !== opened.decorative;
+  if (controller.readOnly || controller.root === null || changed) return;
+  onBlock(blockId, setAttrs(patch))(editor.state, (tr) => editor.dispatch(tr));
 }
 
 /**
@@ -41,12 +47,13 @@ function storeAlt(controller: ViewController, blockId: string, opened: string, a
  * back to the image, and Escape hands focus back keeping the alt text the image had. A press elsewhere, or a script
  * moving focus elsewhere, stores it and leaves focus where that puts it; a press on the image's toolbar or handles
  * hands focus back to the image. A press on the button that opened it is left to that button. It closes, storing
- * nothing, once the alt text changes under it.
+ * nothing, once the alt text or the decorative flag changes under it.
  */
-export function AltTextPopover({ blockId, controller, anchor, opener, alt, onClose }: AltTextPopoverProps) {
+export function AltTextPopover({ blockId, controller, anchor, opener, alt, decorative, onClose }: AltTextPopoverProps) {
   const labels = useLabels();
-  const [opened] = useState(alt);
+  const [opened] = useState<Opened>({ alt, decorative });
   const [draft, setDraft] = useState(alt);
+  const [marked, setMarked] = useState(decorative);
   const fieldId = useId();
   const hintId = `${fieldId}-hint`;
   const closed = useRef(false);
@@ -55,7 +62,8 @@ export function AltTextPopover({ blockId, controller, anchor, opener, alt, onClo
   const finish = (store: boolean) => {
     if (closed.current) return false;
     closed.current = true;
-    if (store && draft !== alt) storeAlt(controller, blockId, opened, draft);
+    if (store && (draft !== alt || marked !== decorative))
+      storeAlt(controller, blockId, opened, { alt: draft, decorative: marked || undefined });
     return true;
   };
   const latestFinish = useRef(finish);
@@ -65,7 +73,7 @@ export function AltTextPopover({ blockId, controller, anchor, opener, alt, onClo
     return () => void latestFinish.current(true);
   }, []);
   useEffect(() => {
-    if (alt !== opened && finish(false)) onClose();
+    if ((alt !== opened.alt || decorative !== opened.decorative) && finish(false)) onClose();
   });
 
   // A tap gives the text focus and the caret before its click closes the popover, and the editor reads the caret only on
@@ -85,17 +93,17 @@ export function AltTextPopover({ blockId, controller, anchor, opener, alt, onClo
     event.preventDefault();
     close(true);
   };
-  // Tab moves between the field and Save, which WebKit's own Tab skips, and out of either end stores the text: the
-  // popover is drawn at the end of the page, where Tab out of it would leave the page. The popover's own focus scope
-  // would wrap Tab round instead.
+  // Tab moves between the field, the checkbox and Save, which WebKit's own Tab skips, and out of either end stores the
+  // text: the popover is drawn at the end of the page, where Tab out of it would leave the page. The popover's own focus
+  // scope would wrap Tab round instead.
   const onKeyDown = (event: KeyboardEvent<HTMLFormElement>) => {
     if (event.key !== 'Tab' || isComposingKey(controller, event.nativeEvent)) return;
-    const [field, save] = event.currentTarget.elements;
-    const fromField = event.target === field;
+    const controls = [...event.currentTarget.elements];
+    const next = controls[controls.indexOf(event.target as Element) + (event.shiftKey ? -1 : 1)];
     event.preventDefault();
     event.stopPropagation();
-    if (event.shiftKey === fromField) close(true);
-    else ((fromField ? save : field) as HTMLElement).focus();
+    if (next === undefined) close(true);
+    else (next as HTMLElement).focus();
   };
 
   return (
@@ -125,14 +133,28 @@ export function AltTextPopover({ blockId, controller, anchor, opener, alt, onClo
           </label>
           <Input
             id={fieldId}
-            required
-            aria-describedby={hintId}
+            required={!marked}
+            aria-describedby={marked ? undefined : hintId}
             value={draft}
-            onChange={(event) => setDraft(event.target.value)}
+            onChange={(event) => {
+              setDraft(event.target.value);
+              setMarked(false);
+            }}
           />
-          <p id={hintId} className="quoin-block-message">
+          <p id={hintId} className={marked ? 'quoin-block-message invisible' : 'quoin-block-message'}>
             {labels.altTextHint}
           </p>
+          <label className="quoin-image-decorative text-sm">
+            <input
+              type="checkbox"
+              checked={marked}
+              onChange={(event) => {
+                setMarked(event.target.checked);
+                if (event.target.checked) setDraft('');
+              }}
+            />
+            {labels.decorativeImage ?? englishLabels.decorativeImage}
+          </label>
           <Button type="submit" size="sm">
             {labels.save}
           </Button>

@@ -34,6 +34,7 @@ describe('englishLabels', () => {
   it('names the Edit button of void blocks and the blocks no definition draws', () => {
     expect(englishLabels.editBlock('Bookmark')).toBe('Edit Bookmark');
     expect(englishLabels.unsupportedBlock).toBe('Unsupported block');
+    expect(englishLabels.blockError).toBe('Block could not be drawn');
   });
 
   it('names a callout after the name of its tone as written, the English names in lower case', () => {
@@ -181,6 +182,7 @@ describe('englishLabels', () => {
     expect([englishLabels.altText, englishLabels.save]).toEqual(['Alt text', 'Save']);
     expect(englishLabels.altTextHint).toBe('Required. Describe what the image shows for anyone who cannot see it.');
     expect(englishLabels.imageNoAlt).toBe('Image, no description');
+    expect([englishLabels.decorativeImage, englishLabels.noAltBadge]).toEqual(['Decorative image', 'No alt text']);
   });
 
   it('names the parts of a file block, its download link after the file, and a selected one by the file', () => {

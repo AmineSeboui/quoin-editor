@@ -19,7 +19,7 @@ function importGraph(file: string, seen = new Set<string>()): string[] {
   if (seen.has(file)) return [];
   seen.add(file);
   const code = readFileSync(resolve(root, 'dist', file), 'utf8');
-  return [...code.matchAll(/^(?:import|export)\b[^"]*?"([^"]+)";$/gm)].flatMap(([, from]) =>
+  return [...code.matchAll(/^(?:import|export)\b[^"']*?["']([^"']+)["'];$/gm)].flatMap(([, from]) =>
     from.startsWith('./') ? importGraph(from.slice(2), seen) : [from],
   );
 }

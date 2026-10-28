@@ -10,7 +10,7 @@ import {
   withExtra,
 } from './data-fields';
 
-const KNOWN = ['storageKey', 'alt', 'caption', 'width', 'height', 'url', 'align', 'widthPercent'];
+const KNOWN = ['storageKey', 'alt', 'caption', 'width', 'height', 'url', 'align', 'widthPercent', 'decorative'];
 
 export const imageSpec: BlockSpec = {
   type: 'IMAGE',
@@ -25,6 +25,7 @@ export const imageSpec: BlockSpec = {
       url: optionalString(data.url),
       align: alignOrUndefined(data.align),
       widthPercent: optionalNumber(data.widthPercent),
+      decorative: data.decorative === true || undefined,
       extra: extraFields(data, KNOWN),
     }),
     regions: { caption: ctx.inline.parse(str(data.caption)) },
@@ -41,6 +42,7 @@ export const imageSpec: BlockSpec = {
         url: optionalString(block.attrs.url),
         align: alignOrUndefined(block.attrs.align),
         widthPercent: optionalNumber(block.attrs.widthPercent),
+        decorative: block.attrs.decorative === true || undefined,
       },
       block.attrs,
     ),

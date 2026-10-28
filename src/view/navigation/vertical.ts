@@ -7,7 +7,7 @@ import { isCrossSelection } from '../selection/selection-decorations';
 import { caretInHost } from './caret-in-host';
 import { collapseCross, crossHeadVertically } from './cross-moves';
 import { adjacentLineMiddle, caretClientRect, isOnFirstLine, isOnLastLine, lineEdgeRect } from './line-edges';
-import { entryEdge, holdsTextHead, moveToNeighbour, neighbourBlock, ownNode } from './neighbour-block';
+import { canBeEntered, entryEdge, holdsTextHead, moveToNeighbour, neighbourBlock, ownNode } from './neighbour-block';
 import { stayOnLine } from './stay-on-line';
 import { dispatchSelection } from '../controller/dispatch-selection';
 
@@ -76,7 +76,7 @@ function landing(
   }
   const own = extend ? null : ownNode(controller, head.block, direction);
   if (own !== null) return own;
-  const accept = extend ? holdsTextHead(controller) : undefined;
+  const accept = extend ? holdsTextHead(controller) : canBeEntered(controller);
   const target = neighbourBlock(controller.editor.state.doc, head.block, direction, accept);
   return target && (landAtGoal(controller, target, direction) ?? entryEdge(controller, target.id, direction));
 }

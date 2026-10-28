@@ -1,6 +1,6 @@
 import type { EngineBlock, EngineDoc, Pos, Selection } from '../../engine';
 import { isTextFlow } from '../../engine/commands/block-helpers';
-import { endOf, nodeSelection, startOf } from '../../engine/state/selection';
+import { endOf, nodeSelection, primaryRegion, startOf } from '../../engine/state/selection';
 import type { ViewController } from '../controller/view-controller';
 import { entersAsNode } from './node-entry';
 import { visibleBlockIndexes } from './visible-blocks';
@@ -36,6 +36,13 @@ export function entryEdge(controller: ViewController, block: string, direction: 
 export const ownNode = (controller: ViewController, block: string, direction: -1 | 1): Selection | null =>
   direction < 0 && entersAsNode(controller, block) ? nodeSelection(block) : null;
 
+// A text block whose renderer threw has no host and the model puts a caret at its start, so arrows pass over it.
+export const canBeEntered = (controller: ViewController) => (block: EngineBlock): boolean => {
+  const { schema } = controller.editor.state;
+  const region = isTextFlow(schema, block) ? primaryRegion(schema, block) : null;
+  return region === null || controller.registry.get(block.id, region) !== undefined || entersAsNode(controller, block.id);
+};
+
 export const holdsTextHead = (controller: ViewController) => (block: EngineBlock): boolean =>
   isTextFlow(controller.editor.state.schema, block) && entryEdge(controller, block.id, 1).kind === 'text';
 
@@ -46,7 +53,7 @@ export function neighbourHead(controller: ViewController, from: string, directio
 }
 
 export function moveToNeighbour(controller: ViewController, from: string, direction: -1 | 1): boolean {
-  const target = neighbourBlock(controller.editor.state.doc, from, direction);
+  const target = neighbourBlock(controller.editor.state.doc, from, direction, canBeEntered(controller));
   if (target === null) return false;
   dispatchSelection(controller, entryEdge(controller, target.id, direction));
   return true;

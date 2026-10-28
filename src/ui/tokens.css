@@ -6,7 +6,7 @@
   --quoin-popover: oklch(1 0 0);
   --quoin-popover-foreground: oklch(0.145 0 0);
   --quoin-border: oklch(0.922 0 0);
-  --quoin-input: oklch(0.922 0 0);
+  --quoin-input: oklch(0.62 0 0);
   --quoin-ring: oklch(0.45 0 0);
   --quoin-primary: oklch(0.205 0 0);
   --quoin-primary-foreground: oklch(0.985 0 0);
@@ -21,7 +21,7 @@
      Non-text, like --destructive: a rule and a wash, never type. */
   --quoin-info: oklch(0.55 0.17 250);
   --quoin-success: oklch(0.55 0.14 155);
-  --quoin-warning: oklch(0.65 0.16 65);
+  --quoin-warning: oklch(0.6 0.16 65);
   --quoin-selection: oklch(0.62 0.17 250 / 28%);
   /* The tint of text a comment thread is anchored to, painted translucent so overlapping anchors stack, the opaque tint
      of the anchor whose thread is open, and the rule under both, thicker when open. Body and palette text read at
@@ -67,7 +67,7 @@
   --quoin-popover: oklch(0.205 0 0);
   --quoin-popover-foreground: oklch(0.985 0 0);
   --quoin-border: oklch(1 0 0 / 10%);
-  --quoin-input: oklch(1 0 0 / 15%);
+  --quoin-input: oklch(0.56 0 0);
   --quoin-ring: oklch(0.708 0 0);
   --quoin-primary: oklch(0.922 0 0);
   --quoin-primary-foreground: oklch(0.205 0 0);

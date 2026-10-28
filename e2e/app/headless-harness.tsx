@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { QuoinBlock } from 'quoin-editor';
 import { toggleMark } from 'quoin-editor/engine';
-import { EditorView, useQuoinEditor, type RenderOptions } from 'quoin-editor/headless';
+import { defaultRenderers, EditorView, useQuoinEditor, type BlockRenderer, type RenderOptions } from 'quoin-editor/headless';
 import { collaborative } from './collab-extensions';
 import { timeEdits } from './time-edits';
 
@@ -57,6 +57,15 @@ const docs: Record<string, QuoinBlock[]> = {
     md('s', 'sibling'),
   ],
   atoms: [md('a', 'Hi [@Ada](mention:u1) there')],
+  throwing: [md('a', 'above'), md('b', 'broken'), md('c', 'below')],
+};
+
+const THROWING_RENDERERS: Record<string, BlockRenderer> = {
+  MARKDOWN: (props) => {
+    if (props.block.id === 'b') throw new Error('cannot draw');
+    const Markdown = defaultRenderers.MARKDOWN;
+    return <Markdown {...props} />;
+  },
 };
 
 const MENTION_CHIPS: RenderOptions = {
@@ -103,6 +112,7 @@ export function HeadlessHarness({ doc }: { doc: string }) {
       </button>
       <EditorView
         controller={controller}
+        renderers={doc === 'throwing' ? THROWING_RENDERERS : undefined}
         aria-label="Document"
         placeholder="Start writing"
         className={MONOSPACE.has(doc) ? 'harness-monospace' : undefined}

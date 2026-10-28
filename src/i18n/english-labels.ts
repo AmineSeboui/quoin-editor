@@ -1,7 +1,7 @@
 import { formatSize } from '../blocks/file/format-size';
 import type { QuoinLabels } from './labels';
 
-export const englishLabels: QuoinLabels = {
+export const englishLabels: Required<QuoinLabels> = {
   document: 'Editor',
   editorHint: 'Press Escape, then Tab, to leave the editor.',
   paragraph: 'Paragraph',
@@ -163,6 +163,7 @@ export const englishLabels: QuoinLabels = {
   selectedContent: 'Selected content',
   editBlock: (label) => `Edit ${label}`,
   unsupportedBlock: 'Unsupported block',
+  blockError: 'Block could not be drawn',
   uploading: 'Uploading...',
   uploaded: (name) => `Uploaded ${name}`,
   uploadFailed: 'Upload failed.',
@@ -183,6 +184,8 @@ export const englishLabels: QuoinLabels = {
   altTextHint: 'Required. Describe what the image shows for anyone who cannot see it.',
   save: 'Save',
   imageNoAlt: 'Image, no description',
+  decorativeImage: 'Decorative image',
+  noAltBadge: 'No alt text',
   uploadFile: 'Upload file',
   dropFile: 'Or drop or paste a file here.',
   fileTools: 'File tools',

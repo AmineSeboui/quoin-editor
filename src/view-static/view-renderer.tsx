@@ -4,6 +4,7 @@ import { coreBlockSpecs } from '../engine/blocks/core-specs';
 import { blockNode } from '../engine/render/block-node';
 import type { BlockRenderer } from '../engine/render/html-env';
 import type { HtmlElement } from '../engine/render/html-node';
+import { devWarn } from '../dev-warn';
 import { blockByType, parsedData, type AnyBlockDefinition } from '../registry';
 import { highlightedCode } from './code-nodes';
 
@@ -19,6 +20,7 @@ function previewData(definition: AnyBlockDefinition, stored: unknown): Record<st
   try {
     return parsedData(definition, (stored as Record<string, unknown> | undefined) ?? {});
   } catch {
+    devWarn(`the block type "${definition.type}" has data its \`parse\` throws on, so it is drawn without its \`preview\`.`);
     return undefined;
   }
 }

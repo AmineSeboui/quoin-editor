@@ -70,6 +70,7 @@ A definition has these fields:
 | `editor` | one of the two | The editing surface, opened by a double click, the block's Edit button or Enter on the selected block, and closed by Escape. It receives the props listed below. Omit it for a block that is never editable here. |
 | `preview` | one of the two | What the block shows when its editor is closed, and everywhere on a read-only canvas. It receives the props listed below. Omit it for an edit-only block. |
 | `initialData` | no | Seeds `data` when a block of this type is inserted. It is checked against the editor's data type. |
+| `parse` | no | Reads the stored `data` into the shape `editor` and `preview` take, before either sees it. Use it to fill required fields and to migrate older shapes. See [Parsing stored data](#parsing-stored-data). |
 | `inSlashPalette` | no | Set to `false` to keep the type out of the slash menu. Defaults to `true`. |
 | `alwaysEditing` | no | Renders the editor permanently on an editable canvas, instead of the preview. |
 
@@ -120,6 +121,45 @@ const audit = defineBlock<{ approver: string }>({
 ```
 
 **Omit `preview` only for a block you never show read-only.** A `readOnly` canvas draws previews and never editors, so such a block shows nothing there but its own label. Quoin warns once per type in the console when that happens, naming the type. The same applies to `alwaysEditing`, which is also an editor and is also not drawn on a read-only canvas.
+
+## Parsing stored data
+
+A block's `data` is whatever was stored: a block inserted before a field existed, one written by an older version of your editor, or one a server sent without a field your editor reads. Give the definition a `parse` and the canvas hands its result, never the stored data, to `editor` and `preview`; `QuoinView` and `QuoinDiff` hand it to `preview` too. Prefer it to `initialData` whenever the data has required fields, since `initialData` only seeds a block inserted in the canvas and nothing else.
+
+- **It runs when the block is drawn and writes nothing.** The stored data stays as it was until the editor or preview calls `onChange`, which writes the parsed shape it was given, changed. Opening a document never changes it by itself.
+- **It runs once per stored data.** A block drawn again with the same data, because it moved or the canvas drew again, does not parse again.
+- **It seeds new blocks.** A block inserted without `initialData` starts with `parse({})`.
+- **A throw is drawn as the block's error.** In the canvas, that block draws its error fallback and the error goes to `onError`, as for an editor or preview that throws; the other blocks are untouched. `QuoinView` and `QuoinDiff` draw such a block as they draw one with no `preview`.
+
+Keep a `version` in the data to migrate it as its shape changes:
+
+```tsx
+import { ListTodo } from 'lucide-react';
+import { defineBlock, type BlockEditorProps } from 'quoin-editor';
+
+type TaskData = { version: 2; title: string; owner: string };
+
+function parseTask(data: Record<string, unknown>): TaskData {
+  // Version 1 stored the title as `name` and had no owner.
+  if (data.version === undefined) return { version: 2, title: String(data.name ?? ''), owner: '' };
+  return { version: 2, title: String(data.title ?? ''), owner: String(data.owner ?? '') };
+}
+
+function TaskEditor({ data, onChange }: BlockEditorProps<TaskData>) {
+  return <input aria-label="Task" value={data.title} onChange={(event) => onChange({ ...data, title: event.target.value })} />;
+}
+
+const task = defineBlock({
+  type: 'TASK',
+  label: 'Task',
+  icon: ListTodo,
+  editor: TaskEditor,
+  preview: ({ data }) => <p>{data.title || 'Untitled task'}</p>,
+  parse: parseTask,
+});
+```
+
+`parse` is checked against the data type `editor` and `preview` take, and does not widen it.
 
 ## What the core blocks store
 

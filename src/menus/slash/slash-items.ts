@@ -7,7 +7,7 @@ import { specFor } from '../../engine/blocks/unknown-spec';
 import type { SlashGroup, SlashItem } from '../../extensions/ui-types';
 import { turnIntoTargets } from '../../gutter/turn-into-targets';
 import type { QuoinLabels, SlashBlockCommand } from '../../i18n/labels';
-import { paletteBlocks, type AnyBlockDefinition } from '../../registry';
+import { paletteBlocks, seedData, type AnyBlockDefinition } from '../../registry';
 
 type Details = { group: SlashGroup; keywords: readonly string[]; shortcut?: string };
 
@@ -66,8 +66,9 @@ export function builtInSlashItems(labels: QuoinLabels, definitions: readonly Any
   });
 }
 
-function initialBlock({ schema }: EditorState, { type, initialData }: AnyBlockDefinition): NewBlock {
-  const data = initialData?.();
+function initialBlock({ schema }: EditorState, definition: AnyBlockDefinition): NewBlock {
+  const { type } = definition;
+  const data = seedData(definition);
   if (data === undefined) return { type };
   return { type, ...specFor(schema, type).fromData(data, createBlockCodec(schema).context) };
 }

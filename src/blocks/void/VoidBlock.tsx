@@ -1,11 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useRef, type KeyboardEvent, type MouseEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, type KeyboardEvent, type MouseEvent } from 'react';
 import { Pencil } from 'lucide-react';
 import { useQuoin } from '../../context';
 import { devWarn } from '../../dev-warn';
 import { blockTypeLabel } from '../../gutter/block-type-label';
-import type { AnyBlockDefinition } from '../../registry';
+import { parsedData, type AnyBlockDefinition } from '../../registry';
 import type { BlockPreviewProps } from '../../types';
 import { Button } from '../../ui/button';
 import type { BlockRenderProps } from '../../view';
@@ -71,7 +71,7 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
   );
 
   const editorShown = editable && (alwaysEditing || editing);
-  const data = readBlockData(controller, block);
+  const data = useMemo(() => parsedData(definition, readBlockData(controller, block)), [definition, controller, block]);
 
   // Escape that closed a portalled overlay still bubbles here through the React tree, so only a key pressed in the
   // block's own DOM leaves the editor.

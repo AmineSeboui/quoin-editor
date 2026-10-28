@@ -3,7 +3,7 @@ import { specFor } from '../../engine/blocks/unknown-spec';
 import type { InternalEditor } from '../../engine/extension/editor';
 import { sameValue } from '../../engine/model/same-value';
 import { HISTORY_GROUP } from '../../engine/state/history';
-import { blockByType, type AnyBlockDefinition } from '../../registry';
+import { blockByType, seedData, type AnyBlockDefinition } from '../../registry';
 import type { ViewController } from '../../view';
 import { opensEditor } from '../block-drawing';
 import { insertBlockToWrite } from '../insert-blocks';
@@ -37,7 +37,7 @@ export function insertAfterBlock(
   definitions: readonly AnyBlockDefinition[],
 ): void {
   const editor = internal(controller);
-  const data = blockByType(definitions, type)?.initialData?.();
+  const data = seedData(blockByType(definitions, type));
   const content = data && specFor(editor.state.schema, type).fromData(data, editor.codec.context);
   controller.run(insertBlockToWrite({ type, ...content }, opensEditor(definitions, type), blockId));
 }

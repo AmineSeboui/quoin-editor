@@ -13,6 +13,12 @@ type BlockDefinitionCommon<D extends object> = {
    * against the editor's data type instead of widening it.
    */
   initialData?: () => NoInfer<D>;
+  /**
+   * Reads stored data into the shape `preview` and `editor` take, filling required fields and migrating older shapes.
+   * Runs when the block is drawn and never writes the document itself: the first `onChange` stores the parsed shape.
+   * A block inserted without `initialData` is seeded with `parse({})`. A throw draws the block's error fallback.
+   */
+  parse?: (data: Record<string, unknown>) => NoInfer<D>;
   /** Whether the block is offered in the slash palette and inserter; defaults to true. */
   inSlashPalette?: boolean;
   /**
@@ -83,6 +89,16 @@ export function blockByType(
     if (definitions[i].type === type) return definitions[i];
   }
   return undefined;
+}
+
+/** The data a definition's `preview` and `editor` receive for what a block stores. */
+export function parsedData(definition: AnyBlockDefinition, data: Record<string, unknown>): Record<string, unknown> {
+  return definition.parse ? definition.parse(data) : data;
+}
+
+/** The data a newly inserted block of this definition starts with, or undefined to start empty. */
+export function seedData(definition: AnyBlockDefinition | undefined): Record<string, unknown> | undefined {
+  return definition?.initialData?.() ?? definition?.parse?.({});
 }
 
 /** The definitions offered in the slash palette, in registration order, one per type, with the last registration of a type winning. */

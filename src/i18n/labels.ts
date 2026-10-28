@@ -146,7 +146,8 @@ export type QuoinLabels = {
   selectedContent: string;
   editBlock: (label: string) => string;
   unsupportedBlock: string;
-  blockError: string;
+  /** Optional so a translation written for 1.0 still compiles; English where it is missing. */
+  blockError?: string;
   uploading: string;
   uploaded: (name: string) => string;
   /** What an upload field shows when the host's upload fails without a message of its own. */
@@ -172,9 +173,12 @@ export type QuoinLabels = {
   altTextHint: string;
   save: string;
   imageNoAlt: string;
-  /** The checkbox of the alt text popover that marks an image as deliberately without a description, and the badge an editable canvas draws over an image that has neither. */
-  decorativeImage: string;
-  noAltBadge: string;
+  /**
+   * The checkbox of the alt text popover that marks an image as deliberately without a description, and the badge an
+   * editable canvas draws over an image that has neither. Optional like `blockError`.
+   */
+  decorativeImage?: string;
+  noAltBadge?: string;
   /** An empty file block: its upload button and what can be dropped or pasted on it. */
   uploadFile: string;
   dropFile: string;

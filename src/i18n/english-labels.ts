@@ -1,7 +1,7 @@
 import { formatSize } from '../blocks/file/format-size';
 import type { QuoinLabels } from './labels';
 
-export const englishLabels: QuoinLabels = {
+export const englishLabels: Required<QuoinLabels> = {
   document: 'Editor',
   editorHint: 'Press Escape, then Tab, to leave the editor.',
   paragraph: 'Paragraph',

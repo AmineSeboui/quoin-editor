@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent, type RefObject } from 'react';
 import { setAttrs } from '../../engine/commands/block-style';
 import { blockById } from '../../engine/model/doc';
+import { englishLabels } from '../../i18n/english-labels';
 import { useLabels } from '../../i18n/use-labels';
 import { bubblePart, isBubblePart } from '../../menus/bubble/bubble-part';
 import type { VirtualAnchor } from '../../menus/floating/virtual-anchor';
@@ -148,7 +149,7 @@ export function AltTextPopover({ blockId, controller, anchor, opener, alt, decor
                 if (event.target.checked) setDraft('');
               }}
             />
-            {labels.decorativeImage}
+            {labels.decorativeImage ?? englishLabels.decorativeImage}
           </label>
           <Button type="submit" size="sm">
             {labels.save}

@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import { Image } from 'lucide-react';
 import { useQuoin } from '../../context';
+import { englishLabels } from '../../i18n/english-labels';
 import { optionalNumber } from '../../engine/blocks/data-fields';
 import { EditableRegion, type BlockRenderProps } from '../../view';
 import { str } from '../../engine/blocks/data-fields';
@@ -59,7 +60,7 @@ export function ImageFigure({ block, controller, readOnly }: ImageFigureProps) {
               requestAlt(controller, id);
             }}
           >
-            {labels.noAltBadge}
+            {labels.noAltBadge ?? englishLabels.noAltBadge}
           </button>
         )}
         {!readOnly && (

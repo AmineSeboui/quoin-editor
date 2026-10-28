@@ -13,7 +13,9 @@ import { useReadOnly } from '../../view/react/use-read-only';
 import { NATIVE_INTERACTION } from '../../view/selection/native-interaction';
 import { insertAfterBlock, readBlockData, writeBlockData } from './block-data';
 import { isInteractive } from './interactive-target';
+import { deleteBlock } from './node-toolbar-items';
 import { focusNode } from './select-node';
+import { useBlockIndex } from './use-block-index';
 import { useEditingFocus } from './use-editing-focus';
 import { useVoidEditing } from './use-void-editing';
 
@@ -43,6 +45,7 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
   const blockId = block.id;
   const editable = Editor !== undefined && !readOnly;
   const { editing, start, stop } = useVoidEditing(controller, blockId, editable);
+  const index = useBlockIndex(controller, blockId);
   const root = useRef<HTMLDivElement>(null);
   const focusHandlers = useEditingFocus(root, editing, stop);
   useMissingPreviewWarning(readOnly, definition);
@@ -56,6 +59,7 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
     (data: Record<string, unknown>) => writeBlockData(controller, blockId, data),
     [controller, blockId],
   );
+  const onRemove = useCallback(() => deleteBlock(controller, blockId), [controller, blockId]);
   const onInsertBlock = useCallback(
     (type: string) => {
       insertAfterBlock(controller, blockId, type, blockTypes);
@@ -98,9 +102,23 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
       onDoubleClick={onDoubleClick}
     >
       {editorShown && Editor ? (
-        <Editor data={data} onChange={onChange} onInsertBlock={onInsertBlock} onDone={leave} />
+        <Editor
+          data={data}
+          onChange={onChange}
+          blockId={blockId}
+          index={index}
+          onRemove={onRemove}
+          onInsertBlock={onInsertBlock}
+          onDone={leave}
+        />
       ) : (
-        <VoidPreview definition={definition} name={name} data={data} blockId={blockId} />
+        <VoidPreview
+          definition={definition}
+          name={name}
+          data={data}
+          blockId={blockId}
+          onChange={readOnly ? undefined : onChange}
+        />
       )}
       {editable && !editorShown && (
         <Button

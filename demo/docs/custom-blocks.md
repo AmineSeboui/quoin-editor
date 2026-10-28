@@ -67,11 +67,41 @@ A definition has these fields:
 | `type` | yes | The string stored on each block. It is how the registry finds the definition. |
 | `label` | yes | The name shown in the block menu and the slash menu. |
 | `icon` | yes | A [lucide](https://lucide.dev) icon component. Quoin depends on `lucide-react@^1`; add that same major to your own dependencies to import icons, so you do not end up with a second copy and mismatched icon types. |
-| `editor` | one of the two | The editing surface, opened by a double click, the block's Edit button or Enter on the selected block, and closed by Escape. It receives `data` and `onChange`. Call `onChange` with the whole next `data`, not a patch. Omit it for a block that is never editable here. |
-| `preview` | one of the two | What the block shows when its editor is closed, and everywhere on a read-only canvas. Omit it for an edit-only block. |
+| `editor` | one of the two | The editing surface, opened by a double click, the block's Edit button or Enter on the selected block, and closed by Escape. It receives the props listed below. Omit it for a block that is never editable here. |
+| `preview` | one of the two | What the block shows when its editor is closed, and everywhere on a read-only canvas. It receives the props listed below. Omit it for an edit-only block. |
 | `initialData` | no | Seeds `data` when a block of this type is inserted. It is checked against the editor's data type. |
 | `inSlashPalette` | no | Set to `false` to keep the type out of the slash menu. Defaults to `true`. |
 | `alwaysEditing` | no | Renders the editor permanently on an editable canvas, instead of the preview. |
+
+An editor receives these props, all passed by the canvas; `onInsertBlock` and `onDone` are optional in the type:
+
+| Prop | Purpose |
+| --- | --- |
+| `data` | The block's data. |
+| `onChange` | Writes the whole next `data`, not a patch. Everything written while the editor is open undoes in one step. |
+| `blockId` | The id of the block. |
+| `index` | The block's position in the document, its index in the `blocks` array counting from 0, kept current as blocks move. Only a block whose position changed draws again, so reading it costs nothing while another block is typed in. |
+| `onRemove` | Removes the block as one undo step and puts the caret where deleting the selected block puts it: at the end of the block above, or at the start of the one below when it was first. |
+| `onInsertBlock` | Inserts a new block of the given type after this one. |
+| `onDone` | Closes the editor and leaves the block selected. |
+
+A preview receives `data`, `blockId` (passed by the canvas and by `QuoinView`, though optional in the type) and, on an editable canvas only, `onChange`. That `onChange` writes through the same path as an editor's, with one undo step per block, so a preview can hold a control that changes the block without opening the editor, such as a checkbox. It is not passed on a read-only canvas or in `QuoinView`, so disable or hide such a control without it:
+
+```tsx
+import type { BlockPreviewProps } from 'quoin-editor';
+
+function TodoPreview({ data, onChange }: BlockPreviewProps<{ done: boolean }>) {
+  return (
+    <input
+      type="checkbox"
+      aria-label="Done"
+      checked={data.done}
+      disabled={onChange === undefined}
+      onChange={() => onChange?.({ done: !data.done })}
+    />
+  );
+}
+```
 
 Supply `editor`, `preview` or both. Omitting both is a type error, because such a block could only ever draw its own label.
 

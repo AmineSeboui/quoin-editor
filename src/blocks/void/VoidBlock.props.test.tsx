@@ -104,6 +104,7 @@ describe('the props a custom block receives', () => {
   it('gives a preview on a read-only canvas no onChange', () => {
     mount(doc, true);
     expect(previewProps.at(-1)).toEqual({ data: { done: false }, blockId: 'k' });
+    expect(previewProps.at(-1)).not.toHaveProperty('onChange');
     expect(screen.getByRole('checkbox', { name: 'Done k' })).toBeDisabled();
   });
 

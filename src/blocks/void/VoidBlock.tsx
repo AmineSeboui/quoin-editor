@@ -117,7 +117,7 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
           name={name}
           data={data}
           blockId={blockId}
-          onChange={readOnly ? undefined : onChange}
+          {...(readOnly ? {} : { onChange })}
         />
       )}
       {editable && !editorShown && (

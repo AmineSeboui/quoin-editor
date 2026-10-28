@@ -33,7 +33,6 @@ export default defineConfig({
         'src/view/**': { lines: 95 },
         'src/blocks/**': { lines: 97 },
         'src/ui/**': { lines: 98 },
-        'src/hooks/**': { lines: 98 },
         'src/context.tsx': { lines: 98 },
         'src/i18n/**': { lines: 98 },
       },

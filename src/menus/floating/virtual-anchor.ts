@@ -10,14 +10,14 @@ const ROOM_BELOW = 240;
  * scrolling container follows its line.
  */
 export function virtualAnchor(measure: () => DOMRect | null, context: () => Element | undefined): VirtualAnchor {
-  let last = new DOMRect();
+  let last: DOMRect | undefined;
   return {
     // Read when Floating UI starts watching, after the commit that drew the anchor's host has registered it.
     get contextElement() {
       return context();
     },
     getBoundingClientRect() {
-      last = measure() ?? last;
+      last = measure() ?? last ?? new DOMRect();
       return last;
     },
   };

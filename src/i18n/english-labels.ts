@@ -163,6 +163,7 @@ export const englishLabels: QuoinLabels = {
   selectedContent: 'Selected content',
   editBlock: (label) => `Edit ${label}`,
   unsupportedBlock: 'Unsupported block',
+  blockError: 'Block could not be drawn',
   uploading: 'Uploading...',
   uploaded: (name) => `Uploaded ${name}`,
   uploadFailed: 'Upload failed.',

@@ -146,6 +146,7 @@ export type QuoinLabels = {
   selectedContent: string;
   editBlock: (label: string) => string;
   unsupportedBlock: string;
+  blockError: string;
   uploading: string;
   uploaded: (name: string) => string;
   /** What an upload field shows when the host's upload fails without a message of its own. */

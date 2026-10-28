@@ -34,6 +34,7 @@ describe('englishLabels', () => {
   it('names the Edit button of void blocks and the blocks no definition draws', () => {
     expect(englishLabels.editBlock('Bookmark')).toBe('Edit Bookmark');
     expect(englishLabels.unsupportedBlock).toBe('Unsupported block');
+    expect(englishLabels.blockError).toBe('Block could not be drawn');
   });
 
   it('names a callout after the name of its tone as written, the English names in lower case', () => {

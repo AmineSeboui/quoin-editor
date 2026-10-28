@@ -2,6 +2,12 @@
 
 Every release of `quoin-editor` is listed here, newest first, in the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). From 1.0.0 the package follows [semantic versioning](https://semver.org/): a breaking change waits for the next major version. Until then, Quoin was 0.x and a minor version could contain breaking changes; those known at release were marked "Breaking". The 0.x sections are kept as they were released, "Docs" headings included. Moving from 0.4 to 1.0 is covered step by step in [MIGRATION.md](MIGRATION.md). Review finding ids such as F-17 are those of the 0.4.0 review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73).
 
+## Unreleased
+
+### Fixed
+- The attributes an extension's block decoration puts on its block's element are filtered to the names that start with `data-` or `aria-`: a decoration with `style`, `className`, an event handler or `dangerouslySetInnerHTML` no longer reaches the element, and can no longer make React throw.
+- A renderer that throws while drawing its block no longer unmounts the whole canvas: that block draws a fallback named by the new `blockError` label (`Block could not be drawn`) in its own element, the other blocks keep working, the error goes to `onError` (or once to the console for that block), and the block is drawn again when its data changes. `EditorView` takes `blockErrorLabel` and `onBlockError` for the same.
+
 ## 1.0.2 (2026-10-27)
 
 ### Fixed

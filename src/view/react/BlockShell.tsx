@@ -1,7 +1,8 @@
 import { memo, useRef, type CSSProperties } from 'react';
-import type { EngineBlock } from '../../engine';
+import type { Decoration, EngineBlock } from '../../engine';
 import { alignOrUndefined, optionalString, paletteOrUndefined } from '../../engine/blocks/data-fields';
 import { hostDecorations, sameDecorations } from '../controller/host-decorations';
+import { BlockErrorBoundary } from './BlockErrorBoundary';
 import { useBlockDomId } from './block-dom-id';
 import type { BlockRenderer } from './block-renderer-types';
 import { blockStatus } from './block-status';
@@ -15,6 +16,12 @@ type BlockShellProps = {
   block: EngineBlock;
   renderers: Readonly<Record<string, BlockRenderer>>;
 };
+
+function safeAttrs(decorations: readonly Decoration[]): Record<string, string> {
+  const attrs = Object.assign({}, ...decorations.map((decoration) => decoration.attrs));
+  for (const name of Object.keys(attrs)) if (!/^(data|aria)-/.test(name)) delete attrs[name];
+  return attrs;
+}
 
 function rendererFor(renderers: Readonly<Record<string, BlockRenderer>>, type: string): BlockRenderer {
   for (const table of [renderers, defaultRenderers]) if (Object.hasOwn(table, type)) return table[type];
@@ -40,7 +47,7 @@ export const BlockShell = memo(function BlockShell({ block, renderers }: BlockSh
   const { kind, color, background, align } = block.attrs;
   return (
     <div
-      {...Object.assign({}, ...decorations.map((decoration) => decoration.attrs))}
+      {...safeAttrs(decorations)}
       ref={ref}
       id={domId(block.id)}
       data-quoin-block=""
@@ -55,7 +62,9 @@ export const BlockShell = memo(function BlockShell({ block, renderers }: BlockSh
       tabIndex={-1}
       data-selected={status === 'selected' ? 'true' : undefined}
     >
-      <Renderer block={block} controller={controller} />
+      <BlockErrorBoundary block={block}>
+        <Renderer block={block} controller={controller} />
+      </BlockErrorBoundary>
     </div>
   );
 });

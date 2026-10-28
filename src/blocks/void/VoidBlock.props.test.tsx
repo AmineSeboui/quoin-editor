@@ -101,6 +101,14 @@ describe('the props a custom block receives', () => {
     expect(last()).toEqual(doc);
   });
 
+  it('leaves the caret where it is when a preview writes while focus is in another block', () => {
+    const { handle, selection, last } = mount();
+    act(() => handle().controller.focus({ block: 'a', region: 'text', offset: 2 }));
+    act(() => previewProps.at(-1)?.onChange?.({ done: true }));
+    expect(last()).toEqual([doc[0], item('k', true), doc[2]]);
+    expect(selection()).toMatchObject({ kind: 'text', head: { block: 'a', offset: 2 } });
+  });
+
   it('gives a preview on a read-only canvas no onChange', () => {
     mount(doc, true);
     expect(previewProps.at(-1)).toEqual({ data: { done: false }, blockId: 'k' });

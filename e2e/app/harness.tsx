@@ -6,9 +6,10 @@ import { fixtureDataUrl } from './fixture-png';
 import { everyBlock } from './every-block-doc';
 import { EVERY_FEATURE, extensions } from './harness-extensions';
 import { noteDemo } from './note-demo';
+import { tickDemo } from './tick-demo';
 import { timeEdits } from './time-edits';
 
-const blockTypes = EVERY_FEATURE ? coreBlocks : [...coreBlocks, bookmarkDemo, noteDemo];
+const blockTypes = EVERY_FEATURE ? coreBlocks : [...coreBlocks, bookmarkDemo, noteDemo, tickDemo];
 
 const params = new URLSearchParams(location.search);
 const READ_ONLY = params.get('readonly') === '1';
@@ -183,6 +184,11 @@ const docs: Record<string, QuoinBlock[]> = {
     { id: 't', type: 'TOGGLE', data: { markdown: 'Details', open: false } },
     { id: 'tc', type: 'MARKDOWN', data: { markdown: 'Hidden detail' }, indent: 1 },
     { id: 'e', type: 'MARKDOWN', data: { markdown: 'The end' } },
+  ],
+  tick: [
+    { id: 'p', type: 'MARKDOWN', data: { markdown: 'top' } },
+    { id: 'tk', type: 'TICK_DEMO', data: { done: false } },
+    { id: 'q', type: 'MARKDOWN', data: { markdown: 'bottom' } },
   ],
   pinned: [
     { id: 'pn', type: 'NOTE_DEMO', data: { note: 'Pinned' } },

@@ -14,7 +14,7 @@ import { NATIVE_INTERACTION } from '../../view/selection/native-interaction';
 import { insertAfterBlock, readBlockData, writeBlockData } from './block-data';
 import { isInteractive } from './interactive-target';
 import { deleteBlock } from './node-toolbar-items';
-import { focusNode } from './select-node';
+import { focusNode, selectNode } from './select-node';
 import { useBlockIndex } from './use-block-index';
 import { useEditingFocus } from './use-editing-focus';
 import { useVoidEditing } from './use-void-editing';
@@ -58,6 +58,19 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
   const onChange = useCallback(
     (data: Record<string, unknown>) => writeBlockData(controller, blockId, data),
     [controller, blockId],
+  );
+  // WebKit does not focus a clicked checkbox, which leaves focus on the block's shell, and the write would then hand it
+  // to the last caret. A write made while focus is elsewhere, as after an await, leaves the selection alone.
+  const onPreviewChange = useCallback(
+    (data: Record<string, unknown>) => {
+      writeBlockData(controller, blockId, data);
+      const shell = root.current?.closest('[data-block-id]');
+      const focused = root.current?.ownerDocument.activeElement ?? null;
+      if (!shell?.contains(focused)) return;
+      if (root.current?.contains(focused)) selectNode(controller, blockId);
+      else select();
+    },
+    [controller, blockId, select],
   );
   const onRemove = useCallback(() => deleteBlock(controller, blockId), [controller, blockId]);
   const onInsertBlock = useCallback(
@@ -117,7 +130,7 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
           name={name}
           data={data}
           blockId={blockId}
-          {...(readOnly ? {} : { onChange })}
+          {...(readOnly ? {} : { onChange: onPreviewChange })}
         />
       )}
       {editable && !editorShown && (

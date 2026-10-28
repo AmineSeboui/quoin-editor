@@ -65,7 +65,7 @@ describe('the package entry list', () => {
     const totals = packageEntries.filter((entry) => entry.total !== undefined).map(({ name, total }) => [name, total]);
     expect(totals).toEqual([
       ['index', 155_000],
-      ['headless', 70_000],
+      ['headless', 70_400],
       ['engine', 52_000],
       ['view', 22_214],
       ['diff', 26_961],

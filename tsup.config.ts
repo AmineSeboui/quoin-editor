@@ -13,7 +13,8 @@ async function ensureDirective(file: string) {
   if (!/^['"]use client['"]/.test(source)) await writeFile(path, `'use client';${source}`);
 }
 
-// treeshake stays off: Rollup strips module-level directives.
+// esbuild already drops unused modules; the Rollup pass of treeshake merges a chunk's imports and drops the arguments
+// no caller passes. Rollup strips module-level directives, so ensureDirective puts 'use client' back afterwards.
 export default defineConfig({
   entry: tsupEntries([...packageEntries, ...lazyChunks]),
   format: ['esm', 'cjs'],
@@ -21,7 +22,7 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   splitting: true,
-  treeshake: false,
+  treeshake: true,
   external: ['react', 'react-dom', 'yjs'],
   onSuccess: async () => {
     await Promise.all(directiveFiles(packageEntries, true).map(ensureDirective));

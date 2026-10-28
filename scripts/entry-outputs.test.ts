@@ -55,6 +55,10 @@ describe('the package entry list', () => {
     });
   });
 
+  it('runs every built chunk through Rollup tree shaking after esbuild', () => {
+    expect(tsupConfig).toMatchObject({ treeshake: true });
+  });
+
   it('exports none of the chunks loaded on demand, which build under names no entry has', () => {
     const names = new Set(packageEntries.map(({ name }) => name));
     expect(lazyChunks.filter(({ name }) => names.has(name) || `./${name}` in manifest.exports)).toEqual([]);

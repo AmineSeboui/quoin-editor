@@ -45,7 +45,7 @@ describe('coreBlocks', () => {
       expect(() =>
         render(
           <QuoinProvider value={{ blockTypes: coreBlocks }}>
-            {Editor && <Editor data={data} onChange={() => {}} blockId="b" index={0} onRemove={() => {}} />}
+            {Editor && <Editor data={data} onChange={() => {}} />}
             {Preview && <Preview data={data} />}
           </QuoinProvider>,
         ),

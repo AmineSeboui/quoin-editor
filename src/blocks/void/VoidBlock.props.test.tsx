@@ -15,7 +15,7 @@ const checklist = defineBlock<ChecklistData>({
   label: 'Checklist',
   icon: ListChecks,
   editor: ({ data, blockId, index, onChange, onRemove }) => {
-    renders.editor.push(blockId);
+    renders.editor.push(blockId ?? '');
     return (
       <div>
         <p>{`Editing ${blockId} at ${index}`}</p>

@@ -73,14 +73,14 @@ A definition has these fields:
 | `inSlashPalette` | no | Set to `false` to keep the type out of the slash menu. Defaults to `true`. |
 | `alwaysEditing` | no | Renders the editor permanently on an editable canvas, instead of the preview. |
 
-An editor receives these props, all passed by the canvas; `onInsertBlock` and `onDone` are optional in the type:
+An editor receives these props. The canvas always passes every one of them; all but `data` and `onChange` are optional in the type, so an editor you render yourself needs only those two:
 
 | Prop | Purpose |
 | --- | --- |
 | `data` | The block's data. |
 | `onChange` | Writes the whole next `data`, not a patch. Everything written while the editor is open undoes in one step. |
 | `blockId` | The id of the block. |
-| `index` | The block's position in the document, its index in the `blocks` array counting from 0, kept current as blocks move. Only a block whose position changed draws again, so reading it costs nothing while another block is typed in. |
+| `index` | The block's index in the flat `blocks` array, counting from 0 with nested (indented) blocks included, kept current as blocks move. Only a block whose position changed draws again, so reading it costs nothing while another block is typed in. |
 | `onRemove` | Removes the block as one undo step and puts the caret where deleting the selected block puts it: at the end of the block above, or at the start of the one below when it was first. |
 | `onInsertBlock` | Inserts a new block of the given type after this one. |
 | `onDone` | Closes the editor and leaves the block selected. |

@@ -36,12 +36,18 @@ export type BlockPreviewProps<D = Record<string, unknown>> = {
 export type BlockEditorProps<D = Record<string, unknown>> = {
   data: D;
   onChange: (data: D) => void;
-  /** Id of the block being edited. */
-  blockId: string;
-  /** The block's position in the document, its index in the `blocks` array counting from 0, kept current as blocks move. */
-  index: number;
-  /** Removes the block as one undo step and puts the caret where deleting the selected block puts it. */
-  onRemove: () => void;
+  /** Id of the block being edited. Always passed by the canvas. */
+  blockId?: string;
+  /**
+   * The block's index in the flat `blocks` array, counting from 0 with nested blocks included, kept current as blocks
+   * move. Always passed by the canvas.
+   */
+  index?: number;
+  /**
+   * Removes the block as one undo step and puts the caret where deleting the selected block puts it. Always passed by
+   * the canvas.
+   */
+  onRemove?: () => void;
   /** Inserts a new block of the given type after this one. */
   onInsertBlock?: (type: string) => void;
   /** Leaves edit mode and returns to the preview. */

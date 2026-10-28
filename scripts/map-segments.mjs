@@ -7,6 +7,7 @@ function decodeSegment(text, previous) {
   let shift = 0;
   for (const digit of text) {
     const bits = VALUE.get(digit);
+    if (bits === undefined) throw new Error(`The sourcemap mappings hold "${digit}", which is not a base64 digit.`);
     value += (bits & 31) << shift;
     shift += 5;
     if (bits & 32) continue;

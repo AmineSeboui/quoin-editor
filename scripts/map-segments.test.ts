@@ -22,3 +22,8 @@ it('drops a segment that maps to the place the segment before it on its line map
     [[0, 0, 4, 2], [4]],
   ]);
 });
+
+it('throws on a character that is not a base64 digit, rather than reading it as a number', () => {
+  expect(() => decodeMappings('AAAA,A!AA')).toThrow('"!"');
+  expect(() => withoutRepeatedSegments('AA AA')).toThrow('" "');
+});

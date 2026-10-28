@@ -11,7 +11,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 
 ### Changed
 - The default `--quoin-warning` and `--quoin-input` reach 3:1 where they did not. Light `--quoin-warning` goes from `oklch(0.65 0.16 65)` to `oklch(0.6 0.16 65)`, the rule of a warning callout against its wash from 2.84:1 to 3.40:1 (dark stays at 7.82:1). `--quoin-input`, the border of the outline button, goes from `oklch(0.922 0 0)` (1.26:1 on the page) to `oklch(0.62 0 0)` (3.64:1) in light, and from `oklch(1 0 0 / 15%)` to the opaque `oklch(0.56 0 0)` (4.25:1 on the page, 3.85:1 on a popover) in dark. A host that sets these tokens keeps its own values.
-- The coverage gate in CI now also covers the canvas and the hooks, with line thresholds of 95 percent on `src/view`, 97 on `src/blocks`, 98 on `src/ui` and 98 on `src/hooks`, next to the engine's 90.
+- The coverage gate in CI now also covers the canvas and the hooks, with line thresholds of 95 percent on `src/view`, 97 on `src/blocks`, 98 on `src/ui` and 98 on `src/hooks`, 98 on `src/context.tsx` and 98 on `src/i18n`, next to the engine's 90.
 
 ### Fixed
 - The attributes an extension's block decoration puts on its block's element are filtered to the names that start with `data-` or `aria-`: a decoration with `style`, `className`, an event handler or `dangerouslySetInnerHTML` no longer reaches the element, and can no longer make React throw.

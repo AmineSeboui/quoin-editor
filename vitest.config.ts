@@ -17,6 +17,8 @@ export default defineConfig({
         'src/blocks/**/*.{ts,tsx}',
         'src/ui/**/*.{ts,tsx}',
         'src/hooks/**/*.{ts,tsx}',
+        'src/context.tsx',
+        'src/i18n/**/*.{ts,tsx}',
       ],
       exclude: [
         'src/engine/**/*.test.ts',
@@ -32,6 +34,8 @@ export default defineConfig({
         'src/blocks/**': { lines: 97 },
         'src/ui/**': { lines: 98 },
         'src/hooks/**': { lines: 98 },
+        'src/context.tsx': { lines: 98 },
+        'src/i18n/**': { lines: 98 },
       },
       reporter: ['text-summary', 'html'],
     },

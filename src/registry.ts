@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react';
+import { devWarn } from './dev-warn';
 import type { BlockEditorProps, BlockPreviewProps } from './types';
 
 /** The fields every block definition carries, whatever it can do with its data. */
@@ -96,9 +97,23 @@ export function parsedData(definition: AnyBlockDefinition, data: Record<string, 
   return definition.parse ? definition.parse(data) : data;
 }
 
-/** The data a newly inserted block of this definition starts with, or undefined to start empty. */
-export function seedData(definition: AnyBlockDefinition | undefined): Record<string, unknown> | undefined {
-  return definition?.initialData?.() ?? definition?.parse?.({});
+/**
+ * The data a newly inserted block of this definition starts with, or undefined to start empty. Null when seeding threw,
+ * as a `parse` that refuses `{}` does: the error goes to `onError`, or to a development warning without one, and the
+ * block is not inserted.
+ */
+export function seedData(
+  definition: AnyBlockDefinition | undefined,
+  onError?: (error: Error) => void,
+): Record<string, unknown> | undefined | null {
+  try {
+    return definition?.initialData?.() ?? definition?.parse?.({});
+  } catch (thrown) {
+    const error = thrown instanceof Error ? thrown : new Error(String(thrown));
+    if (onError) onError(error);
+    else devWarn(`a block of type "${definition?.type}" was not inserted, because seeding its data threw: ${error.message}`);
+    return null;
+  }
 }
 
 /** The definitions offered in the slash palette, in registration order, one per type, with the last registration of a type winning. */

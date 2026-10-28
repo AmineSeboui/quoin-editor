@@ -35,9 +35,12 @@ export function insertAfterBlock(
   blockId: string,
   type: string,
   definitions: readonly AnyBlockDefinition[],
-): void {
+  onError?: (error: Error) => void,
+): boolean {
   const editor = internal(controller);
-  const data = seedData(blockByType(definitions, type));
+  const data = seedData(blockByType(definitions, type), onError);
+  if (data === null) return false;
   const content = data && specFor(editor.state.schema, type).fromData(data, editor.codec.context);
   controller.run(insertBlockToWrite({ type, ...content }, opensEditor(definitions, type), blockId));
+  return true;
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, useImperativeHandle, useMemo, useState } from 'react';
+import { forwardRef, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { coreBlocks } from '../blocks/core';
 import { VoidEditingContext } from '../blocks/void/use-void-editing';
 import { createVoidEditing } from '../blocks/void/void-editing';
@@ -69,7 +69,12 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
     ...(extensions ?? []),
   ]);
   const labels = useMemo(() => resolveLabels(labelOverrides), [labelOverrides]);
-  const ui = useMemo(() => collectUi(allExtensions, blockTypes, readOnly), [allExtensions, blockTypes, readOnly]);
+  const latestOnError = useRef(onError);
+  latestOnError.current = onError;
+  const ui = useMemo(
+    () => collectUi(allExtensions, blockTypes, readOnly, () => latestOnError.current),
+    [allExtensions, blockTypes, readOnly],
+  );
   useTypedInPlaceWarning(blockTypes, readOnly);
   const [focusOnMount] = useState(autoFocus);
   const controller = useQuoinEditor({

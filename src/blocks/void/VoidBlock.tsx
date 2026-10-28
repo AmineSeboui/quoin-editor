@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, type KeyboardEvent, type MouseEvent } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, type KeyboardEvent, type MouseEvent } from 'react';
 import { Pencil } from 'lucide-react';
 import { useQuoin } from '../../context';
 import { devWarn } from '../../dev-warn';
@@ -9,6 +9,7 @@ import { parsedData, type AnyBlockDefinition } from '../../registry';
 import type { BlockPreviewProps } from '../../types';
 import { Button } from '../../ui/button';
 import type { BlockRenderProps } from '../../view';
+import { BlockErrorContext } from '../../view/react/block-error-context';
 import { useReadOnly } from '../../view/react/use-read-only';
 import { NATIVE_INTERACTION } from '../../view/selection/native-interaction';
 import { insertAfterBlock, readBlockData, writeBlockData } from './block-data';
@@ -39,6 +40,7 @@ function VoidPreview({ definition: { preview: Preview }, name, ...props }: VoidP
 
 export function VoidBlock({ block, controller, definition }: BlockRenderProps & { definition: AnyBlockDefinition }) {
   const { blockTypes, labels } = useQuoin();
+  const { report } = useContext(BlockErrorContext);
   const readOnly = useReadOnly(controller);
   const { editor: Editor, alwaysEditing = false } = definition;
   const name = blockTypeLabel(labels, block, blockTypes);
@@ -75,12 +77,12 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
   const onRemove = useCallback(() => deleteBlock(controller, blockId), [controller, blockId]);
   const onInsertBlock = useCallback(
     (type: string) => {
-      insertAfterBlock(controller, blockId, type, blockTypes);
+      if (!insertAfterBlock(controller, blockId, type, blockTypes, report)) return;
       stop();
       // A block left node-selected is opening its editor, which takes focus itself.
       if (controller.editor.state.selection?.kind !== 'node') controller.focus();
     },
-    [controller, blockId, blockTypes, stop],
+    [controller, blockId, blockTypes, report, stop],
   );
 
   const editorShown = editable && (alwaysEditing || editing);

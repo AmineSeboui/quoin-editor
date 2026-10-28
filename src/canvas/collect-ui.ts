@@ -57,10 +57,11 @@ export function collectUi(
   extensions: readonly Extension[],
   definitions: AnyBlockDefinition[],
   readOnly = false,
+  onError?: () => ((error: Error) => void) | undefined,
 ): CollectedUi {
   const uis = extensions.map(extensionUi);
   return {
-    slashItems: [...uis.flatMap((ui) => ui.slashItems ?? []), ...blockTypeSlashItems(definitions)],
+    slashItems: [...uis.flatMap((ui) => ui.slashItems ?? []), ...blockTypeSlashItems(definitions, onError)],
     bubbleItems: uis.flatMap((ui) => ui.bubbleItems ?? []),
     blockMenuItems: uis.flatMap((ui) => ui.blockMenuItems ?? []),
     renderers: Object.assign({}, canvasRenderers(definitions, readOnly), ...uis.map((ui) => ui.renderers)),

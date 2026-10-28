@@ -128,7 +128,7 @@ A block's `data` is whatever was stored: a block inserted before a field existed
 
 - **It runs when the block is drawn and writes nothing.** The stored data stays as it was until the editor or preview calls `onChange`, which writes the parsed shape it was given, changed. Opening a document never changes it by itself.
 - **It runs once per stored data.** A block drawn again with the same data, because it moved or the canvas drew again, does not parse again.
-- **It seeds new blocks.** A block inserted without `initialData` starts with `parse({})`.
+- **It seeds new blocks.** A block inserted without `initialData` starts with `parse({})`, so `parse` should accept `{}` and return defaults, or the definition should give `initialData`. A `parse` that throws there, as a schema library's `parse` does on a missing required field, inserts nothing: from the slash menu or an editor's `onInsertBlock`, the error goes to the canvas's `onError`, or to a console warning in development when there is none.
 - **A throw is drawn as the block's error.** In the canvas, that block draws its error fallback and the error goes to `onError`, as for an editor or preview that throws; the other blocks are untouched. `QuoinView` and `QuoinDiff` draw such a block as they draw one with no `preview`, and warn once per type in the console in development.
 
 Keep a `version` in the data to migrate it as its shape changes:

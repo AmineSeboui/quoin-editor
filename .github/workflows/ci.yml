@@ -66,11 +66,15 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium firefox webkit
       - run: npm run test:e2e
+      - if: ${{ !cancelled() }}
+        run: npm run build && npm run test:e2e:dist
       - if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: playwright-report
+          path: |
+            playwright-report
+            playwright-report-dist
 
   site:
     runs-on: ubuntu-latest

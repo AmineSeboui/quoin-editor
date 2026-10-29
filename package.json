@@ -264,6 +264,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
+    "test:e2e:dist": "playwright test -c playwright.dist.config.ts --project=smoke",
     "prepublishOnly": "npm run build && npm run check:css && npm run check:directives",
     "record:demo": "node scripts/record-demo.mjs",
     "render:og": "node scripts/render-og.mjs"

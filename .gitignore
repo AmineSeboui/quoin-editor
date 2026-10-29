@@ -8,4 +8,5 @@ demo/dist-server
 .env
 .env*.local
 playwright-report
+playwright-report-dist
 test-results

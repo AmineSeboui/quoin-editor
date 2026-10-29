@@ -15,6 +15,7 @@ import { NATIVE_INTERACTION } from '../../view/selection/native-interaction';
 import { insertAfterBlock, readBlockData, writeBlockData } from './block-data';
 import { isInteractive } from './interactive-target';
 import { deleteBlock } from './node-toolbar-items';
+import { runHistoryKey } from './history-keys';
 import { focusNode, selectNode } from './select-node';
 import { useBlockIndex } from './use-block-index';
 import { useEditingFocus } from './use-editing-focus';
@@ -101,6 +102,10 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
   // Escape that closed a portalled overlay still bubbles here through the React tree, so only a key pressed in the
   // block's own DOM leaves the editor.
   const onKeyDown = (event: KeyboardEvent) => {
+    if (!editorShown && !readOnly && isInteractive(root.current, event) && runHistoryKey(controller, event)) {
+      event.preventDefault();
+      return;
+    }
     if (event.key !== 'Escape' || !editorShown || !root.current?.contains(event.target as Node)) return;
     event.preventDefault();
     leave();

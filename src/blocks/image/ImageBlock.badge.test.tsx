@@ -12,7 +12,7 @@ const image = (data: Record<string, unknown> = {}): QuoinBlock => ({
   type: 'IMAGE',
   data: { storageKey: 'cat.png', alt: '', ...data },
 });
-const badge = () => screen.queryByRole('button', { name: 'Add alt text' });
+const badge = () => screen.queryByRole('button', { name: 'No alt text, add alt text' });
 
 describe('the no alt text badge of an image', () => {
   it('is drawn on an editable canvas over an image with an empty alt text that is not decorative', () => {
@@ -20,15 +20,16 @@ describe('the no alt text badge of an image', () => {
     expect(badge()).not.toBeNull();
   });
 
-  it('is named for what it does, keeping its short visible text, and does not repeat the name of the image', () => {
+  it('is named by its short visible text first, then by what it does', () => {
     mountCanvas([image()], { resolveAssetUrl });
     expect(badge()).toHaveTextContent(/^No alt text$/);
-    expect(badge()).toHaveAccessibleName('Add alt text');
+    expect(badge()).toHaveAccessibleName('No alt text, add alt text');
+    expect(badge()!.getAttribute('aria-label')!.startsWith(badge()!.textContent!)).toBe(true);
     expect(screen.getByRole('img')).toHaveAccessibleName('Image, no description');
   });
 
   it('takes its name and its text from the labels it is given', () => {
-    const labels = { addAltText: 'Ajouter un texte alternatif', noAltBadge: 'Sans texte alternatif' };
+    const labels = { addAltText: 'Sans texte alternatif, ajouter un texte', noAltBadge: 'Sans texte alternatif' };
     mountCanvas([image()], { resolveAssetUrl, labels });
     expect(screen.getByRole('button', { name: labels.addAltText })).toHaveTextContent(labels.noAltBadge);
   });

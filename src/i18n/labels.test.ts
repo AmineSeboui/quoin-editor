@@ -6,7 +6,7 @@ describe('the QuoinLabels type', () => {
     const { blockError, decorativeImage, noAltBadge, addAltText, ...translation } = englishLabels;
     const labels: QuoinLabels = translation;
     expect([blockError, decorativeImage, noAltBadge]).toEqual(['Block could not be drawn', 'Decorative image', 'No alt text']);
-    expect(addAltText).toBe('Add alt text');
+    expect(addAltText).toBe('No alt text, add alt text');
     expect(labels).not.toHaveProperty('noAltBadge');
   });
 });

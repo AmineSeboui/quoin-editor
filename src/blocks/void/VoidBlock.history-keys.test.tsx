@@ -35,20 +35,28 @@ function mount() {
   return { ...canvas, press, done };
 }
 
+afterEach(() => vi.useRealTimers());
+
 describe('undo and redo keys on a control in a custom block preview', () => {
-  it('undo and redo the document as they do on the block itself', () => {
+  it('undo and redo the document one step at a time, as they do on the block itself', () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
     const { press, done } = mount();
-    const checkbox = screen.getByRole('checkbox', { name: 'Done' });
-    act(() => checkbox.focus());
-    fireEvent.click(checkbox);
+    const checkbox = () => screen.getByRole('checkbox', { name: 'Done' });
+    act(() => checkbox().focus());
+    for (let step = 0; step < 3; step++) {
+      fireEvent.click(checkbox());
+      vi.advanceTimersByTime(1000);
+    }
     expect(done()).toBe(true);
-    expect(press(screen.getByRole('checkbox', { name: 'Done' }), 'z')).toBe(true);
+    expect(press(checkbox(), 'z')).toBe(true);
     expect(done()).toBe(false);
-    expect(press(screen.getByRole('checkbox', { name: 'Done' }), 'Z', { shiftKey: true })).toBe(true);
+    expect(press(checkbox(), 'Z', { shiftKey: true })).toBe(true);
     expect(done()).toBe(true);
-    press(screen.getByRole('checkbox', { name: 'Done' }), 'z');
-    expect(press(screen.getByRole('checkbox', { name: 'Done' }), 'y')).toBe(true);
+    expect(press(checkbox(), 'z')).toBe(true);
+    expect(press(checkbox(), 'z')).toBe(true);
     expect(done()).toBe(true);
+    expect(press(checkbox(), 'y')).toBe(true);
+    expect(done()).toBe(false);
   });
 
   it('leave the undo of a text field in the preview to the field', () => {

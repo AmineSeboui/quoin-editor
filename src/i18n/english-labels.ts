@@ -186,6 +186,7 @@ export const englishLabels: Required<QuoinLabels> = {
   imageNoAlt: 'Image, no description',
   decorativeImage: 'Decorative image',
   noAltBadge: 'No alt text',
+  addAltText: 'Add alt text',
   uploadFile: 'Upload file',
   dropFile: 'Or drop or paste a file here.',
   fileTools: 'File tools',

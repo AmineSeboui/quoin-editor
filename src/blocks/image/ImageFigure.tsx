@@ -55,6 +55,7 @@ export function ImageFigure({ block, controller, readOnly }: ImageFigureProps) {
           <button
             type="button"
             className="quoin-image-no-alt"
+            aria-label={labels.addAltText ?? englishLabels.addAltText}
             onClick={() => {
               select();
               requestAlt(controller, id);

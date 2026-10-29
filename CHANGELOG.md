@@ -11,6 +11,9 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 - A block whose renderer threw is drawn again when its renderer changes, as when the host passes a fixed renderer in `renderers` or new `blockTypes`, where it waited for its data to change.
 - A click on the fallback of a text block whose renderer threw selects the block as a whole, as a range of one block, so Delete removes it, where it put a caret in a block with no text drawn to hold it.
 
+### Changed
+- The "No alt text" badge on an image is named "Add alt text", for what it opens, where it was named by its visible text, which repeated the image's own name "Image, no description". Its visible text is unchanged. New label `addAltText`, optional in `QuoinLabels` and English where missing.
+
 ## 1.1.0 (2026-10-29)
 
 ### Added

@@ -30,6 +30,8 @@ Everything in it is re-exported from the main `quoin-editor` entry too. Both ent
 
 `EditorView` keeps the element it drew for each block until the block or the `renderers` object changes, so a keystroke redraws one block. Define the `renderers` object and its components once, at module level or in a `useMemo`: a new object on every render redraws every block on every keystroke, and a component declared inside a render is a new type each time, so React mounts each block it draws again and the block loses its state.
 
+A renderer for a text block, such as a paragraph or a heading, that draws no `EditableRegion` for the block's text leaves nothing to hold a caret: ArrowUp and ArrowDown pass over the block, and a click on it selects it as a whole, as for a block whose renderer threw.
+
 ## A block that cannot be drawn
 
 A renderer that throws while drawing its block does not unmount the editor: that block draws a fallback inside its own element, and the other blocks keep working. ArrowUp and ArrowDown pass over a failed text block, and a click on its fallback selects it as a whole, so Delete removes it. `EditorView` takes `blockErrorLabel`, the accessible name and text of the fallback (`Block could not be drawn` by default), and `onBlockError`, called with each error a renderer throws, besides React's own report of a caught error. The block is drawn again when its data changes, or when `renderers` gives its type another renderer. The attributes a block decoration puts on its block's element are limited to the names that start with `data-` or `aria-`.

@@ -13,6 +13,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 
 ### Changed
 - The "No alt text" badge on an image is named "Add alt text", for what it opens, where it was named by its visible text, which repeated the image's own name "Image, no description". Its visible text is unchanged. New label `addAltText`, optional in `QuoinLabels` and English where missing.
+- A host renderer for a text block that draws no `EditableRegion` for its text is selected as a whole by a click, as a block whose renderer threw is. ArrowUp and ArrowDown pass over such a block since 1.1.0, which put the caret in text nothing showed before; the headless page now says so.
 
 ## 1.1.0 (2026-10-29)
 

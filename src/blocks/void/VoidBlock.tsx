@@ -99,13 +99,13 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
   const editorShown = editable && (alwaysEditing || editing);
   const data = useMemo(() => parsedData(definition, readBlockData(controller, block)), [definition, controller, block]);
 
-  // Escape that closed a portalled overlay still bubbles here through the React tree, so only a key pressed in the
-  // block's own DOM leaves the editor.
   const onKeyDown = (event: KeyboardEvent) => {
     if (!editorShown && !readOnly && isInteractive(root.current, event) && runHistoryKey(controller, event)) {
       event.preventDefault();
       return;
     }
+    // Escape that closed a portalled overlay still bubbles here through the React tree, so only a key pressed in the
+    // block's own DOM leaves the editor.
     if (event.key !== 'Escape' || !editorShown || !root.current?.contains(event.target as Node)) return;
     event.preventDefault();
     leave();

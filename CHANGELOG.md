@@ -2,7 +2,7 @@
 
 Every release of `quoin-editor` is listed here, newest first, in the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). From 1.0.0 the package follows [semantic versioning](https://semver.org/): a breaking change waits for the next major version. Until then, Quoin was 0.x and a minor version could contain breaking changes; those known at release were marked "Breaking". The 0.x sections are kept as they were released, "Docs" headings included. Moving from 0.4 to 1.0 is covered step by step in [MIGRATION.md](MIGRATION.md). Review finding ids such as F-17 are those of the 0.4.0 review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73).
 
-## Unreleased
+## 1.1.0 (2026-10-29)
 
 ### Added
 - A custom block's editor receives `blockId`, `index` (the block's index in the flat `blocks` array, counting from 0 with nested blocks included, kept current as blocks move; only a block whose index changed draws again) and `onRemove`, which removes the block as one undo step and puts the caret where deleting the selected block puts it. A preview receives `onChange` on an editable canvas, written like an editor's: writes to one block that each follow the last within the history's grouping window (500 ms by default) undo together, so it can hold a control such as a checkbox, and a write made while focus is on the block leaves it selected as a whole; a read-only canvas and `QuoinView` pass none. The canvas always passes all of these, and always passes a preview its `blockId`. They are optional in `BlockEditorProps` and `BlockPreviewProps`, so an editor rendered directly with only `data` and `onChange` still compiles.

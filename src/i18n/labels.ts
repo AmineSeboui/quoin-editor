@@ -176,7 +176,8 @@ export type QuoinLabels = {
   /**
    * The checkbox of the alt text popover that marks an image as deliberately without a description, the visible text of
    * the badge an editable canvas draws over an image that has neither, and the badge's name, which starts with that
-   * visible text and then says what it does. Optional like `blockError`.
+   * visible text and then says what it does. A translation that sets `noAltBadge` should set `addAltText` too; with `noAltBadge` alone the
+   * badge is named by its visible text. Optional like `blockError`.
    */
   decorativeImage?: string;
   noAltBadge?: string;

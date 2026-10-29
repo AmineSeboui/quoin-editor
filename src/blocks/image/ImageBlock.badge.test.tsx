@@ -34,6 +34,12 @@ describe('the no alt text badge of an image', () => {
     expect(screen.getByRole('button', { name: labels.addAltText })).toHaveTextContent(labels.noAltBadge);
   });
 
+  it('is named by its translated visible text alone when only that label is given', () => {
+    mountCanvas([image()], { resolveAssetUrl, labels: { noAltBadge: 'Sans texte alternatif' } });
+    const translated = screen.getByRole('button', { name: 'Sans texte alternatif' });
+    expect(translated).toHaveAccessibleName('Sans texte alternatif');
+  });
+
   it.each([
     ['has alt text', { alt: 'A cat' }],
     ['is decorative', { decorative: true }],

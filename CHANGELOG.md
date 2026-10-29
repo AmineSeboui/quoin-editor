@@ -7,13 +7,13 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 ### Fixed
 - An inline decoration no longer writes an event-handler attribute: any name starting with `on`, in any case, is left out, while `class`, `style`, `data-*` and `aria-*` are kept. Widget decorations write no attributes, and block decorations keep their `data-` and `aria-` rule.
 - A custom block's preview no longer draws again when a block is inserted, removed or moved above it: only an open editor, which receives `index`, follows the block's position.
-- Mod+Z, Mod+Shift+Z and Mod+Y, where bound, pressed on a control in a custom block's preview, such as a checkbox, undo and redo the document as they do on the block itself, where Chromium did nothing. A text field in the preview (an `input` that takes text, a `textarea` or a contenteditable element) keeps its own undo.
+- Mod+Z, Mod+Shift+Z and Mod+Y, where bound, pressed on a control in a custom block's preview, such as a checkbox, undo and redo the document as they do on the block itself, where Chromium and WebKit did nothing. A text field in the preview (an `input` that takes text, a `textarea` or a contenteditable element) keeps its own undo.
 - A block whose renderer threw is drawn again when its renderer changes, as when the host passes a fixed renderer in `renderers` or new `blockTypes`, where it waited for its data to change.
 - A click on the fallback of a text block whose renderer threw selects the block's text as a whole, as a block selection of that one block rather than a node selection, so Delete removes it, where it put a caret in a block with no text drawn to hold it.
 - The sourcemaps of the client entries (`'use client'` at the top of the file) map every line again: the directive sits on a line of its own and the map starts with an empty line, where 1.1.0 put it on the first line of code and left the first line's columns off by the length of the directive.
 
 ### Changed
-- The "No alt text" badge on an image is named "No alt text, add alt text": its visible text first, then what it opens, where it was named by its visible text alone. Its visible text is unchanged. New label `addAltText`, optional in `QuoinLabels` and English where missing.
+- The "No alt text" badge on an image is named "No alt text, add alt text": its visible text first, then what it opens, where it was named by its visible text alone. Its visible text is unchanged. New label `addAltText`, optional in `QuoinLabels` and English where missing. A host that sets `noAltBadge` and not `addAltText` keeps the 1.1.0 name, its translated visible text alone.
 - A host renderer for a text block that draws no `EditableRegion` for its text has its text selected as a whole by a click, as a block selection of that one block rather than a node selection, as a block whose renderer threw does. ArrowUp and ArrowDown pass over such a block since 1.1.0, which put the caret in text nothing showed before; the headless page now says so.
 
 ## 1.1.0 (2026-10-29)

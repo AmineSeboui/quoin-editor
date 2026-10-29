@@ -62,7 +62,7 @@ export const BlockShell = memo(function BlockShell({ block, renderers }: BlockSh
       tabIndex={-1}
       data-selected={status === 'selected' ? 'true' : undefined}
     >
-      <BlockErrorBoundary block={block}>
+      <BlockErrorBoundary block={block} renderer={Renderer}>
         <Renderer block={block} controller={controller} />
       </BlockErrorBoundary>
     </div>

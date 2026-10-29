@@ -73,4 +73,14 @@ describe('a renderer that throws while drawing its block', () => {
     expect(screen.queryByRole('group', { name: 'Block could not be drawn' })).toBeNull();
     expect(container.querySelector('[data-block-id="f"]')).not.toBeNull();
   });
+
+  it('draws the block again when the host swaps in a renderer that does not throw', () => {
+    const blocks = [md('a', 'one'), fragile('f', true, 2)];
+    const Fixed: BlockRenderer = ({ block }) => <p>fixed {(block.attrs.data as { n: number }).n}</p>;
+    const { rerender } = mount(blocks);
+    expect(screen.getByRole('group', { name: 'Block could not be drawn' })).toBeInTheDocument();
+    rerender(<Editor options={{ blocks, onChange: () => {} }} view={{ renderers: { FRAGILE: Fixed } }} />);
+    expect(screen.getByText('fixed 2')).toBeInTheDocument();
+    expect(screen.queryByRole('group', { name: 'Block could not be drawn' })).toBeNull();
+  });
 });

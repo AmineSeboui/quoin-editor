@@ -8,6 +8,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 - An inline decoration no longer writes an event-handler attribute: any name starting with `on`, in any case, is left out, while `class`, `style`, `data-*` and `aria-*` are kept. Widget decorations write no attributes, and block decorations keep their `data-` and `aria-` rule.
 - A custom block's preview no longer draws again when a block is inserted, removed or moved above it: only an open editor, which receives `index`, follows the block's position.
 - Mod+Z, Mod+Shift+Z and Mod+Y, where bound, pressed on a control in a custom block's preview, such as a checkbox, undo and redo the document as they do on the block itself, where Chromium did nothing. A text field in the preview (an `input` that takes text, a `textarea` or a contenteditable element) keeps its own undo.
+- A block whose renderer threw is drawn again when its renderer changes, as when the host passes a fixed renderer in `renderers` or new `blockTypes`, where it waited for its data to change.
 
 ## 1.1.0 (2026-10-29)
 

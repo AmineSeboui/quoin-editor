@@ -4,8 +4,8 @@ import { blocks, caretSettled, openEditor } from '../../support/editor';
 
 const PARTY_POPPER = '\u{1F389}';
 const SMILEY = '\u{1F603}';
-// The dataset module the dev server serves when the menu or the picker first loads the emoji.
-const DATASET = /\/src\/emoji\/data\.ts/;
+// The dataset module the menu or the picker first loads: its source, or the chunk the build names for it.
+const DATASET = /\/src\/emoji\/data\.ts|\/dist\/emoji-data\.js/;
 
 const menu = (page: Page) => page.getByRole('listbox', { name: 'Emoji' });
 const popup = (page: Page) => menu(page).locator('..');

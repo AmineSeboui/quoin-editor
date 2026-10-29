@@ -3,12 +3,19 @@ import type { QuoinBlock } from '../../engine/model/quoin-block';
 import type { BlockRenderer } from './block-renderer-types';
 import { insertText } from '../../engine/commands/insert-text';
 import type { ViewController } from '../controller/view-controller';
+import { defaultRenderers } from './default-renderers';
 import { Editor, hostOf, md } from './test-harness';
 
 const Fragile: BlockRenderer = ({ block }) => {
   const { broken, n } = block.attrs.data as { broken: boolean; n: number };
   if (broken) throw new Error('cannot draw');
   return <p>drawn {n}</p>;
+};
+
+const Markdown = defaultRenderers.MARKDOWN;
+const BrokenSecond: BlockRenderer = (props) => {
+  if (props.block.id === 'b') throw new Error('cannot draw');
+  return <Markdown {...props} />;
 };
 
 const fragile = (id: string, broken: boolean, n = 1): QuoinBlock => ({ id, type: 'FRAGILE', data: { broken, n } });
@@ -72,5 +79,30 @@ describe('a renderer that throws while drawing its block', () => {
     expect(screen.getByText('drawn 1')).toBeInTheDocument();
     expect(screen.queryByRole('group', { name: 'Block could not be drawn' })).toBeNull();
     expect(container.querySelector('[data-block-id="f"]')).not.toBeNull();
+  });
+
+  it('draws the block again when the host swaps in a renderer that does not throw', () => {
+    const blocks = [md('a', 'one'), fragile('f', true, 2)];
+    const Fixed: BlockRenderer = ({ block }) => <p>fixed {(block.attrs.data as { n: number }).n}</p>;
+    const { rerender } = mount(blocks);
+    expect(screen.getByRole('group', { name: 'Block could not be drawn' })).toBeInTheDocument();
+    rerender(<Editor options={{ blocks, onChange: () => {} }} view={{ renderers: { FRAGILE: Fixed } }} />);
+    expect(screen.getByText('fixed 2')).toBeInTheDocument();
+    expect(screen.queryByRole('group', { name: 'Block could not be drawn' })).toBeNull();
+  });
+
+  it('selects a text block as a whole when its fallback is pressed, so no caret is put in it', () => {
+    let controller!: ViewController;
+    render(
+      <Editor
+        options={{ blocks: [md('a', 'one'), md('b', 'two')], onChange: () => {} }}
+        view={{ renderers: { MARKDOWN: BrokenSecond } }}
+        onController={(created) => (controller = created)}
+      />,
+    );
+    act(() => controller.focus({ block: 'a', region: 'text', offset: 1 }));
+    const fallback = screen.getByRole('group', { name: 'Block could not be drawn' });
+    act(() => void fallback.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0, buttons: 1 })));
+    expect(controller.editor.state.selection).toEqual({ kind: 'blocks', anchor: 'b', head: 'b' });
   });
 });

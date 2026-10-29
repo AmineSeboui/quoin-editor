@@ -1,6 +1,7 @@
 import { act, fireEvent, screen } from '@testing-library/react';
 import { ListChecks } from 'lucide-react';
 import { moveBlocksDown } from '../../engine/commands/block-structure';
+import { splitBlock } from '../../engine/commands/split-block';
 import { defineBlock } from '../../registry';
 import type { BlockPreviewProps, QuoinBlock } from '../../types';
 import { mountCanvas, paragraph, testBlockTypes } from './test-canvas';
@@ -128,5 +129,17 @@ describe('the props a custom block receives', () => {
     act(() => void handle().controller.edit(() => handle().editor.insertText('?')));
     expect(handle().editor.getBlocks()[0].data).toEqual({ markdown: 'above!?' });
     expect(renders).toEqual({ preview: [], editor: [] });
+  });
+
+  it('draws a preview again only for its own changes, not when a block is inserted above it', () => {
+    const blocks = [paragraph('a', 'above'), item('k'), pinned('m')];
+    const { handle } = mount(blocks);
+    act(() => handle().controller.focus({ block: 'a', region: 'text', offset: 0 }));
+    renders.preview.length = 0;
+    renders.editor.length = 0;
+    act(() => void handle().controller.run(splitBlock()));
+    expect(handle().editor.getBlocks()).toHaveLength(4);
+    expect(renders.preview).toEqual([]);
+    expect(screen.getByText('Editing m at 3')).toBeInTheDocument();
   });
 });

@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useEffect, useLayoutEffect } from 'react';
+import { sourceFiles } from '../../../test/support/source-files';
 
-const SOURCES = import.meta.glob<string>('/src/**/*.{ts,tsx}', { query: '?raw', import: 'default', eager: true });
+const SOURCES = sourceFiles();
 
 describe('useIsomorphicLayoutEffect', () => {
   afterEach(() => {

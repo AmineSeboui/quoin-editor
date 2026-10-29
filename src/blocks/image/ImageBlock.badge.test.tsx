@@ -12,12 +12,32 @@ const image = (data: Record<string, unknown> = {}): QuoinBlock => ({
   type: 'IMAGE',
   data: { storageKey: 'cat.png', alt: '', ...data },
 });
-const badge = () => screen.queryByRole('button', { name: 'No alt text' });
+const badge = () => screen.queryByRole('button', { name: 'No alt text, add alt text' });
 
 describe('the no alt text badge of an image', () => {
   it('is drawn on an editable canvas over an image with an empty alt text that is not decorative', () => {
     mountCanvas([image()], { resolveAssetUrl });
     expect(badge()).not.toBeNull();
+  });
+
+  it('is named by its short visible text first, then by what it does', () => {
+    mountCanvas([image()], { resolveAssetUrl });
+    expect(badge()).toHaveTextContent(/^No alt text$/);
+    expect(badge()).toHaveAccessibleName('No alt text, add alt text');
+    expect(badge()!.getAttribute('aria-label')!.startsWith(badge()!.textContent!)).toBe(true);
+    expect(screen.getByRole('img')).toHaveAccessibleName('Image, no description');
+  });
+
+  it('takes its name and its text from the labels it is given', () => {
+    const labels = { addAltText: 'Sans texte alternatif, ajouter un texte', noAltBadge: 'Sans texte alternatif' };
+    mountCanvas([image()], { resolveAssetUrl, labels });
+    expect(screen.getByRole('button', { name: labels.addAltText })).toHaveTextContent(labels.noAltBadge);
+  });
+
+  it('is named by its translated visible text alone when only that label is given', () => {
+    mountCanvas([image()], { resolveAssetUrl, labels: { noAltBadge: 'Sans texte alternatif' } });
+    const translated = screen.getByRole('button', { name: 'Sans texte alternatif' });
+    expect(translated).toHaveAccessibleName('Sans texte alternatif');
   });
 
   it.each([

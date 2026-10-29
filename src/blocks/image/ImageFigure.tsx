@@ -31,6 +31,9 @@ export function ImageFigure({ block, controller, readOnly }: ImageFigureProps) {
   const width = preview ?? percent;
   const flagged = !readOnly && alt === '' && attrs.decorative !== true;
   const select = () => focusNode(controller, id);
+  const badgeText = labels.noAltBadge ?? englishLabels.noAltBadge;
+  const badgeName = labels.addAltText ?? englishLabels.addAltText;
+  const translatedAlone = badgeText !== englishLabels.noAltBadge && badgeName === englishLabels.addAltText;
 
   return (
     <>
@@ -55,12 +58,13 @@ export function ImageFigure({ block, controller, readOnly }: ImageFigureProps) {
           <button
             type="button"
             className="quoin-image-no-alt"
+            aria-label={translatedAlone ? undefined : badgeName}
             onClick={() => {
               select();
               requestAlt(controller, id);
             }}
           >
-            {labels.noAltBadge ?? englishLabels.noAltBadge}
+            {badgeText}
           </button>
         )}
         {!readOnly && (

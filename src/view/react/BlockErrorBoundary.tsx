@@ -1,19 +1,22 @@
 import { Component, useContext, type ReactNode } from 'react';
 import type { EngineBlock } from '../../engine';
 import { BlockErrorContext } from './block-error-context';
+import type { BlockRenderer } from './block-renderer-types';
 
-type Props = { block: EngineBlock; label: string; report?: (error: Error) => void; children: ReactNode };
-type State = { block: EngineBlock; failed: boolean };
+type Drawn = { block: EngineBlock; renderer: BlockRenderer };
+type Props = Drawn & { label: string; report?: (error: Error) => void; children: ReactNode };
+type State = Drawn & { failed: boolean };
 
 class Boundary extends Component<Props, State> {
-  state: State = { block: this.props.block, failed: false };
+  state: State = { block: this.props.block, renderer: this.props.renderer, failed: false };
 
   static getDerivedStateFromError(): Partial<State> {
     return { failed: true };
   }
 
   static getDerivedStateFromProps(props: Props, state: State): State | null {
-    return props.block === state.block ? null : { block: props.block, failed: false };
+    const same = props.block === state.block && props.renderer === state.renderer;
+    return same ? null : { block: props.block, renderer: props.renderer, failed: false };
   }
 
   componentDidCatch(error: unknown) {
@@ -31,10 +34,10 @@ class Boundary extends Component<Props, State> {
   }
 }
 
-export function BlockErrorBoundary({ block, children }: { block: EngineBlock; children: ReactNode }) {
+export function BlockErrorBoundary({ block, renderer, children }: Drawn & { children: ReactNode }) {
   const { label, report } = useContext(BlockErrorContext);
   return (
-    <Boundary block={block} label={label} report={report}>
+    <Boundary block={block} renderer={renderer} label={label} report={report}>
       {children}
     </Boundary>
   );

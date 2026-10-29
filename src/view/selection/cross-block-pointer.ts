@@ -1,10 +1,11 @@
 import type { Pos, Selection } from '../../engine';
+import { blockById } from '../../engine/model/doc';
 import { blockRangeSelection, nodeSelection, sameSelection, textSelection } from '../../engine/state/selection';
 import { domToPos } from '../controller/dom-selection';
 import { listen } from '../dom/listen';
 import type { HostEntry } from '../controller/host-registry';
 import type { ViewController } from '../controller/view-controller';
-import { entryEdge } from '../navigation/neighbour-block';
+import { canBeEntered, entryEdge } from '../navigation/neighbour-block';
 import { createAutoScroll } from './auto-scroll';
 import { blockAt, caretPosAt, hostAt } from './pointer-targets';
 import { NATIVE_INTERACTION } from './native-interaction';
@@ -110,6 +111,16 @@ export function createCrossBlockPointer(controller: ViewController): CrossBlockP
         follow(x, y);
       }
 
+      // A text block drawn without a host, as when its renderer threw, cannot be node-selected, so it is selected as a
+      // range of one block.
+      function pressWhole(block: string): void {
+        if (entryEdge(controller, block, 1).kind !== 'node') return;
+        const pressed = blockById(controller.editor.state.doc, block);
+        if (pressed !== undefined && !canBeEntered(controller)(pressed)) return select(blockRangeSelection(block));
+        controller.nodeReveal.pressed(block);
+        select(nodeSelection(block));
+      }
+
       function onPointerDown(event: PointerEvent): void {
         end();
         preventMouseDown = false;
@@ -125,10 +136,7 @@ export function createCrossBlockPointer(controller: ViewController): CrossBlockP
           press = { kind: 'blocks', start: block, x: event.clientX, y: event.clientY };
           // A node selection is otherwise read from the native one, and Firefox leaves none after a press on a block
           // with no text, such as a divider.
-          if (!event.shiftKey && entryEdge(controller, block, 1).kind === 'node') {
-            controller.nodeReveal.pressed(block);
-            select(nodeSelection(block));
-          }
+          if (!event.shiftKey) pressWhole(block);
         } else {
           return;
         }

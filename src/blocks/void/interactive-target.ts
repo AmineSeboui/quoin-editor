@@ -1,5 +1,3 @@
-import type { MouseEvent } from 'react';
-
 const CONTROL_ROLES = [
   'button',
   'link',
@@ -20,10 +18,10 @@ const INTERACTIVE = [
 ].join(', ');
 
 /**
- * Whether a press inside a void block landed on a control of its own, which keeps the press. The shell around the block
+ * Whether a press or a key inside a void block landed on a control of its own, which keeps the press. The shell around the block
  * carries a tabindex, so only a control inside the block's root counts.
  */
-export function isInteractive(root: HTMLElement | null, event: MouseEvent): boolean {
+export function isInteractive(root: HTMLElement | null, event: { target: EventTarget }): boolean {
   const control = (event.target as Element).closest(INTERACTIVE);
   return control !== null && control !== root && root?.contains(control) === true;
 }

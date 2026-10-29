@@ -1,5 +1,6 @@
 import type { Attrs, Mark } from '../../engine';
 import { setAttributes } from './attributes';
+import { withoutEventHandlers } from './decoration-attrs';
 import type { MapEntry } from './dom-map';
 import { markElement } from './mark-elements';
 
@@ -8,7 +9,7 @@ const created = new WeakSet<Node>();
 function decorationElement(attrs: Attrs, doc: Document): HTMLElement {
   const element = doc.createElement('span');
   element.setAttribute('data-quoin-deco', '');
-  setAttributes(element, attrs);
+  setAttributes(element, withoutEventHandlers(attrs));
   return element;
 }
 

@@ -6,15 +6,16 @@ import { useQuoin } from '../../context';
 import { devWarn } from '../../dev-warn';
 import { blockTypeLabel } from '../../gutter/block-type-label';
 import { parsedData, type AnyBlockDefinition } from '../../registry';
-import type { BlockPreviewProps } from '../../types';
+import type { BlockEditorProps, BlockPreviewProps } from '../../types';
 import { Button } from '../../ui/button';
-import type { BlockRenderProps } from '../../view';
+import type { BlockRenderProps, ViewController } from '../../view';
 import { BlockErrorContext } from '../../view/react/block-error-context';
 import { useReadOnly } from '../../view/react/use-read-only';
 import { NATIVE_INTERACTION } from '../../view/selection/native-interaction';
 import { insertAfterBlock, readBlockData, writeBlockData } from './block-data';
 import { isInteractive } from './interactive-target';
 import { deleteBlock } from './node-toolbar-items';
+import { runHistoryKey } from './history-keys';
 import { focusNode, selectNode } from './select-node';
 import { useBlockIndex } from './use-block-index';
 import { useEditingFocus } from './use-editing-focus';
@@ -38,6 +39,17 @@ function VoidPreview({ definition: { preview: Preview }, name, ...props }: VoidP
   return <Preview {...props} />;
 }
 
+type VoidEditorProps = Omit<BlockEditorProps, 'index'> & {
+  Editor: NonNullable<AnyBlockDefinition['editor']>;
+  controller: ViewController;
+  blockId: string;
+};
+
+function VoidEditor({ Editor, controller, ...props }: VoidEditorProps) {
+  const index = useBlockIndex(controller, props.blockId);
+  return <Editor {...props} index={index} />;
+}
+
 export function VoidBlock({ block, controller, definition }: BlockRenderProps & { definition: AnyBlockDefinition }) {
   const { blockTypes, labels } = useQuoin();
   const { report } = useContext(BlockErrorContext);
@@ -47,7 +59,6 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
   const blockId = block.id;
   const editable = Editor !== undefined && !readOnly;
   const { editing, start, stop } = useVoidEditing(controller, blockId, editable);
-  const index = useBlockIndex(controller, blockId);
   const root = useRef<HTMLDivElement>(null);
   const focusHandlers = useEditingFocus(root, editing, stop);
   useMissingPreviewWarning(readOnly, definition);
@@ -88,9 +99,13 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
   const editorShown = editable && (alwaysEditing || editing);
   const data = useMemo(() => parsedData(definition, readBlockData(controller, block)), [definition, controller, block]);
 
-  // Escape that closed a portalled overlay still bubbles here through the React tree, so only a key pressed in the
-  // block's own DOM leaves the editor.
   const onKeyDown = (event: KeyboardEvent) => {
+    if (!editorShown && !readOnly && isInteractive(root.current, event) && runHistoryKey(controller, event)) {
+      event.preventDefault();
+      return;
+    }
+    // Escape that closed a portalled overlay still bubbles here through the React tree, so only a key pressed in the
+    // block's own DOM leaves the editor.
     if (event.key !== 'Escape' || !editorShown || !root.current?.contains(event.target as Node)) return;
     event.preventDefault();
     leave();
@@ -117,11 +132,12 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
       onDoubleClick={onDoubleClick}
     >
       {editorShown && Editor ? (
-        <Editor
+        <VoidEditor
+          Editor={Editor}
+          controller={controller}
           data={data}
           onChange={onChange}
           blockId={blockId}
-          index={index}
           onRemove={onRemove}
           onInsertBlock={onInsertBlock}
           onDone={leave}

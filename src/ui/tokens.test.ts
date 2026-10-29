@@ -1,12 +1,14 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import css from './tokens.css?raw';
 import viewCss from '../view/view.css?raw';
 import stylesCss from '../styles.css?raw';
-import inputSource from './input.tsx?raw';
 import commentsCss from '../extensions/comments/comments.css?raw';
 import { TONE } from '../blocks/previews';
 import { PALETTE } from '../engine/markdown/palette';
 import { contrastOnWash, contrastRatio, tokenReader, type Theme } from './oklch-contrast';
 
+const inputSource = readFileSync(resolve(__dirname, 'input.tsx'), 'utf8');
 const token = tokenReader(css);
 const contrast = (theme: Theme, a: string, b: string) => contrastRatio(token(theme, a), token(theme, b));
 

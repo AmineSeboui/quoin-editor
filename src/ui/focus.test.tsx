@@ -26,8 +26,9 @@ import {
 } from './context-menu';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import { FilePickerButton } from '../upload/FilePickerButton';
+import { sourceFiles } from '../../test/support/source-files';
 
-const SOURCES = import.meta.glob<string>('../**/*.{ts,tsx}', { query: '?raw', import: 'default', eager: true });
+const SOURCES = sourceFiles();
 
 const RING_CLASSES = [
   'focus-visible:outline-2',

@@ -6,6 +6,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 
 ### Fixed
 - An inline decoration no longer writes an event-handler attribute: any name starting with `on`, in any case, is left out, while `class`, `style`, `data-*` and `aria-*` are kept. Widget decorations write no attributes, and block decorations keep their `data-` and `aria-` rule.
+- A custom block's preview no longer draws again when a block is inserted, removed or moved above it: only an open editor, which receives `index`, follows the block's position.
 
 ## 1.1.0 (2026-10-29)
 

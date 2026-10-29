@@ -81,7 +81,7 @@ An editor receives these props. The canvas always passes every one of them; all 
 | `data` | The block's data. |
 | `onChange` | Writes the whole next `data`, not a patch. Writes to one block that each follow the last within the history's grouping window (500 ms by default) undo together, as one step. |
 | `blockId` | The id of the block. |
-| `index` | The block's index in the flat `blocks` array, counting from 0 with nested (indented) blocks included, kept current as blocks move. Only a block whose position changed draws again, so reading it costs nothing while another block is typed in. |
+| `index` | The block's index in the flat `blocks` array, counting from 0 with nested (indented) blocks included, kept current as blocks move. Only an open editor whose block's position changed draws again; a preview never does, as it does not receive `index`. |
 | `onRemove` | Removes the block as one undo step and puts the caret where deleting the selected block puts it: at the end of the block above, or at the start of the one below when it was first. |
 | `onInsertBlock` | Inserts a new block of the given type after this one. |
 | `onDone` | Closes the editor and leaves the block selected. |

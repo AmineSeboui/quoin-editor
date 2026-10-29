@@ -39,7 +39,7 @@ npm run record:demo && npm run render:og
 | `npm run lint` | ESLint, and a check of what the engine may import |
 | `npm run typecheck` | TypeScript over the sources and the Playwright specs |
 | `npm test` | The Vitest suite, in jsdom |
-| `npm run test:coverage` | The same, with the coverage thresholds: 90 percent of lines on `src/engine`, 95 on `src/view`, 97 on `src/blocks`, 98 on `src/ui`, 98 on `src/context.tsx` (`useQuoin`), 98 on `src/i18n` (`useLabels`), 97 on `src/canvas` and 97 on `src/menus` |
+| `npm run test:coverage` | The same, with the coverage thresholds: 90 percent of lines on `src/engine`, 95 on `src/view`, 97 on `src/blocks`, 98 on `src/ui`, 98 on `src/hooks` (`useAutosave`), 98 on `src/context.tsx` (`useQuoin`), 98 on `src/i18n` (`useLabels`), 97 on `src/canvas` and 97 on `src/menus` |
 | `npm run test:e2e` | The Playwright suite, against a harness served by Vite |
 | `npm run test:e2e:dist` | A smoke set of the Playwright specs in Chromium, against the same harness over the built `dist/` (run `npm run build` first) |
 | `npm run check:css` | Every rule of the built stylesheet is scoped to the editor |

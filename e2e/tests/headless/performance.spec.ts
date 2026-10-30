@@ -1,15 +1,19 @@
 import { expect, test, type Page } from '@playwright/test';
+import { BASELINE_MS, calibrationMs } from '../../support/calibration';
 import { caretAt, openHeadless } from '../../support/headless';
 
 // A shared runner is several times slower than the development machine, so there the 1,000 block document is judged
 // against the same typing in a 40 block one from the same run. Twenty five times the blocks costs about 3.5 times the
-// time, and a single round lands between 3 and 4.8, so a round that is over the limit is measured again: noise only adds
-// time, and a cost that grows with the document is over the limit in every round.
+// time, and a single round lands between 3 and 4.8, so a round that is over the limit is measured again: noise only
+// adds time, and a cost that grows with the document is over the limit in every round. The 16 ms budget is also scaled
+// by how much slower the runner is than the development machine at a fixed DOM workload, never below 1.
 const SLOWDOWN_LIMIT = 4;
 const ROUNDS = 6;
 const CAP_MS = 80;
+const FRAME_MS = 16;
 const GATE =
-  'The 16 ms p95 budget is enforced when CI is not set. A shared runner is held to a ratio against a 40 block document and to a cap.';
+  'The 16 ms p95 budget is enforced when CI is not set. A shared runner is held to 16 ms scaled by a calibration, ' +
+  'to a ratio against a 40 block document and to a cap.';
 const SENTENCE = 'The quick brown fox jumps over the lazy dog again and again.';
 
 const p95 = (timings: number[]) => [...timings].sort((a, b) => a - b)[Math.floor(timings.length * 0.95)];
@@ -26,12 +30,21 @@ async function typingP95(page: Page, doc: string, block: number, extra: string):
 
 const note = (type: string, description: string) => test.info().annotations.push({ type, description });
 
-type Round = { readonly small: number; readonly large: number; readonly ratio: number };
+type Round = {
+  readonly small: number;
+  readonly large: number;
+  readonly ratio: number;
+  readonly scale: number;
+  readonly budget: number;
+};
+
+const passes = ({ ratio, large, budget }: Round) => ratio < SLOWDOWN_LIMIT && large < budget;
 
 async function measureRound(page: Page, extra: string): Promise<Round> {
   const small = await typingP95(page, 'forty', 20, extra);
   const large = await typingP95(page, 'large', 500, extra);
-  return { small, large, ratio: large / small };
+  const scale = Math.max(1, (await calibrationMs(page)) / BASELINE_MS);
+  return { small, large, ratio: large / small, scale, budget: FRAME_MS * scale };
 }
 
 async function expectShared(page: Page, extra: string) {
@@ -54,25 +67,32 @@ for (const [setting, extra] of SETTINGS) {
     if (!process.env.CI) {
       const large = await typingP95(page, 'large', 500, extra);
       note('p95 of 1,000 blocks', `${large.toFixed(1)} ms`);
-      expect(large).toBeLessThan(16);
+      expect(large).toBeLessThan(FRAME_MS);
       await expectShared(page, extra);
       return;
     }
     test.setTimeout(120_000);
     await typingP95(page, 'forty', 20, extra);
     const rounds: Round[] = [];
-    while (rounds.length < ROUNDS && !rounds.some(({ ratio }) => ratio < SLOWDOWN_LIMIT)) {
+    while (rounds.length < ROUNDS && !rounds.some(passes)) {
       rounds.push(await measureRound(page, extra));
     }
-    rounds.forEach(({ small, large, ratio }, index) =>
-      note(`round ${index + 1}`, `40 blocks ${small.toFixed(1)} ms, 1,000 blocks ${large.toFixed(1)} ms, ratio ${ratio.toFixed(2)}`),
+    rounds.forEach(({ small, large, ratio, scale, budget }, index) =>
+      note(
+        `round ${index + 1}`,
+        `40 blocks ${small.toFixed(1)} ms, 1,000 blocks ${large.toFixed(1)} ms, ratio ${ratio.toFixed(2)}, ` +
+          `scale ${scale.toFixed(2)}, budget ${budget.toFixed(1)} ms`,
+      ),
     );
-    const best = rounds.reduce((lowest, round) => (round.ratio < lowest.ratio ? round : lowest));
+    const best = rounds.find(passes) ?? rounds.reduce((lowest, round) => (round.ratio < lowest.ratio ? round : lowest));
     note('p95 of 40 blocks', `${best.small.toFixed(1)} ms`);
     note('p95 of 1,000 blocks', `${best.large.toFixed(1)} ms`);
     note('ratio', best.ratio.toFixed(2));
+    note('calibration scale', best.scale.toFixed(2));
+    note('calibrated budget', `${best.budget.toFixed(1)} ms`);
     expect(best.ratio).toBeLessThan(SLOWDOWN_LIMIT);
     expect(best.large).toBeLessThan(CAP_MS);
+    expect(best.large).toBeLessThan(best.budget);
     await expectShared(page, extra);
   });
 }

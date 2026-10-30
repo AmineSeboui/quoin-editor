@@ -71,7 +71,7 @@ describe('setCellsMark', () => {
 
   it('adds the mark to every cell while one cell carries it only in part', () => {
     const partly = stateWith(RANGE, { rows: [['a', '**b**', 'c'], ['d', '', '**f**x']] });
-    expect(rowsOf(undoable(partly, setCellsMark('italic')))).toEqual([['a', '**_b_**', '_c_'], ['d', '', '**_f_**_x_']]);
+    expect(rowsOf(undoable(partly, setCellsMark('italic')))).toEqual([['a', '**_b_**', '_c_'], ['d', '', '_**f**x_']]);
     expect(rowsOf(undoable(partly, setCellsMark('bold')))).toEqual([['a', '**b**', '**c**'], ['d', '', '**fx**']]);
   });
 

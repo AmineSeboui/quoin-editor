@@ -49,8 +49,15 @@ describe('serializeInline', () => {
   });
 
   it('closes and reopens marks across a link boundary', () => {
+    const nodes = normalizeInline([text('x', [b]), text('y', [link('https://u.v'), b]), text('z', [link('https://u.v')])]);
+    const markdown = serializeInline(nodes);
+    expect(markdown).toBe('**x**[**y**z](https://u.v)');
+    expect(equalInline(parseInline(markdown), nodes)).toBe(true);
+  });
+
+  it('opens the longer of a bold and a link outside', () => {
     expect(serializeInline(normalizeInline([text('x', [b]), text('y', [link('https://u.v'), b])]))).toBe(
-      '**x**[**y**](https://u.v)',
+      '**x[y](https://u.v)**',
     );
   });
 });
@@ -174,6 +181,13 @@ describe('serializeInline forms', () => {
     ['bold inside a word', [text('a'), text('b', [b]), text('c')], 'a**b**c'],
     ['emphasis with trailing whitespace', [text('x ', [i])], '<em>x </em>'],
     ['emphasis with leading whitespace', [text(' x', [strike])], '<del> x</del>'],
+    ['italic around bold', [text('a ', [i]), text('b', [b, i]), text(' c', [i])], '_a **b** c_'],
+    ['strike around bold', [text('a ', [strike]), text('b', [b, strike]), text(' c', [strike])], '~~a **b** c~~'],
+    ['bold around italic', [text('a ', [b]), text('b', [b, i]), text(' c', [b])], '**a _b_ c**'],
+    ['italic around a link', [text('a ', [i]), text('b', [i, link('u')]), text(' c', [i])], '_a [b](u) c_'],
+    ['italic around code', [text('a ', [i]), text('b', [c, i]), text(' c', [i])], '_a `b` c_'],
+    ['unmarked spaces around italic', [text('x '), text('a', [i]), text(' y')], 'x _a_ y'],
+    ['italic with edge spaces next to bold', [text(' a ', [i]), text('b', [b, i])], '<em> a **b**</em>'],
     ['an italic that would fuse with a bold', [text('a', [b]), text('b', [i]), text('c')], '**a**<em>b</em>c'],
     ['an escaped star in front of bold', [text('*'), text('x', [b])], '\\***x**'],
   ])('writes %s', (_name, inline, expected, options) => {

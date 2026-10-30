@@ -3,12 +3,13 @@ import type { QuoinBlock } from '../model/quoin-block';
 import { createSchema } from '../schema/create-schema';
 import type { Schema } from '../schema/types';
 import { changeBetween, sameContent, type BlockChange } from './block-change';
-import { alignSteps, movedIds } from './diff-steps';
+import { alignSteps, movedOrigins } from './diff-steps';
 import { refineSteps, type Side } from './refine-gaps';
 
+/** A moved block is deleted where it was and inserted where it went, its insertion holding its `change` if edited. */
 export type BlockDiff =
   | { op: 'equal'; block: QuoinBlock }
-  | { op: 'insert'; block: QuoinBlock; moved?: boolean }
+  | { op: 'insert'; block: QuoinBlock; moved?: boolean; change?: BlockChange }
   | { op: 'delete'; block: QuoinBlock; moved?: boolean }
   | BlockChange;
 
@@ -38,14 +39,18 @@ export function diffBlocks(
     return pieces.length === 1 ? [block] : pieces.map(codec.toQuoin);
   };
   const steps = refineSteps(alignSteps(a, b, byId), expand, byId);
-  const moved = byId ? movedIds(steps) : new Set<string>();
+  const moved = byId ? movedOrigins(steps) : new Map<string, QuoinBlock>();
+  const change = (before: QuoinBlock, after: QuoinBlock) => changeBetween(before, after, schema, codec.context);
   return steps.map((step): BlockDiff => {
     if (step.kind === 'pair') {
-      return sameContent(step.before, step.after)
-        ? { op: 'equal', block: step.after }
-        : changeBetween(step.before, step.after, schema, codec.context);
+      const { before, after } = step;
+      return sameContent(before, after) ? { op: 'equal', block: after } : change(before, after);
     }
     const { kind, block } = step;
-    return moved.has(block.id) ? { op: kind, block, moved: true } : { op: kind, block };
+    const origin = moved.get(block.id);
+    if (!origin) return { op: kind, block };
+    return kind === 'insert' && !sameContent(origin, block)
+      ? { op: kind, block, moved: true, change: change(origin, block) }
+      : { op: kind, block, moved: true };
   });
 }

@@ -1,5 +1,5 @@
 import { createBlockCodec, type BlockCodec } from '../engine/blocks/codec';
-import { changeBetween, sameContent, type BlockChange } from '../engine/diff/block-change';
+import type { BlockChange } from '../engine/diff/block-change';
 import { diffBlocks, type BlockDiff } from '../engine/diff/diff-blocks';
 import type { QuoinBlock } from '../engine/model/quoin-block';
 import type { Schema } from '../engine/schema/types';
@@ -28,9 +28,7 @@ function changeMark(status: DiffStatus, change: BlockChange, codec: BlockCodec):
 const wordsChanged = ({ regions }: BlockChange) =>
   Object.values(regions).some((changes) => changes.some(({ op }) => op !== 'equal'));
 
-function shownOf(diffs: readonly BlockDiff[], schema: Schema, codec: BlockCodec): Shown[] {
-  const origins = new Map<string, QuoinBlock>();
-  for (const diff of diffs) if (diff.op === 'delete' && diff.moved) origins.set(diff.block.id, diff.block);
+function shownOf(diffs: readonly BlockDiff[], codec: BlockCodec): Shown[] {
   return diffs.map((diff): Shown => {
     switch (diff.op) {
       case 'equal':
@@ -42,10 +40,9 @@ function shownOf(diffs: readonly BlockDiff[], schema: Schema, codec: BlockCodec)
       case 'delete':
         return { block: diff.block, mark: { status: diff.moved ? 'moved-away' : 'removed', attributes: [] } };
       case 'insert': {
-        const origin = diff.moved ? origins.get(diff.block.id) : undefined;
-        if (!diff.moved) return { block: diff.block, mark: { status: 'added', attributes: [] } };
-        if (!origin || sameContent(origin, diff.block)) return { block: diff.block, mark: { status: 'moved', attributes: [] } };
-        return { block: diff.block, mark: changeMark('moved', changeBetween(origin, diff.block, schema, codec.context), codec) };
+        const { block, moved, change } = diff;
+        if (!moved) return { block, mark: { status: 'added', attributes: [] } };
+        return { block, mark: change ? changeMark('moved', change, codec) : { status: 'moved', attributes: [] } };
       }
     }
   });
@@ -67,7 +64,7 @@ const isOlder = (mark: DiffMark | undefined) => mark?.status === 'removed' || ma
 export function diffDocument(before: readonly QuoinBlock[], after: readonly QuoinBlock[], schema: Schema): DiffDocument {
   let next = 0;
   const codec = createBlockCodec(schema, { newId: () => `diff-${next++}` });
-  const laid = shownOf(diffBlocks(before, after, { schema }), schema, codec).flatMap((item) => pieces(item, codec));
+  const laid = shownOf(diffBlocks(before, after, { schema }), codec).flatMap((item) => pieces(item, codec));
   const shown = withoutAdoptedBlocks(
     laid.map((item) => {
       const [engine] = codec.toEngineBlocks(item.block);

@@ -28,10 +28,14 @@ export function alignSteps(a: readonly QuoinBlock[], b: readonly QuoinBlock[], b
   return stepsOf(ops, a, b);
 }
 
-export function movedIds(steps: readonly Step[]): ReadonlySet<string> {
-  const deleted = new Set<string>();
-  for (const step of steps) if (step.kind === 'delete') deleted.add(step.block.id);
-  const moved = new Set<string>();
-  for (const step of steps) if (step.kind === 'insert' && deleted.has(step.block.id)) moved.add(step.block.id);
+/** The blocks deleted where an insertion of their id shows they moved, by id. */
+export function movedOrigins(steps: readonly Step[]): ReadonlyMap<string, QuoinBlock> {
+  const deleted = new Map<string, QuoinBlock>();
+  for (const step of steps) if (step.kind === 'delete') deleted.set(step.block.id, step.block);
+  const moved = new Map<string, QuoinBlock>();
+  for (const step of steps) {
+    const origin = step.kind === 'insert' && deleted.get(step.block.id);
+    if (origin) moved.set(step.block.id, origin);
+  }
   return moved;
 }

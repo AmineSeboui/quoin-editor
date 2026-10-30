@@ -4,14 +4,17 @@ type Edit<T> = { op: DiffOp<T>['op']; item: T };
 
 const same = (x: unknown, y: unknown) => x === y;
 
+/** Past this many insertions and deletions the trace, which grows with their square, is not kept. */
+export const MAX_EDITS = 2_000;
+
 // trace[d] holds the furthest x reached on each diagonal k in [-d - 1, d + 1] before round d, at index k + d + 1.
-function traceEdits<T>(a: readonly T[], b: readonly T[], equal: (x: T, y: T) => boolean): Int32Array[] {
+function traceEdits<T>(a: readonly T[], b: readonly T[], equal: (x: T, y: T) => boolean): Int32Array[] | undefined {
   const n = a.length;
   const m = b.length;
   const offset = n + m + 1;
   const furthest = new Int32Array(2 * offset + 1);
   const trace: Int32Array[] = [];
-  for (let d = 0; ; d++) {
+  for (let d = 0; d <= MAX_EDITS; d++) {
     trace.push(furthest.slice(offset - d - 1, offset + d + 2));
     for (let k = -d; k <= d; k += 2) {
       const down = k === -d || (k !== d && furthest[offset + k - 1] < furthest[offset + k + 1]);
@@ -77,11 +80,17 @@ function mergeEdits<T>(edits: readonly Edit<T>[]): DiffOp<T>[] {
   return ops;
 }
 
-/** Items of an `equal` op come from `a`. */
+/** Items of an `equal` op come from `a`. Two sequences more than `MAX_EDITS` apart are deleted and inserted whole. */
 export function diffSequences<T>(
   a: readonly T[],
   b: readonly T[],
   equal: (x: T, y: T) => boolean = same,
 ): DiffOp<T>[] {
-  return mergeEdits(backtrack(traceEdits(a, b, equal), a, b));
+  const trace = traceEdits(a, b, equal);
+  if (trace) return mergeEdits(backtrack(trace, a, b));
+  const ops: DiffOp<T>[] = [
+    { op: 'delete', items: [...a] },
+    { op: 'insert', items: [...b] },
+  ];
+  return ops.filter(({ items }) => items.length > 0);
 }

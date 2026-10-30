@@ -1,6 +1,6 @@
 {
   "name": "quoin-editor",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Markdown-native block editor for React: live formatting, Notion-style menus, drag and drop, collaboration hooks and your own React blocks. MIT.",
   "license": "MIT",
   "author": {

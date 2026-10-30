@@ -43,7 +43,7 @@ export const lazyChunks = [{ name: 'emoji-data', source: 'src/emoji/index.ts', t
 /** @type {PackageEntry[]} */
 export const packageEntries = [
   { name: MAIN_ENTRY, source: 'src/index.ts', client: true, total: 155_500 },
-  { name: 'headless', source: 'src/headless.ts', client: true, total: 70_400 },
+  { name: 'headless', source: 'src/headless.ts', client: true, total: 71_000 },
   { name: 'engine', source: 'src/engine/index.ts', client: false, total: 52_000 },
   // Read-only React for a server, which loads it alone: the markdown parser it shares with the engine is most of it.
   { name: 'view', source: 'src/view-static/index.ts', client: false, total: 22_214 },

@@ -7,6 +7,7 @@ import { isPositionNeutral } from '../transform/position-neutral';
 import { replaceInlineStep } from '../transform/replace-inline-step';
 import type { Step } from '../transform/step';
 import type { EditorState } from './editor-state';
+import { continuesEdit, editEnd } from './history-adjacent';
 import { createPluginKey, type PluginSpec } from './plugin';
 import { isCollapsed, sameSelection, textSelection } from './selection';
 import { foreignOrigins, Transaction, UNFILTERED, type TransactionOrigin } from './transaction';
@@ -29,6 +30,7 @@ export type HistoryState = {
   readonly undone: readonly HistoryItem[];
   readonly lastTime: number;
   readonly lastGroup: string | null;
+  readonly lastEnd?: Pos | null;
   readonly lastInputRule: InputRuleRecord | null;
 };
 
@@ -82,12 +84,18 @@ function recorded(tr: Transaction, value: HistoryState, { depth, groupDelay }: C
   const steps = invertTransaction(tr);
   const group = groupOf(tr);
   const last = value.done.at(-1);
+  const named = tr.getMeta<string>(HISTORY_GROUP) !== undefined;
   const merges =
-    last !== undefined && group !== null && group === value.lastGroup && tr.time - value.lastTime < groupDelay;
+    last !== undefined &&
+    group !== null &&
+    group === value.lastGroup &&
+    tr.time - value.lastTime < groupDelay &&
+    (named || continuesEdit(tr, value.lastEnd));
   const done = merges
     ? [...value.done.slice(0, -1), { ...last, steps: [...steps, ...last.steps] }]
     : newest([...value.done, { steps, selection: tr.before.selection, origin: tr.origin }], depth);
-  return { done, undone: [], lastTime: tr.time, lastGroup: group, lastInputRule: inputRuleRecord(tr, steps) };
+  const lastEnd = editEnd(tr) ?? (merges ? value.lastEnd : null);
+  return { done, undone: [], lastTime: tr.time, lastGroup: group, lastEnd, lastInputRule: inputRuleRecord(tr, steps) };
 }
 
 function moved(tr: Transaction, value: HistoryState, direction: Direction, depth: number): HistoryState {

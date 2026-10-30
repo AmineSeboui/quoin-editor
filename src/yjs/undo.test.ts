@@ -27,6 +27,18 @@ describe('undo through the shared document', () => {
     expect(one.editor.can().undo()).toBe(false);
   });
 
+  it('undoes typing in two places of one block as two changes', () => {
+    const { one } = twoPeers();
+    one.editor.commands.setSelection(caret('a', 0));
+    one.editor.insertText('X');
+    one.editor.commands.setSelection(caret('a', 6));
+    one.editor.insertText('Y');
+    expect(one.editor.commands.undo()).toBe(true);
+    expect(one.editor.getBlocks()[0]).toEqual(md('a', 'Xhello'));
+    expect(one.editor.commands.undo()).toBe(true);
+    expect(one.editor.getBlocks()[0]).toEqual(md('a', 'hello'));
+  });
+
   it('undoes and redoes from a chain that holds nothing else', () => {
     const { one } = twoPeers();
     one.editor.commands.setSelection(caret('a', 5));

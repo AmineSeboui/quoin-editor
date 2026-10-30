@@ -34,6 +34,19 @@ describe('step inverses', () => {
     undoes(removeMarkStep('a', 'text', 0, 12, 'bold'));
   });
 
+  it('inverts a mark step to one that keeps every position where it was', () => {
+    const steps = [addMarkStep('a', 'text', 1, 11, { type: 'italic' }), removeMarkStep('a', 'text', 0, 12, bold)];
+    for (const step of steps) {
+      const { doc: after } = step.apply(doc);
+      const { map } = step.invert(doc).apply(after);
+      for (const offset of [0, 1, 6, 8, 11, 12, 13]) {
+        for (const assoc of [-1, 1] as const) {
+          expect(map({ block: 'a', region: 'text', offset }, assoc).offset).toBe(offset);
+        }
+      }
+    }
+  });
+
   it('restores previous attrs and deletes the keys that were added', () => {
     const patch = setAttrsStep('a', { kind: 'heading', level: 3, extra: undefined });
     undoes(patch);

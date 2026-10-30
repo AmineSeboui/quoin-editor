@@ -6,6 +6,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 
 ### Fixed
 - An extension's `priority` means one thing for blocks, marks, atoms, keys and commands: the higher wins. A block, mark or atom spec from an extension at a lower priority than another extension, core included, no longer replaces it, where the lower priority won for schema entries and the higher for keys and commands. Extensions at the default priority resolve as before. `priority` is now described in the extensions docs.
+- Undo separates edits made in two places: typing at the start of a block and then at its end within the grouping delay is two undo steps, as it is in a collaboration, and a caret that lands where the last edit ended still groups. Undoing a formatting change no longer collapses positions inside the range, so collaborators' carets, highlights and comment ranges stay where they were.
 
 ## 1.1.2 (2026-10-30)
 

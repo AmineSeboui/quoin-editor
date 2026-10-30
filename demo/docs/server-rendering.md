@@ -18,7 +18,7 @@ export function Reader({ blocks }: { blocks: QuoinBlock[] }) {
 }
 ```
 
-`readOnly` draws the document with no menus, toolbars, drag handles or editors: the core blocks as the editable canvas draws them, and each block type of your own through its `preview`. Text can still be selected and copied. `onChange` is still required by the type, and is never called. `aria-label` names the document for assistive technology, and `className` and `id` go on the root element.
+`readOnly` draws the document with no menus, toolbars, drag handles or editors: the core blocks as the editable canvas draws them, and each block type of your own through its `preview`. Text can still be selected and copied, also across blocks after a page translator or another script has rewritten the text on screen; such a rewrite never changes the document. `onChange` is still required by the type, and is never called. `aria-label` names the document for assistive technology, and `className` and `id` go on the root element.
 
 Because it draws previews and never editors, a block type registered without a `preview` has nothing to show here but its own label. Quoin warns once per type in the console when that happens, so give every type you render read-only a `preview`. It is not an error channel: `onError` is for the document, this is for the registration, so it goes to the developer and not to the reader.
 

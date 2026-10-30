@@ -53,7 +53,7 @@ export function createDomMap(host: HTMLElement, length: number, entries: readonl
     const after = texts.find((entry) => entry.from <= at && at < entry.to);
     const before = texts.find((entry) => entry.from < at && at <= entry.to);
     const text = assoc === 1 ? (after ?? before) : (before ?? after);
-    if (text) return { node: text.node, offset: at - text.from };
+    if (text) return { node: text.node, offset: Math.min(at - text.from, textLength(text.node)) };
     const next = stops.find((entry) => entry.from >= at);
     const previous = breaksAndAtoms.filter((entry) => entry.to <= at).pop();
     const beforeNext = next && pointAt(next, 0);

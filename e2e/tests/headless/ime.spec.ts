@@ -73,4 +73,21 @@ test.describe('IME composition', () => {
     await cdp.send('Input.insertText', { text: 'é' });
     await expect.poll(async () => (await markdown(page))[0]).toBe('**aéb**');
   });
+
+  test('a script that rewrites another block during a composition reaches the model once it commits', async ({ page }) => {
+    await openHeadless(page, 'three');
+    await caretAt(page, 0, 5);
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Input.imeSetComposition', { text: '\u304b', selectionStart: 1, selectionEnd: 1 });
+    await host(page, 2).evaluate((element) => {
+      (element.firstChild as Text).data = 'Zeta FIXED theta';
+    });
+    await cdp.send('Input.imeSetComposition', { text: '\u304b\u3093', selectionStart: 2, selectionEnd: 2 });
+    await cdp.send('Input.insertText', { text: '\u6f22' });
+    await expect
+      .poll(() => modelMarkdown(page))
+      .toEqual(['Alpha\u6f22 beta gamma', 'Delta epsilon', 'Zeta FIXED theta']);
+    await page.keyboard.type('!');
+    await expect.poll(async () => (await modelMarkdown(page))[0]).toBe('Alpha\u6f22! beta gamma');
+  });
 });

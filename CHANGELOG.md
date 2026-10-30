@@ -14,6 +14,8 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 - `diffBlocks` reports the word changes of a block that moved and was edited: its `insert` now holds a `change`, as an edited block in place is reported. `QuoinDiff` showed them already and is unchanged.
 - A change inside Chinese, Japanese or Thai text, written without spaces, marks only the changed words where the runtime has `Intl.Segmenter`, where it marked the whole run.
 - Diffing two versions that differ in more than 2,000 blocks, or two texts in more than 2,000 words, reports the older version as deleted and the newer as inserted, whole and with no block marked as moved, so the time and memory stay bounded: two documents of 5,000 blocks with nothing in common diff in a fraction of a second, where it took seconds and hundreds of megabytes.
+- On a read-only canvas whose text a page translator or another script rewrote, a drag across blocks no longer throws on every pointer move.
+- Text a script or a browser extension rewrites in one block while a composition runs in another reaches the document when the composition ends, where the document kept the old text while the page showed the new one.
 
 ## 1.1.2 (2026-10-30)
 

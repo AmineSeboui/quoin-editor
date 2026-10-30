@@ -67,6 +67,17 @@ describe('handleBeforeInput', () => {
     expect(editor.getBlocks()[0].data.markdown).toBe('\\-&#32;');
   });
 
+  it('runs input rules for typed text on the selection, but not for text that replaces another target range', () => {
+    const plain = setup('-');
+    handleBeforeInput(plain.controller, input('insertText', ' '));
+    const typed = setup('-');
+    handleBeforeInput(typed.controller, targeting(input('insertText', ' '), typed.host.firstChild!, 1, 1));
+    expect(typed.editor.getBlocks()).toEqual(plain.editor.getBlocks());
+    const replaced = setup('-x');
+    handleBeforeInput(replaced.controller, targeting(input('insertText', ' '), replaced.host.firstChild!, 1, 2));
+    expect(replaced.editor.getBlocks()[0].data.markdown).toBe('\\-&#32;');
+  });
+
   it('replaces the targeted word with the replacement text', () => {
     const { controller, host, text } = setup('teh cat');
     handleBeforeInput(controller, targeting(input('insertReplacementText', 'the'), host.firstChild!, 0, 3));

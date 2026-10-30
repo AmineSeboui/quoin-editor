@@ -1,5 +1,6 @@
 import { inlineLength } from '../model/inline';
 import type { Inline, Pos } from '../model/types';
+import { isCollapsed } from './selection';
 import type { Transaction } from './transaction';
 
 type Replacement = { block: string; region: string; from: number; to: number; slice: Inline };
@@ -9,8 +10,10 @@ function replacements(tr: Transaction): Replacement[] {
   return replaced.map((step) => step.toJSON() as unknown as Replacement);
 }
 
-/** Where the caret stands after the last inline replacement of a transaction, or null when it made none. */
+/** Where the caret stands after a transaction's edit: the caret it set, else the end of its last inline replacement. */
 export function editEnd(tr: Transaction): Pos | null {
+  const { selection } = tr;
+  if (tr.selectionSet && selection?.kind === 'text' && isCollapsed(selection)) return selection.head;
   const last = replacements(tr).at(-1);
   return last === undefined
     ? null

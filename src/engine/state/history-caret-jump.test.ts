@@ -43,6 +43,19 @@ describe('history grouping across a caret jump', () => {
     expect(undoDepth(type(type(start(), 0, 'X', 0), 1, 'Y', 100))).toBe(1);
   });
 
+  it('keeps typing right after a shortcut that rewrote text before the caret in one step', () => {
+    const rule = (state: EditorState) =>
+      applyTransaction(
+        state,
+        new Transaction(state, 0)
+          .setOrigin('input')
+          .step(replaceInlineStep('b0', 'text', 0, 0, [text('ab')]))
+          .step(replaceInlineStep('b0', 'text', 0, 1, []))
+          .setSelection(textSelection({ block: 'b0', region: 'text', offset: 1 })),
+      );
+    expect(undoDepth(type(rule(start()), 1, 'z', 100))).toBe(1);
+  });
+
   it('still merges a caret move that lands where the last edit ended', () => {
     const state = type(start(), 0, 'X', 0);
     expect(undoDepth(type(caretTo(state, 1, 50), 1, 'Y', 100))).toBe(1);

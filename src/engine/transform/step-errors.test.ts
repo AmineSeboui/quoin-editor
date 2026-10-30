@@ -2,10 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { createDoc } from '../model/doc';
 import { setAttrsStep, setIndentStep } from './attrs-steps';
 import { insertBlocksStep, moveBlocksStep, removeBlocksStep, replaceBlockStep } from './block-steps';
-import { addMarkStep, removeMarkStep } from './mark-steps';
+import { addMarkStep, removeMarkStep, restoreMarksStep } from './mark-steps';
 import { replaceInlineStep } from './replace-inline-step';
 import { joinBlocksStep, splitBlockStep } from './split-join-steps';
 import { StepError } from './step';
+import { text } from '../model/inline';
 import { created, para } from './step-fixtures';
 
 const doc = createDoc([para('a', 'hello'), para('b', 'world')]);
@@ -20,6 +21,8 @@ describe('steps that cannot apply', () => {
     ['a fractional offset', replaceInlineStep('a', 'text', 0.5, 2, [])],
     ['adding a mark past the end', addMarkStep('a', 'text', 0, 9, { type: 'bold' })],
     ['removing a mark in a missing region', removeMarkStep('a', 'body', 0, 1, 'bold')],
+    ['restoring marks over text of another length', restoreMarksStep('a', 'text', 0, 2, [text('hello')])],
+    ['restoring marks over other text', restoreMarksStep('a', 'text', 0, 2, [text('xy')])],
     ['patching a missing block', setAttrsStep('z', {})],
     ['indenting a missing block', setIndentStep('z', 1)],
     ['a negative indent', setIndentStep('a', -1)],
@@ -49,6 +52,7 @@ describe('steps that cannot apply', () => {
   it.each([
     ['replaceInline', replaceInlineStep('z', 'text', 0, 0, [])],
     ['addMark', addMarkStep('a', 'text', 0, 9, { type: 'bold' })],
+    ['restoreMarks', restoreMarksStep('a', 'body', 0, 1, [text('h')])],
     ['setAttrs', setAttrsStep('z', { a: 1 })],
     ['setIndent', setIndentStep('z', 1)],
     ['replaceBlock', replaceBlockStep(para('z', ''))],

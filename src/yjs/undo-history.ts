@@ -36,9 +36,10 @@ export function undoHistory(text: Y.Text, origin: object): UndoHistory {
       }
       const next = groupOf(tr);
       const continues = tr.getMeta<string>(HISTORY_GROUP) !== undefined || continuesEdit(tr, end);
-      if (next === null || next !== group || tr.time - time >= GROUP_DELAY || !continues) manager.stopCapturing();
+      const captured = next !== null && next === group && tr.time - time < GROUP_DELAY && continues;
+      if (!captured) manager.stopCapturing();
       group = next;
-      end = editEnd(tr) ?? end;
+      end = editEnd(tr) ?? (captured ? end : null);
       time = tr.time;
       before = tr.before.selection;
     },

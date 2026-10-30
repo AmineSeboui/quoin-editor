@@ -47,7 +47,7 @@ describe('position mapping that does not move anything', () => {
   it.each([
     ['addMark', addMarkStep('a', 'text', 0, 2, { type: 'bold' })],
     ['removeMark', removeMarkStep('a', 'text', 0, 2, 'bold')],
-    ['restoreMarks', restoreMarksStep('a', 'text', 0, 2, [text('ab', [{ type: 'bold' }])])],
+    ['restoreMarks', restoreMarksStep('a', 'text', 0, 2, [text('on', [{ type: 'bold' }])])],
     ['setAttrs', setAttrsStep('a', { kind: 'quote' })],
     ['setIndent', setIndentStep('a', 1)],
     ['insertBlocks', insertBlocksStep(0, [para('n', 'new')])],

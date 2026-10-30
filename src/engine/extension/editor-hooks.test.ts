@@ -59,10 +59,10 @@ describe('createEditor notifications', () => {
 });
 
 describe('createEditor extensions', () => {
-  it('lets a lower priority extension replace a core block, mark and atom spec', () => {
+  it('lets a higher priority extension replace a core block, mark and atom spec', () => {
     const replaced = defineExtension({
       name: 'replaced',
-      priority: 10,
+      priority: 150,
       blocks: [{ ...startEditor([]).editor.schema.blocks.get('DIVIDER')!, flow: 'text' as const }],
       marks: [{ type: 'bold', inclusive: false }],
       atoms: [{ type: 'mention', plainText: () => 'M' }],

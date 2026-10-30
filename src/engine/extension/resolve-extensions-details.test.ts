@@ -57,7 +57,7 @@ describe('resolveExtensions details', () => {
     expect(commands.same).toBe(two);
   });
 
-  it('lets a later extension in the order override a block spec by type', () => {
+  it('lets the extension with the higher priority override a block spec by type', () => {
     const spec = (flow: 'text' | 'void') => ({
       type: 'DIVIDER',
       flow,
@@ -66,7 +66,7 @@ describe('resolveExtensions details', () => {
       initial: () => ({ attrs: {}, regions: {} }),
     });
     const core = defineExtension({ name: 'core', blocks: [spec('void')] });
-    const override = defineExtension({ name: 'override', priority: 50, blocks: [spec('text')] });
+    const override = defineExtension({ name: 'override', priority: 150, blocks: [spec('text')] });
     expect(resolveExtensions([override, core], false).schema.blocks.get('DIVIDER')?.flow).toBe('text');
     expect(resolveExtensions([core, override], false).schema.blocks.get('DIVIDER')?.flow).toBe('text');
   });

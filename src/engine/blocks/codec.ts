@@ -6,12 +6,13 @@ import type { QuoinBlock } from '../model/quoin-block';
 import { sameEngineBlock } from '../model/same-engine-block';
 import type { EngineBlock, EngineDoc } from '../model/types';
 import type { CodecContext, Schema } from '../schema/types';
-import { splitLegacyBlock } from './legacy-split';
+import { pieceIds, splitLegacyBlock } from './legacy-split';
 import { withUniqueIds } from './unique-ids';
 import { specFor } from './unknown-spec';
 
 export type BlockCodec = {
-  toEngineBlocks(block: QuoinBlock): EngineBlock[];
+  /** `taken` holds the ids of the other blocks of the document, which a split piece never takes. */
+  toEngineBlocks(block: QuoinBlock, taken?: ReadonlySet<string>): EngineBlock[];
   toQuoin(block: EngineBlock): QuoinBlock;
   docFromBlocks(blocks: readonly QuoinBlock[]): EngineDoc;
   blocksFromDoc(doc: EngineDoc): QuoinBlock[];
@@ -35,10 +36,13 @@ export function createBlockCodec(schema: Schema, options: { newId?: () => string
     return { id: block.id, type: block.type, indent: countOf(block.indent), attrs, regions };
   }
 
-  // Pieces cached for an earlier document are read again when a real block of this one has taken a derived id.
+  // Pieces cached for an earlier document are read again unless their ids are the ones this document gives them.
   function engineBlocksAmong(block: QuoinBlock, taken: ReadonlySet<string>): EngineBlock[] {
     const cached = engineBlocks.get(block);
-    if (cached?.every((piece, index) => index === 0 || !taken.has(piece.id))) return [...cached];
+    if (cached) {
+      const ids = pieceIds(block.id, cached.length, taken);
+      if (cached.every((piece, index) => piece.id === ids[index])) return [...cached];
+    }
     const pieces = splitLegacyBlock(block, countOf(block.indent), taken);
     if (pieces) {
       const blocks = pieces.map(convert);
@@ -77,7 +81,7 @@ export function createBlockCodec(schema: Schema, options: { newId?: () => string
     return quoin;
   }
 
-  const toEngineBlocks = (block: QuoinBlock) => engineBlocksAmong(block, NO_IDS);
+  const toEngineBlocks = (block: QuoinBlock, taken: ReadonlySet<string> = NO_IDS) => engineBlocksAmong(block, taken);
 
   function docFromBlocks(blocks: readonly QuoinBlock[]): EngineDoc {
     const taken = new Set(blocks.map((block) => block.id));

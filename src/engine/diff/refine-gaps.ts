@@ -3,7 +3,8 @@ import { sameContent } from './block-change';
 import { alignSteps, type Step } from './diff-steps';
 import { pairLeftovers } from './pair-leftovers';
 
-export type Expand = (block: QuoinBlock) => QuoinBlock[];
+export type Side = 'before' | 'after';
+export type Expand = (block: QuoinBlock, side: Side) => QuoinBlock[];
 
 const isAnchor = (step: Step) => step.kind === 'pair' && sameContent(step.before, step.after);
 
@@ -13,8 +14,8 @@ const sameBlocks = (a: readonly QuoinBlock[], b: readonly QuoinBlock[]) =>
 function refineGap(gap: readonly Step[], expand: Expand, byId: boolean): Step[] {
   const before = gap.flatMap((step) => (step.kind === 'insert' ? [] : [step.kind === 'pair' ? step.before : step.block]));
   const after = gap.flatMap((step) => (step.kind === 'delete' ? [] : [step.kind === 'pair' ? step.after : step.block]));
-  const left = before.flatMap(expand);
-  const right = after.flatMap(expand);
+  const left = before.flatMap((block) => expand(block, 'before'));
+  const right = after.flatMap((block) => expand(block, 'after'));
   const unchanged = sameBlocks(before, left) && sameBlocks(after, right);
   return pairLeftovers(unchanged ? gap : alignSteps(left, right, byId));
 }

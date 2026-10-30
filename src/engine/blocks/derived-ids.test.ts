@@ -46,6 +46,16 @@ describe('ids of split pieces beside real blocks', () => {
   });
 });
 
+describe('ids of split pieces after a real block goes away', () => {
+  it('match those of a codec that never saw the real block', () => {
+    const loaded = codec();
+    loaded.docFromBlocks([LEGACY, REAL_2]);
+    const later = [LEGACY, md('x', 'x')];
+    expect(ids(loaded.docFromBlocks(later).blocks)).toEqual(ids(codec().docFromBlocks(later).blocks));
+    expect(ids(loaded.docFromBlocks(later).blocks)).toEqual(['a', 'a-2', 'a-3', 'x']);
+  });
+});
+
 describe('documents with repeated ids', () => {
   const REPEATED = [md('split', '# one\n\ntwo\n\nthree'), md('y', 'y'), md('y', 'y'), md('y', 'y'), md('y', 'y')];
 

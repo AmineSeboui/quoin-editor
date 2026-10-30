@@ -4,7 +4,7 @@ import { createSchema } from '../schema/create-schema';
 import type { Schema } from '../schema/types';
 import { changeBetween, sameContent, type BlockChange } from './block-change';
 import { alignSteps, movedIds } from './diff-steps';
-import { refineSteps } from './refine-gaps';
+import { refineSteps, type Side } from './refine-gaps';
 
 export type BlockDiff =
   | { op: 'equal'; block: QuoinBlock }
@@ -32,8 +32,9 @@ export function diffBlocks(
   const schema = options.schema ?? createSchema();
   const codec = createBlockCodec(schema);
   const byId = idsMostlyMatch(a, b);
-  const expand = (block: QuoinBlock) => {
-    const pieces = codec.toEngineBlocks(block);
+  const taken = { before: new Set(a.map(idOf)), after: new Set(b.map(idOf)) };
+  const expand = (block: QuoinBlock, side: Side) => {
+    const pieces = codec.toEngineBlocks(block, taken[side]);
     return pieces.length === 1 ? [block] : pieces.map(codec.toQuoin);
   };
   const steps = refineSteps(alignSteps(a, b, byId), expand, byId);

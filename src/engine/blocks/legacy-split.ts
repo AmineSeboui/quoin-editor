@@ -6,7 +6,7 @@ const PLAIN_LINE = /^\p{L}(?:[^\r\n]*[^\s\\])?$/u;
 // fromMarkdown has no block for whitespace alone, which a 0.4 block can hold, so it reads as one empty paragraph.
 const BLANK_PIECE: QuoinBlock = { id: '', type: 'MARKDOWN', data: { markdown: '' } };
 
-function pieceIds(id: string, count: number, taken: ReadonlySet<string>): string[] {
+export function pieceIds(id: string, count: number, taken: ReadonlySet<string>): string[] {
   const ids = [id];
   for (let suffix = 2; ids.length < count; suffix++) {
     if (!taken.has(`${id}-${suffix}`)) ids.push(`${id}-${suffix}`);

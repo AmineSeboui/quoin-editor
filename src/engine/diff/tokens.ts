@@ -2,22 +2,17 @@ import type { Inline, InlineNode, TextNode } from '../model/types';
 
 // A word, a whitespace run, or one other character with its combining marks, joiners and emoji modifiers.
 const TOKEN = /\s+|[\p{L}\p{N}_][\p{L}\p{N}\p{M}_]*|.(?:[\p{M}\p{Emoji_Modifier}]|\u{200D}.)*/gsu;
-const UNSPACED = /\p{L}/u;
-
-let segmenter: Intl.Segmenter | undefined;
-
-// Scripts written without spaces are split into words by the runtime's dictionaries, where it has them.
-function words(part: string): string[] {
-  if (!UNSPACED.test(part) || !Intl.Segmenter) return [part];
-  segmenter ??= new Intl.Segmenter([], { granularity: 'word' });
-  return Array.from(segmenter.segment(part), ({ segment }) => segment);
-}
+// Thai, kana and CJK ideographs, written without spaces between words.
+const UNSPACED = /[\u0E00-\u0E7F\u3040-\u9FFF]/;
 
 export function tokenize(inline: Inline): InlineNode[] {
+  const words = Intl.Segmenter && new Intl.Segmenter([], { granularity: 'word' });
+  const split = (part: string) =>
+    UNSPACED.test(part) && words ? Array.from(words.segment(part), ({ segment }) => segment) : [part];
   return inline.flatMap((node): InlineNode[] => {
     if (node.kind === 'atom') return [node];
     return (node.text.match(TOKEN) ?? [])
-      .flatMap(words)
+      .flatMap(split)
       .map((part): TextNode => ({ kind: 'text', text: part, marks: node.marks }));
   });
 }

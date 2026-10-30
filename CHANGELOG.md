@@ -13,7 +13,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 - Typing right after a local change that is not recorded and moves no text, such as opening a toggle or an upload result filling an image, is its own undo step instead of joining the step before it. A remote or reconciled change of that kind leaves the step open.
 - `diffBlocks` reports the word changes of a block that moved and was edited: its `insert` now holds a `change`, as an edited block in place is reported. `QuoinDiff` showed them already and is unchanged.
 - A change inside Chinese, Japanese or Thai text, written without spaces, marks only the changed words where the runtime has `Intl.Segmenter`, where it marked the whole run.
-- Diffing two versions that differ in more than 2,000 blocks, or two texts in more than 2,000 words, reports the older version as deleted and the newer as inserted, whole, so the time and memory stay bounded: two documents of 5,000 blocks with nothing in common diff in a fraction of a second, where it took seconds and hundreds of megabytes.
+- Diffing two versions that differ in more than 2,000 blocks, or two texts in more than 2,000 words, reports the older version as deleted and the newer as inserted, whole and with no block marked as moved, so the time and memory stay bounded: two documents of 5,000 blocks with nothing in common diff in a fraction of a second, where it took seconds and hundreds of megabytes.
 
 ## 1.1.2 (2026-10-30)
 

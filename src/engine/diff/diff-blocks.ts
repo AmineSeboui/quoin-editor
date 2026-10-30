@@ -39,7 +39,9 @@ export function diffBlocks(
     return pieces.length === 1 ? [block] : pieces.map(codec.toQuoin);
   };
   const steps = refineSteps(alignSteps(a, b, byId), expand, byId);
-  const moved = byId ? movedOrigins(steps) : new Map<string, QuoinBlock>();
+  // Ids that match yet pair nowhere mean the alignment gave up past its limit, which shows no move.
+  const aligned = byId && steps.some((step) => step.kind === 'pair');
+  const moved = aligned ? movedOrigins(steps) : new Map<string, QuoinBlock>();
   const change = (before: QuoinBlock, after: QuoinBlock) => changeBetween(before, after, schema, codec.context);
   return steps.map((step): BlockDiff => {
     if (step.kind === 'pair') {

@@ -186,6 +186,17 @@ describe('serializeInline forms', () => {
     ['bold around italic', [text('a ', [b]), text('b', [b, i]), text(' c', [b])], '**a _b_ c**'],
     ['italic around a link', [text('a ', [i]), text('b', [i, link('u')]), text(' c', [i])], '_a [b](u) c_'],
     ['italic around code', [text('a ', [i]), text('b', [c, i]), text(' c', [i])], '_a `b` c_'],
+    [
+      'code over bold stays innermost',
+      [text('a ', [c]), text('b', [c, b]), text(' c', [c])],
+      '` a  `**`b`**`  c `',
+    ],
+    [
+      'code over a link stays innermost',
+      [text('a ', [c]), text('b', [c, link('u')]), text(' c', [c])],
+      '` a  `[`b`](u)`  c `',
+    ],
+    ['code over strike stays innermost', [text('ab', [c]), text('cd', [c, strike])], '`ab`~~`cd`~~'],
     ['unmarked spaces around italic', [text('x '), text('a', [i]), text(' y')], 'x _a_ y'],
     ['italic with edge spaces next to bold', [text(' a ', [i]), text('b', [b, i])], '<em> a **b**</em>'],
     ['an italic that would fuse with a bold', [text('a', [b]), text('b', [i]), text('c')], '**a**<em>b</em>c'],

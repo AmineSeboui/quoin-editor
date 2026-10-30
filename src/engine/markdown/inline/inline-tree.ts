@@ -30,13 +30,18 @@ function runLengths(nodes: Inline): number[][] {
   return total;
 }
 
-// A mark that covers more nodes opens outside the marks it contains, whatever their rank. Equal spans keep rank order.
+// A mark that covers more nodes opens outside the marks it contains, whatever their rank, except code, which stays innermost.
 function nesting(nodes: Inline): Mark[][] {
   const lengths = runLengths(nodes);
   return nodes.map(({ marks }, index) =>
     marks
       .map((mark, at) => ({ mark, at }))
-      .sort((x, y) => lengths[index][y.at] - lengths[index][x.at] || x.at - y.at)
+      .sort(
+        (x, y) =>
+          Number(x.mark.type === 'code') - Number(y.mark.type === 'code') ||
+          lengths[index][y.at] - lengths[index][x.at] ||
+          x.at - y.at,
+      )
       .map(({ mark }) => mark),
   );
 }

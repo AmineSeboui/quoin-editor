@@ -10,7 +10,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 - Undoing formatting is now a step of a new kind, `restoreMarks`, in step JSON; a host that relays steps between clients of different versions needs the same version on both ends, as older versions cannot read it.
 - A legacy block beside a real block named like one of its derived ids, such as `a` beside `a-2`, is diffed under the same ids the editor gives its pieces, so the diff no longer reports a deletion, a change and an insertion for an unchanged document.
 - A codec that has loaded a document with such a real block gives the same ids to a later document without it as a new codec does.
-- Typing right after a change that is not recorded and moves no text, such as opening a toggle or an upload result filling an image, is its own undo step instead of joining the step before it.
+- Typing right after a local change that is not recorded and moves no text, such as opening a toggle or an upload result filling an image, is its own undo step instead of joining the step before it. A remote or reconciled change of that kind leaves the step open.
 
 ## 1.1.2 (2026-10-30)
 

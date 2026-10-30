@@ -219,4 +219,16 @@ describe('diffBlocks of a legacy block beside a real block named like a derived 
     const diff = diffBlocks([legacy('- three'), real], [legacy('- three'), { ...real }]);
     expect(diff.every((d) => d.op === 'equal')).toBe(true);
   });
+
+  it('agrees with the editor for two legacy blocks and two collisions', () => {
+    const second = (last: string) => md('b', `# uno\n\ndos\n\n${last}`);
+    const reals = [md('a-2', 'r2'), md('a-3', 'r3'), md('b-2', 'r4')];
+    const before = [legacy('- three'), second('- x'), ...reals];
+    const after = [legacy('- four'), second('- y'), ...reals];
+    const expected = createEditor({ blocks: before, isMac: true }).state.doc.blocks.map((block) => block.id);
+    const diff = diffBlocks(before, after);
+    const ids = diff.map((d) => (d.op === 'change' ? d.after.id : d.block.id));
+    expect(ids).toEqual(expected);
+    expect(ops(diff).filter((op) => op === 'change')).toHaveLength(2);
+  });
 });

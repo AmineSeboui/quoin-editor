@@ -120,7 +120,8 @@ function advance(tr: Transaction, value: HistoryState, config: Config): HistoryS
     if (tr.addToHistory && !foreignOrigins.includes(tr.origin)) return recorded(tr, value, config);
     if (!movesNoPosition(tr.before.doc, tr.doc, tr.maps)) return emptyHistory;
   }
-  const closed = tr.docChanged || tr.getMeta<boolean>('closeHistory') === true;
+  const local = tr.docChanged && !foreignOrigins.includes(tr.origin);
+  const closed = local || tr.getMeta<boolean>('closeHistory') === true;
   const relocated = tr.selectionSet && !sameSelection(tr.before.selection, tr.selection);
   return {
     ...value,

@@ -37,4 +37,20 @@ describe('undo gives back the stored block objects', () => {
     editor.handleKey(key('Tab', { shiftKey: true }));
     expect(editor.getBlocks()[1]).toBe(second);
   });
+
+  it('returns the object last emitted for the content, then the host object', () => {
+    let time = 0;
+    const host = md('a', 'abc');
+    const { editor, onChange } = startEditor([host], { now: () => time });
+    editor.commands.setSelection(caret('a', 3));
+    editor.insertText('d');
+    const afterD = editor.getBlocks()[0];
+    expect(afterD).toBe(onChange.mock.calls.at(-1)?.[0][0]);
+    time = 10_000;
+    editor.insertText('e');
+    editor.commands.undo();
+    expect(editor.getBlocks()[0]).toBe(afterD);
+    editor.commands.undo();
+    expect(editor.getBlocks()[0]).toBe(host);
+  });
 });

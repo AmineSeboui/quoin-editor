@@ -5,8 +5,8 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 ## Unreleased
 
 ### Fixed
-- Undo gives back the stored block objects: after a character is typed and undone, `getBlocks()` returns the host's own object and `onChange` reports unchanged blocks as the same objects, so a block written in a legacy form, such as `*old style*`, is not rewritten as `_old style_` and an intact 0.4 multi-paragraph group is emitted as the original block, where a host saw a changed document and saved again.
-- Italic or strikethrough around bold is stored as plain markdown, such as `_a **b** c_`, instead of HTML tags: a mark that spans more of the text now opens outside the marks it contains.
+- A block whose content returns to what was stored is reported as the stored object, whether by undo or by retyping, so `getBlocks()` and `onChange` give back the host's own object. A block written in a legacy form, such as `*old style*`, is not rewritten as `_old style_`, and an intact 0.4 multi-paragraph group is emitted as the original block.
+- A mark that spans more of the text is written outside the marks it contains, so nested emphasis such as `_a **b** c_` is stored without HTML tags in more cases. Inline code stays innermost.
 
 ## 1.1.1 (2026-10-29)
 

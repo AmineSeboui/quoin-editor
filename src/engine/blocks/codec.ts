@@ -27,7 +27,7 @@ export function createBlockCodec(schema: Schema, options: { newId?: () => string
   const engineBlocks = new WeakMap<QuoinBlock, EngineBlock[]>();
   const quoinBlocks = new WeakMap<EngineBlock, QuoinBlock>();
   const splitGroups = new WeakMap<EngineBlock, SplitGroup>();
-  const remembered = new Map<string, EngineBlock>();
+  const remembered = new Map<string, EngineBlock[]>();
   const groupsById = new Map<string, SplitGroup>();
 
   function convert(block: QuoinBlock): EngineBlock {
@@ -46,7 +46,7 @@ export function createBlockCodec(schema: Schema, options: { newId?: () => string
       const group = { original: block, blocks };
       for (const piece of blocks) {
         splitGroups.set(piece, group);
-        remembered.set(piece.id, piece);
+        remembered.set(piece.id, [piece]);
       }
       groupsById.set(blocks[0].id, group);
       return [...blocks];
@@ -54,15 +54,16 @@ export function createBlockCodec(schema: Schema, options: { newId?: () => string
     const engine = convert(block);
     engineBlocks.set(block, [engine]);
     quoinBlocks.set(engine, block);
-    remembered.set(engine.id, engine);
+    remembered.set(engine.id, [engine]);
     return [engine];
   }
 
   function toQuoin(block: EngineBlock): QuoinBlock {
     const cached = quoinBlocks.get(block);
     if (cached) return cached;
-    const earlier = remembered.get(block.id);
-    const earlierQuoin = earlier && sameEngineBlock(earlier, block) ? quoinBlocks.get(earlier) : undefined;
+    const earlier = remembered.get(block.id) ?? [];
+    const match = [...earlier].reverse().find((piece) => quoinBlocks.has(piece) && sameEngineBlock(piece, block));
+    const earlierQuoin = match && quoinBlocks.get(match);
     if (earlierQuoin) {
       quoinBlocks.set(block, earlierQuoin);
       return earlierQuoin;
@@ -72,7 +73,7 @@ export function createBlockCodec(schema: Schema, options: { newId?: () => string
     if (block.indent > 0) quoin.indent = block.indent;
     quoinBlocks.set(block, quoin);
     engineBlocks.set(quoin, [block]);
-    if (!earlier) remembered.set(block.id, block);
+    remembered.set(block.id, [...earlier.slice(0, 1), ...earlier.slice(1).slice(-1), block]);
     return quoin;
   }
 

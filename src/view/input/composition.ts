@@ -27,7 +27,7 @@ function elementOf(controller: ViewController, target: Target | null): HTMLEleme
 
 // Some browsers apply the committed text in an input event after compositionend, so the host is read once that event
 // has run, or after a zero delay timeout when none comes.
-export function createCompositionHandlers(controller: ViewController): CompositionHandlers {
+export function createCompositionHandlers(controller: ViewController, settled = () => {}): CompositionHandlers {
   let active = false;
   let target: Target | null = null;
   let snapshot: CompositionSnapshot | null = null;
@@ -47,6 +47,7 @@ export function createCompositionHandlers(controller: ViewController): Compositi
       controller.renderHost(host.block, host.region);
       controller.syncSelectionToDom();
     }
+    settled();
   }
 
   function waitForInput(element: HTMLElement | undefined): void {

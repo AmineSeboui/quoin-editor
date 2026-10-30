@@ -37,7 +37,7 @@ function composedText(sink: HTMLElement, { before, after }: Outside): string {
 // event has run, or after a zero delay timeout when none comes. Keys such as Home move the sink's caret without
 // changing the model, so only the text that lay inside the sink's selection when the first composition started is
 // replaced.
-export function createSinkComposition(controller: ViewController): SinkComposition {
+export function createSinkComposition(controller: ViewController, settled = () => {}): SinkComposition {
   let outside: Outside | null = null;
   let stopWaiting: (() => void) | null = null;
 
@@ -52,6 +52,7 @@ export function createSinkComposition(controller: ViewController): SinkCompositi
     clearSink(controller);
     if (text === '') controller.syncSelectionToDom();
     else controller.edit(() => controller.editor.insertText(text));
+    settled();
   }
 
   return {

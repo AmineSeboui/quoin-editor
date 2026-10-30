@@ -15,7 +15,7 @@ const OBSERVED: MutationObserverInit = { characterData: true, childList: true, s
 // Mutation records arrive after the change that caused them, so the controller drains the records of its own render
 // right after writing a host; by the time they would arrive the model may have moved on. A read-only host is only
 // rewritten by something other than the user, such as a page translator, and that must never become a document change.
-// Edits to other hosts during a composition are kept until compositionend flushes them.
+// Edits to other hosts during a composition are kept until it settles and the input layer flushes them.
 export function createDomInputFallback(controller: ViewController): DomInputFallback {
   const pending = new Map<string, HostEntry>();
   const observers = new Map<HTMLElement, MutationObserver>();

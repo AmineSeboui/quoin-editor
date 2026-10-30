@@ -1,3 +1,4 @@
+import { mapSelection } from '../../engine/state/selection';
 import { attachClipboard } from '../clipboard/attach-clipboard';
 import type { ViewController } from '../controller/view-controller';
 import { listen } from '../dom/listen';
@@ -15,9 +16,22 @@ export type AttachedInput = {
 };
 
 export function attachInput(controller: ViewController, root: HTMLElement): AttachedInput {
-  const composition = createCompositionHandlers(controller);
-  const sinkComposition = createSinkComposition(controller);
   const fallback = createDomInputFallback(controller);
+  // What other hosts gained during a composition is read once it has settled, and leaves the caret where it settled.
+  const afterComposition = () => {
+    const { editor } = controller;
+    let { selection } = editor.state;
+    const stop = editor.subscribe((_, tr) => {
+      if (tr && selection) selection = mapSelection(selection, (pos, assoc) => tr.mapPos(pos, assoc));
+    });
+    fallback.flush();
+    stop();
+    if (selection && editor.state.selection !== selection) {
+      controller.dispatch(editor.createTransaction().setSelection(selection));
+    }
+  };
+  const composition = createCompositionHandlers(controller, afterComposition);
+  const sinkComposition = createSinkComposition(controller, afterComposition);
   const observed = new Map<HTMLElement, () => void>();
   const inHost = (event: Event) => controller.registry.locate(event.target as Node | null) !== null;
   const inSink = (event: Event) => controller.sink !== null && event.target === controller.sink;
@@ -49,7 +63,6 @@ export function attachInput(controller: ViewController, root: HTMLElement): Atta
     else if (inSink(event)) sinkComposition.start();
   };
   const onCompositionEnd = (event: CompositionEvent) => {
-    fallback.flush();
     if (inSink(event)) sinkComposition.end();
     else composition.end(event);
   };

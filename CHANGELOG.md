@@ -2,6 +2,11 @@
 
 Every release of `quoin-editor` is listed here, newest first, in the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). From 1.0.0 the package follows [semantic versioning](https://semver.org/): a breaking change waits for the next major version. Until then, Quoin was 0.x and a minor version could contain breaking changes; those known at release were marked "Breaking". The 0.x sections are kept as they were released, "Docs" headings included. Moving from 0.4 to 1.0 is covered step by step in [MIGRATION.md](MIGRATION.md). Review finding ids such as F-17 are those of the 0.4.0 review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73).
 
+## Unreleased
+
+### Fixed
+- Undo gives back the stored block objects: after a character is typed and undone, `getBlocks()` returns the host's own object and `onChange` reports unchanged blocks as the same objects, so a block written in a legacy form, such as `*old style*`, is not rewritten as `_old style_` and an intact 0.4 multi-paragraph group is emitted as the original block, where a host saw a changed document and saved again.
+
 ## 1.1.1 (2026-10-29)
 
 ### Fixed

@@ -18,7 +18,7 @@ const stripIds = (blocks: QuoinBlock[]) => blocks.map(({ id: _id, ...rest }) => 
 const rewritten = (markdown: string) => {
   const codec = make();
   const doc = codec.docFromBlocks([legacy(markdown)]);
-  return stripIds(doc.blocks.map((block) => codec.toQuoin({ ...block })));
+  return stripIds(doc.blocks.map((block) => make().toQuoin({ ...block })));
 };
 
 describe('0.4 MARKDOWN blocks that hold one node', () => {
@@ -36,10 +36,10 @@ describe('0.4 MARKDOWN blocks that hold one node', () => {
     const doc = codec.docFromBlocks([block]);
     expect(doc.blocks).toHaveLength(1);
     expect(codec.blocksFromDoc(doc)[0]).toBe(block);
-    const stored = codec.toQuoin({ ...doc.blocks[0] }).data.markdown;
+    const stored = make().toQuoin({ ...doc.blocks[0] }).data.markdown;
     expect(stored).toBe(canonical);
     expect(stored).not.toContain('<br>');
-    expect(stripIds([codec.toQuoin({ ...doc.blocks[0] })])).toEqual(stripIds(reads(markdown)));
+    expect(stripIds([make().toQuoin({ ...doc.blocks[0] })])).toEqual(stripIds(reads(markdown)));
   });
 
   it('reads a one line image as an IMAGE block', () => {
@@ -64,7 +64,7 @@ describe('0.4 MARKDOWN blocks that hold one node', () => {
     const block: QuoinBlock = { id: 'a', type: 'MARKDOWN', data: { markdown: 'Hello\n', align: 'center' } };
     const doc = codec.docFromBlocks([block]);
     expect(doc.blocks[0].attrs).toMatchObject({ kind: 'paragraph', align: 'center' });
-    expect(codec.toQuoin({ ...doc.blocks[0] }).data).toEqual({ markdown: 'Hello', align: 'center' });
+    expect(make().toQuoin({ ...doc.blocks[0] }).data).toEqual({ markdown: 'Hello', align: 'center' });
   });
 
   it('keeps the base indent of a single node that is read canonically', () => {

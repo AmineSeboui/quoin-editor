@@ -3,6 +3,7 @@ import { countOf } from '../model/count';
 import { createDoc } from '../model/doc';
 import { newId } from '../model/new-id';
 import type { QuoinBlock } from '../model/quoin-block';
+import { sameEngineBlock } from '../model/same-engine-block';
 import type { EngineBlock, EngineDoc } from '../model/types';
 import type { CodecContext, Schema } from '../schema/types';
 import { splitLegacyBlock } from './legacy-split';
@@ -26,6 +27,8 @@ export function createBlockCodec(schema: Schema, options: { newId?: () => string
   const engineBlocks = new WeakMap<QuoinBlock, EngineBlock[]>();
   const quoinBlocks = new WeakMap<EngineBlock, QuoinBlock>();
   const splitGroups = new WeakMap<EngineBlock, SplitGroup>();
+  const remembered = new Map<string, EngineBlock[]>();
+  const groupsById = new Map<string, SplitGroup>();
 
   function convert(block: QuoinBlock): EngineBlock {
     const { attrs, regions } = specFor(schema, block.type).fromData(block.data, context);
@@ -40,23 +43,37 @@ export function createBlockCodec(schema: Schema, options: { newId?: () => string
     if (pieces) {
       const blocks = pieces.map(convert);
       engineBlocks.set(block, blocks);
-      for (const piece of blocks) splitGroups.set(piece, { original: block, blocks });
+      const group = { original: block, blocks };
+      for (const piece of blocks) {
+        splitGroups.set(piece, group);
+        remembered.set(piece.id, [piece]);
+      }
+      groupsById.set(blocks[0].id, group);
       return [...blocks];
     }
     const engine = convert(block);
     engineBlocks.set(block, [engine]);
     quoinBlocks.set(engine, block);
+    remembered.set(engine.id, [engine]);
     return [engine];
   }
 
   function toQuoin(block: EngineBlock): QuoinBlock {
     const cached = quoinBlocks.get(block);
     if (cached) return cached;
+    const earlier = remembered.get(block.id) ?? [];
+    const match = [...earlier].reverse().find((piece) => quoinBlocks.has(piece) && sameEngineBlock(piece, block));
+    const earlierQuoin = match && quoinBlocks.get(match);
+    if (earlierQuoin) {
+      quoinBlocks.set(block, earlierQuoin);
+      return earlierQuoin;
+    }
     const data = specFor(schema, block.type).toData(block, context);
     const quoin: QuoinBlock = { id: block.id, type: block.type, data };
     if (block.indent > 0) quoin.indent = block.indent;
     quoinBlocks.set(block, quoin);
     engineBlocks.set(quoin, [block]);
+    remembered.set(block.id, [...earlier.slice(0, 1), ...earlier.slice(1).slice(-1), block]);
     return quoin;
   }
 
@@ -70,8 +87,11 @@ export function createBlockCodec(schema: Schema, options: { newId?: () => string
   function blocksFromDoc(doc: EngineDoc): QuoinBlock[] {
     const result: QuoinBlock[] = [];
     for (let at = 0; at < doc.blocks.length; ) {
-      const group = splitGroups.get(doc.blocks[at]);
-      const intact = group?.blocks.every((piece, offset) => doc.blocks[at + offset] === piece);
+      const group = splitGroups.get(doc.blocks[at]) ?? groupsById.get(doc.blocks[at].id);
+      const intact = group?.blocks.every((piece, offset) => {
+        const block = doc.blocks[at + offset];
+        return block !== undefined && (block === piece || sameEngineBlock(block, piece));
+      });
       if (group && intact) {
         result.push(group.original);
         at += group.blocks.length;

@@ -32,11 +32,17 @@ for (const [name, { doc, selected, type, click }] of Object.entries(cases)) {
     await click(page);
     await expect(page.locator(`[data-block-id="${selected}"]`)).toHaveAttribute('data-selected', 'true');
     await expect(sink(page)).toBeFocused();
+    const existing = new Set((await blocks(page)).map((block) => block.id));
     const before = (await types(page)).filter((each) => each === type).length;
     await page.keyboard.press('ControlOrMeta+c');
     await caretAtEndOfLastLine(page);
     await page.keyboard.press('ControlOrMeta+v');
     await expect.poll(async () => (await types(page)).filter((each) => each === type)).toHaveLength(before + 1);
+    const after = await blocks(page);
+    const original = after.find((block) => block.id === selected)!;
+    const pasted = after.find((block) => !existing.has(block.id))!;
+    expect(pasted.type).toBe(type);
+    expect(pasted.data).toEqual(original.data);
   });
 
   test(`a clicked ${name} is cut with Mod+X and brought back with Mod+Z`, async ({ page }) => {

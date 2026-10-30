@@ -76,7 +76,7 @@ docker run --rm --ipc=host -v "$PWD":/src:ro \
     cd /work && npm ci --no-audit --no-fund && CI=true npx playwright test --project=firefox'
 ```
 
-Add `--cpus=1` after `--ipc=host` to reproduce the timing of a CI runner. With `CI` set, the performance spec compares a large document with a small one rather than holding it to a fixed time, so it holds on a slow machine.
+Add `--cpus=1` after `--ipc=host` to reproduce the timing of a CI runner. With `CI` set, the performance spec holds the large document to 16 ms scaled by a calibration measured on the runner (never below 1) and compares it with a small one rather than holding it to a fixed time, so it holds on a slow machine.
 
 ## Before you open a pull request
 

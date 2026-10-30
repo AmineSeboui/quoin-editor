@@ -7,9 +7,9 @@ const schema = createSchema();
 const codec = createBlockCodec(schema, { newId: () => 'new' });
 const engineBlock = (type: string, data: Record<string, unknown>) =>
   codec.toEngineBlocks({ id: 'x', type, data })[0];
-// A copy of the engine block is not in the codec cache, so toQuoin serializes it again.
+// A second codec has no earlier block of this id, so toQuoin serializes the copy.
 const roundTrip = (type: string, data: Record<string, unknown>) =>
-  codec.toQuoin({ ...engineBlock(type, data) }).data;
+  createBlockCodec(schema).toQuoin({ ...engineBlock(type, data) }).data;
 
 describe('core block specs', () => {
   it.each([

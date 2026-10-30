@@ -10,7 +10,7 @@ const schema = createSchema();
 const codec = createBlockCodec(schema, { newId: () => 'new' });
 const fromData = (type: string, data: Record<string, unknown>) =>
   codec.toEngineBlocks({ id: 'x', type, data })[0];
-const toData = (block: EngineBlock) => codec.toQuoin({ ...block }).data;
+const toData = (block: EngineBlock) => createBlockCodec(schema).toQuoin({ ...block }).data;
 const withAttrs = (block: EngineBlock, attrs: Record<string, unknown>): EngineBlock => ({
   ...block,
   attrs: { ...block.attrs, ...attrs },

@@ -9,15 +9,15 @@ test('the home editor hands its edits back as markdown', async ({ page }) => {
   await page.locator('.quoin-editor').getByText('Diff it in git').click();
   await page.keyboard.press('End');
   await page.keyboard.type(' today');
-  await expect(page.getByRole('region', { name: 'What onChange hands you, as markdown' }).locator('pre')).toContainText('- [ ] Diff it in git today');
+  await expect(page.getByRole('region', { name: 'On disk' }).locator('pre')).toContainText('- [ ] Diff it in git today');
 });
 
 test('the home panel shows the stored markdown once typing pauses for 300 ms', async ({ page }) => {
   await page.clock.install();
   await page.goto('');
   await waitForIslands(page);
-  const panel = page.getByRole('region', { name: 'What onChange hands you, as markdown' });
-  await expect(panel).toContainText('It shows what is stored once you pause typing for 300 ms.');
+  const panel = page.getByRole('region', { name: 'On disk' });
+  await expect(panel).toContainText('What onChange hands you, once typing pauses for 300 ms.');
   await page.locator('.quoin-editor').getByText('Diff it in git').click();
   await page.keyboard.press('End');
   await page.keyboard.type(' now');

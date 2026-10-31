@@ -1,3 +1,5 @@
+import { BrandMark } from './BrandMark';
+import { GitHubIcon, MoonIcon, SunIcon } from './icons';
 import { demoPages, guidePages, referencePages, type Page } from './pages';
 import { NPM_URL, pageHref, REPO_URL } from './site';
 
@@ -31,32 +33,35 @@ const ITEMS: Item[] = [
 export function SiteHeader({ page }: { page: Page }) {
   return (
     <header className="site-header">
-      <a className="brand" href={pageHref('')} aria-current={page.kind === 'home' ? 'page' : undefined}>
-        <span className="brand-mark" aria-hidden="true">
-          Q
-        </span>
-        Quoin
-      </a>
-      <nav aria-label="Site" className="site-nav">
-        <ul>
-          {ITEMS.map(({ label, path, current }) => (
-            <li key={path}>
-              <a href={pageHref(path)} aria-current={current(page)}>
-                {label}
-              </a>
-            </li>
-          ))}
-          <li>
-            <a href={REPO_URL}>GitHub</a>
-          </li>
-          <li>
-            <a href={NPM_URL}>npm</a>
-          </li>
-        </ul>
-      </nav>
-      <button type="button" className="theme-toggle" data-theme-toggle aria-pressed="false">
-        Dark mode
-      </button>
+      <div className="site-header-inner">
+        <a className="brand" href={pageHref('')} aria-current={page.kind === 'home' ? 'page' : undefined}>
+          <BrandMark />
+          Quoin
+        </a>
+        <nav aria-label="Site" className="site-nav">
+          <ul>
+            {ITEMS.map(({ label, path, current }) => (
+              <li key={path}>
+                <a href={pageHref(path)} aria-current={current(page)}>
+                  {label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <div className="site-actions">
+          <a className="site-action" href={NPM_URL}>
+            npm
+          </a>
+          <a className="site-action icon-button" href={REPO_URL} aria-label="GitHub">
+            <GitHubIcon />
+          </a>
+          <button type="button" className="icon-button" data-theme-toggle aria-pressed="false" aria-label="Dark mode">
+            <MoonIcon />
+            <SunIcon />
+          </button>
+        </div>
+      </div>
     </header>
   );
 }

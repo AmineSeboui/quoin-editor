@@ -17,7 +17,7 @@ export const homeDocument: QuoinBlock[] = [
   text('task', '- [x] Store the document as plain JSON'),
   text('task-2', '- [ ] Diff it in git'),
   text('quote', '> Blocks you never edit are never rewritten.'),
-  { id: 'callout', type: 'CALLOUT', data: { tone: 'tip', body: 'The panel beside the editor is what onChange hands you, as markdown.' } },
+  { id: 'callout', type: 'CALLOUT', data: { tone: 'tip', body: 'The On disk pane is what onChange hands you, as markdown.' } },
   { id: 'toggle', type: 'TOGGLE', data: { markdown: 'What is a quoin?', open: false } },
   text('toggle-body', 'The wedge a printer tightens to lock blocks of type into the frame.', 1),
   { id: 'code', type: 'CODE', data: { language: 'tsx', code: '<BlockCanvas blocks={blocks} onChange={setBlocks} />' } },

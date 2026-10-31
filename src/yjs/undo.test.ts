@@ -27,6 +27,15 @@ describe('undo through the shared document', () => {
     expect(one.editor.can().undo()).toBe(false);
   });
 
+  it('undoes typing right after a mark shortcut as one change', () => {
+    const { one } = twoPeers();
+    one.editor.commands.setSelection(caret('a', 5));
+    for (const char of ' **b**z') one.editor.insertText(char);
+    expect(one.editor.commands.undo()).toBe(true);
+    expect(one.editor.getBlocks()[0]).toEqual(md('a', 'hello'));
+    expect(one.editor.can().undo()).toBe(false);
+  });
+
   it('undoes typing in two places of one block as two changes', () => {
     const { one } = twoPeers();
     one.editor.commands.setSelection(caret('a', 0));

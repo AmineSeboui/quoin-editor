@@ -10,10 +10,10 @@ function replacements(tr: Transaction): Replacement[] {
   return replaced.map((step) => step.toJSON() as unknown as Replacement);
 }
 
-/** Where the caret stands after a transaction's edit: the caret it set, else the end of its last inline replacement. */
+/** Where the caret stands after a transaction's edit: its resulting caret, else the end of its last inline replacement. */
 export function editEnd(tr: Transaction): Pos | null {
   const { selection } = tr;
-  if (tr.selectionSet && selection?.kind === 'text' && isCollapsed(selection)) return selection.head;
+  if (selection?.kind === 'text' && isCollapsed(selection)) return selection.head;
   const last = replacements(tr).at(-1);
   return last === undefined
     ? null

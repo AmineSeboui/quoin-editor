@@ -1,9 +1,9 @@
 import { regionLength } from '../../engine/commands/block-helpers';
 import { requireBlockIndex } from '../../engine/model/doc';
-import { isCollapsed, textSelection } from '../../engine/state/selection';
+import { isCollapsed } from '../../engine/state/selection';
 import type { ViewController } from '../controller/view-controller';
 import { isCrossSelection } from '../selection/selection-decorations';
-import { collapseCross, crossHeadHorizontally } from './cross-moves';
+import { collapseCross, crossHeadHorizontally, moveHead } from './cross-moves';
 import { moveToNeighbour, neighbourHead, ownNode } from './neighbour-block';
 import { dispatchSelection } from '../controller/dispatch-selection';
 
@@ -29,7 +29,5 @@ export function moveHorizontally(controller: ViewController, direction: -1 | 1, 
   }
   if (!extend) return moveToNeighbour(controller, head.block, direction);
   const edge = neighbourHead(controller, head.block, direction);
-  if (edge === null) return false;
-  dispatchSelection(controller, textSelection(selection.anchor, edge));
-  return true;
+  return edge !== null && moveHead(controller, selection, edge);
 }

@@ -1,4 +1,5 @@
 import type { Pos, TextSelection } from '../../engine';
+import { regionLength } from '../../engine/commands/block-helpers';
 import { requireBlockIndex } from '../../engine/model/doc';
 import { nextGraphemeOffset, prevGraphemeOffset } from '../../engine/model/graphemes';
 import { inlineText } from '../../engine/model/inline';
@@ -7,7 +8,8 @@ import type { ViewController } from '../controller/view-controller';
 import { neighbourHead } from './neighbour-block';
 import { dispatchSelection } from '../controller/dispatch-selection';
 
-function moveHead(controller: ViewController, { anchor }: TextSelection, head: Pos): true {
+/** The head of a text selection to `head`, keeping its anchor. */
+export function moveHead(controller: ViewController, { anchor }: TextSelection, head: Pos): true {
   dispatchSelection(controller, textSelection(anchor, head));
   return true;
 }
@@ -21,6 +23,17 @@ export function collapseCross(controller: ViewController, selection: TextSelecti
   const { from, to } = selectionRange(controller.editor.state.doc, selection) as { from: Pos; to: Pos };
   dispatchSelection(controller, textSelection(direction < 0 ? from : to));
   return true;
+}
+
+export function crossHeadVertically(controller: ViewController, selection: TextSelection, direction: -1 | 1): true {
+  const { head } = selection;
+  const edge = neighbourHead(controller, head.block, direction);
+  if (edge !== null) {
+    const end = regionLength(blockOf(controller, edge), edge.region);
+    return moveHead(controller, selection, { ...edge, offset: Math.min(head.offset, end) });
+  }
+  const end = regionLength(blockOf(controller, head), head.region);
+  return moveHead(controller, selection, { ...head, offset: direction < 0 ? 0 : end });
 }
 
 export function crossHeadHorizontally(controller: ViewController, selection: TextSelection, direction: -1 | 1): true {

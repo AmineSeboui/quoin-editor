@@ -69,7 +69,7 @@ Every key below works on the canvas, and the shortcuts dialog (Mod+Shift+/ from 
 | End of the document | ⌘↓ | Ctrl+End |
 | Leave the editor | Escape, then Tab | Escape, then Tab |
 
-Shift with Ctrl+Home or Ctrl+End extends the selection to the start or the end of the document. On a Mac, ⌘⇧↑ and ⌘⇧↓ move the block instead, as listed under Blocks. Shift with an arrow keeps the caret's horizontal position from line to line, across blocks drawn in different fonts too.
+Shift with Ctrl+Home or Ctrl+End extends the selection to the start or the end of the document. On a Mac, ⌘⇧↑ and ⌘⇧↓ move the block instead, as listed under Blocks, and extend the selection to the edge only where the block cannot move, such as in the first block. Shift with an arrow keeps the caret's horizontal position from line to line, across blocks drawn in different fonts too.
 
 ## Menus
 

@@ -5,7 +5,7 @@ import { posToDom } from '../controller/dom-selection';
 import type { ViewController } from '../controller/view-controller';
 import { isCrossSelection } from '../selection/selection-decorations';
 import { caretInHost } from './caret-in-host';
-import { collapseCross } from './cross-moves';
+import { collapseCross, crossHeadVertically, moveHead } from './cross-moves';
 import { adjacentLineMiddle, caretClientRect, isOnFirstLine, isOnLastLine, lineEdgeRect } from './line-edges';
 import { canBeEntered, entryEdge, holdsTextHead, moveToNeighbour, neighbourBlock, ownNode } from './neighbour-block';
 import { stayOnLine } from './stay-on-line';
@@ -83,17 +83,16 @@ function landing(
   return target && (landAtGoal(controller, target, direction) ?? entryEdge(controller, target.id, direction));
 }
 
-// A selection across hosts is drawn by the editor, so the browser can make none of its moves: past the first or the
-// last line of the document the head goes to the edge of its block.
+// A selection across hosts is drawn by the editor, so the browser can make none of its moves.
 function moveText(controller: ViewController, selection: TextSelection, direction: -1 | 1, extend: boolean): boolean {
-  const edge = isCrossSelection(selection) ? entryEdge(controller, selection.head.block, -direction as -1 | 1) : null;
-  const next = landing(controller, selection, direction, extend) ?? edge;
+  const next = landing(controller, selection, direction, extend);
   if (next === null) {
+    if (isCrossSelection(selection)) return crossHeadVertically(controller, selection, direction);
     controller.nativeVerticalMove = true;
     return false;
   }
-  const moved = extend && next.kind === 'text' ? textSelection(selection.anchor, next.head) : next;
-  dispatchSelection(controller, moved);
+  if (extend && next.kind === 'text') return moveHead(controller, selection, next.head);
+  dispatchSelection(controller, next);
   return true;
 }
 

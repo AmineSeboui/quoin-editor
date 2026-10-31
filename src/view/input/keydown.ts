@@ -1,7 +1,6 @@
 import type { TextSelection } from '../../engine';
-import { textSelection } from '../../engine/state/selection';
-import { dispatchSelection } from '../controller/dispatch-selection';
 import type { ViewController } from '../controller/view-controller';
+import { moveHead } from '../navigation/cross-moves';
 import { moveHorizontally } from '../navigation/horizontal';
 import { moveToNeighbour, neighbourHead } from '../navigation/neighbour-block';
 import { moveVertically } from '../navigation/vertical';
@@ -45,9 +44,7 @@ function documentEdge(controller: ViewController, event: KeyboardEvent): boolean
   const direction = at ? -1 : 1;
   const { selection } = controller.editor.state;
   const head = event.shiftKey && selection?.kind === 'text' && neighbourHead(controller, null, direction);
-  if (!head) return moveToNeighbour(controller, null, direction);
-  dispatchSelection(controller, textSelection((selection as TextSelection).anchor, head));
-  return true;
+  return head ? moveHead(controller, selection as TextSelection, head) : moveToNeighbour(controller, null, direction);
 }
 
 // Tab in text never leaves the editor, even where nothing indents: Escape then Tab is the documented way out.

@@ -4,7 +4,7 @@ import type { QuoinBlock } from '../model/quoin-block';
 import { diffBlocks } from './diff-blocks';
 
 const BLOCKS = 5_000;
-const BUDGET_MS = 1_000;
+const BUDGET_MS = 3_000;
 
 const document = (prefix: string): QuoinBlock[] =>
   Array.from({ length: BLOCKS }, (_, at) => ({

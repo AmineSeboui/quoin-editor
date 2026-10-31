@@ -32,7 +32,7 @@ describe('handleBeforeInput', () => {
 
   it('leaves composition and unknown types to the browser', () => {
     const { controller } = setup();
-    const composing = input('insertCompositionText', 'に');
+    const composing = input('insertCompositionText', '\u306b');
     handleBeforeInput(controller, composing);
     expect(composing.defaultPrevented).toBe(false);
     const unknown = input('insertFromYank', 'x');

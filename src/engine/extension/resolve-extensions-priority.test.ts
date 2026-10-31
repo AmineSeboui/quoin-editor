@@ -62,7 +62,7 @@ describe('extension priority', () => {
     expect(winners(resolved)).toEqual({ block: 'custom', key, command: factory });
   });
 
-  it('keeps today’s winners for two extensions at the default priority', () => {
+  it('keeps today\u2019s winners for two extensions at the default priority', () => {
     const first = overriding('first');
     const second = overriding('second');
     const resolved = resolveExtensions([first.extension, second.extension], false);

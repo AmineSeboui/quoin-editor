@@ -217,10 +217,10 @@ describe('a third-party edit during a composition', () => {
     (other.firstChild as Text).data = 'yo!';
     await nextTask();
     expect(text(1)).toBe('yo');
-    type(host, 'hi日');
-    compose(host, 'end', '日');
+    type(host, 'hi\u65e5');
+    compose(host, 'end', '\u65e5');
     await nextTask();
-    expect([text(0), text(1)]).toEqual(['hi日', 'yo!']);
+    expect([text(0), text(1)]).toEqual(['hi\u65e5', 'yo!']);
     expect(editor.state.selection).toEqual(textSelection({ block: 'a', region: 'text', offset: 3 }));
   });
 

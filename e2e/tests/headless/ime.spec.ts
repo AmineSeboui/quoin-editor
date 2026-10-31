@@ -8,10 +8,10 @@ test.describe('IME composition', () => {
     await openHeadless(page);
     await caretAt(page, 1, 0);
     const cdp = await page.context().newCDPSession(page);
-    await cdp.send('Input.imeSetComposition', { text: 'に', selectionStart: 1, selectionEnd: 1 });
-    await cdp.send('Input.imeSetComposition', { text: 'にほ', selectionStart: 2, selectionEnd: 2 });
-    await cdp.send('Input.imeSetComposition', { text: 'にほん', selectionStart: 3, selectionEnd: 3 });
-    await cdp.send('Input.insertText', { text: '日本' });
+    await cdp.send('Input.imeSetComposition', { text: '\u306b', selectionStart: 1, selectionEnd: 1 });
+    await cdp.send('Input.imeSetComposition', { text: '\u306b\u307b', selectionStart: 2, selectionEnd: 2 });
+    await cdp.send('Input.imeSetComposition', { text: '\u306b\u307b\u3093', selectionStart: 3, selectionEnd: 3 });
+    await cdp.send('Input.insertText', { text: '\u65e5\u672c' });
     const paragraph = 'A paragraph with **bold**, _italic_ and `code`.';
     await expect.poll(async () => (await markdown(page))[1]).toBe(`\u65e5\u672c${paragraph}`);
     await page.keyboard.type('!');
@@ -69,9 +69,9 @@ test.describe('IME composition', () => {
     await page.keyboard.type('**ab**');
     await page.keyboard.press('ArrowLeft');
     const cdp = await page.context().newCDPSession(page);
-    await cdp.send('Input.imeSetComposition', { text: 'é', selectionStart: 1, selectionEnd: 1 });
-    await cdp.send('Input.insertText', { text: 'é' });
-    await expect.poll(async () => (await markdown(page))[0]).toBe('**aéb**');
+    await cdp.send('Input.imeSetComposition', { text: '\u00e9', selectionStart: 1, selectionEnd: 1 });
+    await cdp.send('Input.insertText', { text: '\u00e9' });
+    await expect.poll(async () => (await markdown(page))[0]).toBe('**a\u00e9b**');
   });
 
   test('a script that rewrites another block during a composition reaches the model once it commits', async ({ page }) => {

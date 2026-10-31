@@ -8,7 +8,8 @@ import type { ViewController } from '../controller/view-controller';
 import { neighbourHead } from './neighbour-block';
 import { dispatchSelection } from '../controller/dispatch-selection';
 
-function moveHead(controller: ViewController, { anchor }: TextSelection, head: Pos): true {
+/** The head of a text selection to `head`, keeping its anchor. */
+export function moveHead(controller: ViewController, { anchor }: TextSelection, head: Pos): true {
   dispatchSelection(controller, textSelection(anchor, head));
   return true;
 }

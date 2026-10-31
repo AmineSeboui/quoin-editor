@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, onTestFinished } from 'vitest';
 import { act, cleanup, render } from '@testing-library/react';
 import { textSelection, type QuoinBlock } from '../../engine';
 import type { ViewController } from '../controller/view-controller';
@@ -8,6 +8,12 @@ import { Editor, hostOf, md } from '../react/test-harness';
 const at = (block: string, offset: number) => ({ block, region: 'text', offset });
 
 afterEach(cleanup);
+
+// jsdom has no Range.getClientRects, so no caret has a box and no line is found to move along.
+function withoutLayout() {
+  Object.defineProperty(Range.prototype, 'getClientRects', { configurable: true, value: () => [] });
+  onTestFinished(() => void delete (Range.prototype as Partial<Range>).getClientRects);
+}
 
 function mount(blocks: QuoinBlock[] = [md('a', 'hello'), md('b', 'mid'), md('c', 'world')]) {
   let controller!: ViewController;
@@ -51,7 +57,8 @@ describe('arrows on a selection across hosts', () => {
     expect(editor.state.selection).toEqual(textSelection(at('a', 4), at('a', 5)));
   });
 
-  it('move the head one host at a time with Shift+Up and Shift+Down, keeping its offset where it fits', () => {
+  it('move the head one host at a time with Shift+Up and Shift+Down where no line is found, keeping its offset', () => {
+    withoutLayout();
     const { editor, select, press } = mount();
     select(at('a', 4), at('b', 1));
     press('ArrowDown', true);
@@ -63,5 +70,16 @@ describe('arrows on a selection across hosts', () => {
     expect(editor.state.selection).toEqual(textSelection(at('a', 4), at('b', 3)));
     press('ArrowUp', true);
     expect(editor.state.selection).toEqual(textSelection(at('a', 4), at('a', 3)));
+  });
+
+  it('move the head to the edge of its text with Shift+Up and Shift+Down past the ends of the document', () => {
+    withoutLayout();
+    const { editor, select, press } = mount();
+    select(at('a', 4), at('c', 1));
+    press('ArrowDown', true);
+    expect(editor.state.selection).toEqual(textSelection(at('a', 4), at('c', 5)));
+    select(at('c', 4), at('a', 3));
+    press('ArrowUp', true);
+    expect(editor.state.selection).toEqual(textSelection(at('c', 4), at('a', 0)));
   });
 });

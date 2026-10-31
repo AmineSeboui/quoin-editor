@@ -117,12 +117,11 @@ describe('QuoinDiff', () => {
     expect(diff([md('t', '- [ ] Old')], [md('t', '- [ ] ')])).toContain('aria-label="Task"');
   });
 
-  it('marks a run of CJK text without spaces as one word, deleted and inserted whole', () => {
+  it('marks only the changed word of a Chinese sentence written without spaces', () => {
     const before = [md('a', '\u4eca\u5929\u5929\u6c14\u5f88\u597d')];
     const after = [md('a', '\u4eca\u5929\u5929\u6c14\u4e0d\u597d')];
-    expect(diff(before, after)).toContain(
-      `<p>${del('\u4eca\u5929\u5929\u6c14\u5f88\u597d')}${ins('\u4eca\u5929\u5929\u6c14\u4e0d\u597d')}</p>`,
-    );
+    const changed = `${del('\u5f88\u597d')}${ins('\u4e0d\u597d')}`;
+    expect(diff(before, after)).toContain(`<p>\u4eca\u5929\u5929\u6c14${changed}</p>`);
   });
 
   it('marks every change of a whole document, with each heading id once', () => {

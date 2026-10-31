@@ -201,3 +201,58 @@ describe('detaching during a composition', () => {
     expect(editor.getBlocks().map((block) => block.data.markdown)).toEqual(['hi', 'yo']);
   });
 });
+
+describe('a third-party edit during a composition', () => {
+  const compose = (target: HTMLElement, phase: 'start' | 'end', data = '') =>
+    target.dispatchEvent(new CompositionEvent(`composition${phase}`, { data, bubbles: true }));
+
+  it('reaches the model once the composition in another host ends', async () => {
+    const { editor, controller, root, addHost, text } = mount();
+    const host = addHost('a');
+    const other = addHost('b');
+    detachers.push(controller.attach(root));
+    controller.dispatch(editor.createTransaction().setSelection(textSelection({ block: 'a', region: 'text', offset: 2 })));
+    document.getSelection()!.collapse(host.firstChild, 2);
+    compose(host, 'start');
+    (other.firstChild as Text).data = 'yo!';
+    await nextTask();
+    expect(text(1)).toBe('yo');
+    type(host, 'hi\u65e5');
+    compose(host, 'end', '\u65e5');
+    await nextTask();
+    expect([text(0), text(1)]).toEqual(['hi\u65e5', 'yo!']);
+    expect(editor.state.selection).toEqual(textSelection({ block: 'a', region: 'text', offset: 3 }));
+  });
+
+  it('reaches the model when it lands after compositionend, before the composition settles', async () => {
+    const { editor, controller, root, addHost, text } = mount();
+    const host = addHost('a');
+    const other = addHost('b');
+    detachers.push(controller.attach(root));
+    controller.dispatch(editor.createTransaction().setSelection(textSelection({ block: 'a', region: 'text', offset: 2 })));
+    document.getSelection()!.collapse(host.firstChild, 2);
+    compose(host, 'start');
+    type(host, 'hi\u65e5');
+    compose(host, 'end', '\u65e5');
+    (other.firstChild as Text).data = 'yo!';
+    await nextTask();
+    await nextTask();
+    expect([text(0), text(1)]).toEqual(['hi\u65e5', 'yo!']);
+    expect(editor.state.selection).toEqual(textSelection({ block: 'a', region: 'text', offset: 3 }));
+  });
+
+  it('leaves the caret in the composing block when the composition commits nothing', async () => {
+    const { editor, controller, root, addHost, text } = mount();
+    const host = addHost('a');
+    const other = addHost('b');
+    detachers.push(controller.attach(root));
+    controller.dispatch(editor.createTransaction().setSelection(textSelection({ block: 'a', region: 'text', offset: 1 })));
+    document.getSelection()!.collapse(host.firstChild, 1);
+    compose(host, 'start');
+    (other.firstChild as Text).data = 'yo!';
+    compose(host, 'end');
+    await nextTask();
+    expect([text(0), text(1)]).toEqual(['hi', 'yo!']);
+    expect(editor.state.selection).toEqual(textSelection({ block: 'a', region: 'text', offset: 1 }));
+  });
+});

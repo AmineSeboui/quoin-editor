@@ -5,7 +5,7 @@ import { posToDom } from '../controller/dom-selection';
 import type { ViewController } from '../controller/view-controller';
 import { isCrossSelection } from '../selection/selection-decorations';
 import { caretInHost } from './caret-in-host';
-import { collapseCross, crossHeadVertically } from './cross-moves';
+import { collapseCross, crossHeadVertically, moveHead } from './cross-moves';
 import { adjacentLineMiddle, caretClientRect, isOnFirstLine, isOnLastLine, lineEdgeRect } from './line-edges';
 import { canBeEntered, entryEdge, holdsTextHead, moveToNeighbour, neighbourBlock, ownNode } from './neighbour-block';
 import { stayOnLine } from './stay-on-line';
@@ -43,7 +43,8 @@ function landAtGoal(controller: ViewController, block: EngineBlock, direction: -
 }
 
 // The browser keeps its own goal column across the moves it makes inside a host, but not across a caret the editor
-// put down, so a caret that stopped short of the goal at the end of a shorter line is moved by the editor.
+// put down, so a caret that stopped short of the goal at the end of a shorter line is moved by the editor, as is the
+// head of a selection across hosts, which the browser does not hold.
 function moveInHost(
   controller: ViewController,
   host: HTMLElement,
@@ -52,7 +53,8 @@ function moveInHost(
   direction: -1 | 1,
 ): Pos | null {
   const { goalX } = controller;
-  if (goalX === null || !caret || Math.abs(caret.left - goalX) < caret.height / 2) return null;
+  const native = !isCrossSelection(controller.editor.state.selection);
+  if (goalX === null || !caret || (native && Math.abs(caret.left - goalX) < caret.height / 2)) return null;
   const y = adjacentLineMiddle(host, caret, direction);
   const pos = y === null ? null : caretAtGoal(controller, host, head, y);
   return pos && pos.offset !== head.offset ? pos : null;
@@ -81,14 +83,16 @@ function landing(
   return target && (landAtGoal(controller, target, direction) ?? entryEdge(controller, target.id, direction));
 }
 
+// A selection across hosts is drawn by the editor, so the browser can make none of its moves.
 function moveText(controller: ViewController, selection: TextSelection, direction: -1 | 1, extend: boolean): boolean {
   const next = landing(controller, selection, direction, extend);
   if (next === null) {
+    if (isCrossSelection(selection)) return crossHeadVertically(controller, selection, direction);
     controller.nativeVerticalMove = true;
     return false;
   }
-  const moved = extend && next.kind === 'text' ? textSelection(selection.anchor, next.head) : next;
-  dispatchSelection(controller, moved);
+  if (extend && next.kind === 'text') return moveHead(controller, selection, next.head);
+  dispatchSelection(controller, next);
   return true;
 }
 
@@ -104,7 +108,7 @@ export function moveVertically(controller: ViewController, direction: -1 | 1, ex
   if (selection?.kind === 'node') return !extend && moveToNeighbour(controller, selection.block, direction);
   if (selection?.kind === 'blocks') return extend && extendBlocks(controller, selection, direction);
   if (selection?.kind !== 'text') return false;
-  if (!isCrossSelection(selection)) return moveText(controller, selection, direction, extend);
+  if (extend || !isCrossSelection(selection)) return moveText(controller, selection, direction, extend);
   controller.goalX = null;
-  return (extend ? crossHeadVertically : collapseCross)(controller, selection, direction);
+  return collapseCross(controller, selection, direction);
 }

@@ -81,4 +81,47 @@ describe('history across unrecorded changes that move no text', () => {
     const edit = replaceInlineStep('b3', 'text', 4, 4, [text('!')]);
     expect(stacks(unrecorded(typed(), setAttrsStep('b1', { open: true }), edit))).toEqual([0, 0]);
   });
+
+  it('closes the open undo group, so typing after an unrecorded change is its own undo step', () => {
+    const type = (state: EditorState, letter: string, offset: number, time: number) =>
+      applyTransaction(
+        state,
+        new Transaction(state, time)
+          .setOrigin('input')
+          .step(replaceInlineStep('b0', 'text', offset, offset, [text(letter)])),
+      );
+    let state = buildState(['', TOGGLE], { block: 0, offset: 0 }, { plugins: [historyPlugin()] });
+    state = type(state, 'a', 0, 0);
+    state = applyTransaction(
+      state,
+      new Transaction(state, 100).setMeta('addToHistory', false).step(setAttrsStep('b1', { open: true })),
+    );
+    state = type(state, 'b', 1, 200);
+    expect(undoDepth(state)).toBe(2);
+    expect(markdownOf(run(state, undo).state)[0]).toBe('a');
+  });
+
+  it.each<TransactionOrigin>(['remote', 'reconcile'])(
+    'keeps two keystrokes in one undo step across a neutral %s change',
+    (origin) => {
+      const type = (state: EditorState, letter: string, offset: number, time: number) =>
+        applyTransaction(
+          state,
+          new Transaction(state, time)
+            .setOrigin('input')
+            .step(replaceInlineStep('b0', 'text', offset, offset, [text(letter)])),
+        );
+      let state = buildState(['', TOGGLE], { block: 0, offset: 0 }, { plugins: [historyPlugin()] });
+      state = type(state, 'a', 0, 0);
+      state = applyTransaction(
+        state,
+        new Transaction(state, 100)
+          .setOrigin(origin)
+          .setMeta('addToHistory', false)
+          .step(setAttrsStep('b1', { open: true })),
+      );
+      state = type(state, 'b', 1, 200);
+      expect(undoDepth(state)).toBe(1);
+    },
+  );
 });

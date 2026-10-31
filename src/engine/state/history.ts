@@ -3,10 +3,11 @@ import type { Command } from '../commands/command';
 import { chainDispatches } from '../commands/run-commands';
 import { text } from '../model/inline';
 import type { Mark, Pos, Selection } from '../model/types';
-import { isPositionNeutral } from '../transform/position-neutral';
+import { movesNoPosition } from '../transform/position-neutral';
 import { replaceInlineStep } from '../transform/replace-inline-step';
 import type { Step } from '../transform/step';
 import type { EditorState } from './editor-state';
+import { continuesEdit, editEnd } from './history-adjacent';
 import { createPluginKey, type PluginSpec } from './plugin';
 import { isCollapsed, sameSelection, textSelection } from './selection';
 import { foreignOrigins, Transaction, UNFILTERED, type TransactionOrigin } from './transaction';
@@ -29,6 +30,7 @@ export type HistoryState = {
   readonly undone: readonly HistoryItem[];
   readonly lastTime: number;
   readonly lastGroup: string | null;
+  readonly lastEnd?: Pos | null;
   readonly lastInputRule: InputRuleRecord | null;
 };
 
@@ -82,12 +84,18 @@ function recorded(tr: Transaction, value: HistoryState, { depth, groupDelay }: C
   const steps = invertTransaction(tr);
   const group = groupOf(tr);
   const last = value.done.at(-1);
+  const named = tr.getMeta<string>(HISTORY_GROUP) !== undefined;
   const merges =
-    last !== undefined && group !== null && group === value.lastGroup && tr.time - value.lastTime < groupDelay;
+    last !== undefined &&
+    group !== null &&
+    group === value.lastGroup &&
+    tr.time - value.lastTime < groupDelay &&
+    (named || continuesEdit(tr, value.lastEnd));
   const done = merges
     ? [...value.done.slice(0, -1), { ...last, steps: [...steps, ...last.steps] }]
     : newest([...value.done, { steps, selection: tr.before.selection, origin: tr.origin }], depth);
-  return { done, undone: [], lastTime: tr.time, lastGroup: group, lastInputRule: inputRuleRecord(tr, steps) };
+  const lastEnd = editEnd(tr) ?? (merges ? value.lastEnd : null);
+  return { done, undone: [], lastTime: tr.time, lastGroup: group, lastEnd, lastInputRule: inputRuleRecord(tr, steps) };
 }
 
 function moved(tr: Transaction, value: HistoryState, direction: Direction, depth: number): HistoryState {
@@ -105,17 +113,15 @@ function moved(tr: Transaction, value: HistoryState, direction: Direction, depth
   return { ...value, ...stacks, lastGroup: null, lastInputRule: null };
 }
 
-const movesNoPosition = (tr: Transaction) =>
-  tr.steps.every((_, i) => isPositionNeutral(tr.docs[i], { doc: tr.docs[i + 1] ?? tr.doc, map: tr.maps[i] }));
-
 function advance(tr: Transaction, value: HistoryState, config: Config): HistoryState {
   if (tr.docChanged) {
     const direction = tr.getMeta<Direction>('history');
     if (direction !== undefined) return moved(tr, value, direction, config.depth);
     if (tr.addToHistory && !foreignOrigins.includes(tr.origin)) return recorded(tr, value, config);
-    if (!movesNoPosition(tr)) return emptyHistory;
+    if (!movesNoPosition(tr.before.doc, tr.doc, tr.maps)) return emptyHistory;
   }
-  const closed = tr.getMeta<boolean>('closeHistory') === true;
+  const local = tr.docChanged && !foreignOrigins.includes(tr.origin);
+  const closed = local || tr.getMeta<boolean>('closeHistory') === true;
   const relocated = tr.selectionSet && !sameSelection(tr.before.selection, tr.selection);
   return {
     ...value,

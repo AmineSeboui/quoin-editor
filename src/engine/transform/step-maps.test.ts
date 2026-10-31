@@ -4,7 +4,7 @@ import { atom, text } from '../model/inline';
 import type { EngineBlock } from '../model/types';
 import { setAttrsStep, setIndentStep } from './attrs-steps';
 import { insertBlocksStep, moveBlocksStep, removeBlocksStep, replaceBlockStep } from './block-steps';
-import { addMarkStep, removeMarkStep } from './mark-steps';
+import { addMarkStep, removeMarkStep, restoreMarksStep } from './mark-steps';
 import { replaceInlineStep } from './replace-inline-step';
 import { joinBlocksStep, splitBlockStep } from './split-join-steps';
 import type { CreatedBlock } from './step';
@@ -47,6 +47,7 @@ describe('position mapping that does not move anything', () => {
   it.each([
     ['addMark', addMarkStep('a', 'text', 0, 2, { type: 'bold' })],
     ['removeMark', removeMarkStep('a', 'text', 0, 2, 'bold')],
+    ['restoreMarks', restoreMarksStep('a', 'text', 0, 2, [text('on', [{ type: 'bold' }])])],
     ['setAttrs', setAttrsStep('a', { kind: 'quote' })],
     ['setIndent', setIndentStep('a', 1)],
     ['insertBlocks', insertBlocksStep(0, [para('n', 'new')])],

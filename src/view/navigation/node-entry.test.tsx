@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, onTestFinished } from 'vitest';
 import { act, render } from '@testing-library/react';
 import { createElement } from 'react';
 import type { QuoinBlock, Selection } from '../../engine';
@@ -22,21 +22,29 @@ const captioned =
     </div>
   );
 
+// A text block drawn as more than its text when it is the block `m`.
+const marked: BlockRenderer = ({ block }) => (
+  <div {...(block.id === 'm' ? { [NODE_ENTRY]: '' } : {})}>
+    <EditableRegion block={block.id} region="text" label="Text" />
+  </div>
+);
+
 afterEach(() => document.body.replaceChildren());
 
-function mount(blocks: QuoinBlock[], marked = true) {
+function mount(blocks: QuoinBlock[], marked = true, renderers: Record<string, BlockRenderer> = {}) {
   let controller!: ViewController;
   const options = { blocks, onChange: () => {} };
-  const view = { renderers: { IMAGE: captioned(marked) } };
+  const view = { renderers: { IMAGE: captioned(marked), ...renderers } };
   render(createElement(Editor, { options, view, onController: (c: ViewController) => (controller = c) }));
   const select = (selection: Selection) =>
     act(() => controller.dispatch(controller.editor.createTransaction().setSelection(selection)));
-  const press = (name: string) => {
-    const event = new KeyboardEvent('keydown', { key: name, cancelable: true, bubbles: true });
+  const press = (name: string, shiftKey = false) => {
+    const event = new KeyboardEvent('keydown', { key: name, shiftKey, cancelable: true, bubbles: true });
     act(() => handleKeydown(controller, event));
     return controller.editor.state.selection;
   };
-  return { select, press };
+  const focus = () => act(() => controller.focus());
+  return { select, press, focus };
 }
 
 describe('a block drawn as a whole around its text', () => {
@@ -66,6 +74,15 @@ describe('a block drawn as a whole around its text', () => {
     expect(press('ArrowUp')).toEqual(nodeSelection('i'));
     select(textSelection(at('i', 0, 'caption')));
     expect(press('ArrowDown')).toEqual(textSelection(at('b', 0)));
+  });
+
+  it('keeps the text head of a selection across blocks at an edge of the document, in a block drawn as a whole', () => {
+    const { select, press, focus } = mount([md('a', 'one'), md('m', 'two')], true, { MARKDOWN: marked });
+    focus();
+    select(textSelection(at('a', 1), at('m', 1)));
+    Object.defineProperty(Range.prototype, 'getClientRects', { configurable: true, value: () => [] });
+    onTestFinished(() => void delete (Range.prototype as Partial<Range>).getClientRects);
+    expect(press('ArrowDown', true)).toEqual(textSelection(at('a', 1), at('m', 3)));
   });
 
   it('takes the caret into its text from the arrows when it is not marked', () => {

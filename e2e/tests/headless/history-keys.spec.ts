@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { host, modelSelection, openHeadless } from '../../support/headless';
 
 const START = 'about:blank#start';
+const MAC = process.platform === 'darwin';
 
 async function openAfterAnotherPage(page: Page) {
   await page.goto(START);
@@ -26,10 +27,25 @@ test.describe('keys the browser takes for history navigation', () => {
     await page.locator('[data-type="DIVIDER"]').click();
     const selected = { kind: 'node', block: 'd' };
     await expect.poll(() => modelSelection(page)).toEqual(selected);
-    for (const key of ['Meta+ArrowLeft', 'Meta+ArrowRight', 'Meta+ArrowUp', 'Meta+ArrowDown']) {
+    const vertical = MAC ? [] : ['Meta+ArrowUp', 'Meta+ArrowDown'];
+    for (const key of ['Meta+ArrowLeft', 'Meta+ArrowRight', ...vertical]) {
       await press(page, key);
       expect(await modelSelection(page)).toEqual(selected);
     }
+  });
+
+  test('Cmd+ArrowUp and Cmd+ArrowDown over a node-selected divider go to the document edges', async ({ page }) => {
+    test.skip(!MAC, 'Command with a vertical arrow goes to an edge of the document on macOS only');
+    await openAfterAnotherPage(page);
+    const divider = page.locator('[data-type="DIVIDER"]');
+    await divider.click();
+    await expect.poll(() => modelSelection(page)).toEqual({ kind: 'node', block: 'd' });
+    await press(page, 'Meta+ArrowUp');
+    expect(await modelSelection(page)).toMatchObject({ kind: 'text', head: { block: 'a', offset: 0 } });
+    await divider.click();
+    await expect.poll(() => modelSelection(page)).toEqual({ kind: 'node', block: 'd' });
+    await press(page, 'Meta+ArrowDown');
+    expect(await modelSelection(page)).toMatchObject({ kind: 'text', head: { block: 'b', offset: 1 } });
   });
 
   test('Cmd and Alt arrows over a block selection stay in the page and leave the selection', async ({ page }) => {

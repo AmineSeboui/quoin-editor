@@ -203,3 +203,32 @@ describe('diffBlocks speed', () => {
     expect(large).toBeLessThan(500);
   });
 });
+
+describe('diffBlocks of a legacy block beside a real block named like a derived id', () => {
+  const legacy = (last: string) => md('a', `# one\n\ntwo\n\n${last}`);
+  const real = md('a-2', 'real two');
+
+  it('gives the pieces the ids the editor gives them, so an edit shows in one piece only', () => {
+    const diff = diffBlocks([legacy('- three'), real], [legacy('- four'), real]);
+    const ids = diff.map((d) => (d.op === 'change' ? d.after.id : d.block.id));
+    expect(ids).toEqual(['a', 'a-3', 'a-4', 'a-2']);
+    expect(ops(diff)).toEqual(['equal', 'equal', 'change', 'equal']);
+  });
+
+  it('reports no change for the same document', () => {
+    const diff = diffBlocks([legacy('- three'), real], [legacy('- three'), { ...real }]);
+    expect(diff.every((d) => d.op === 'equal')).toBe(true);
+  });
+
+  it('agrees with the editor for two legacy blocks and two collisions', () => {
+    const second = (last: string) => md('b', `# uno\n\ndos\n\n${last}`);
+    const reals = [md('a-2', 'r2'), md('a-3', 'r3'), md('b-2', 'r4')];
+    const before = [legacy('- three'), second('- x'), ...reals];
+    const after = [legacy('- four'), second('- y'), ...reals];
+    const expected = createEditor({ blocks: before, isMac: true }).state.doc.blocks.map((block) => block.id);
+    const diff = diffBlocks(before, after);
+    const ids = diff.map((d) => (d.op === 'change' ? d.after.id : d.block.id));
+    expect(ids).toEqual(expected);
+    expect(ops(diff).filter((op) => op === 'change')).toHaveLength(2);
+  });
+});

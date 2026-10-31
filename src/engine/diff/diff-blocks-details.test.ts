@@ -112,12 +112,23 @@ describe('diffBlocks moved blocks', () => {
     expect(diff.filter((d) => 'moved' in d)).toEqual([]);
   });
 
-  it('carries the old block on the delete and the new block on the insert of an edited move', () => {
+  it('carries the old block on the delete and the new block with its changes on the insert of an edited move', () => {
     const diff = diffBlocks([md('a', 'old'), md('b', '2')], [md('b', '2'), md('a', 'new')]);
     expect(diff).toEqual([
       { op: 'delete', block: md('a', 'old'), moved: true },
       { op: 'equal', block: md('b', '2') },
-      { op: 'insert', block: md('a', 'new'), moved: true },
+      {
+        op: 'insert',
+        block: md('a', 'new'),
+        moved: true,
+        change: {
+          op: 'change',
+          before: md('a', 'old'),
+          after: md('a', 'new'),
+          regions: { text: [{ op: 'delete', inline: [text('old')] }, { op: 'insert', inline: [text('new')] }] },
+          attrsChanged: false,
+        },
+      },
     ]);
   });
 

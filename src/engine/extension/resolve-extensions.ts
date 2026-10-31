@@ -29,16 +29,17 @@ function commandsOf(extensions: readonly Extension[]): CommandFactories {
   return Object.fromEntries(commands);
 }
 
+const priorityOf = (extension: Extension) => extension.priority ?? DEFAULT_PRIORITY;
+
 export function resolveExtensions(extensions: readonly Extension[], isMac: boolean): ResolvedExtensions {
-  const sorted = [...extensions].sort(
-    (a, b) => (b.priority ?? DEFAULT_PRIORITY) - (a.priority ?? DEFAULT_PRIORITY),
-  );
+  const sorted = [...extensions].sort((a, b) => priorityOf(b) - priorityOf(a));
+  const lowestFirst = [...extensions].sort((a, b) => priorityOf(a) - priorityOf(b));
   return {
     extensions: sorted,
     schema: createSchema({
-      blocks: sorted.flatMap((extension) => extension.blocks ?? []),
-      marks: sorted.flatMap((extension) => extension.marks ?? []),
-      atoms: sorted.flatMap((extension) => extension.atoms ?? []),
+      blocks: lowestFirst.flatMap((extension) => extension.blocks ?? []),
+      marks: lowestFirst.flatMap((extension) => extension.marks ?? []),
+      atoms: lowestFirst.flatMap((extension) => extension.atoms ?? []),
     }),
     inputRules: sorted.flatMap((extension) => extension.inputRules ?? []),
     pasteRules: sorted.flatMap((extension) => extension.pasteRules ?? []),

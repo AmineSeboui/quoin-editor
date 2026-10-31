@@ -8,10 +8,10 @@ test.describe('IME composition', () => {
     await openHeadless(page);
     await caretAt(page, 1, 0);
     const cdp = await page.context().newCDPSession(page);
-    await cdp.send('Input.imeSetComposition', { text: 'に', selectionStart: 1, selectionEnd: 1 });
-    await cdp.send('Input.imeSetComposition', { text: 'にほ', selectionStart: 2, selectionEnd: 2 });
-    await cdp.send('Input.imeSetComposition', { text: 'にほん', selectionStart: 3, selectionEnd: 3 });
-    await cdp.send('Input.insertText', { text: '日本' });
+    await cdp.send('Input.imeSetComposition', { text: '\u306b', selectionStart: 1, selectionEnd: 1 });
+    await cdp.send('Input.imeSetComposition', { text: '\u306b\u307b', selectionStart: 2, selectionEnd: 2 });
+    await cdp.send('Input.imeSetComposition', { text: '\u306b\u307b\u3093', selectionStart: 3, selectionEnd: 3 });
+    await cdp.send('Input.insertText', { text: '\u65e5\u672c' });
     const paragraph = 'A paragraph with **bold**, _italic_ and `code`.';
     await expect.poll(async () => (await markdown(page))[1]).toBe(`\u65e5\u672c${paragraph}`);
     await page.keyboard.type('!');
@@ -69,8 +69,25 @@ test.describe('IME composition', () => {
     await page.keyboard.type('**ab**');
     await page.keyboard.press('ArrowLeft');
     const cdp = await page.context().newCDPSession(page);
-    await cdp.send('Input.imeSetComposition', { text: 'é', selectionStart: 1, selectionEnd: 1 });
-    await cdp.send('Input.insertText', { text: 'é' });
-    await expect.poll(async () => (await markdown(page))[0]).toBe('**aéb**');
+    await cdp.send('Input.imeSetComposition', { text: '\u00e9', selectionStart: 1, selectionEnd: 1 });
+    await cdp.send('Input.insertText', { text: '\u00e9' });
+    await expect.poll(async () => (await markdown(page))[0]).toBe('**a\u00e9b**');
+  });
+
+  test('a script that rewrites another block during a composition reaches the model once it commits', async ({ page }) => {
+    await openHeadless(page, 'three');
+    await caretAt(page, 0, 5);
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Input.imeSetComposition', { text: '\u304b', selectionStart: 1, selectionEnd: 1 });
+    await host(page, 2).evaluate((element) => {
+      (element.firstChild as Text).data = 'Zeta FIXED theta';
+    });
+    await cdp.send('Input.imeSetComposition', { text: '\u304b\u3093', selectionStart: 2, selectionEnd: 2 });
+    await cdp.send('Input.insertText', { text: '\u6f22' });
+    await expect
+      .poll(() => modelMarkdown(page))
+      .toEqual(['Alpha\u6f22 beta gamma', 'Delta epsilon', 'Zeta FIXED theta']);
+    await page.keyboard.type('!');
+    await expect.poll(async () => (await modelMarkdown(page))[0]).toBe('Alpha\u6f22! beta gamma');
   });
 });

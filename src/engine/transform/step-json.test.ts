@@ -3,7 +3,7 @@ import { createDoc } from '../model/doc';
 import { atom, text } from '../model/inline';
 import { setAttrsStep, setIndentStep } from './attrs-steps';
 import { insertBlocksStep, moveBlocksStep, removeBlocksStep, replaceBlockStep } from './block-steps';
-import { addMarkStep, removeMarkStep } from './mark-steps';
+import { addMarkStep, removeMarkStep, restoreMarksStep } from './mark-steps';
 import { replaceDocStep } from './replace-doc-step';
 import { replaceInlineStep } from './replace-inline-step';
 import { joinBlocksStep, splitBlockStep } from './split-join-steps';
@@ -23,6 +23,7 @@ describe('step JSON', () => {
     ['addMark', addMarkStep('a', 'text', 0, 2, { type: 'link', attrs: { href: 'https://a.b' } })],
     ['removeMark', removeMarkStep('a', 'text', 0, 2, { type: 'bold' })],
     ['removeMark', removeMarkStep('a', 'text', 0, 2, 'bold')],
+    ['restoreMarks', restoreMarksStep('a', 'text', 0, 2, [text('he', [{ type: 'bold' }])])],
     ['setAttrs', setAttrsStep('a', { kind: 'heading', level: 2, gone: undefined })],
     ['setIndent', setIndentStep('a', 2)],
     ['insertBlocks', insertBlocksStep(1, [para('n', 'new'), divider('m')])],

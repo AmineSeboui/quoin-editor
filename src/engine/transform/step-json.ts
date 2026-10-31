@@ -3,7 +3,7 @@ import { isRecord } from '../model/is-record';
 import type { EngineBlock, EngineDoc, Inline, Mark } from '../model/types';
 import { patchFromJSON, setAttrsStep, setIndentStep } from './attrs-steps';
 import { insertBlocksStep, moveBlocksStep, removeBlocksStep, replaceBlockStep } from './block-steps';
-import { addMarkStep, removeMarkStep } from './mark-steps';
+import { addMarkStep, removeMarkStep, restoreMarksStep } from './mark-steps';
 import { replaceDocStep } from './replace-doc-step';
 import { replaceInlineStep } from './replace-inline-step';
 import { joinBlocksStep, splitBlockStep } from './split-join-steps';
@@ -71,6 +71,14 @@ export function stepFromJSON(json: StepJSON): Step {
         read('from', isInteger),
         read('to', isInteger),
         read('mark', isMarkOrType),
+      );
+    case 'restoreMarks':
+      return restoreMarksStep(
+        read('block', isString),
+        read('region', isString),
+        read('from', isInteger),
+        read('to', isInteger),
+        read('slice', isInline),
       );
     case 'setAttrs':
       return setAttrsStep(read('block', isString), patchFromJSON(read('patch', isRecord)));

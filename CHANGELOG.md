@@ -2,6 +2,25 @@
 
 Every release of `quoin-editor` is listed here, newest first, in the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). From 1.0.0 the package follows [semantic versioning](https://semver.org/): a breaking change waits for the next major version. Until then, Quoin was 0.x and a minor version could contain breaking changes; those known at release were marked "Breaking". The 0.x sections are kept as they were released, "Docs" headings included. Moving from 0.4 to 1.0 is covered step by step in [MIGRATION.md](MIGRATION.md). Review finding ids such as F-17 are those of the 0.4.0 review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73).
 
+## Unreleased
+
+### Fixed
+- An extension's `priority` means one thing for blocks, marks, atoms, keys and commands: the higher wins. A block, mark or atom spec from an extension at a lower priority than another extension, core included, no longer replaces it, where the lower priority won for schema entries and the higher for keys and commands. Extensions at the default priority resolve as before. `priority` is now described in the extensions docs.
+- Undo separates edits made in two places: typing at the start of a block and then at its end within the grouping delay is two undo steps, as it is in a collaboration, and a caret that lands where the last edit ended still groups. Undoing a formatting change no longer collapses positions inside the range, so collaborators' carets, highlights and comment ranges stay where they were.
+- Undoing formatting is now a step of a new kind, `restoreMarks`, in step JSON; a host that relays steps between clients of different versions needs the same version on both ends, as older versions cannot read it. This is the one change to the step wire format.
+- A legacy block beside a real block named like one of its derived ids, such as `a` beside `a-2`, is diffed under the same ids the editor gives its pieces, so the diff no longer reports a deletion, a change and an insertion for an unchanged document.
+- A codec that has loaded a document with such a real block gives the same ids to a later document without it as a new codec does.
+- Typing right after a local change that is not recorded and moves no text, such as opening a toggle or an upload result filling an image, is its own undo step instead of joining the step before it. A remote or reconciled change of that kind leaves the step open.
+- `diffBlocks` reports the word changes of a block that moved and was edited: its `insert` now holds a `change`, as an edited block in place is reported. `QuoinDiff` showed them already and is unchanged.
+- A change inside Chinese, Japanese or Thai text, written without spaces, marks only the changed words where the runtime has `Intl.Segmenter`, where it marked the whole run.
+- Diffing two versions that differ in more than 2,000 blocks, or two texts in more than 2,000 words, reports the older version as deleted and the newer as inserted, whole and with no block marked as moved, so the time and memory stay bounded: two documents of 5,000 blocks with nothing in common diff in a fraction of a second, where it took seconds and hundreds of megabytes.
+- On a read-only canvas whose text a page translator or another script rewrote, a drag across blocks no longer throws on every pointer move.
+- Text a script or a browser extension rewrites in one block while a composition runs in another reaches the document when the composition ends, where the document kept the old text while the page showed the new one.
+- Command with Up or Down on a Mac, and Control with Home or End elsewhere, go to the start or the end of the document, where they stopped at the edge of the block. These keys also leave a selected divider, image or other block for that edge, where on a Mac Command with Up or Down did nothing. Shift with Control+Home or Control+End extends the selection there; on a Mac, Command with Shift and Up or Down moves the block where it can, and extends the selection to the edge where it cannot, such as in the first block. Shift with Up or Down across blocks keeps the caret's horizontal position, where it kept the character offset and drifted sideways between a heading and a paragraph.
+
+### Added
+- `BlockCodec.toEngineBlocks(block, taken?)` takes the ids of the other blocks of the document, so the ids it gives the pieces of a legacy block avoid theirs.
+
 ## 1.1.2 (2026-10-30)
 
 ### Fixed

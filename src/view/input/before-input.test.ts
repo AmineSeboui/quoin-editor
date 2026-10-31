@@ -32,7 +32,7 @@ describe('handleBeforeInput', () => {
 
   it('leaves composition and unknown types to the browser', () => {
     const { controller } = setup();
-    const composing = input('insertCompositionText', 'に');
+    const composing = input('insertCompositionText', '\u306b');
     handleBeforeInput(controller, composing);
     expect(composing.defaultPrevented).toBe(false);
     const unknown = input('insertFromYank', 'x');
@@ -65,6 +65,17 @@ describe('handleBeforeInput', () => {
     expect(editor.getBlocks()[0].data.markdown).toBe('- ');
     handleBeforeInput(controller, input('deleteContentBackward'));
     expect(editor.getBlocks()[0].data.markdown).toBe('\\-&#32;');
+  });
+
+  it('runs input rules for typed text on the selection, but not for text that replaces another target range', () => {
+    const plain = setup('-');
+    handleBeforeInput(plain.controller, input('insertText', ' '));
+    const typed = setup('-');
+    handleBeforeInput(typed.controller, targeting(input('insertText', ' '), typed.host.firstChild!, 1, 1));
+    expect(typed.editor.getBlocks()).toEqual(plain.editor.getBlocks());
+    const replaced = setup('-x');
+    handleBeforeInput(replaced.controller, targeting(input('insertText', ' '), replaced.host.firstChild!, 1, 2));
+    expect(replaced.editor.getBlocks()[0].data.markdown).toBe('\\-&#32;');
   });
 
   it('replaces the targeted word with the replacement text', () => {

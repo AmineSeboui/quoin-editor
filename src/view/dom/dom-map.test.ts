@@ -88,6 +88,13 @@ describe('DomMap.toDom', () => {
     expect(map.toDom(40)).toEqual(map.toDom(2));
   });
 
+  it('clamps a point to the current length of a text node something else shortened', () => {
+    const el = host();
+    const map = renderInline(el, [text('abcdef')], []);
+    (el.firstChild as Text).data = 'ab';
+    expect(map.toDom(5)).toEqual({ node: el.firstChild, offset: 2 });
+  });
+
   it('skips over widgets to the text beside them', () => {
     const el = host();
     const map = renderInline(el, [text('ab')], [caret(1)]);

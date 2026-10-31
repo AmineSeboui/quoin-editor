@@ -1,9 +1,28 @@
 import { updateBlock } from '../model/doc';
-import { addMarkRange, removeMarkRange, sliceInline } from '../model/inline';
+import { addMarkRange, removeMarkRange, inlineText, replaceInline, sliceInline } from '../model/inline';
 import type { Inline, Mark } from '../model/types';
-import { replaceInlineStep } from './replace-inline-step';
-import { identityMap, type Step } from './step';
+import { identityMap, StepError, type Step } from './step';
 import { requireBlock, requireRange, withRegion } from './step-access';
+
+/** Puts back the marked content of a range of the same length, so no position of the document moves. */
+export function restoreMarksStep(block: string, region: string, from: number, to: number, slice: Inline): Step {
+  return Object.freeze<Step>({
+    stepType: 'restoreMarks',
+    apply(doc) {
+      const inline = requireRange(requireBlock(doc, block), region, from, to);
+      if (inlineText(slice) !== inlineText(sliceInline(inline, from, to))) {
+        throw new StepError(`marks restored over other content in "${block}" ${region}`);
+      }
+      const next = updateBlock(doc, block, (b) => withRegion(b, region, replaceInline(inline, from, to, slice)));
+      return { doc: next, map: identityMap };
+    },
+    invert(before) {
+      const inline = requireRange(requireBlock(before, block), region, from, to);
+      return restoreMarksStep(block, region, from, to, sliceInline(inline, from, to));
+    },
+    toJSON: () => ({ stepType: 'restoreMarks', block, region, from, to, slice }),
+  });
+}
 
 type Target = { block: string; region: string; from: number; to: number };
 
@@ -22,7 +41,7 @@ function markStep(
     },
     invert(before) {
       const inline = requireRange(requireBlock(before, block), region, from, to);
-      return replaceInlineStep(block, region, from, to, sliceInline(inline, from, to));
+      return restoreMarksStep(block, region, from, to, sliceInline(inline, from, to));
     },
     toJSON: () => ({ stepType, ...target, mark }),
   });

@@ -12,6 +12,13 @@ describe('toMarkdown block forms', () => {
     expect(alert('constructor', '')).toBe('> [!NOTE]\n');
   });
 
+  it('keeps a callout whose body starts like a table delimiter row a callout', () => {
+    for (const body of ['|-', '|:-', '| :-: |']) {
+      const blocks = [block('CALLOUT', { tone: 'info', body })];
+      expect(readBack(toMarkdown(blocks))).toEqual(withoutIds(blocks));
+    }
+  });
+
   it('keeps code in a fence longer than any backtick run in it', () => {
     const blocks = [block('CODE', { language: 'ts', code: '````\nx\n```' })];
     expect(toMarkdown(blocks)).toBe('`````ts\n````\nx\n```\n`````\n');

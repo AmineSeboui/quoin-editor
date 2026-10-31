@@ -1,5 +1,9 @@
+import type { TextSelection } from '../../engine';
+import { textSelection } from '../../engine/state/selection';
+import { dispatchSelection } from '../controller/dispatch-selection';
 import type { ViewController } from '../controller/view-controller';
 import { moveHorizontally } from '../navigation/horizontal';
+import { moveToNeighbour, neighbourHead } from '../navigation/neighbour-block';
 import { moveVertically } from '../navigation/vertical';
 import { flipSelectedBlock } from './flip-block';
 
@@ -29,6 +33,23 @@ function arrow(controller: ViewController, event: KeyboardEvent): boolean {
   return move(controller, direction, event.shiftKey);
 }
 
+const isMod = (controller: ViewController, event: KeyboardEvent): boolean =>
+  controller.isMac ? event.metaKey && !event.ctrlKey : event.ctrlKey && !event.metaKey;
+
+// Command with a vertical arrow on a Mac, and Control with Home or End elsewhere, go to the start or the end of the
+// document, where the browser would stop at the edge of the host. The start is the first block reached from before the
+// document, and the end the last one reached from after it.
+function documentEdge(controller: ViewController, event: KeyboardEvent): boolean {
+  const at = (controller.isMac ? ['ArrowUp', 'ArrowDown'] : ['Home', 'End']).indexOf(event.key);
+  if (at < 0 || !isMod(controller, event) || event.altKey) return false;
+  const direction = at ? -1 : 1;
+  const { selection } = controller.editor.state;
+  const head = event.shiftKey && selection?.kind === 'text' && neighbourHead(controller, null, direction);
+  if (!head) return moveToNeighbour(controller, null, direction);
+  dispatchSelection(controller, textSelection((selection as TextSelection).anchor, head));
+  return true;
+}
+
 // Tab in text never leaves the editor, even where nothing indents: Escape then Tab is the documented way out.
 function tab(controller: ViewController, event: KeyboardEvent): boolean {
   const { selection } = controller.editor.state;
@@ -56,8 +77,7 @@ function holdHistoryKeys(controller: ViewController, event: KeyboardEvent): bool
 // Mod+Enter checks the task or opens the toggle that holds the caret, the two controls a keyboard never tabs to. Where
 // nothing flips it is still taken, so that no browser can read it as a plain Enter.
 function flip(controller: ViewController, event: KeyboardEvent): boolean {
-  const mod = controller.isMac ? event.metaKey && !event.ctrlKey : event.ctrlKey && !event.metaKey;
-  if (event.key !== 'Enter' || !mod || event.shiftKey || event.altKey) return false;
+  if (event.key !== 'Enter' || !isMod(controller, event) || event.shiftKey || event.altKey) return false;
   flipSelectedBlock(controller);
   return true;
 }
@@ -68,6 +88,7 @@ function handle(controller: ViewController, event: KeyboardEvent): boolean {
   return (
     runKeymap(controller, event) ||
     flip(controller, event) ||
+    documentEdge(controller, event) ||
     typeOverNode(controller, event) ||
     holdHistoryKeys(controller, event)
   );

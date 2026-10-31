@@ -16,6 +16,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 - Diffing two versions that differ in more than 2,000 blocks, or two texts in more than 2,000 words, reports the older version as deleted and the newer as inserted, whole and with no block marked as moved, so the time and memory stay bounded: two documents of 5,000 blocks with nothing in common diff in a fraction of a second, where it took seconds and hundreds of megabytes.
 - On a read-only canvas whose text a page translator or another script rewrote, a drag across blocks no longer throws on every pointer move.
 - Text a script or a browser extension rewrites in one block while a composition runs in another reaches the document when the composition ends, where the document kept the old text while the page showed the new one.
+- Command with Up or Down on a Mac, and Control with Home or End elsewhere, go to the start or the end of the document, where they stopped at the edge of the block. Shift with Control+Home or Control+End extends the selection there; on a Mac, Command with Shift and an arrow still moves the block. Shift with Up or Down across blocks keeps the caret's horizontal position, where it kept the character offset and drifted sideways between a heading and a paragraph.
 
 ## 1.1.2 (2026-10-30)
 

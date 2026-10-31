@@ -8,13 +8,14 @@ import { dispatchSelection } from '../controller/dispatch-selection';
 
 const anyBlock = () => true;
 
+/** The first visible block `accept` takes from `from` on, or from the edge of the document for a null `from`. */
 export function neighbourBlock(
   doc: EngineDoc,
-  from: string,
+  from: string | null,
   direction: -1 | 1,
   accept: (block: EngineBlock) => boolean = anyBlock,
 ): EngineBlock | null {
-  const index = doc.index.get(from);
+  const index = from === null ? -direction * Infinity : doc.index.get(from);
   if (index === undefined) return null;
   const visible = visibleBlockIndexes(doc);
   const ahead = direction < 0 ? visible.filter((at) => at < index).reverse() : visible.filter((at) => at > index);
@@ -46,13 +47,13 @@ export const canBeEntered = (controller: ViewController) => (block: EngineBlock)
 export const holdsTextHead = (controller: ViewController) => (block: EngineBlock): boolean =>
   isTextFlow(controller.editor.state.schema, block) && entryEdge(controller, block.id, 1).kind === 'text';
 
-export function neighbourHead(controller: ViewController, from: string, direction: -1 | 1): Pos | null {
+export function neighbourHead(controller: ViewController, from: string | null, direction: -1 | 1): Pos | null {
   const target = neighbourBlock(controller.editor.state.doc, from, direction, holdsTextHead(controller));
   const edge = target && entryEdge(controller, target.id, direction);
   return edge?.kind === 'text' ? edge.head : null;
 }
 
-export function moveToNeighbour(controller: ViewController, from: string, direction: -1 | 1): boolean {
+export function moveToNeighbour(controller: ViewController, from: string | null, direction: -1 | 1): boolean {
   const target = neighbourBlock(controller.editor.state.doc, from, direction, canBeEntered(controller));
   if (target === null) return false;
   dispatchSelection(controller, entryEdge(controller, target.id, direction));

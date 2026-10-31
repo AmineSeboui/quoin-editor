@@ -40,6 +40,7 @@ const docs: Record<string, QuoinBlock[]> = {
   three: [md('a', 'Alpha beta gamma'), md('b', 'Delta epsilon'), md('c', 'Zeta eta theta')],
   columns: [md('c1', 'abcdefgh'), md('c2', 'ijklmnop'), md('c3', 'qrstuvwx')],
   ragged: [md('r1', 'abcdefgh'), md('r2', 'ij'), md('r3', 'qrstuvwx')],
+  heading: [md('h', '# A heading over text'), md('p', 'A paragraph in a smaller font'), md('q', 'A last paragraph')],
   breaks: [md('r1', ALPHABET), md('r2', `ab\\\n${ALPHABET}`), md('r3', ALPHABET), md('r4', 'ab'), md('r5', ALPHABET)],
   wrapped: [
     md('p', 'The quick brown fox jumps over the lazy dog and keeps running across the wide green field until dusk falls on the quiet hills nearby. Yes.'),

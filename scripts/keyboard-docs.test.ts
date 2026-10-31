@@ -22,7 +22,7 @@ const rowsOf = (markdown: string): Row[] =>
 // The keys the view or a hook reads from the keyboard event itself rather than through a keymap, each with the code
 // that reads it, so that removing the handler fails here as removing a keymap entry does.
 const READ_FROM_EVENTS = [
-  { chord: 'Mod-Enter', file: 'src/view/input/keydown.ts', reads: "event.key !== 'Enter' || !mod" },
+  { chord: 'Mod-Enter', file: 'src/view/input/keydown.ts', reads: "event.key !== 'Enter' || !isMod" },
   { chord: 'Alt-F10', file: 'src/menus/floating/use-focus-key.ts', reads: "event.key === 'F10' && event.altKey" },
   { chord: 'ArrowUp', file: 'src/view/input/keydown.ts', reads: 'Object.hasOwn(ARROWS, event.key)' },
   { chord: 'ArrowDown', file: 'src/view/input/keydown.ts', reads: 'Object.hasOwn(ARROWS, event.key)' },
@@ -32,6 +32,14 @@ const READ_FROM_EVENTS = [
   { chord: 'Shift-ArrowDown', file: 'src/view/input/keydown.ts', reads: 'move(controller, direction, event.shiftKey)' },
   { chord: '/', file: 'src/menus/slash/slash-extension.tsx', reads: "char: '/'" },
   { chord: 'Mod-Shift-f', file: 'src/extensions/find/use-find-shortcut.ts', reads: "normalizeKey('Mod-Shift-f', isMac)" },
+];
+
+// Keys the view reads from the event that differ between the platforms by more than Mod: the chord on a Mac and the
+// one elsewhere.
+const DOCUMENT_EDGE_KEYS = "['ArrowUp', 'ArrowDown'] : ['Home', 'End']";
+const PLATFORM_KEYS = [
+  { mac: 'Mod-ArrowUp', other: 'Mod-Home', file: 'src/view/input/keydown.ts', reads: DOCUMENT_EDGE_KEYS },
+  { mac: 'Mod-ArrowDown', other: 'Mod-End', file: 'src/view/input/keydown.ts', reads: DOCUMENT_EDGE_KEYS },
 ];
 
 // Bound chords the page leaves out on purpose.
@@ -62,7 +70,10 @@ const dialog = () => {
 
 const pair = (chord: string) => written(chord).join(' | ');
 const bound = () => [...canvasChords(), ...featureChords(), ...READ_FROM_EVENTS.map(({ chord }) => chord)];
-const boundPairs = () => new Set(bound().map(pair));
+const platformPairs = PLATFORM_KEYS.map(
+  ({ mac, other }) => `${formatShortcut(mac, { isMac: true })} | ${formatShortcut(other, { isMac: false })}`,
+);
+const boundPairs = () => new Set([...bound().map(pair), ...platformPairs]);
 
 describe('the keyboard page', () => {
   it('lists only keys the code binds', () => {
@@ -93,6 +104,14 @@ describe('the keyboard page', () => {
 
   it.each(READ_FROM_EVENTS)('finds $chord read from the event in $file', ({ file, reads }) => {
     expect(readText(join(root, file))).toContain(reads);
+  });
+
+  it.each(PLATFORM_KEYS)('finds $mac and $other read from the event in $file', ({ file, reads }) => {
+    expect(readText(join(root, file))).toContain(reads);
+  });
+
+  it('lists the keys that differ between the platforms', () => {
+    expect(platformPairs.filter((keys) => !documented.includes(keys))).toEqual([]);
   });
 });
 

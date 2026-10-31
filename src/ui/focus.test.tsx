@@ -37,7 +37,7 @@ const RING_CLASSES = [
   'focus-visible:outline-[var(--quoin-ring)]',
 ];
 
-const BAR = 'shadow-[inset_2px_0_0_var(--quoin-foreground)]';
+const BAR = 'shadow-[inset_2px_0_0_var(--quoin-ring)]';
 
 /** Unconditional, this utility draws a 2px outline round every control at rest in forced-colors mode, so the one with
  *  focus no longer stands out. Scoped to :focus it frames only the focused control. */

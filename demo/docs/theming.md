@@ -10,52 +10,56 @@ description: Every colour and radius comes from a --quoin- token, the stylesheet
 ```css
 :root {
   --quoin-background: oklch(1 0 0);
-  --quoin-foreground: oklch(0.145 0 0);
-  --quoin-muted: oklch(0.97 0 0);
-  --quoin-muted-foreground: oklch(0.49 0 0);
-  --quoin-secondary: oklch(0.97 0 0);
-  --quoin-secondary-foreground: oklch(0.205 0 0);
+  --quoin-foreground: oklch(0.24 0.024 267);
+  --quoin-muted: oklch(0.975 0.005 258);
+  --quoin-muted-foreground: oklch(0.48 0.029 263);
+  --quoin-secondary: oklch(0.965 0.007 262);
+  --quoin-secondary-foreground: oklch(0.24 0.024 267);
   --quoin-popover: oklch(1 0 0);
-  --quoin-popover-foreground: oklch(0.145 0 0);
-  --quoin-border: oklch(0.922 0 0);
-  --quoin-input: oklch(0.62 0 0);
-  --quoin-ring: oklch(0.45 0 0);
-  --quoin-primary: oklch(0.205 0 0);
-  --quoin-primary-foreground: oklch(0.985 0 0);
-  --quoin-accent: oklch(0.97 0 0);
-  --quoin-accent-foreground: oklch(0.205 0 0);
+  --quoin-popover-foreground: oklch(0.24 0.024 267);
+  --quoin-border: oklch(0.927 0.01 262);
+  --quoin-input: oklch(0.62 0.02 262);
+  --quoin-ring: oklch(0.533 0.221 266);
+  --quoin-primary: oklch(0.24 0.024 267);
+  --quoin-primary-foreground: oklch(0.985 0.003 260);
+  --quoin-accent: oklch(0.962 0.012 262);
+  --quoin-accent-foreground: oklch(0.24 0.024 267);
   --quoin-destructive: oklch(0.55 0.245 27.325);
   --quoin-info: oklch(0.55 0.17 250);
   --quoin-success: oklch(0.55 0.14 155);
   --quoin-warning: oklch(0.6 0.16 65);
+  --quoin-tip: oklch(0.54 0.17 300);
   --quoin-radius: 0.625rem;
+  --quoin-shadow: oklch(0.24 0.024 267 / 14%);
 }
 
 .dark {
-  --quoin-background: oklch(0.145 0 0);
-  --quoin-foreground: oklch(0.985 0 0);
-  --quoin-muted: oklch(0.269 0 0);
-  --quoin-muted-foreground: oklch(0.708 0 0);
-  --quoin-secondary: oklch(0.269 0 0);
-  --quoin-secondary-foreground: oklch(0.985 0 0);
-  --quoin-popover: oklch(0.205 0 0);
-  --quoin-popover-foreground: oklch(0.985 0 0);
+  --quoin-background: oklch(0.19 0.015 267);
+  --quoin-foreground: oklch(0.965 0.005 260);
+  --quoin-muted: oklch(0.245 0.02 266);
+  --quoin-muted-foreground: oklch(0.72 0.02 262);
+  --quoin-secondary: oklch(0.28 0.025 266);
+  --quoin-secondary-foreground: oklch(0.965 0.005 260);
+  --quoin-popover: oklch(0.225 0.019 266);
+  --quoin-popover-foreground: oklch(0.965 0.005 260);
   --quoin-border: oklch(1 0 0 / 10%);
-  --quoin-input: oklch(0.56 0 0);
-  --quoin-ring: oklch(0.708 0 0);
-  --quoin-primary: oklch(0.922 0 0);
-  --quoin-primary-foreground: oklch(0.205 0 0);
-  --quoin-accent: oklch(0.269 0 0);
-  --quoin-accent-foreground: oklch(0.985 0 0);
+  --quoin-input: oklch(0.6 0.02 262);
+  --quoin-ring: oklch(0.72 0.14 268);
+  --quoin-primary: oklch(0.93 0.008 262);
+  --quoin-primary-foreground: oklch(0.22 0.02 266);
+  --quoin-accent: oklch(0.28 0.025 266);
+  --quoin-accent-foreground: oklch(0.965 0.005 260);
   --quoin-destructive: oklch(0.704 0.191 22.216);
   --quoin-info: oklch(0.72 0.14 250);
   --quoin-success: oklch(0.74 0.15 155);
   --quoin-warning: oklch(0.79 0.15 65);
+  --quoin-tip: oklch(0.74 0.13 300);
   --quoin-radius: 0.625rem;
+  --quoin-shadow: oklch(0 0 0 / 45%);
 }
 ```
 
-Out of the box that is a neutral grey editor that works in both modes with nothing configured. `src/ui/tokens.test.ts` holds the defaults to their contrast: the focus ring at 3:1 or more against the page, a popover and a selected block, body and muted text at 4.5:1 or more on the page, on a popover and on a highlighted row.
+Out of the box that is a slate editor with a cobalt focus ring and selection that works in both modes with nothing configured. `--quoin-shadow` colours the shadow under menus, popovers and toolbars. `src/ui/tokens.test.ts` holds the defaults to their contrast: the focus ring at 3:1 or more against the page, a popover and a selected block, body and muted text at 4.5:1 or more on the page, on a popover and on a highlighted row.
 
 The other tokens belong to one part of the editor each, with a light and a dark default in `src/ui/tokens.css`:
 
@@ -94,11 +98,12 @@ Point the prefixed names at your own in one block on `.quoin`. The canvas root c
   --quoin-info: var(--info);
   --quoin-success: var(--success);
   --quoin-warning: var(--warning);
+  --quoin-tip: var(--tip);
   --quoin-radius: var(--radius);
 }
 ```
 
-`--quoin-info`, `--quoin-success` and `--quoin-warning` are read only by the callout block, for its rule and the wash behind it, never for type. If your own theme has no equivalent, leave those three out of the block and the defaults above stand; the rest of the editor does not touch them. `--quoin-comment`, `--quoin-comment-active` and `--quoin-comment-edge` mark the text threads are anchored to; keep the two tints pale enough for your body and palette text.
+`--quoin-info`, `--quoin-tip`, `--quoin-success` and `--quoin-warning` are read only by the callout block, for its rule and the wash behind it, never for type. If your own theme has no equivalent, leave those four out of the block and the defaults above stand; the rest of the editor does not touch them. `--quoin-comment`, `--quoin-comment-active` and `--quoin-comment-edge` mark the text threads are anchored to; keep the two tints pale enough for your body and palette text.
 
 `--quoin-input` is the border of the outline button, the only control that uses it, and `--quoin-warning` is the rule of a warning callout. A border or rule that carries meaning needs 3:1 against what it sits on, so give `--quoin-input` a value that reaches 3:1 against `--quoin-background` and `--quoin-popover`, and `--quoin-warning` one that reaches 3:1 against its own wash (the warning colour at 15% over the page). Quoin's defaults do, and a host that sets these tokens keeps its own values.
 

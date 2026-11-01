@@ -44,7 +44,13 @@ export function rebaseItems(items: readonly HistoryItem[], tr: Transaction): His
   let [before, after, change] = [tr.before.doc, tr.doc, tr.maps];
   items: for (const item of [...items].reverse()) {
     const { selection } = item;
-    const caret = selection?.kind === 'text' ? [selection.anchor.block, selection.head.block] : [];
+    const caret = !selection
+      ? []
+      : selection.kind === 'node'
+        ? [selection.block]
+        : selection.kind === 'text'
+          ? [selection.anchor.block, selection.head.block]
+          : [selection.anchor, selection.head];
     const blocks = item.steps.flatMap(blocksOf);
     const apart =
       ![...touched, ...blocks].includes(null) && ![...blocks, ...caret].some((block) => touched.includes(block));

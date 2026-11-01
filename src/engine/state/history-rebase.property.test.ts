@@ -40,7 +40,6 @@ const texts = (state: EditorState) => state.doc.blocks.map((block) => inlineText
 const unrecordedText = (state: EditorState) => texts(state).map((value) => value.replace(/[a-z]/g, ''));
 const depths = (state: EditorState) => [undoDepth(state), redoDepth(state)];
 
-// A new block at the end touches no block an item edits, but no item can be kept without being walked over it.
 function aside(state: EditorState): EditorState {
   const { blocks } = state.doc;
   const added = { ...blocks[0], id: `z${blocks.length}`, regions: { text: [text('X')] } };

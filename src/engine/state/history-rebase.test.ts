@@ -20,6 +20,7 @@ import {
   type HistoryProvider,
 } from './history';
 import { createPluginKey, type PluginSpec } from './plugin';
+import { blockRangeSelection } from './selection';
 import { Transaction, type TransactionOrigin } from './transaction';
 
 const insert = (block: string, offset: number, value: string) =>
@@ -122,6 +123,14 @@ describe('history through a change made without recording', () => {
     const typed = recorded(start(['Hello', 'tail']), insert('b1', 4, '!'));
     const state = unrecorded(typed, joinBlocksStep('b0', 'text', 'b1', 'text'));
     expect(markdownOf(undone(state))).toEqual(['Hellotail']);
+  });
+
+  it('maps a block range on a block an unrecorded join merged away when it undoes an edit elsewhere', () => {
+    const base = start(['Hello', 'tail', 'end', 'last']);
+    const selected = applyTransaction(base, new Transaction(base).setSelection(blockRangeSelection('b1', 'b2')));
+    const typed = recorded(selected, insert('b3', 4, '!'));
+    const state = unrecorded(typed, joinBlocksStep('b0', 'text', 'b1', 'text'));
+    expect(undone(state).selection).toEqual(blockRangeSelection('b0', 'b2'));
   });
 
   it('lets an error other than a step that cannot apply through', () => {

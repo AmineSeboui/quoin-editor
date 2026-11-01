@@ -42,7 +42,7 @@ describe('an undo item carried over a change made without recording', () => {
   it('keeps a typing group that ran a smart quote after an insert earlier in its block', () => {
     let state = buildState(['start', 'other'], { block: 0, offset: 5 }, { plugins: [historyPlugin()] });
     for (const character of ' say "hi"') state = run(state, insertTextWithRules(character, typographyRules())).state;
-    expect(markdownOf(state)[0]).toBe('start say “hi”');
+    expect(markdownOf(state)[0]).toBe('start say \u201chi\u201d');
     const changed = unrecorded(state, 0, 0);
     expect(undoDepth(changed)).toBe(undoDepth(state));
     expect(markdownOf(run(changed, undo).state)).toEqual(['XYstart', 'other']);

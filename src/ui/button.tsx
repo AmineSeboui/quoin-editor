@@ -13,7 +13,7 @@ const VARIANTS = {
   default:
     "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
   outline:
-    "border border-input bg-transparent shadow-xs hover:bg-accent hover:text-accent-foreground",
+    "border bg-transparent shadow-xs hover:bg-accent hover:text-accent-foreground",
   ghost: "hover:bg-accent hover:text-accent-foreground",
 };
 

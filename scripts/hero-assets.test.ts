@@ -2,10 +2,10 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { clips } from './demo-recording/clips.mjs';
 import { readGif } from './demo-recording/read-gif.mjs';
 import { root } from './docs-sources.mjs';
 
-const GIF = join(root, 'demo/public/quoin-demo.gif');
 const OG_PNG = join(root, 'demo/public/og.png');
 const OG_HTML = join(root, 'demo/og.html');
 const TAGLINE = 'Blocks on screen. Markdown on disk.';
@@ -16,24 +16,26 @@ const pngHeader = (path: string) => {
   return { signature: bytes.subarray(0, 8).toString('hex'), width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) };
 };
 
-describe('the hero animation', () => {
+describe.each(clips)('the $name animation', ({ file }) => {
+  const gif = join(root, 'demo/public', file);
+
   it('is a GIF in the folder the docs site serves, under 3 MB', () => {
-    expect(existsSync(GIF)).toBe(true);
-    expect(statSync(GIF).size).toBeLessThan(3 * MB);
+    expect(existsSync(gif)).toBe(true);
+    expect(statSync(gif).size).toBeLessThan(3 * MB);
   });
 
   it('is 1280 by 720, loops forever and plays for 10 to 40 seconds', () => {
-    const gif = readGif(readFileSync(GIF));
-    expect(gif.signature).toBe('GIF89a');
-    expect({ width: gif.width, height: gif.height }).toEqual({ width: 1280, height: 720 });
-    expect(gif.loops).toBe(0);
-    const duration = gif.delays.reduce((total, delay) => total + delay, 0);
+    const read = readGif(readFileSync(gif));
+    expect(read.signature).toBe('GIF89a');
+    expect({ width: read.width, height: read.height }).toEqual({ width: 1280, height: 720 });
+    expect(read.loops).toBe(0);
+    const duration = read.delays.reduce((total, delay) => total + delay, 0);
     expect(duration).toBeGreaterThanOrEqual(10_000);
     expect(duration).toBeLessThanOrEqual(40_000);
   });
 
   it('holds its last frame for at least two seconds', () => {
-    expect(readGif(readFileSync(GIF)).delays.at(-1)).toBeGreaterThanOrEqual(2000);
+    expect(readGif(readFileSync(gif)).delays.at(-1)).toBeGreaterThanOrEqual(2000);
   });
 });
 
@@ -71,6 +73,13 @@ describe('the README hero image', () => {
     expect(alt).toMatch(/heading/i);
     expect(alt).toMatch(/slash menu/i);
     expect(alt).toMatch(/drag/i);
+  });
+
+  it('is followed by the collaboration and AI animations, each with alt text', () => {
+    const images = [...readme.matchAll(/^!\[([^\]]+)\]\(([^)]+)\)/gm)].map(([, text, src]) => ({ text, src }));
+    expect(images.map(({ src }) => src)).toEqual(clips.map(({ file }) => `demo/public/${file}`));
+    expect(images[1].text).toMatch(/caret/i);
+    expect(images[2].text).toMatch(/Ask AI/);
   });
 });
 

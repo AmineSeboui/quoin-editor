@@ -43,12 +43,22 @@ test('the AI page says it is a simulation and streams an answer in', async ({ pa
   await page.goto('ai/');
   await expect(page.getByText('A simulation.')).toBeVisible();
   await waitForIslands(page);
-  await page.getByText('Select this sentence').click();
+  await page.locator('.quoin-editor').getByText('hand it to a llm').click();
   await page.keyboard.press('End');
   await page.keyboard.press('Enter');
   await page.keyboard.type('/continue');
   await page.keyboard.press('Enter');
-  await expect(page.getByText('accepts it in one undo step').first()).toBeVisible();
+  await expect(page.getByText('accepted in one undo step').first()).toBeVisible();
+});
+
+test('the AI page fixes its draft line through Ask AI in the toolbar', async ({ page }) => {
+  await page.goto('ai/');
+  await waitForIslands(page);
+  await page.locator('.quoin-editor').getByText('hand it to a llm').click({ clickCount: 3 });
+  await page.getByRole('toolbar', { name: 'Text formatting' }).getByRole('button', { name: 'Ask AI' }).click();
+  await page.getByRole('option', { name: 'Fix spelling and grammar' }).click();
+  await page.getByRole('group', { name: 'AI response' }).getByRole('button', { name: 'Accept' }).click();
+  await expect(page.locator('.quoin-editor')).toContainText('hand it to an LLM.');
 });
 
 test('the comments page shows its thread and takes a reply', async ({ page }) => {

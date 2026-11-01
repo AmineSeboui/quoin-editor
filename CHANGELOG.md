@@ -14,6 +14,17 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 - The undo history survives a change the editor does not record, such as a new `blocks` array, a transaction with `addToHistory: false` or a remote change without a collaboration history, where it was cleared. Undo and redo carry the writer's edits over that change and never remove text it added; an edit whose text it removed or rewrote is dropped, and older edits still undo. A Yjs collaboration keeps its own history as before.
 - ↑ and ↓ keep the caret on the line they move to where a soft wrap ends it. With the caret's horizontal position past the end of a wrapped line, the caret was drawn at the start of the next line in some cases, and typed text started the next line; the caret now stops before the space the line wraps at, or, where it wraps after another character such as a hyphen, is drawn at the end of the line. A click past the end of a wrapped line keeps that side too, so the next ↑ or ↓ starts from the line clicked.
 
+## 1.2.2 (2026-11-01)
+
+### Fixed
+- Popovers, the bubble toolbar, dialogs, the AI response bar, the find panel, the mobile toolbar and the keys in the shortcuts dialog draw a soft hairline edge in `--quoin-border`, where they drew a near-black one. The stylesheet's reset gives every border that names no colour `--quoin-border`, instead of the text colour Tailwind 4 falls back to.
+- An editor whose first block has no text, such as a table of contents, an image, a divider or an embed, no longer draws that block as selected or says "1 block selected" as soon as the page loads, server-rendered HTML included. The block is drawn as selected once focus enters the editor or a menu of it, or once the reader or the host sets a selection, and stays so when focus leaves.
+
+### Changed
+- Fields draw their border in `--quoin-input`, a lighter grey that still reaches 3:1 on the page, a popover and a highlighted row, and darken it on hover. A focused field shows the focus outline alone, where its border also turned to the ring colour. Outline buttons draw their border in `--quoin-border`.
+- Menus, popovers, the AI response bar and the find panel are rounded to `--quoin-radius`, and dialogs a step more, over a lightly blurred backdrop.
+- The rule beside a streaming AI answer is drawn in `--quoin-ring`, cobalt by default, where it used `--quoin-primary`.
+
 ## 1.2.1 (2026-11-01)
 
 ### Changed
@@ -24,7 +35,6 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 
 ### Fixed
 - A callout whose text starts with a line of pipes and dashes, such as `|-`, is written to markdown with a blank line after its alert marker, so it reads back as the callout and not as a one-column table.
-- An editor whose first block has no text, such as a table of contents, an image, a divider or an embed, no longer draws that block as selected or says "1 block selected" as soon as the page loads, server-rendered HTML included. The block is drawn as selected once focus enters the editor or a menu of it, or once the reader or the host sets a selection, and stays so when focus leaves.
 
 ## 1.2.0 (2026-10-31)
 

@@ -84,7 +84,7 @@ export function FindPanel({ controller, labels, value, readOnly }: Props) {
       ref={panel}
       role="search"
       aria-label={labels.findAndReplace}
-      className="quoin quoin-find-panel bg-popover fixed top-4 right-4 z-50 max-w-[calc(100vw-2rem)] text-popover-foreground flex flex-col gap-1.5 rounded-md border p-2 shadow-md"
+      className="quoin quoin-find-panel bg-popover fixed top-4 right-4 z-50 max-w-[calc(100vw-2rem)] text-popover-foreground flex flex-col gap-1.5 rounded-lg border p-2 shadow-md"
       onKeyDown={onPanelKeyDown}
       onClick={onPanelClick}
     >

@@ -1,14 +1,23 @@
-import type { AiRequest, AiStream } from 'quoin-editor/ai';
+import type { AiAction, AiRequest, AiStream } from 'quoin-editor/ai';
+import { AI_DRAFT } from '../content/ai-document';
 
 const WORD_MS = 45;
+
+const REWRITES: Partial<Record<AiAction, string>> = {
+  fix: 'Quoin keeps every text block as markdown, so you can diff it in git and hand it to an LLM.',
+  improve: 'Quoin stores every text block as plain markdown, so you can review it in git or hand it straight to an LLM.',
+  shorten: 'Quoin stores text as markdown you can diff and hand to an LLM.',
+};
 
 const firstSentence = (markdown: string) => markdown.replace(/[#>*_`-]/g, '').trim().split(/(?<=[.!?])\s/)[0] ?? '';
 
 /** What the simulated model answers: canned text shaped by the action, never a real model's. */
 function answerFor({ action, prompt, selection }: AiRequest): string {
+  const rewrite = selection.trim() === AI_DRAFT ? REWRITES[action] : undefined;
+  if (rewrite) return rewrite;
   switch (action) {
     case 'continue':
-      return ' The host streams each answer in as markdown chunks, and the writer accepts it in one undo step.';
+      return 'Writers get live formatting and a slash menu, and every answer streams in as markdown that is accepted in one undo step.';
     case 'summarize':
       return `In short: ${firstSentence(selection) || 'the document is made of blocks.'}`;
     case 'explain':

@@ -6,10 +6,10 @@ export const FLOATING_TOOLBAR = 'flex w-auto items-center gap-0.5 p-1 shadow-md'
 
 /** The classes the dropdown menu and the context menu share, so the block menu reads the same opened either way. */
 export const MENU_CONTENT =
-  'quoin bg-popover text-popover-foreground z-50 max-h-(--radix-popper-available-height) min-w-[8rem] overflow-x-hidden overflow-y-auto rounded-md border border-border p-1 shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0';
+  'quoin bg-popover text-popover-foreground z-50 max-h-(--radix-popper-available-height) min-w-[8rem] overflow-x-hidden overflow-y-auto rounded-lg border border-border p-1 shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0';
 
 export const MENU_SUB_CONTENT =
-  'quoin bg-popover text-popover-foreground z-50 max-h-(--radix-popper-available-height) min-w-[8rem] overflow-x-hidden overflow-y-auto rounded-md border border-border p-1 shadow-lg';
+  'quoin bg-popover text-popover-foreground z-50 max-h-(--radix-popper-available-height) min-w-[8rem] overflow-x-hidden overflow-y-auto rounded-lg border border-border p-1 shadow-lg';
 
 export const MENU_ITEM = [
   "focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm focus:outline-hidden select-none data-[inset]:pl-8 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg:not([class*='size-'])]:size-4",

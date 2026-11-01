@@ -46,6 +46,8 @@ Every key below works on the canvas, and the shortcuts dialog (Mod+Shift+/ from 
 | Move down | ⌘⇧↓ | Ctrl+Shift+↓ |
 | Duplicate | ⌘D | Ctrl+D |
 
+Markdown typed at the start of a block turns it, as in Notion: `# ` to `###### ` for a heading, `- `, `* ` or `+ ` for a bullet, `1. ` for a numbered item, `[] ` for a task and `> ` for a quote. They work in a bullet, a numbered item and a task as well as in a paragraph, except that a prefix never turns a block into the kind it already is (`- ` in a bullet stays text), and the block keeps its indent. Undo straight after the conversion gives back the typed text. `---`, `$$ ` and a code fence turn a paragraph only.
+
 ## Selection
 
 | Action | macOS | Windows and Linux |

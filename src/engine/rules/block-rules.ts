@@ -11,6 +11,8 @@ import { convertPrefix } from './convert-prefix';
 import type { InputRule } from './input-rule';
 
 const PARAGRAPH = ['paragraph'];
+const TEXT_KINDS = ['paragraph', 'bullet', 'ordered', 'task'];
+const except = (kind: string) => TEXT_KINDS.filter((candidate) => candidate !== kind);
 
 function lineRule(
   name: string,
@@ -48,14 +50,16 @@ const divider: InputRule = {
 };
 
 export const blockInputRules: readonly InputRule[] = [
-  lineRule('heading', /^(#{1,6}) $/, (m) => ({ kind: 'heading', level: m[1].length })),
-  lineRule('bullet', /^[-*+] $/, () => ({ kind: 'bullet' })),
-  lineRule('ordered', /^(\d{1,9})[.)] $/, (m) => ({ kind: 'ordered', start: Number(m[1]) })),
-  lineRule('task', /^\[( |x|X)?\] $/, (m) => ({ kind: 'task', checked: m[1] === 'x' || m[1] === 'X' }), [
-    'paragraph',
-    'bullet',
-  ]),
-  lineRule('quote', /^> $/, () => ({ kind: 'quote' })),
+  lineRule('heading', /^(#{1,6}) $/, (m) => ({ kind: 'heading', level: m[1].length }), TEXT_KINDS),
+  lineRule('bullet', /^[-*+] $/, () => ({ kind: 'bullet' }), except('bullet')),
+  lineRule('ordered', /^(\d{1,9})[.)] $/, (m) => ({ kind: 'ordered', start: Number(m[1]) }), except('ordered')),
+  lineRule(
+    'task',
+    /^\[( |x|X)?\] $/,
+    (m) => ({ kind: 'task', checked: m[1] === 'x' || m[1] === 'X' }),
+    except('task'),
+  ),
+  lineRule('quote', /^> $/, () => ({ kind: 'quote' }), TEXT_KINDS),
   divider,
   {
     name: 'math',

@@ -37,9 +37,9 @@ describe('block input rules in detail', () => {
     expect(kindOf({ paragraph: 'a #' }, 3, ' ')).toEqual({ kind: 'paragraph' });
   });
 
-  it('turns a bullet into a task but no other kind', () => {
+  it('turns a bullet or a numbered item into a task but no other kind', () => {
     expect(markdownOf(type('- []', 2, ' '))).toEqual(['- [ ] ']);
-    expect(kindOf('1. []', 2, ' ')).toMatchObject({ kind: 'ordered' });
+    expect(kindOf('1. []', 2, ' ')).toMatchObject({ kind: 'task' });
     expect(kindOf('## ##', 2, ' ')).toMatchObject({ kind: 'heading', level: 2 });
     expect(kindOf('> >', 1, ' ')).toMatchObject({ kind: 'quote' });
   });

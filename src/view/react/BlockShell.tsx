@@ -9,6 +9,7 @@ import { blockStatus } from './block-status';
 import { defaultRenderers, VoidBlockFallback } from './default-renderers';
 import { useViewController } from './editor-context';
 import { useEditorState } from './use-editor-state';
+import { useEngaged } from './use-engaged';
 import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect';
 import { useReaderChoices } from './use-reader-choices';
 
@@ -34,6 +35,7 @@ export const BlockShell = memo(function BlockShell({ block, renderers }: BlockSh
   const domId = useBlockDomId();
   const choices = useReaderChoices(controller);
   const status = useEditorState(controller, (state) => blockStatus(state, block.id, choices));
+  const engaged = useEngaged(controller, status === 'selected');
   const decorations = useEditorState(controller, () => hostDecorations(controller.editor, block.id, ''), sameDecorations);
   const hidden = status === 'hidden';
 
@@ -60,7 +62,7 @@ export const BlockShell = memo(function BlockShell({ block, renderers }: BlockSh
       data-align={alignOrUndefined(align)}
       style={{ '--quoin-indent': block.indent } as CSSProperties}
       tabIndex={-1}
-      data-selected={status === 'selected' ? 'true' : undefined}
+      data-selected={status === 'selected' && engaged ? 'true' : undefined}
     >
       <BlockErrorBoundary block={block} renderer={Renderer}>
         <Renderer block={block} controller={controller} />

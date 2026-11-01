@@ -20,6 +20,13 @@ describe('server rendering', () => {
     expect(html).toMatch(/data-type="DIVIDER"/);
   });
 
+  it('renders no block as selected, nor says one is, when the document opens on a block without text', () => {
+    const html = renderToString(<Editor options={{ blocks: [{ id: 'd', type: 'DIVIDER', data: {} }, md('a', 'after')], onChange: () => {} }} />);
+    expect(html).toMatch(/data-block-id="d"/);
+    expect(html).not.toContain('data-selected');
+    expect(html).not.toContain('selected</span>');
+  });
+
   it('renders the empty document placeholder', () => {
     const html = renderToString(<Editor options={{ blocks: [], onChange: () => {} }} view={{ placeholder: 'Write' }} />);
     expect(html).toContain('data-placeholder="Write"');

@@ -87,6 +87,9 @@ export function EditorView({
         aria-label={label}
         aria-describedby={hintId}
         onFocusCapture={(event) => focusOwners.set(event.target, controller)}
+        onFocus={(event) => {
+          if (focusOwners.get(event.target) === controller) controller.engagement.engage();
+        }}
       >
         <BlockDomIdScope.Provider value={blockIdScope}>
           <UnsupportedBlockLabel.Provider value={unsupportedBlockLabel}>

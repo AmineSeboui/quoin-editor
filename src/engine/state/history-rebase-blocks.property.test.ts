@@ -24,8 +24,11 @@ const op: fc.Arbitrary<Op> = fc.record({
 });
 
 const texts = (state: EditorState) => state.doc.blocks.map((block) => inlineText(block.regions.text));
-// A recorded move may reorder blocks, so the unrecorded characters are compared as a multiset.
-const unrecordedText = (state: EditorState) => [...texts(state).join('').replace(/[^A-Z]/g, '')].sort().join('');
+// Undoing or redoing a recorded move reorders blocks, so then the unrecorded characters are compared as a multiset.
+const unrecordedText = (state: EditorState, ordered: boolean) => {
+  const characters = [...texts(state).join('').replace(/[^A-Z]/g, '')];
+  return (ordered ? characters : characters.sort()).join('');
+};
 
 function appliesInOrder(state: EditorState, items: readonly HistoryItem[]): boolean {
   let { doc } = state;
@@ -40,6 +43,7 @@ function appliesInOrder(state: EditorState, items: readonly HistoryItem[]): bool
 
 function stepFor(state: EditorState, { kind, a, b, c, value }: Op, newId: () => string): Step | null {
   const { blocks } = state.doc;
+  if (blocks.length === 0) return null;
   const index = a % blocks.length;
   const { id } = blocks[index];
   const next = blocks[index + 1]?.id;
@@ -73,10 +77,10 @@ function stepFor(state: EditorState, { kind, a, b, c, value }: Op, newId: () => 
   }
 }
 
-function apply(state: EditorState, o: Op, time: number, newId: () => string): EditorState {
+function apply(state: EditorState, o: Op, time: number, newId: () => string, ordered: boolean): EditorState {
   if (o.kind === 'undo' || o.kind === 'redo') {
     const after = run(state, o.kind === 'undo' ? undo : redo).state;
-    expect(unrecordedText(after)).toEqual(unrecordedText(state));
+    expect(unrecordedText(after, ordered)).toEqual(unrecordedText(state, ordered));
     return after;
   }
   const step = stepFor(state, o, newId);
@@ -89,26 +93,40 @@ function apply(state: EditorState, o: Op, time: number, newId: () => string): Ed
   return next;
 }
 
+const step = (kind: string, a = 0, b = 0): Op => ({ kind, a, b, c: 0, value: 'a' });
+// Undoing the paste removes the only block the unrecorded removals left, so the document ends up with no block.
+const emptied = [
+  step('join'),
+  step('remove'),
+  step('paste'),
+  step('remove', 1),
+  step('undo'),
+  ...Array.from({ length: 10 }, () => step('type')),
+];
+
 describe('history rebased through block level changes made without recording', () => {
   it('keeps both stacks applicable in order, never removes unrecorded text, and redoes every undo', () => {
     fc.assert(
       fc.property(fc.array(op, { minLength: 15, maxLength: 40 }), (ops) => {
+        const ordered = !ops.some(({ kind }) => kind === 'shift');
         let ids = 0;
         const newId = () => `n${ids++}`;
         let time = 0;
         let state = buildState(['', 'q', 'rs'], { block: 0, offset: 0 }, { plugins: [historyPlugin()] });
-        for (const o of ops) state = apply(state, o, (time += 1000), newId);
+        for (const o of ops) state = apply(state, o, (time += 1000), newId, ordered);
         const before = texts(state);
         const undoOp = { kind: 'undo', a: 0, b: 0, c: 0, value: '' };
         let undos = 0;
-        for (; undos < 60 && run(state, undo).ok; undos++) state = apply(state, undoOp, (time += 1000), newId);
+        for (; undos < 60 && run(state, undo).ok; undos++) {
+          state = apply(state, undoOp, (time += 1000), newId, ordered);
+        }
         for (let i = 0; i < undos; i++) {
           expect(run(state, redo).ok).toBe(true);
-          state = apply(state, { ...undoOp, kind: 'redo' }, (time += 1000), newId);
+          state = apply(state, { ...undoOp, kind: 'redo' }, (time += 1000), newId, ordered);
         }
         expect(texts(state)).toEqual(before);
       }),
-      { numRuns: 500 },
+      { numRuns: 500, examples: [[emptied]] },
     );
   });
 });

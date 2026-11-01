@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { text } from '../../engine/model/inline';
 import { renderInline } from '../dom/render-inline';
 import { createHostRegistry } from './host-registry';
@@ -45,6 +45,84 @@ describe('DOM selection mapping', () => {
     expect(sel.anchorNode).toBe(a.firstChild);
     expect(sel.anchorOffset).toBe(4);
     expect(writeSelection(registry, { kind: 'text', anchor: pos('a', 1), head: pos('b', 1) }, sel, () => undefined)).toBe(false);
+  });
+
+  describe('a caret before a soft wrap', () => {
+    const at = (offset: number) => ({ block: 'a', region: 'text', offset });
+    const caret = { kind: 'text', anchor: at(4), head: at(4), assoc: -1 } as const;
+    let lineEnd = 4;
+    let starts: number[] = [];
+
+    function stubModify(sel: globalThis.Selection, a: HTMLElement) {
+      lineEnd = 4;
+      starts = [];
+      sel.modify = vi.fn(() => {
+        starts.push(sel.focusOffset);
+        sel.collapse(a.firstChild, lineEnd);
+      });
+    }
+
+    afterEach(() => {
+      Reflect.deleteProperty(document.getSelection()!, 'modify');
+    });
+
+    it('is written by moving to the line boundary from the glyph before it', () => {
+      const { registry, a } = setup();
+      const sel = document.getSelection()!;
+      stubModify(sel, a);
+      expect(writeSelection(registry, caret, sel, () => undefined)).toBe(true);
+      expect(sel.modify).toHaveBeenCalledWith('move', 'forward', 'lineboundary');
+      expect([starts, sel.focusOffset]).toEqual([[3], 4]);
+      lineEnd = 5;
+      sel.collapse(a.firstChild, 0);
+      expect(writeSelection(registry, caret, sel, () => undefined)).toBe(true);
+      expect(sel.focusOffset).toBe(4);
+    });
+
+    it('is not written again while the browser still draws it, and is written where it moves', () => {
+      const { registry, a } = setup();
+      const sel = document.getSelection()!;
+      stubModify(sel, a);
+      writeSelection(registry, caret, sel, () => undefined);
+      expect(writeSelection(registry, caret, sel, () => undefined)).toBe(true);
+      expect(sel.modify).toHaveBeenCalledTimes(1);
+      writeSelection(registry, { ...caret, assoc: undefined }, sel, () => undefined);
+      writeSelection(registry, caret, sel, () => undefined);
+      expect(sel.modify).toHaveBeenCalledTimes(2);
+      lineEnd = 3;
+      writeSelection(registry, { ...caret, anchor: at(3), head: at(3) }, sel, () => undefined);
+      expect(sel.focusOffset).toBe(3);
+      expect(sel.modify).toHaveBeenCalledTimes(3);
+    });
+
+    it('is written in place once where it is no longer at a wrap, and not moved by line boundary again', () => {
+      const { registry, a } = setup();
+      const sel = document.getSelection()!;
+      stubModify(sel, a);
+      lineEnd = 5;
+      expect(writeSelection(registry, caret, sel, () => undefined)).toBe(true);
+      expect(sel.focusOffset).toBe(4);
+      expect(writeSelection(registry, caret, sel, () => undefined)).toBe(true);
+      expect(sel.focusOffset).toBe(4);
+      expect(sel.modify).toHaveBeenCalledTimes(1);
+    });
+
+    it('is written in place where the browser cannot move by line boundary', () => {
+      const { registry } = setup();
+      const sel = document.getSelection()!;
+      Object.defineProperty(sel, 'modify', { value: undefined, configurable: true });
+      expect(writeSelection(registry, caret, sel, () => undefined)).toBe(true);
+      expect(sel.focusOffset).toBe(4);
+    });
+
+    it('leaves a range that carries the side as a range', () => {
+      const { registry, a } = setup();
+      const sel = document.getSelection()!;
+      stubModify(sel, a);
+      expect(writeSelection(registry, { ...caret, anchor: at(1) }, sel, () => undefined)).toBe(true);
+      expect(sel.modify).not.toHaveBeenCalled();
+      expect([sel.anchorOffset, sel.focusOffset]).toEqual([1, 4]);
+    });
   });
 
   it('reads a selection inside a block element outside any host as a node selection', () => {

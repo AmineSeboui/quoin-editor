@@ -1,3 +1,5 @@
+import type { Assoc } from '../transform/step';
+
 export type Attrs = Readonly<Record<string, string>>;
 
 export type Mark = { readonly type: string; readonly attrs?: Attrs };
@@ -29,7 +31,8 @@ export type EngineDoc = {
 
 export type Pos = { readonly block: string; readonly region: string; readonly offset: number };
 
-export type TextSelection = { readonly kind: 'text'; readonly anchor: Pos; readonly head: Pos };
+/** `assoc: -1` draws a caret at a soft wrap at the end of the line before it. */
+export type TextSelection = { readonly kind: 'text'; readonly anchor: Pos; readonly head: Pos; readonly assoc?: Assoc };
 export type NodeSelection = { readonly kind: 'node'; readonly block: string };
 export type BlockRangeSelection = { readonly kind: 'blocks'; readonly anchor: string; readonly head: string };
 export type Selection = TextSelection | NodeSelection | BlockRangeSelection;

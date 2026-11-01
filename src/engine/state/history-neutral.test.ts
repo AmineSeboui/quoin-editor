@@ -60,26 +60,26 @@ describe('history across unrecorded changes that move no text', () => {
     expect(stacks(state)).toEqual([1, 1]);
   });
 
-  it('keeps both stacks when a block is replaced by one with the same text', () => {
+  it('keeps both stacks when another block is replaced, whatever its text', () => {
     const state = typed();
     const image = state.doc.blocks[2];
     expect(stacks(unrecorded(state, replaceBlockStep({ ...image, attrs: { alt: 'cat' } })))).toEqual([1, 1]);
     const captioned = replaceBlockStep({ ...image, regions: { caption: [text('cat')] } });
-    expect(stacks(unrecorded(state, captioned))).toEqual([0, 0]);
+    expect(stacks(unrecorded(state, captioned))).toEqual([1, 1]);
   });
 
-  it('still clears both stacks after a remote inline insert', () => {
-    expect(stacks(from('remote', typed(), replaceInlineStep('b3', 'text', 0, 0, [text('x')])))).toEqual([0, 0]);
+  it('keeps both stacks after a remote inline insert in another block', () => {
+    expect(stacks(from('remote', typed(), replaceInlineStep('b3', 'text', 0, 0, [text('x')])))).toEqual([1, 1]);
   });
 
-  it('still clears both stacks after a remote block move', () => {
-    expect(stacks(from('remote', typed(), moveBlocksStep(3, 1, 1)))).toEqual([0, 0]);
+  it('keeps both stacks after a remote block move', () => {
+    expect(stacks(from('remote', typed(), moveBlocksStep(3, 1, 1)))).toEqual([1, 1]);
   });
 
-  it('still clears both stacks after an indent change or a neutral step followed by an edit', () => {
-    expect(stacks(unrecorded(typed(), setIndentStep('b3', 1)))).toEqual([0, 0]);
+  it('keeps both stacks after an indent change or a neutral step followed by an edit', () => {
+    expect(stacks(unrecorded(typed(), setIndentStep('b3', 1)))).toEqual([1, 1]);
     const edit = replaceInlineStep('b3', 'text', 4, 4, [text('!')]);
-    expect(stacks(unrecorded(typed(), setAttrsStep('b1', { open: true }), edit))).toEqual([0, 0]);
+    expect(stacks(unrecorded(typed(), setAttrsStep('b1', { open: true }), edit))).toEqual([1, 1]);
   });
 
   it('closes the open undo group, so typing after an unrecorded change is its own undo step', () => {

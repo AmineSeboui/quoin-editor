@@ -6,11 +6,15 @@ import { ownsFocus } from './focus-ownership';
 import { samePoints, selectionPoints } from './selection-sync';
 import type { ViewController } from './view-controller';
 
-/** The selection the browser draws in the hosts where it is not `model`, unless a composition or a drag holds it. */
+/**
+ * The selection the browser draws in the hosts where it is not `model`, unless a composition or a drag holds it. The
+ * browser does not tell which side of a soft wrap it draws a caret on, so a caret where the model's is keeps its side.
+ */
 export function movedSelection(controller: ViewController, doc: Document | null, model: Selection | null): Selection | null {
   if (controller.composingKey !== null || controller.dragging || !doc || !ownsFocus(controller, doc)) return null;
   const selection = readSelection(controller.registry, doc.getSelection(), (node) => controller.blockAt(node));
-  return selection === null || sameSelection(selection, model) ? null : selection;
+  const sided = selection?.kind === 'text' && model?.kind === 'text' ? { ...selection, assoc: model.assoc } : selection;
+  return sided === null || sameSelection(sided, model) ? null : selection;
 }
 
 /**

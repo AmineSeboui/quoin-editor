@@ -5,6 +5,7 @@ import { domToPos } from '../controller/dom-selection';
 import { listen } from '../dom/listen';
 import type { HostEntry } from '../controller/host-registry';
 import type { ViewController } from '../controller/view-controller';
+import { keepClickedSide } from '../navigation/clicked-side';
 import { canBeEntered, entryEdge } from '../navigation/neighbour-block';
 import { createAutoScroll } from './auto-scroll';
 import { blockAt, caretPosAt, hostAt } from './pointer-targets';
@@ -92,6 +93,12 @@ export function createCrossBlockPointer(controller: ViewController): CrossBlockP
         if (release()) controller.focus();
       }
 
+      function onPointerUp(event: PointerEvent): void {
+        const clicked = press?.kind === 'text' && !controller.dragging;
+        end();
+        if (clicked) keepClickedSide(controller, event.clientY);
+      }
+
       function onPointerMove(event: PointerEvent): void {
         if ((event.buttons & 1) === 0) return end();
         last = { x: event.clientX, y: event.clientY };
@@ -140,7 +147,11 @@ export function createCrossBlockPointer(controller: ViewController): CrossBlockP
         } else {
           return;
         }
-        const unfollowDocument = listen(doc, { pointermove: onPointerMove, pointerup: end, pointercancel: end });
+        const unfollowDocument = listen(doc, {
+          pointermove: onPointerMove,
+          pointerup: onPointerUp,
+          pointercancel: end,
+        });
         const unfollowView = listen(view, { blur: end });
         unfollow = () => {
           unfollowDocument();

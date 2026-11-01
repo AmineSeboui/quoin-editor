@@ -50,20 +50,19 @@ export function lineEdgeRect(host: HTMLElement, last: boolean): DOMRect | null {
   return caretClientRect(map.toDom(last ? map.length : 0, last ? -1 : 1));
 }
 
-function onEdgeLine(host: HTMLElement, point: CaretPoint, last: boolean): boolean {
+function onEdgeLine(host: HTMLElement, last: boolean, caret: DOMRect | null): boolean {
   if (domMapOf(host)?.length === 0) return true;
-  const caret = caretClientRect(point);
   const edge = lineEdgeRect(host, last);
   if (!caret || !edge) return false;
   return Math.abs(caret.top - edge.top) < Math.max(caret.height, edge.height) / 2;
 }
 
-export function isOnFirstLine(host: HTMLElement, point: CaretPoint): boolean {
-  return onEdgeLine(host, point, false);
+export function isOnFirstLine(host: HTMLElement, point: CaretPoint, caret = caretClientRect(point)): boolean {
+  return onEdgeLine(host, false, caret);
 }
 
-export function isOnLastLine(host: HTMLElement, point: CaretPoint): boolean {
-  return onEdgeLine(host, point, true);
+export function isOnLastLine(host: HTMLElement, point: CaretPoint, caret = caretClientRect(point)): boolean {
+  return onEdgeLine(host, true, caret);
 }
 
 // The vertical middle of the nearest line above or below the caret's, from the boxes the host's content is drawn in.

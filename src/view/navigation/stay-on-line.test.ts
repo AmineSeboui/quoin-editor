@@ -1,29 +1,36 @@
 import { describe, expect, it } from 'vitest';
 import type { Pos } from '../../engine';
-import { stayOnLine } from './stay-on-line';
+import { textSelection } from '../../engine/state/selection';
+import { stayOnLine, type Glyph } from './stay-on-line';
 
 const pos = (offset: number): Pos => ({ block: 'a', region: 'text', offset });
-const line = (top: number, height = 20) => ({ top, bottom: top + height, height }) as DOMRect;
+const glyph = (top: number, text = 'x'): Glyph => ({ rect: { top, bottom: top + 20 } as DOMRect, text });
+const wrapAt = (offset: number, before = 'x') => (at: number) =>
+  at < offset - 1 ? glyph(30) : at === offset - 1 ? glyph(30, before) : glyph(60);
 
 describe('stayOnLine', () => {
   it('keeps a position drawn on the intended line', () => {
-    expect(stayOnLine(pos(10), 35, () => line(30))).toEqual(pos(10));
+    expect(stayOnLine(pos(10), 35, () => glyph(30))).toEqual(textSelection(pos(10)));
   });
 
-  it('steps back from a soft wrap that would draw the caret on the next line', () => {
-    const rectAt = (p: Pos) => (p.offset >= 10 ? line(60) : line(30));
-    expect(stayOnLine(pos(10), 35, rectAt)).toEqual(pos(9));
+  it('steps back over the space a soft wrap falls after, so typed text stays on the line', () => {
+    expect(stayOnLine(pos(10), 35, wrapAt(10, ' '))).toEqual(textSelection(pos(9)));
   });
 
-  it('keeps the position when stepping back does not reach the line either', () => {
-    expect(stayOnLine(pos(10), 35, () => line(60))).toEqual(pos(10));
+  it('draws the caret before a soft wrap that falls after a visible glyph', () => {
+    expect(stayOnLine(pos(10), 35, wrapAt(10, '-'))).toEqual({ ...textSelection(pos(10)), assoc: -1 });
   });
 
-  it('does not step back from the start of a region', () => {
-    expect(stayOnLine(pos(0), 35, () => line(60))).toEqual(pos(0));
+  it('keeps the start of the next line when that is the line aimed at', () => {
+    expect(stayOnLine(pos(10), 65, wrapAt(10, ' '))).toEqual(textSelection(pos(10)));
+  });
+
+  it('keeps the start and the end of a region', () => {
+    expect(stayOnLine(pos(0), 35, () => glyph(60))).toEqual(textSelection(pos(0)));
+    expect(stayOnLine(pos(10), 35, (at) => (at < 10 ? glyph(30) : null))).toEqual(textSelection(pos(10)));
   });
 
   it('keeps the position when nothing can be measured', () => {
-    expect(stayOnLine(pos(10), 35, () => null)).toEqual(pos(10));
+    expect(stayOnLine(pos(10), 35, () => null)).toEqual(textSelection(pos(10)));
   });
 });

@@ -46,6 +46,23 @@ const docs: Record<string, QuoinBlock[]> = {
     md('p', 'The quick brown fox jumps over the lazy dog and keeps running across the wide green field until dusk falls on the quiet hills nearby. Yes.'),
     md('q', 'Another fairly long line of text that sits right below it here.'),
   ],
+  middle: [
+    md(
+      'p',
+      'A long paragraph of words of uneven length, so that its lines end ragged: some lines stop well short of ' +
+        'the edge while others nearly reach it, at whatever width the window has. Every line but the last ends ' +
+        'where a soft wrap falls, which is the end of that line and the start of the next one in the text, with ' +
+        'nothing to tell them apart.',
+    ),
+  ],
+  hyphens: [
+    md(
+      'p',
+      'one-two-three-four-five-six-seven-eight-nine-ten-eleven-twelve-thirteen-fourteen-fifteen-sixteen-seventeen-' +
+        'eighteen-nineteen-twenty-thirty-forty-fifty-sixty-seventy-eighty-ninety-hundred-thousand-million-billion-' +
+        'trillion-quadrillion-a-b-c-d',
+    ),
+  ],
   divider: [md('a', 'a'), { id: 'd', type: 'DIVIDER', data: {} }, md('b', 'b')],
   image: [md('a', 'one'), { id: 'i', type: 'IMAGE', data: { storageKey: 'k', alt: 'An image' } }, md('b', 'two')],
   list: [md('l1', '- one'), md('l2', '- two'), md('l3', '- three')],

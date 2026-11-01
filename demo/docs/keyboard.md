@@ -46,6 +46,8 @@ Every key below works on the canvas, and the shortcuts dialog (Mod+Shift+/ from 
 | Move down | ⌘⇧↓ | Ctrl+Shift+↓ |
 | Duplicate | ⌘D | Ctrl+D |
 
+Markdown typed at the start of a block turns it, as in Notion: `# ` to `###### ` for a heading, `- `, `* ` or `+ ` for a bullet, `1. ` for a numbered item, `[] ` for a task and `> ` for a quote. They work in a bullet, a numbered item and a task as well as in a paragraph, except that a prefix never turns a block into the kind it already is (`- ` in a bullet stays text), and the block keeps its indent. Undo straight after the conversion gives back the typed text. `---`, `$$ ` and a code fence turn a paragraph only.
+
 ## Selection
 
 | Action | macOS | Windows and Linux |
@@ -70,6 +72,8 @@ Every key below works on the canvas, and the shortcuts dialog (Mod+Shift+/ from 
 | Leave the editor | Escape, then Tab | Escape, then Tab |
 
 Shift with Ctrl+Home or Ctrl+End extends the selection to the start or the end of the document. On a Mac, ⌘⇧↑ and ⌘⇧↓ move the block instead, as listed under Blocks, and extend the selection to the edge only where the block cannot move, such as in the first block. Shift with an arrow keeps the caret's horizontal position from line to line, across blocks drawn in different fonts too.
+
+↑ and ↓ keep the caret on the line they move to when the caret's horizontal position is past the end of that line. Where the line wraps after a space, the caret stops before that space, so typed text continues the line. Where it wraps after another character, such as a hyphen, the caret is drawn at the end of the line and not at the start of the next, and so is a caret placed by a click past the end of a wrapped line. A text selection drawn that way has `assoc: -1`, which the editor sets on these moves and clicks; it is never written to JSON or shared with collaborators, and any change that moves the caret drops it.
 
 ## Menus
 

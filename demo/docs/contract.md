@@ -70,6 +70,8 @@ You can hand the canvas a new `blocks` array at any time to load, undo or merge 
 
 A caret in a block the new array changes stays on its character: text added or removed before it, after it or on both sides moves it with the text, and a caret inside text you removed goes to where that text was.
 
+The undo history survives a new array, as it does any change the editor did not record: a transaction dispatched with the `addToHistory` meta set to false, or a remote change without a collaboration history of its own. Undo still takes back the writer's earlier edits where they now are, and never removes text the change added. An edit whose text the change removed or rewrote leaves the history, and the edits before it still undo.
+
 When you echo `onChange` back into `blocks`, as every sample above does, the last array you supplied is the edited document, so `setBlocks(saved)` differs from it and resets the canvas with nothing more to do.
 
 The case that needs care is a host that does not echo edits back. There, the last array you supplied is still the original, and an array structurally equal to it is ignored: a "discard changes" button that re-supplies the original document does nothing. The same goes for restoring a copy of a state from the last 256 changes the canvas reported, which reads as a late echo of the canvas's own output. To force a reset, remount the canvas with a React `key`. The sample below uses a `key` so it works either way.

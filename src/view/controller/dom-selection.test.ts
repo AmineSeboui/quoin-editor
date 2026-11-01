@@ -95,6 +95,18 @@ describe('DOM selection mapping', () => {
       expect(sel.modify).toHaveBeenCalledTimes(3);
     });
 
+    it('is written in place once where it is no longer at a wrap, and not moved by line boundary again', () => {
+      const { registry, a } = setup();
+      const sel = document.getSelection()!;
+      stubModify(sel, a);
+      lineEnd = 5;
+      expect(writeSelection(registry, caret, sel, () => undefined)).toBe(true);
+      expect(sel.focusOffset).toBe(4);
+      expect(writeSelection(registry, caret, sel, () => undefined)).toBe(true);
+      expect(sel.focusOffset).toBe(4);
+      expect(sel.modify).toHaveBeenCalledTimes(1);
+    });
+
     it('is written in place where the browser cannot move by line boundary', () => {
       const { registry } = setup();
       const sel = document.getSelection()!;

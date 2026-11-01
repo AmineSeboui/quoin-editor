@@ -44,7 +44,7 @@ const drawnUpstream = new WeakMap<globalThis.Selection, DomPoint>();
 
 // A caret written at a soft wrap is drawn at the start of the next line, but one the browser moves there by line
 // boundary from the glyph before is drawn at the end of the line. The selection does not say which it draws, so the
-// point last drawn that way is remembered.
+// point last drawn that way is remembered, or the point written in place where the caret is no longer at a wrap.
 function drawUpstream(registry: HostRegistry, pos: Pos, domSelection: globalThis.Selection, drawn?: DomPoint): boolean {
   const caret = textSelection(pos);
   const isAt = () => sameSelection(readSelection(registry, domSelection), caret);
@@ -83,5 +83,6 @@ export function writeSelection(
   const extent = posToDom(registry, head, head.offset < anchor.offset ? 1 : -1);
   if (!base || !extent) return false;
   domSelection.setBaseAndExtent(base.node, base.offset, extent.node, extent.offset);
+  if (selection.assoc === -1) drawnUpstream.set(domSelection, extent);
   return true;
 }

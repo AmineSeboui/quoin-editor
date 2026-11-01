@@ -76,7 +76,7 @@ function landing(
   const host = registry.get(head.block, head.region);
   const point = posToDom(registry, head);
   if (!host || !point) return null;
-  const caret = assoc === -1 ? upstreamCaret(registry, head) : caretClientRect(point);
+  const caret = (assoc === -1 && upstreamCaret(registry, head)) || caretClientRect(point);
   controller.goalX ??= caret?.left ?? null;
   if (!(direction < 0 ? isOnFirstLine(host, point, caret) : isOnLastLine(host, point, caret))) {
     return moveInHost(controller, host, head, caret, direction);

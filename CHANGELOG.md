@@ -4,12 +4,15 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 
 ## Unreleased
 
+### Added
+- `TextSelection` has a new optional `assoc`, `-1` for a caret drawn at the end of the line before a soft wrap. The editor sets it when ↑, ↓ or a click leaves the caret there; a host that never sets it sees the same selections as before. It is never written to step, document or Yjs JSON.
+
 ### Changed
 - Markdown shortcuts convert list items as well as paragraphs: `# `, `> `, `1. `, `- ` and `[] ` typed at the start of a bullet, a numbered item or a task turn it into that block and keep its indent, as in Notion. A prefix for the kind the item already is, such as `- ` in a bullet, stays text, and the divider, `$$ ` and code fence shortcuts still turn paragraphs only.
 
 ### Fixed
 - The undo history survives a change the editor does not record, such as a new `blocks` array, a transaction with `addToHistory: false` or a remote change without a collaboration history, where it was cleared. Undo and redo carry the writer's edits over that change and never remove text it added; an edit whose text it removed or rewrote is dropped, and older edits still undo. A Yjs collaboration keeps its own history as before.
-- ↑ and ↓ keep the caret on the line they move to where a soft wrap ends it. With the caret's horizontal position past the end of a wrapped line, the caret was drawn at the start of the next line in some cases, and typed text started the next line; the caret now stops before the space the line wraps at, or, where it wraps after another character such as a hyphen, is drawn at the end of the line. A click past the end of a wrapped line keeps that side too, so the next ↑ or ↓ starts from the line clicked. `TextSelection` has a new optional `assoc`, `-1` for a caret drawn at the end of the line before a soft wrap; it is never written to step, document or Yjs JSON.
+- ↑ and ↓ keep the caret on the line they move to where a soft wrap ends it. With the caret's horizontal position past the end of a wrapped line, the caret was drawn at the start of the next line in some cases, and typed text started the next line; the caret now stops before the space the line wraps at, or, where it wraps after another character such as a hyphen, is drawn at the end of the line. A click past the end of a wrapped line keeps that side too, so the next ↑ or ↓ starts from the line clicked.
 
 ## 1.2.1 (2026-11-01)
 

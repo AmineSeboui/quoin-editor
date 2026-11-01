@@ -15,27 +15,27 @@ const remote = (editor: Editor, block: string, from: number, to: number, inserte
   );
 
 describe('history across a document change it did not record', () => {
-  it('does not undo a stale step after a remote insert before the typed text', () => {
+  it('undoes the typing after a remote insert before the typed text', () => {
     const { editor } = startEditor([md('a', 'hello')]);
     editor.commands.setSelection(caret('a', 5));
     editor.insertText('!');
     remote(editor, 'a', 0, 0, 'XY');
-    expect(editor.commands.undo()).toBe(false);
+    expect(editor.commands.undo()).toBe(true);
+    expect(editor.getBlocks()).toEqual([md('a', 'XYhello')]);
+    expect(editor.commands.redo()).toBe(true);
     expect(editor.getBlocks()).toEqual([md('a', 'XYhello!')]);
   });
 
-  it('leaves no item stuck on top after a remote change removes what it would undo', () => {
+  it('drops the item whose text a remote change removed, and still undoes the older one', () => {
     const { editor } = startEditor([md('a', 'hello'), md('b', 'x')]);
     editor.commands.setSelection(caret('a', 5));
     editor.insertText('!');
     editor.commands.setSelection(caret('b', 1));
     editor.insertText('?');
     remote(editor, 'b', 0, 2, '');
-    expect(undoDepth(editor.state)).toBe(0);
-    expect([editor.commands.undo(), editor.commands.undo()]).toEqual([false, false]);
-    editor.insertText('z');
-    expect(editor.commands.undo()).toBe(true);
-    expect(editor.getBlocks()).toEqual([md('a', 'hello!'), md('b', '')]);
+    expect(undoDepth(editor.state)).toBe(1);
+    expect([editor.commands.undo(), editor.commands.undo()]).toEqual([true, false]);
+    expect(editor.getBlocks()).toEqual([md('a', 'hello'), md('b', '')]);
   });
 
   it('keeps the typing undoable after a toggle opens without being recorded', () => {

@@ -8,6 +8,7 @@ import { replaceInlineStep } from '../transform/replace-inline-step';
 import type { Step } from '../transform/step';
 import type { EditorState } from './editor-state';
 import { continuesEdit, editEnd } from './history-adjacent';
+import { rebaseItems } from './history-rebase';
 import { createPluginKey, type PluginSpec } from './plugin';
 import { isCollapsed, sameSelection, textSelection } from './selection';
 import { foreignOrigins, Transaction, UNFILTERED, type TransactionOrigin } from './transaction';
@@ -118,7 +119,10 @@ function advance(tr: Transaction, value: HistoryState, config: Config): HistoryS
     const direction = tr.getMeta<Direction>('history');
     if (direction !== undefined) return moved(tr, value, direction, config.depth);
     if (tr.addToHistory && !foreignOrigins.includes(tr.origin)) return recorded(tr, value, config);
-    if (!movesNoPosition(tr.before.doc, tr.doc, tr.maps)) return emptyHistory;
+    if (!movesNoPosition(tr.before.doc, tr.doc, tr.maps)) {
+      if (tr.before.pluginState.has(HISTORY_PROVIDER)) return emptyHistory;
+      return { ...emptyHistory, done: rebaseItems(value.done, tr), undone: rebaseItems(value.undone, tr) };
+    }
   }
   const local = tr.docChanged && !foreignOrigins.includes(tr.origin);
   const closed = local || tr.getMeta<boolean>('closeHistory') === true;

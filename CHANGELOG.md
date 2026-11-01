@@ -7,6 +7,9 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 ### Changed
 - Markdown shortcuts convert list items as well as paragraphs: `# `, `> `, `1. `, `- ` and `[] ` typed at the start of a bullet, a numbered item or a task turn it into that block and keep its indent, as in Notion. A prefix for the kind the item already is, such as `- ` in a bullet, stays text, and the divider, `$$ ` and code fence shortcuts still turn paragraphs only.
 
+### Fixed
+- The undo history survives a change the editor does not record, such as a new `blocks` array, a transaction with `addToHistory: false` or a remote change without a collaboration history, where it was cleared. Undo and redo carry the writer's edits over that change and never remove text it added; an edit whose text it removed or rewrote is dropped, and older edits still undo. A Yjs collaboration keeps its own history as before.
+
 ## 1.2.1 (2026-11-01)
 
 ### Changed

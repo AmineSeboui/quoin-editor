@@ -73,30 +73,31 @@ describe('history', () => {
     expect(undoDepth(typeAt(state, 2, 'c', 20))).toBe(3);
   });
 
-  it('clears both stacks on a remote change or a reconcile', () => {
-    let state = run(typeAt(typeAt(start(), 0, 'a', 0), 1, 'b', 1000), undo).state;
+  it('carries both stacks over a remote change or a reconcile', () => {
+    const state = run(typeAt(typeAt(start(), 0, 'a', 0), 1, 'b', 1000), undo).state;
     expect([undoDepth(state), redoDepth(state)]).toEqual([1, 1]);
-    const remote = applyTransaction(
-      state,
-      new Transaction(state, 2000).setOrigin('remote').step(replaceInlineStep('b0', 'text', 0, 0, [text('r')])),
-    );
-    expect([undoDepth(remote), redoDepth(remote)]).toEqual([0, 0]);
-    state = applyTransaction(
-      state,
-      new Transaction(state, 2000).setOrigin('reconcile').step(replaceInlineStep('b0', 'text', 0, 0, [text('x')])),
-    );
-    expect([undoDepth(state), redoDepth(state)]).toEqual([0, 0]);
-    expect(run(state, undo).ok).toBe(false);
+    for (const origin of ['remote', 'reconcile'] as const) {
+      const changed = applyTransaction(
+        state,
+        new Transaction(state, 2000).setOrigin(origin).step(replaceInlineStep('b0', 'text', 0, 0, [text('r')])),
+      );
+      expect([undoDepth(changed), redoDepth(changed)]).toEqual([1, 1]);
+      expect(markdownOf(run(changed, redo).state)).toEqual(['rab']);
+      expect(markdownOf(run(changed, undo).state)).toEqual(['r']);
+    }
   });
 
-  it('clears both stacks when a document change opts out of history or comes from history unrecorded', () => {
+  it('carries both stacks over a change that opts out of history or comes from history unrecorded', () => {
     const state = run(typeAt(typeAt(start(), 0, 'a', 0), 1, 'b', 1000), undo).state;
     const change = (tr: Transaction) =>
       applyTransaction(state, tr.step(replaceInlineStep('b0', 'text', 1, 1, [text('c')])));
-    const optedOut = change(new Transaction(state, 2000).setMeta('addToHistory', false));
-    expect([undoDepth(optedOut), redoDepth(optedOut)]).toEqual([0, 0]);
-    const historyOrigin = change(new Transaction(state, 2000).setOrigin('history'));
-    expect([undoDepth(historyOrigin), redoDepth(historyOrigin)]).toEqual([0, 0]);
+    for (const changed of [
+      change(new Transaction(state, 2000).setMeta('addToHistory', false)),
+      change(new Transaction(state, 2000).setOrigin('history')),
+    ]) {
+      expect([undoDepth(changed), redoDepth(changed)]).toEqual([1, 1]);
+      expect(markdownOf(run(changed, redo).state)).toEqual(['acb']);
+    }
   });
 
   it('keeps both stacks through transactions that change no document, whatever their origin', () => {

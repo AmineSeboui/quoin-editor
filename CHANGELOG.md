@@ -2,7 +2,7 @@
 
 Every release of `quoin-editor` is listed here, newest first, in the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). From 1.0.0 the package follows [semantic versioning](https://semver.org/): a breaking change waits for the next major version. Until then, Quoin was 0.x and a minor version could contain breaking changes; those known at release were marked "Breaking". The 0.x sections are kept as they were released, "Docs" headings included. Moving from 0.4 to 1.0 is covered step by step in [MIGRATION.md](MIGRATION.md). Review finding ids such as F-17 are those of the 0.4.0 review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73).
 
-## Unreleased
+## 1.3.0 (2026-11-01)
 
 ### Added
 - `TextSelection` has a new optional `assoc`, `-1` for a caret drawn at the end of the line before a soft wrap. The editor sets it when ↑, ↓ or a click leaves the caret there; a host that never sets it sees the same selections as before. It is never written to step, document or Yjs JSON.

@@ -40,7 +40,7 @@ If your application has Tailwind of its own, import the stylesheet from your CSS
 
 ## What a page downloads
 
-Quoin depends on five Radix primitives, `lucide-react` for its icons, and `clsx` for class composition. A page downloads only the entries it imports, and `npm run check:size` holds each to a gzip budget (`scripts/package-entries.mjs`):
+Quoin depends on five Radix primitives, `lucide-react` for its icons, and `clsx` for class composition. A page downloads only the entries it imports, and `npm run check:size` holds each to a gzip budget:
 
 - The canvas, `quoin-editor`, is held under 155.5 kB gzip, `quoin-editor/headless` under 70 kB and `quoin-editor/engine` under 52 kB.
 - Each opt-in feature adds between about 1.7 kB (stats, or the table of contents) and 9.6 kB (tables) to the canvas, all of them together about 30 kB. The emoji dataset, about 42 kB, loads only when the `:` menu or the emoji picker first opens.

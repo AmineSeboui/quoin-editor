@@ -59,9 +59,9 @@ description: Every colour and radius comes from a --quoin- token, the stylesheet
 }
 ```
 
-Out of the box that is a slate editor with a cobalt focus ring and selection that works in both modes with nothing configured. `--quoin-shadow` colours the shadow under menus, popovers and toolbars. `src/ui/tokens.test.ts` holds the defaults to their contrast: the focus ring at 3:1 or more against the page, a popover and a selected block, body and muted text at 4.5:1 or more on the page, on a popover and on a highlighted row.
+Out of the box that is a slate editor with a cobalt focus ring and selection that works in both modes with nothing configured. `--quoin-shadow` colours the shadow under menus, popovers and toolbars. A test holds the defaults to their contrast: the focus ring at 3:1 or more against the page, a popover and a selected block, body and muted text at 4.5:1 or more on the page, on a popover and on a highlighted row.
 
-The other tokens belong to one part of the editor each, with a light and a dark default in `src/ui/tokens.css`:
+The other tokens each belong to one part of the editor, with a light and a dark default:
 
 | Tokens | What reads them |
 | --- | --- |

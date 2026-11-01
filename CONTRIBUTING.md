@@ -24,6 +24,12 @@ npm run build
 cd demo && npm ci && npm run build && npm test && npm run test:e2e
 ```
 
+The AI page's editor answers from a simulated model, so the site needs no key. To try it against a real one, put a key in `demo/.env.local`, which git ignores, `GEMINI_API_KEY=...` for Gemini or `ANTHROPIC_API_KEY=...` for Claude, and run `npm run dev:ai` in `demo/`. Only that dev server serves `api/ai`: it reads the key on your machine, asks the model with a low thinking level so answers start quickly, and streams them back. It answers from the latest Gemini Flash Lite, which a free Gemini key can call, when only a Gemini key is set and from Claude Opus 5.5 otherwise, and says which when it starts; `QUOIN_AI_PROVIDER` (`gemini` or `anthropic`) and `QUOIN_AI_MODEL` in the same file pick another. The built site never has the route or a key.
+
+```bash
+cd demo && npm run dev:ai
+```
+
 The README's animation, `demo/public/quoin-demo.gif`, and the social preview, `demo/public/og.png`, are committed files that you regenerate by hand, never in CI. `npm run record:demo` serves the built site from `demo/dist/`, plays a scripted writing session on the home page's editor in Chromium at 1280 by 720 in the light theme, with every request off the machine refused, and encodes the frames with `gifenc`; the script fails unless the site is built. `npm run render:og` screenshots `demo/og.html`, a page the site neither builds nor links, at 1280 by 640. Both use the system fonts of the machine that runs them, so rerun them on macOS to keep the look of the committed files, then look at the result before you commit it. `scripts/hero-assets.test.ts` holds both files to their size, dimensions and limits (under 3 MB and under 1 MB).
 
 ```bash

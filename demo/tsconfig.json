@@ -12,5 +12,5 @@
     "allowImportingTsExtensions": true,
     "types": ["vite/client", "node"]
   },
-  "include": ["src", "e2e", "vite.config.ts", "dev-pages.ts", "playwright.config.ts"]
+  "include": ["src", "e2e", "vite.config.ts", "dev-pages.ts", "dev-ai", "playwright.config.ts"]
 }

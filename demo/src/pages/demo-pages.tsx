@@ -33,10 +33,17 @@ export function CollaborationPage({ page }: { page: Page }) {
 export function AiPage({ page }: { page: Page }) {
   return (
     <DemoPage page={page} guide="ai" guideTitle="AI actions">
-      <p className="notice">
-        <strong>A simulation.</strong> No model is called: this page answers each request with canned text, streamed word by
-        word as a model&apos;s answer would arrive. Your host passes its own stream to aiExtension.
-      </p>
+      {import.meta.env.MODE === 'ai' ? (
+        <p className="notice">
+          <strong>A live model.</strong> This dev server sends each request to a real model and streams its answer back.
+          Your host passes its own stream to aiExtension.
+        </p>
+      ) : (
+        <p className="notice">
+          <strong>A simulation.</strong> No model is called: this page answers each request with canned text, streamed word
+          by word as a model&apos;s answer would arrive. Your host passes its own stream to aiExtension.
+        </p>
+      )}
       <p>
         Select the draft line, choose Ask AI in the toolbar and pick Fix spelling and grammar. Or press / on the empty line
         and pick Continue writing.

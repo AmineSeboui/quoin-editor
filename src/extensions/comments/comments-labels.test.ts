@@ -6,7 +6,8 @@ describe('the comments labels', () => {
     expect(labels).toBe(englishCommentsLabels);
     expect(labels.comment).toBe('Comment');
     expect(labels.comments).toBe('Comments');
-    expect(labels.showComments(3)).toBe('Comments (3)');
+    expect(labels.showComments(1)).toBe('1 comment');
+    expect(labels.showComments(3)).toBe('3 comments');
     expect(labels.thread('a word')).toBe('Comment on "a word"');
     expect(labels.threadsHere).toBe('Comments on this text');
     expect(labels.textRemoved).toBe('Text removed');

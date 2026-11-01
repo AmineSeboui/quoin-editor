@@ -9,11 +9,10 @@ const through =
   (pos, assoc) =>
     maps.reduce((mapped, map) => map(mapped, assoc), pos);
 
-// Only the steps that edit the text or marks of one range carry a slice or a mark.
-const textBlock = (step: Step) => {
-  const { block, slice, mark } = step.toJSON();
-  return slice || mark ? (block as string) : null;
-};
+const textBlock = (step: Step) =>
+  ['replaceInline', 'addMark', 'removeMark', 'restoreMarks'].includes(step.stepType)
+    ? (step.toJSON().block as string)
+    : null;
 
 /**
  * Carries a stack of undo or redo items, newest last, over the change a transaction made. Each item applies to the
@@ -27,8 +26,11 @@ export function rebaseItems(items: readonly HistoryItem[], tr: Transaction): His
   const touched = tr.steps.map(textBlock);
   let [before, after, change] = [tr.before.doc, tr.doc, tr.maps];
   items: for (const item of [...items].reverse()) {
+    const { selection } = item;
+    const caret = selection?.kind === 'text' ? [selection.anchor.block, selection.head.block] : [];
     const blocks = item.steps.map(textBlock);
-    const apart = ![...touched, ...blocks].includes(null) && !blocks.some((block) => touched.includes(block));
+    const apart =
+      ![...touched, ...blocks].includes(null) && ![...blocks, ...caret].some((block) => touched.includes(block));
     const [back, ahead]: PosMap[][] = [[], []];
     let [b, a, steps] = [before, after, [] as Step[] | null];
     if (!apart) touched.push(...blocks);
@@ -45,7 +47,6 @@ export function rebaseItems(items: readonly HistoryItem[], tr: Transaction): His
       b = original.doc;
     }
     [before, after, change] = [b, steps ? a : after, [...back, ...change, ...(steps ? ahead : [])]];
-    const { selection } = item;
     const selected = selection && mapSelection(selection, through(change), b);
     if (steps) kept.unshift(apart ? item : { ...item, steps, selection: selected });
   }

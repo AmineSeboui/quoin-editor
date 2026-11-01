@@ -46,6 +46,13 @@ describe('mapStep', () => {
     expect(mapped(replaceInlineStep('a', 'text', 0, 4, []), split)).toBeNull();
   });
 
+  it('follows a range into the block a join moved it to, and drops an insertion whose block is gone', () => {
+    const join = joinBlocksStep('a', 'text', 'b', 'text');
+    expect(mapped(replaceInlineStep('b', 'text', 1, 3, []), join)).toMatchObject({ block: 'a', from: 6, to: 8 });
+    expect(mapped(replaceInlineStep('b', 'text', 1, 1, [text('q')]), join)).toBeNull();
+    expect(mapped(replaceInlineStep('b', 'text', 1, 3, []), removeBlocksStep(1, 1))).toBeNull();
+  });
+
   it('maps the range of mark steps the same way', () => {
     expect(mapped(addMarkStep('a', 'text', 1, 3, bold), typeX('a', 0))).toMatchObject({ from: 2, to: 4 });
     expect(mapped(removeMarkStep('a', 'text', 1, 3, 'bold'), typeX('a', 0))).toMatchObject({ from: 2, to: 4 });
@@ -54,9 +61,17 @@ describe('mapStep', () => {
     expect(mapped(restore, typeX('a', 2))).toBeNull();
   });
 
-  it('keeps steps that address a block by id', () => {
-    const attrs = setAttrsStep('a', { kind: 'h1', gone: undefined });
-    const steps = [attrs, setIndentStep('a', 1), joinBlocksStep('a', 'text', 'b', 'text')];
+  it('keeps an attribute or indent step only while the change left that block attribute or indent alone', () => {
+    const attrs = setAttrsStep('a', { kind: 'h1' });
+    expect(mapped(attrs, typeX('a', 0))).toEqual(attrs.toJSON());
+    expect(mapped(attrs, setAttrsStep('a', { open: true }))).toBeNull();
+    expect(mapped(attrs, setIndentStep('a', 1))).toEqual(attrs.toJSON());
+    expect(mapped(setIndentStep('a', 2), setIndentStep('a', 1))).toBeNull();
+    expect(mapped(setIndentStep('a', 2), setAttrsStep('a', { open: true }))).toMatchObject({ indent: 2 });
+  });
+
+  it('keeps steps that address a block by id when the change left their part of it alone', () => {
+    const steps = [setAttrsStep('a', { kind: 'h1', gone: undefined }), joinBlocksStep('a', 'text', 'b', 'text')];
     for (const step of steps) {
       expect(mapped(step, typeX('a', 0))).toEqual(step.toJSON());
     }

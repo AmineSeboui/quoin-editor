@@ -23,9 +23,14 @@ export function mapStep(step: Step, map: PosMap, before: EngineDoc, after: Engin
     sliceInline(blockById(doc, block)?.regions[region] ?? [], offset, end);
   switch (json.stepType) {
     case 'setAttrs':
-    case 'setIndent':
+    case 'setIndent': {
+      const key = json.stepType === 'setAttrs' ? 'attrs' : 'indent';
+      return sameValue(blockById(before, block)?.[key], blockById(after, block)?.[key]) ? step : null;
+    }
     case 'joinBlocks':
       return step;
+    case 'replaceDoc':
+      return null;
     case 'replaceBlock': {
       const { id } = json.block as unknown as EngineBlock;
       return sameValue(blockById(before, id), blockById(after, id)) ? step : null;
@@ -48,7 +53,7 @@ export function mapStep(step: Step, map: PosMap, before: EngineDoc, after: Engin
     default: {
       const first = from ?? json.offset;
       const last = to ?? first;
-      if (!after.index.has(block)) return null;
+      if (first === last && !after.index.has(block)) return null;
       const start = map({ block, region, offset: first }, 1);
       const end = first === last ? start : map({ block, region, offset: last }, -1);
       const moved = start.block !== end.block || start.region !== end.region;

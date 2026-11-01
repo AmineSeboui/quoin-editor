@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { createDoc } from '../model/doc';
 import { text } from '../model/inline';
 import { buildState, markdownOf, run } from '../test-support/build-state';
+import { setAttrsStep, setIndentStep } from '../transform/attrs-steps';
 import { insertBlocksStep, moveBlocksStep, removeBlocksStep } from '../transform/block-steps';
 import { replaceDocStep } from '../transform/replace-doc-step';
 import { replaceInlineStep } from '../transform/replace-inline-step';
+import { joinBlocksStep } from '../transform/split-join-steps';
 import type { Step } from '../transform/step';
 import { applyTransaction, getPluginState, type EditorState } from './editor-state';
 import {
@@ -39,10 +41,13 @@ const recorded = (state: EditorState, ...steps: Step[]) =>
     state,
     steps.reduce((tr, step) => tr.step(step), new Transaction(state, (clock += 1000)).setOrigin('input')),
   );
-const unrecorded = (state: EditorState, step: Step, origin: TransactionOrigin = 'command') =>
+const unrecorded = (state: EditorState, step: Step, origin: TransactionOrigin = 'command', ...more: Step[]) =>
   applyTransaction(
     state,
-    new Transaction(state, (clock += 1000)).setOrigin(origin).setMeta('addToHistory', false).step(step),
+    [step, ...more].reduce(
+      (tr, next) => tr.step(next),
+      new Transaction(state, (clock += 1000)).setOrigin(origin).setMeta('addToHistory', false),
+    ),
   );
 
 const undone = (state: EditorState) => run(state, undo).state;
@@ -85,14 +90,38 @@ describe('history through a change made without recording', () => {
   });
 
   it('keeps an item in a block nothing newer touched as it is, and rewrites the one the change reaches', () => {
-    let state = recorded(start(['Hello', 'tail']), insert('b1', 4, 'q'));
-    state = recorded(state, insert('b0', 5, 'abc'));
+    let state = recorded(start(['', 'Hello', 'tail']), insert('b2', 4, 'q'));
+    state = recorded(state, insert('b1', 5, 'abc'));
     const [older, newer] = getPluginState(state, historyKey).done;
-    state = unrecorded(state, insert('b0', 0, 'XY'));
+    state = unrecorded(state, insert('b1', 0, 'XY'));
     const done = getPluginState(state, historyKey).done;
     expect(done[0]).toBe(older);
     expect(done[1]).not.toBe(newer);
-    expect(markdownOf(undone(undone(state)))).toEqual(['XYHello', 'tail']);
+    expect(markdownOf(undone(undone(state)))).toEqual(['', 'XYHello', 'tail']);
+  });
+
+  it('maps the caret a kept item restores when the change moved text before it', () => {
+    let state = buildState(['Hello', 'tail'], { block: 0, offset: 5 }, { plugins: [historyPlugin()] });
+    state = applyTransaction(state, new Transaction(state, 1000).setOrigin('command').step(insert('b1', 4, '!')));
+    state = unrecorded(state, insert('b0', 0, 'XYZ'));
+    expect(undone(state).selection).toMatchObject({ head: { block: 'b0', offset: 8 } });
+  });
+
+  it('drops an attribute change the unrecorded change overrode, and keeps one it left alone', () => {
+    let state = recorded(start(['one', 'two']), setAttrsStep('b1', { kind: 'h1' }));
+    state = recorded(state, setIndentStep('b0', 1));
+    const changed = unrecorded(state, setAttrsStep('b1', { kind: 'h2' }), 'command', insert('b0', 0, 'X'));
+    expect(undoDepth(changed)).toBe(1);
+    expect(undone(changed).doc.blocks.map(({ indent, attrs }) => [indent, attrs.kind])).toEqual([
+      [0, 'paragraph'],
+      [0, 'h2'],
+    ]);
+  });
+
+  it('undoes typing in a block that an unrecorded join merged into the one before it', () => {
+    const typed = recorded(start(['Hello', 'tail']), insert('b1', 4, '!'));
+    const state = unrecorded(typed, joinBlocksStep('b0', 'text', 'b1', 'text'));
+    expect(markdownOf(undone(state))).toEqual(['Hellotail']);
   });
 
   it('lets an error other than a step that cannot apply through', () => {

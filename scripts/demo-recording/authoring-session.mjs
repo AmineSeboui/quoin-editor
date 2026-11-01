@@ -1,30 +1,8 @@
-const TYPE_STEP = 60;
+import { TYPE_STEP, centre, clickAt, glide, leaveEditor, press, type } from './gestures.mjs';
 
 const editor = (page) => page.locator('[data-island] .quoin-editor').first();
 const hosts = (page) => editor(page).locator('[data-quoin-host]');
 const handle = (page) => page.getByRole('button', { name: 'Drag to move, click for options' });
-
-async function type(page, recorder, text) {
-  for (const character of text) {
-    await page.keyboard.type(character);
-    await recorder.hold(TYPE_STEP);
-  }
-}
-
-async function press(page, recorder, key, pause = 300) {
-  await page.keyboard.press(key);
-  await recorder.hold(pause);
-}
-
-async function glide(page, recorder, to, steps = 8) {
-  const from = await page.evaluate(() => window.__demoCursor);
-  for (let step = 1; step <= steps; step += 1) {
-    await page.mouse.move(from.x + ((to.x - from.x) * step) / steps, from.y + ((to.y - from.y) * step) / steps);
-    await recorder.hold(TYPE_STEP);
-  }
-}
-
-const centre = (box) => ({ x: box.x + box.width / 2, y: box.y + box.height / 2 });
 
 /** Clears the sample document so the session starts on one empty paragraph. */
 export async function emptyDocument(page) {
@@ -73,16 +51,10 @@ async function dragAbove(page, recorder, moving, target) {
   await recorder.hold(400);
 }
 
-async function clickAt(page, recorder, point) {
-  await glide(page, recorder, point);
-  await page.mouse.down();
-  await page.mouse.up();
-}
-
-async function leaveEditor(page, recorder) {
+async function leaveLastBlock(page, recorder) {
   const last = await hosts(page).last().boundingBox();
   await clickAt(page, recorder, { x: last.x + last.width - 4, y: last.y + last.height / 2 });
-  await clickAt(page, recorder, { x: 1180, y: 660 });
+  await leaveEditor(page, recorder);
 }
 
 /** The scripted authoring session the hero animation shows. */
@@ -102,6 +74,6 @@ export async function authoringSession(page, recorder) {
   await recorder.hold(500);
   const blocks = editor(page).locator('[data-quoin-block]');
   await dragAbove(page, recorder, blocks.last(), blocks.nth(1));
-  await leaveEditor(page, recorder);
+  await leaveLastBlock(page, recorder);
   await recorder.hold(3000);
 }

@@ -125,47 +125,6 @@
   font-size: 0.8125rem;
 }
 
-.proofs {
-  margin-top: 5rem;
-}
-
-.proofs h2 {
-  margin: 0 0 2rem;
-  font-size: 1.5rem;
-  font-weight: 650;
-  letter-spacing: -0.02em;
-}
-
-.proofs ul {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
-  gap: 2rem 3rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.proofs h3 {
-  margin: 0 0 0.5rem;
-  font-size: 1.0625rem;
-  font-weight: 600;
-}
-
-.proofs p {
-  margin: 0;
-  color: var(--quoin-muted-foreground);
-}
-
-.proofs .proof-source {
-  margin-top: 0.75rem;
-  font-size: 0.8125rem;
-}
-
-.proof-source a {
-  font-family: var(--site-mono);
-  overflow-wrap: anywhere;
-}
-
 main > h1 {
   margin: 0 0 1rem;
   font-size: 2.5rem;

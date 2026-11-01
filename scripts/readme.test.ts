@@ -69,6 +69,10 @@ describe('the README and the docs sources', () => {
   it.each(pages.map(({ slug, path }) => [slug, path]))('%s makes no claim the code cannot show', (_, path) => {
     expect(readText(path)).not.toMatch(/fully accessible|exactly as written|wysiwyg/i);
   });
+
+  it.each(pages.map(({ slug, path }) => [slug, path]))('%s names no source or test file of the repository', (_, path) => {
+    expect(readText(path)).not.toMatch(/\b(?:src|e2e|scripts|test)\/[\w./-]*\.(?:[cm]?[jt]sx?|css)\b/);
+  });
 });
 
 describe('the controlled contract page', () => {

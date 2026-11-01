@@ -6,6 +6,7 @@ import './styles/site.css';
 import './styles/prose.css';
 import './styles/code.css';
 import './styles/demos.css';
+import './styles/home.css';
 import { wireCopyButton } from './copy-button';
 import { wireThemeToggle } from './theme-toggle';
 

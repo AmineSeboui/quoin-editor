@@ -37,6 +37,10 @@ export function AiPage({ page }: { page: Page }) {
         <strong>A simulation.</strong> No model is called: this page answers each request with canned text, streamed word by
         word as a model&apos;s answer would arrive. Your host passes its own stream to aiExtension.
       </p>
+      <p>
+        Select the draft line, choose Ask AI in the toolbar and pick Fix spelling and grammar. Or press / on the empty line
+        and pick Continue writing.
+      </p>
       <Island name="ai" blocks={aiDocument} />
     </DemoPage>
   );

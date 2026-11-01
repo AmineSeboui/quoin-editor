@@ -59,12 +59,23 @@ describe('block rules in list items', () => {
     expect(typeAfter('3. ', '-').doc.blocks[0].attrs).toEqual({ kind: 'bullet' });
   });
 
-  it.each(Object.entries(ITEMS))('restores a %s item and the typed prefix with undoInputRule', (_kind, marker) => {
-    const converted = typeAfter(marker, '#');
-    expect(markdownOf(converted)).toEqual(['# ']);
+  describe.each(INDENTS)('undoInputRule at indent %j', (indent) => {
+    it.each(Object.entries(ITEMS))('restores a %s item and the typed prefix', (kind, marker) => {
+      const converted = typeAfter(marker, '#', ' ', indent);
+      expect(markdownOf(converted)).toEqual(['  '.repeat(indent) + '# ']);
+      const undone = run(converted, undoInputRule).state;
+      expect(markdownOf(undone)).toEqual(['  '.repeat(indent) + `${marker}\\#&#32;`]);
+      expect(undone.doc.blocks[0].attrs.kind).toBe(kind);
+      expect(undone.doc.blocks[0].indent).toBe(indent);
+    });
+  });
+
+  it('restores a checked task and the typed prefix after it became a numbered item', () => {
+    const converted = typeAfter('- [x] ', '1.');
+    expect(converted.doc.blocks[0].attrs).toEqual({ kind: 'ordered', start: 1 });
     const undone = run(converted, undoInputRule).state;
-    expect(markdownOf(undone)).toEqual(markdownOf(buildState([`${marker}\\#&#32;`])));
-    expect(undone.doc.blocks[0].attrs.kind).toBe(_kind);
+    expect(undone.doc.blocks[0].attrs).toMatchObject({ kind: 'task', checked: true });
+    expect(markdownOf(undone)).toEqual(['- [x] 1\\.&#32;']);
   });
 
   it.each([

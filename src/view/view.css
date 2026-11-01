@@ -19,6 +19,7 @@
 
 .quoin [data-quoin-block] {
   margin-inline-start: calc(var(--quoin-indent, 0) * 1.5rem);
+  padding-block: 0.125rem;
   border-radius: var(--quoin-radius);
   outline: none;
 }
@@ -148,7 +149,7 @@
 }
 
 .quoin .quoin-callout[data-tone="tip"] {
-  border-color: var(--quoin-primary);
+  border-color: var(--quoin-tip);
 }
 
 .quoin .quoin-callout[data-tone="warning"] {

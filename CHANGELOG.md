@@ -4,6 +4,12 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 
 ## Unreleased
 
+### Changed
+- The default theme is slate with a cobalt accent. The focus ring, text selection, the ring of a selected block and the bar of a highlighted menu row are cobalt where they were near-black or grey, and the neutrals carry a slight cool tint. A host that sets its own `--quoin-` tokens keeps its values, except that the bar of a highlighted row now reads `--quoin-ring` where it read `--quoin-foreground`.
+- A tip callout draws its rule and wash from a new `--quoin-tip` token, violet by default, where it used `--quoin-primary` and drew grey. Set `--quoin-tip` to your primary colour to keep the old look.
+- Menus, popovers and toolbars cast a softer two-layer shadow, coloured by a new `--quoin-shadow` token.
+- Blocks have 2px of room above and below, so consecutive list items and paragraphs no longer touch.
+
 ### Fixed
 - A callout whose text starts with a line of pipes and dashes, such as `|-`, is written to markdown with a blank line after its alert marker, so it reads back as the callout and not as a one-column table.
 

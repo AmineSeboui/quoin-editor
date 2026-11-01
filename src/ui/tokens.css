@@ -1,20 +1,20 @@
 :root {
   --quoin-background: oklch(1 0 0);
-  --quoin-foreground: oklch(0.145 0 0);
-  --quoin-muted: oklch(0.97 0 0);
-  --quoin-muted-foreground: oklch(0.49 0 0);
+  --quoin-foreground: oklch(0.24 0.024 267);
+  --quoin-muted: oklch(0.975 0.005 258);
+  --quoin-muted-foreground: oklch(0.48 0.029 263);
   --quoin-popover: oklch(1 0 0);
-  --quoin-popover-foreground: oklch(0.145 0 0);
-  --quoin-border: oklch(0.922 0 0);
-  --quoin-input: oklch(0.62 0 0);
-  --quoin-ring: oklch(0.45 0 0);
-  --quoin-primary: oklch(0.205 0 0);
-  --quoin-primary-foreground: oklch(0.985 0 0);
-  --quoin-accent: oklch(0.97 0 0);
-  --quoin-accent-foreground: oklch(0.205 0 0);
+  --quoin-popover-foreground: oklch(0.24 0.024 267);
+  --quoin-border: oklch(0.927 0.01 262);
+  --quoin-input: oklch(0.62 0.02 262);
+  --quoin-ring: oklch(0.533 0.221 266);
+  --quoin-primary: oklch(0.24 0.024 267);
+  --quoin-primary-foreground: oklch(0.985 0.003 260);
+  --quoin-accent: oklch(0.962 0.012 262);
+  --quoin-accent-foreground: oklch(0.24 0.024 267);
   --quoin-destructive: oklch(0.55 0.245 27.325);
-  --quoin-secondary: oklch(0.97 0 0);
-  --quoin-secondary-foreground: oklch(0.205 0 0);
+  --quoin-secondary: oklch(0.965 0.007 262);
+  --quoin-secondary-foreground: oklch(0.24 0.024 267);
   /* The callout tones. They exist because the rest of this palette cannot tell five
      tones apart: it carries one accent and one destructive, so info, tip and success
      all resolved to the same near-black and the tone a writer picked said nothing.
@@ -22,7 +22,8 @@
   --quoin-info: oklch(0.55 0.17 250);
   --quoin-success: oklch(0.55 0.14 155);
   --quoin-warning: oklch(0.6 0.16 65);
-  --quoin-selection: oklch(0.62 0.17 250 / 28%);
+  --quoin-tip: oklch(0.54 0.17 300);
+  --quoin-selection: oklch(0.6 0.19 266 / 24%);
   /* The tint of text a comment thread is anchored to, painted translucent so overlapping anchors stack, the opaque tint
      of the anchor whose thread is open, and the rule under both, thicker when open. Body and palette text read at
      4.5:1 on either tint, so the tints stay pale and the rule carries the difference. */
@@ -30,9 +31,10 @@
   --quoin-comment-active: oklch(0.98 0.06 85);
   --quoin-comment-edge: oklch(0.62 0.14 70);
   --quoin-radius: 0.625rem;
+  --quoin-shadow: oklch(0.24 0.024 267 / 14%);
   /* The palette a writer colours text and backgrounds with. Each text colour reaches 4.5:1 on the page, and body text
      reaches 4.5:1 on each background. */
-  --quoin-color-default: oklch(0.145 0 0);
+  --quoin-color-default: oklch(0.24 0.024 267);
   --quoin-color-gray: oklch(0.53 0 0);
   --quoin-color-brown: oklch(0.52 0.06 50);
   --quoin-color-orange: oklch(0.56 0.14 52);
@@ -56,35 +58,37 @@
   --quoin-diff-inserted: oklch(0.48 0.11 155);
   --quoin-diff-deleted: oklch(0.5 0.19 27);
   /* The links of the static view and the diff, which a host page would otherwise draw in its browser's blue. */
-  --quoin-link: oklch(0.5 0.16 255);
+  --quoin-link: oklch(0.5 0.2 266);
 }
 
 .dark {
-  --quoin-background: oklch(0.145 0 0);
-  --quoin-foreground: oklch(0.985 0 0);
-  --quoin-muted: oklch(0.269 0 0);
-  --quoin-muted-foreground: oklch(0.708 0 0);
-  --quoin-popover: oklch(0.205 0 0);
-  --quoin-popover-foreground: oklch(0.985 0 0);
+  --quoin-background: oklch(0.19 0.015 267);
+  --quoin-foreground: oklch(0.965 0.005 260);
+  --quoin-muted: oklch(0.245 0.02 266);
+  --quoin-muted-foreground: oklch(0.72 0.02 262);
+  --quoin-popover: oklch(0.225 0.019 266);
+  --quoin-popover-foreground: oklch(0.965 0.005 260);
   --quoin-border: oklch(1 0 0 / 10%);
-  --quoin-input: oklch(0.56 0 0);
-  --quoin-ring: oklch(0.708 0 0);
-  --quoin-primary: oklch(0.922 0 0);
-  --quoin-primary-foreground: oklch(0.205 0 0);
-  --quoin-accent: oklch(0.269 0 0);
-  --quoin-accent-foreground: oklch(0.985 0 0);
-  --quoin-secondary: oklch(0.269 0 0);
-  --quoin-secondary-foreground: oklch(0.985 0 0);
+  --quoin-input: oklch(0.6 0.02 262);
+  --quoin-ring: oklch(0.72 0.14 268);
+  --quoin-primary: oklch(0.93 0.008 262);
+  --quoin-primary-foreground: oklch(0.22 0.02 266);
+  --quoin-accent: oklch(0.28 0.025 266);
+  --quoin-accent-foreground: oklch(0.965 0.005 260);
+  --quoin-secondary: oklch(0.28 0.025 266);
+  --quoin-secondary-foreground: oklch(0.965 0.005 260);
   --quoin-destructive: oklch(0.704 0.191 22.216);
   --quoin-info: oklch(0.72 0.14 250);
   --quoin-success: oklch(0.74 0.15 155);
   --quoin-warning: oklch(0.79 0.15 65);
-  --quoin-selection: oklch(0.72 0.14 250 / 35%);
+  --quoin-tip: oklch(0.74 0.13 300);
+  --quoin-selection: oklch(0.7 0.15 268 / 32%);
   --quoin-comment: oklch(0.35 0.08 90);
   --quoin-comment-active: oklch(0.3 0.08 85);
   --quoin-comment-edge: oklch(0.72 0.14 75);
   --quoin-radius: 0.625rem;
-  --quoin-color-default: oklch(0.985 0 0);
+  --quoin-shadow: oklch(0 0 0 / 45%);
+  --quoin-color-default: oklch(0.965 0.005 260);
   --quoin-color-gray: oklch(0.72 0 0);
   --quoin-color-brown: oklch(0.72 0.06 55);
   --quoin-color-orange: oklch(0.76 0.13 60);
@@ -94,7 +98,7 @@
   --quoin-color-purple: oklch(0.74 0.13 305);
   --quoin-color-pink: oklch(0.74 0.14 355);
   --quoin-color-red: oklch(0.72 0.16 25);
-  --quoin-bg-default: oklch(0.145 0 0);
+  --quoin-bg-default: oklch(0.19 0.015 267);
   --quoin-bg-gray: oklch(0.29 0 0);
   --quoin-bg-brown: oklch(0.29 0.025 50);
   --quoin-bg-orange: oklch(0.3 0.05 55);
@@ -106,5 +110,5 @@
   --quoin-bg-red: oklch(0.29 0.06 25);
   --quoin-diff-inserted: oklch(0.76 0.13 155);
   --quoin-diff-deleted: oklch(0.74 0.15 25);
-  --quoin-link: oklch(0.76 0.12 250);
+  --quoin-link: oklch(0.76 0.12 268);
 }

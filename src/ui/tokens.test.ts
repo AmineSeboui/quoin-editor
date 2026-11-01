@@ -7,6 +7,7 @@ import commentsCss from '../extensions/comments/comments.css?raw';
 import { TONE } from '../blocks/previews';
 import { PALETTE } from '../engine/markdown/palette';
 import { contrastOnWash, contrastRatio, tokenReader, type Theme } from './oklch-contrast';
+import { HIGHLIGHT_BAR } from './focus';
 
 const inputSource = readFileSync(resolve(__dirname, 'input.tsx'), 'utf8');
 const token = tokenReader(css);
@@ -49,6 +50,8 @@ const ANCHOR_ALPHA = Number(ANCHOR_TINT.exec(commentsCss)![1]) / 100;
 
 /** The surface behind a highlighted row in a menu, a select and the palette. */
 const HIGHLIGHT = 'accent';
+
+const BAR = /var\(--quoin-([\w-]+)\)/.exec(HIGHLIGHT_BAR)![1];
 
 describe.each<Theme>(['light', 'dark'])('%s theme', (theme) => {
   it('draws the focus ring at 3:1 or more against the page', () => {
@@ -140,8 +143,8 @@ describe.each<Theme>(['light', 'dark'])('%s theme', (theme) => {
   });
 
   it('draws the highlight bar at 3:1 or more against the row and its popover', () => {
-    expect(contrast(theme, 'foreground', HIGHLIGHT)).toBeGreaterThanOrEqual(3);
-    expect(contrast(theme, 'foreground', 'popover')).toBeGreaterThanOrEqual(3);
+    expect(contrast(theme, BAR, HIGHLIGHT)).toBeGreaterThanOrEqual(3);
+    expect(contrast(theme, BAR, 'popover')).toBeGreaterThanOrEqual(3);
   });
 });
 

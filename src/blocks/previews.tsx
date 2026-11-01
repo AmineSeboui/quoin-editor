@@ -21,7 +21,7 @@ const HINT = 'text-sm text-muted-foreground';
  */
 export const TONE: Record<string, string> = {
   info: 'border-info bg-info/15',
-  tip: 'border-primary bg-primary/15',
+  tip: 'border-tip bg-tip/15',
   warning: 'border-warning bg-warning/15',
   success: 'border-success bg-success/15',
   danger: 'border-destructive bg-destructive/15',

@@ -46,6 +46,30 @@ test('a click on an entry puts the caret at the end of its heading, and leaves t
   expect(new URL(page.url()).hash).toBe('');
 });
 
+test('a table of contents that opens the document is drawn as selected only once focus reaches the editor', async ({
+  page,
+}) => {
+  await openEditor(page, 'toc', 'toc=1');
+  await expect(entry(page, 'Introduction')).toBeVisible();
+  expect(await page.evaluate(() => document.activeElement === document.body)).toBe(true);
+  await expect(tocShell(page)).not.toHaveAttribute('data-selected');
+
+  await page.keyboard.press('Tab');
+  await expect(sink(page)).toBeFocused();
+  await expect(tocShell(page)).toHaveAttribute('data-selected', 'true');
+});
+
+test('the block menu opened on an untouched table of contents draws it as selected while it holds focus', async ({
+  page,
+}) => {
+  await openEditor(page, 'toc', 'toc=1');
+  await tocShell(page).hover();
+  await page.getByRole('button', { name: 'Drag to move, click for options' }).click();
+  await expect(page.getByRole('menu')).toBeVisible();
+  await page.waitForFunction(() => document.activeElement?.closest('[role="menu"]') != null);
+  await expect(tocShell(page)).toHaveAttribute('data-selected', 'true');
+});
+
 test('a press beside the entries selects the block, and a press on one goes to its heading', async ({ page }) => {
   await openEditor(page, 'toc', 'toc=1');
   const box = (await toc(page).boundingBox())!;

@@ -5,10 +5,10 @@ import { useViewController } from './editor-context';
 
 type LiveRegionProps = { blocksSelected: (count: number) => string };
 
-function heardNow({ editor, announcer }: ViewController, blocksSelected: (count: number) => string): Heard {
+function heardNow({ editor, announcer, engagement }: ViewController, blocksSelected: (count: number) => string): Heard {
   const spoken = announcer.current();
   if (spoken !== null) return { key: `said:${spoken.serial}`, message: spoken.message };
-  return selectionAnnouncement(editor.state, blocksSelected);
+  return engagement.engaged ? selectionAnnouncement(editor.state, blocksSelected) : SILENCE;
 }
 
 export function LiveRegion({ blocksSelected }: LiveRegionProps) {
@@ -17,9 +17,11 @@ export function LiveRegion({ blocksSelected }: LiveRegionProps) {
     (notify: () => void) => {
       const stopState = controller.editor.subscribe(() => notify());
       const stopSpoken = controller.announcer.subscribe(notify);
+      const stopEngaged = controller.engagement.subscribe(notify);
       return () => {
         stopState();
         stopSpoken();
+        stopEngaged();
       };
     },
     [controller],

@@ -10,6 +10,7 @@ import { focusSink } from '../selection/selection-sink';
 import { createAnnouncer } from './announcer';
 import { dispatchSelection } from './dispatch-selection';
 import { createDrawnElements } from './drawn-elements';
+import { createEngagement, type Engagement } from './engagement';
 import { hasFocus, ownsFocus } from './focus-ownership';
 import { focusTarget, type FocusTarget } from './focus-target';
 import { createHostRegistry, hostKey, type HostEntry, type HostRegistry } from './host-registry';
@@ -45,6 +46,7 @@ export class ViewController {
   readonly keyInterceptors = new Set<KeyInterceptor>();
   readonly nodeReveal = createNodeReveal((id) => this.blockElement(id));
   readonly announcer = createAnnouncer(() => this.#said);
+  readonly engagement: Engagement;
   readonly isMac: boolean;
   readonly onFiles: ViewControllerOptions['onFiles'];
   goalX: number | null = null;
@@ -72,6 +74,7 @@ export class ViewController {
     options.editor.subscribe((state, tr) => {
       if (tr?.origin !== 'remote') this.#said = state;
     });
+    this.engagement = createEngagement(options.editor);
     this.#flush = options.flush ?? runNow;
     this.onFiles = options.onFiles;
     this.isMac = options.isMac ?? detectMac();

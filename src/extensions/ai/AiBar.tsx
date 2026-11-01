@@ -71,7 +71,7 @@ export function AiBar({ env, ghost, gone, barId }: AiBarProps) {
       id={barId}
       role="group"
       aria-label={labels.response}
-      className="quoin-ai-bar flex flex-wrap items-center gap-2 rounded-md border bg-popover p-2 text-popover-foreground shadow-md"
+      className="quoin-ai-bar flex flex-wrap items-center gap-2 rounded-lg border bg-popover p-2 text-popover-foreground shadow-md"
       onFocus={() => (inside.current = true)}
       onBlur={(event) => (inside.current = content.current?.contains(event.relatedTarget as Node) ?? false)}
       onKeyDown={(event) => {

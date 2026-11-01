@@ -63,7 +63,8 @@
   .quoin *::after,
   .quoin *::backdrop {
     box-sizing: border-box;
-    border: 0 solid;
+    /* Tailwind 4 draws a bare `border` in currentColor, which made every popover, toolbar and dialog edge near-black. */
+    border: 0 solid var(--quoin-border);
     margin: 0;
     padding: 0;
   }

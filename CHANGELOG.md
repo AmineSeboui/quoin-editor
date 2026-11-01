@@ -5,6 +5,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 ## Unreleased
 
 ### Fixed
+- A callout whose text starts with a line of pipes and dashes, such as `|-`, is written to markdown with a blank line after its alert marker, so it reads back as the callout and not as a one-column table.
 - An editor whose first block has no text, such as a table of contents, an image, a divider or an embed, no longer draws that block as selected or says "1 block selected" as soon as the page loads, server-rendered HTML included. The block is drawn as selected once focus enters the editor or a menu of it, or once the reader or the host sets a selection, and stays so when focus leaves.
 
 ## 1.2.0 (2026-10-31)

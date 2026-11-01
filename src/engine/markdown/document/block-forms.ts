@@ -18,7 +18,7 @@ const FENCE_LIKE_MATH_LINE = /^ {0,3}\${2,}[ \t]*$/m;
 export function calloutMarkdown(data: Data): string {
   const name = ALERT_NAMES.get(str(data.tone)) ?? 'NOTE';
   const body = str(data.body);
-  return quoteLines(body === '' ? `[!${name}]` : `[!${name}]\n${body}`);
+  return quoteLines(body === '' ? `[!${name}]` : `[!${name}]\n${/^.*\|/.test(body) ? '\n' : ''}${body}`);
 }
 
 function longestRun(value: string, char: string): number {

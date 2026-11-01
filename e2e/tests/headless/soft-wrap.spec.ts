@@ -23,9 +23,7 @@ function lines(page: Page): Promise<Line[]> {
   });
 }
 
-// At every width, from the end of a longer line onto a shorter line that has a line after it: one press, and two
-// presses across a shorter line first, so that the second landing is the editor's and not the browser's. The caret
-// must be drawn on the line aimed at.
+// Two presses cross a shorter line first, so that the second landing is the editor's and not the browser's.
 async function sweepMiddleLines(
   { page, browserName }: { page: Page; browserName: string },
   doc: string,
@@ -67,7 +65,6 @@ test.describe('a soft wrap', () => {
     page,
     browserName,
   }) => {
-    // The top of the typed Z, and of the first visible glyph after it.
     const typed = () =>
       page.evaluate(() => {
         const text = document.querySelector('[data-block-id="p"] [data-quoin-host]')!.firstChild as Text;

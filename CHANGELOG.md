@@ -2,10 +2,11 @@
 
 Every release of `quoin-editor` is listed here, newest first, in the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). From 1.0.0 the package follows [semantic versioning](https://semver.org/): a breaking change waits for the next major version. Until then, Quoin was 0.x and a minor version could contain breaking changes; those known at release were marked "Breaking". The 0.x sections are kept as they were released, "Docs" headings included. Moving from 0.4 to 1.0 is covered step by step in [MIGRATION.md](MIGRATION.md). Review finding ids such as F-17 are those of the 0.4.0 review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73).
 
-## Unreleased
+## 1.2.2 (2026-11-01)
 
 ### Fixed
 - Popovers, the bubble toolbar, dialogs, the AI response bar, the find panel, the mobile toolbar and the keys in the shortcuts dialog draw a soft hairline edge in `--quoin-border`, where they drew a near-black one. The stylesheet's reset gives every border that names no colour `--quoin-border`, instead of the text colour Tailwind 4 falls back to.
+- An editor whose first block has no text, such as a table of contents, an image, a divider or an embed, no longer draws that block as selected or says "1 block selected" as soon as the page loads, server-rendered HTML included. The block is drawn as selected once focus enters the editor or a menu of it, or once the reader or the host sets a selection, and stays so when focus leaves.
 
 ### Changed
 - Fields draw their border in `--quoin-input`, a lighter grey that still reaches 3:1 on the page, a popover and a highlighted row, and darken it on hover. A focused field shows the focus outline alone, where its border also turned to the ring colour. Outline buttons draw their border in `--quoin-border`.
@@ -22,7 +23,6 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 
 ### Fixed
 - A callout whose text starts with a line of pipes and dashes, such as `|-`, is written to markdown with a blank line after its alert marker, so it reads back as the callout and not as a one-column table.
-- An editor whose first block has no text, such as a table of contents, an image, a divider or an embed, no longer draws that block as selected or says "1 block selected" as soon as the page loads, server-rendered HTML included. The block is drawn as selected once focus enters the editor or a menu of it, or once the reader or the host sets a selection, and stays so when focus leaves.
 
 ## 1.2.0 (2026-10-31)
 

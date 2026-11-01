@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { text } from '../../engine/model/inline';
 import { renderInline } from '../dom/render-inline';
 import { createHostRegistry } from './host-registry';
@@ -45,6 +45,27 @@ describe('DOM selection mapping', () => {
     expect(sel.anchorNode).toBe(a.firstChild);
     expect(sel.anchorOffset).toBe(4);
     expect(writeSelection(registry, { kind: 'text', anchor: pos('a', 1), head: pos('b', 1) }, sel, () => undefined)).toBe(false);
+  });
+
+  it('writes a caret before a soft wrap by moving to the line boundary from the glyph before it', () => {
+    const { registry, a } = setup();
+    const sel = document.getSelection()!;
+    const pos = { block: 'a', region: 'text', offset: 4 };
+    const caret = { kind: 'text', anchor: pos, head: pos, assoc: -1 } as const;
+    const starts: number[] = [];
+    let lineEnd = 4;
+    sel.modify = vi.fn(() => {
+      starts.push(sel.focusOffset);
+      sel.collapse(a.firstChild, lineEnd);
+    });
+    expect(writeSelection(registry, caret, sel, () => undefined)).toBe(true);
+    expect(sel.modify).toHaveBeenCalledWith('move', 'forward', 'lineboundary');
+    expect([starts, sel.focusOffset]).toEqual([[3], 4]);
+    lineEnd = 5;
+    sel.collapse(a.firstChild, 0);
+    expect(writeSelection(registry, caret, sel, () => undefined)).toBe(true);
+    expect(sel.focusOffset).toBe(4);
+    Reflect.deleteProperty(sel, 'modify');
   });
 
   it('reads a selection inside a block element outside any host as a node selection', () => {

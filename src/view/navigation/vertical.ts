@@ -1,6 +1,6 @@
 import type { BlockRangeSelection, EngineBlock, Pos, Selection, TextSelection } from '../../engine';
 import { isTextFlow } from '../../engine/commands/block-helpers';
-import { blockRangeSelection, primaryRegion, textSelection } from '../../engine/state/selection';
+import { blockRangeSelection, primaryRegion } from '../../engine/state/selection';
 import { posToDom } from '../controller/dom-selection';
 import type { ViewController } from '../controller/view-controller';
 import { isCrossSelection } from '../selection/selection-decorations';
@@ -10,6 +10,7 @@ import { adjacentLineMiddle, caretClientRect, isOnFirstLine, isOnLastLine, lineE
 import { canBeEntered, entryEdge, holdsTextHead, moveToNeighbour, neighbourBlock, ownNode } from './neighbour-block';
 import { stayOnLine } from './stay-on-line';
 import { dispatchSelection } from '../controller/dispatch-selection';
+import { glyphsAround, upstreamCaret } from './glyph';
 
 // caretFromPoint only finds content inside the viewport.
 function lineInView(host: HTMLElement, last: boolean): DOMRect | null {
@@ -24,13 +25,11 @@ function caretAtGoal(controller: ViewController, host: HTMLElement, at: Omit<Pos
   const { goalX } = controller;
   const view = host.ownerDocument.defaultView;
   if (goalX === null || !view || y < 0 || y > view.innerHeight) return null;
-  const pos = caretInHost(controller.registry, host, host.getBoundingClientRect(), at, goalX, y);
-  if (!pos) return null;
-  return stayOnLine(pos, y, (p) => {
-    const dom = posToDom(controller.registry, p);
-    return dom && caretClientRect(dom);
-  });
+  return caretInHost(controller.registry, host, host.getBoundingClientRect(), at, goalX, y);
 }
+
+const keepOnLine = ({ registry }: ViewController, pos: Pos, y: number): TextSelection =>
+  stayOnLine(pos, y, glyphsAround(registry, pos));
 
 function landAtGoal(controller: ViewController, block: EngineBlock, direction: -1 | 1): Selection | null {
   const { schema } = controller.editor.state;
@@ -38,31 +37,38 @@ function landAtGoal(controller: ViewController, block: EngineBlock, direction: -
   const host = region === null ? undefined : controller.registry.get(block.id, region);
   if (!host || region === null || controller.goalX === null) return null;
   const line = lineInView(host, direction < 0);
-  const pos = line && caretAtGoal(controller, host, { block: block.id, region }, line.top + line.height / 2);
-  return pos ? textSelection(pos) : null;
+  if (!line) return null;
+  const y = line.top + line.height / 2;
+  const pos = caretAtGoal(controller, host, { block: block.id, region }, y);
+  return pos && keepOnLine(controller, pos, y);
 }
 
 // The browser keeps its own goal column across the moves it makes inside a host, but not across a caret the editor
 // put down, so a caret that stopped short of the goal at the end of a shorter line is moved by the editor, as is the
-// head of a selection across hosts, which the browser does not hold.
+// head of a selection across hosts, which the browser does not hold. A browser landing past the end of a line before a
+// soft wrap leaves typed text to start the next line, so that landing is the editor's too.
 function moveInHost(
   controller: ViewController,
   host: HTMLElement,
   head: Pos,
   caret: DOMRect | null,
   direction: -1 | 1,
-): Pos | null {
+): TextSelection | null {
   const { goalX } = controller;
-  const native = !isCrossSelection(controller.editor.state.selection);
-  if (goalX === null || !caret || (native && Math.abs(caret.left - goalX) < caret.height / 2)) return null;
+  if (goalX === null || !caret) return null;
+  const atGoal = Math.abs(caret.left - goalX) < caret.height / 2;
+  const native = atGoal && !isCrossSelection(controller.editor.state.selection);
   const y = adjacentLineMiddle(host, caret, direction);
-  const pos = y === null ? null : caretAtGoal(controller, host, head, y);
-  return pos && pos.offset !== head.offset ? pos : null;
+  if (y === null) return null;
+  const pos = caretAtGoal(controller, host, head, y);
+  const next = pos && keepOnLine(controller, pos, y);
+  if (!next || next.head.offset === head.offset) return null;
+  return native && next.head === pos && next.assoc === undefined ? null : next;
 }
 
 function landing(
   controller: ViewController,
-  { head }: TextSelection,
+  { head, assoc }: TextSelection,
   direction: -1 | 1,
   extend: boolean,
 ): Selection | null {
@@ -70,11 +76,10 @@ function landing(
   const host = registry.get(head.block, head.region);
   const point = posToDom(registry, head);
   if (!host || !point) return null;
-  const caret = caretClientRect(point);
+  const caret = assoc === -1 ? upstreamCaret(registry, head) : caretClientRect(point);
   controller.goalX ??= caret?.left ?? null;
-  if (!(direction < 0 ? isOnFirstLine(host, point) : isOnLastLine(host, point))) {
-    const pos = moveInHost(controller, host, head, caret, direction);
-    return pos && textSelection(pos);
+  if (!(direction < 0 ? isOnFirstLine(host, point, caret) : isOnLastLine(host, point, caret))) {
+    return moveInHost(controller, host, head, caret, direction);
   }
   const own = extend ? null : ownNode(controller, head.block, direction);
   if (own !== null) return own;

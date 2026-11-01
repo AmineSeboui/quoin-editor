@@ -40,6 +40,16 @@ function selectBlock(domSelection: globalThis.Selection, element: HTMLElement | 
   return true;
 }
 
+// A caret written at a soft wrap is drawn at the start of the next line, but one the browser moves there by line
+// boundary from the glyph before is drawn at the end of the line.
+function drawUpstream(registry: HostRegistry, pos: Pos, domSelection: globalThis.Selection): boolean {
+  const before = pos.offset > 0 && posToDom(registry, { ...pos, offset: pos.offset - 1 });
+  if (!before) return false;
+  domSelection.collapse(before.node, before.offset);
+  domSelection.modify('move', 'forward', 'lineboundary');
+  return sameSelection(readSelection(registry, domSelection), textSelection(pos));
+}
+
 // A range's ends lean into the selected content and a caret leans on the text before it, which is where the model
 // takes a caret's marks from.
 export function writeSelection(
@@ -54,6 +64,7 @@ export function writeSelection(
   const { anchor, head } = selection;
   if (anchor.block !== head.block || anchor.region !== head.region) return false;
   if (sameSelection(readSelection(registry, domSelection), selection)) return true;
+  if (selection.assoc === -1 && drawUpstream(registry, head, domSelection)) return true;
   const base = posToDom(registry, anchor, anchor.offset < head.offset ? 1 : -1);
   const extent = posToDom(registry, head, head.offset < anchor.offset ? 1 : -1);
   if (!base || !extent) return false;

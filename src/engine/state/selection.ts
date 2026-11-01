@@ -38,7 +38,9 @@ export function sameSelection(a: Selection | null, b: Selection | null): boolean
   if (a === null || b === null) return false;
   switch (a.kind) {
     case 'text':
-      return b.kind === 'text' && samePos(a.anchor, b.anchor) && samePos(a.head, b.head);
+      return (
+        b.kind === 'text' && samePos(a.anchor, b.anchor) && samePos(a.head, b.head) && (a.assoc ?? 1) === (b.assoc ?? 1)
+      );
     case 'node':
       return b.kind === 'node' && a.block === b.block;
     case 'blocks':

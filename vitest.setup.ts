@@ -28,6 +28,11 @@ if (typeof HTMLCanvasElement !== 'undefined') {
   HTMLCanvasElement.prototype.getContext = (() => null) as typeof HTMLCanvasElement.prototype.getContext;
 }
 
+// jsdom lays nothing out, so a range measures as empty, as an element does.
+if (typeof Range !== 'undefined' && !Range.prototype.getBoundingClientRect) {
+  Range.prototype.getBoundingClientRect = () => document.body.getBoundingClientRect();
+}
+
 if (typeof window !== 'undefined' && !('ResizeObserver' in window)) {
   class ResizeObserverStub {
     observe() {}

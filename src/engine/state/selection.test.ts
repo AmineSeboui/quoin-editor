@@ -74,6 +74,13 @@ describe('selection helpers', () => {
     expect(sameSelection(null, nodeSelection('b0'))).toBe(false);
   });
 
+  it('tells a caret drawn before a soft wrap apart from one after it', () => {
+    const caret = textSelection(p('b0', 1));
+    expect(sameSelection(caret, { ...caret, assoc: 1 })).toBe(true);
+    expect(sameSelection({ ...caret, assoc: -1 }, caret)).toBe(false);
+    expect(sameSelection({ ...caret, assoc: -1 }, { ...caret, assoc: -1 })).toBe(true);
+  });
+
   it('finds the primary region of each kind of block', () => {
     const rich = buildState([
       'one',
@@ -165,6 +172,12 @@ describe('mapSelection', () => {
 
   it('treats the anchor as forward when no document is given', () => {
     expect(mapSelection(range(3, 1), insert(3))).toEqual(range(5, 1));
+  });
+
+  it('keeps the side of a soft wrap a caret is drawn on until the caret moves', () => {
+    const upstream = { ...range(1, 1), assoc: -1 as const };
+    expect(mapSelection(upstream, insert(3), state.doc)).toBe(upstream);
+    expect(mapSelection(upstream, insert(1), state.doc)).toEqual(range(3, 3));
   });
 
   it('returns the same selection when nothing moves', () => {

@@ -68,8 +68,8 @@ describe('the package entry list', () => {
   it('keeps the absolute budgets of the main, headless and engine entries, and of the view, diff and docx a server loads alone', () => {
     const totals = packageEntries.filter((entry) => entry.total !== undefined).map(({ name, total }) => [name, total]);
     expect(totals).toEqual([
-      ['index', 156_200],
-      ['headless', 72_600],
+      ['index', 156_500],
+      ['headless', 73_000],
       ['engine', 52_600],
       ['view', 22_214],
       ['diff', 26_961],

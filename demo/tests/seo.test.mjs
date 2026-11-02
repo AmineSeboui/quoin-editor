@@ -29,6 +29,10 @@ describe('every page of the built site', () => {
         assert.equal(canonicalOf(html), SITE_URL + path);
       });
 
+      it('says in its title that Quoin is a markdown editor', () => {
+        assert.match(titleOf(html), /markdown editor/i);
+      });
+
       it('has Open Graph and Twitter tags with the shared picture', () => {
         assert.equal(metaOf(html, 'property', 'og:title'), titleOf(html));
         assert.equal(metaOf(html, 'property', 'og:description'), metaOf(html, 'name', 'description'));
@@ -65,6 +69,31 @@ describe('every page of the built site', () => {
   });
 });
 
+describe('the structured data of the home page', () => {
+  const blocks = [...builtPage('').matchAll(/<script type="application\/ld\+json">([^<]*)<\/script>/g)];
+  const graph = blocks.length === 1 ? JSON.parse(blocks[0][1])['@graph'] : [];
+  const ofType = (type) => graph.find((node) => node['@type'] === type) ?? {};
+
+  it('names the site Quoin, also known by its package name', () => {
+    assert.equal(blocks.length, 1, 'one JSON-LD block');
+    assert.deepEqual(ofType('WebSite'), { '@type': 'WebSite', name: 'Quoin', alternateName: 'quoin-editor', url: SITE_URL });
+  });
+
+  it('describes the package as source code with its repository, its npm page and its licence', () => {
+    const code = ofType('SoftwareSourceCode');
+    assert.equal(code.codeRepository, 'https://github.com/AmineSeboui/quoin-editor');
+    assert.deepEqual(code.sameAs, [code.codeRepository, 'https://www.npmjs.com/package/quoin-editor']);
+    assert.equal(code.license, 'https://opensource.org/licenses/MIT');
+    assert.equal(code.description, metaOf(builtPage(''), 'name', 'description'));
+  });
+
+  it('is left off the other pages', () => {
+    for (const path of expectedPages().filter((path) => path !== '')) {
+      assert.doesNotMatch(builtPage(path), /application\/ld\+json/, `/${path}`);
+    }
+  });
+});
+
 describe('the files search engines and link previews read', () => {
   it('lists every page in the sitemap', () => {
     const sitemap = existsSync(join(dist, 'sitemap.xml')) ? readText(join(dist, 'sitemap.xml')) : '';
@@ -75,6 +104,13 @@ describe('the files search engines and link previews read', () => {
   it('points robots.txt at the sitemap', () => {
     const robots = existsSync(join(dist, 'robots.txt')) ? readText(join(dist, 'robots.txt')) : '';
     assert.match(robots, new RegExp(`^Sitemap: ${SITE_URL}sitemap.xml$`, 'm'));
+  });
+
+  // Search Console re-reads this file to keep the site verified, so removing it loses the owner's access.
+  it('ships the Google Search Console verification file', () => {
+    const file = 'googleced1a4c00a4650ee.html';
+    const text = existsSync(join(dist, file)) ? readText(join(dist, file)) : '';
+    assert.equal(text, `google-site-verification: ${file}`);
   });
 
   it('ships a 1280 by 640 og.png and a favicon', () => {

@@ -2,7 +2,7 @@
 
 **Blocks on screen. Markdown on disk.**
 
-Quoin is a block editor for React that keeps every text block as readable markdown inside a typed array you hold in your own state; images, files, code, dividers, tables and the catalogue blocks are typed data beside them. Writers get live formatting, a slash menu, drag handles, real-time co-editing and AI that writes into the page; you get a document you can save, diff in git or hand to an LLM without a conversion step.
+Quoin is a rich markdown editor and block editor for React. Every text block stays readable markdown inside a typed array you hold in your own state; images, files, code, dividers, tables and the catalogue blocks are typed data beside them. Writers get live formatting, a slash menu, drag handles, real-time co-editing and AI that writes into the page; you get a document you can save, diff in git or hand to an LLM without a conversion step.
 
 [![npm](https://img.shields.io/npm/v/quoin-editor)](https://www.npmjs.com/package/quoin-editor) [![CI](https://github.com/AmineSeboui/quoin-editor/actions/workflows/ci.yml/badge.svg)](https://github.com/AmineSeboui/quoin-editor/actions/workflows/ci.yml) [![licence](https://img.shields.io/npm/l/quoin-editor)](LICENSE)
 

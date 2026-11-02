@@ -81,8 +81,9 @@ export const referencePages: Page[] = [
   {
     kind: 'comparison',
     path: 'comparison/',
-    title: 'How Quoin compares',
-    description: 'Quoin beside Tiptap, BlockNote and Editor.js: storage, markdown, UI, licence, collaboration, comments and frameworks, dated and sourced.',
+    title: 'Quoin vs Tiptap, BlockNote and Editor.js',
+    description:
+      'A Tiptap, BlockNote or Editor.js alternative? Quoin beside each on storage, markdown, UI, licence, collaboration, comments and frameworks, dated and sourced.',
   },
   {
     kind: 'migration',
@@ -101,9 +102,9 @@ export const referencePages: Page[] = [
 export const homePage: Page = {
   kind: 'home',
   path: '',
-  title: 'Quoin, a markdown-native block editor for React',
+  title: 'Quoin, a rich markdown editor and block editor for React',
   description:
-    'Quoin is a block editor for React that keeps every text block as readable markdown in a typed array you hold in your own state. MIT.',
+    'Quoin is an open source rich markdown editor for React: a Notion-style block editor with real-time collaboration and AI that stores readable markdown. MIT.',
 };
 
 export const pages: Page[] = [homePage, ...guidePages, ...demoPages, ...referencePages];

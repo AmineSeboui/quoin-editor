@@ -1,5 +1,6 @@
 import type { Page } from '../site/pages';
 import { BASE, SITE_NAME, SITE_URL } from '../site/site';
+import { structuredData } from './structured-data';
 
 export const OG_IMAGE = {
   path: 'og.png',
@@ -14,8 +15,10 @@ const escape = (text: string) =>
 const meta = (key: 'name' | 'property', name: string, content: string | number) =>
   `<meta ${key}="${name}" content="${escape(String(content))}" />`;
 
-/** The title a page is listed under: its own, and the site's name after it unless the page is the home page. */
-export const documentTitle = (page: Page) => (page.kind === 'home' ? page.title : `${page.title} | ${SITE_NAME}`);
+const TITLE_SUFFIX = `${SITE_NAME}, React markdown editor`;
+
+/** The title a page is listed under: its own, and what the site is after it unless the page is the home page. */
+export const documentTitle = (page: Page) => (page.kind === 'home' ? page.title : `${page.title} | ${TITLE_SUFFIX}`);
 
 /** The tags a search engine and a link preview read: title, description, canonical address, Open Graph and Twitter. */
 export function headTags(page: Page): string {
@@ -41,5 +44,6 @@ export function headTags(page: Page): string {
     meta('name', 'twitter:description', page.description),
     meta('name', 'twitter:image', image),
     meta('name', 'twitter:image:alt', OG_IMAGE.alt),
+    ...(page.kind === 'home' ? [structuredData()] : []),
   ].join('\n    ');
 }

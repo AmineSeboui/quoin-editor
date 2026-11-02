@@ -1,4 +1,14 @@
 import type { ComponentType } from 'react';
+import type { Command } from '../../engine';
+import {
+  addColumn,
+  addRow,
+  moveColumn,
+  moveRow,
+  removeColumn,
+  removeRow,
+} from '../../engine/commands/table-commands';
+import type { ColumnAlign, TableShape } from '../../engine/commands/table-shape';
 import {
   AlignCenter,
   AlignLeft,
@@ -12,17 +22,7 @@ import {
   ArrowUp,
   ArrowUpToLine,
   Trash,
-} from 'lucide-react';
-import type { Command } from '../../engine';
-import {
-  addColumn,
-  addRow,
-  moveColumn,
-  moveRow,
-  removeColumn,
-  removeRow,
-} from '../../engine/commands/table-commands';
-import type { ColumnAlign, TableShape } from '../../engine/commands/table-shape';
+} from '../../icons';
 import type { TableLabels } from './table-labels';
 
 type Icon = ComponentType<{ className?: string }>;

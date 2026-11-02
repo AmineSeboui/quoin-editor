@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react';
-import { ChevronDown, ChevronUp, X } from 'lucide-react';
 import { keyName, normalizeKey, redo, undo, type Command } from '../../engine';
+import { ChevronDown, ChevronUp, X } from '../../icons';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import type { ViewController } from '../../view';

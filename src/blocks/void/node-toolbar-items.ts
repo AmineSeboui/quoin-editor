@@ -1,7 +1,7 @@
-import { Trash, Upload } from 'lucide-react';
 import { deleteBlocks } from '../../engine/commands/block-structure';
 import type { ToolbarItem } from '../../extensions/ui-types';
 import { runOnBlocks } from '../../gutter/run-on-blocks';
+import { Trash, Upload } from '../../icons';
 import type { ViewController } from '../../view';
 
 /** The button that uploads a file in place of what the block holds, offered while the canvas can upload. */

@@ -1,10 +1,10 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { Image } from 'lucide-react';
 import { useQuoin } from '../../context';
 import { englishLabels } from '../../i18n/english-labels';
 import { optionalNumber } from '../../engine/blocks/data-fields';
+import { Image } from '../../icons';
 import { EditableRegion, type BlockRenderProps } from '../../view';
 import { str } from '../../engine/blocks/data-fields';
 import { focusNode } from '../void/select-node';

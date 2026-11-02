@@ -200,7 +200,7 @@ test('the copy button puts the code on the clipboard', async ({ page, context, b
   await page.locator('[data-block-id="k"]').hover();
   await page.getByRole('button', { name: 'Copy code' }).click();
   await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe('let a = 1;\nlet b = 2;');
-  await expect(page.getByRole('button', { name: 'Copy code' }).locator('.lucide-check')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Copy code' }).locator('[data-quoin-icon="check"]')).toBeVisible();
   await expect(page.getByRole('status').filter({ hasText: 'Copied' })).toHaveCount(1);
 });
 

@@ -1,10 +1,10 @@
 'use client';
 
 import { useCallback, useContext, useEffect, useMemo, useRef, type KeyboardEvent, type MouseEvent } from 'react';
-import { Pencil } from 'lucide-react';
 import { useQuoin } from '../../context';
 import { devWarn } from '../../dev-warn';
 import { blockTypeLabel } from '../../gutter/block-type-label';
+import { Pencil } from '../../icons';
 import { parsedData, type AnyBlockDefinition } from '../../registry';
 import type { BlockEditorProps, BlockPreviewProps } from '../../types';
 import { Button } from '../../ui/button';

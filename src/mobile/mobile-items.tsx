@@ -1,3 +1,9 @@
+import { redo, undo, type Command } from '../engine';
+import { headBlockId } from '../engine/commands/block-helpers';
+import { indent, outdent } from '../engine/commands/block-structure';
+import type { ToolbarItem } from '../extensions/ui-types';
+import { addBlockBelow } from '../gutter/add-block-below';
+import type { QuoinLabels } from '../i18n/labels';
 import {
   Bold,
   Code,
@@ -8,13 +14,7 @@ import {
   Redo2,
   Strikethrough,
   Undo2,
-} from 'lucide-react';
-import { redo, undo, type Command } from '../engine';
-import { headBlockId } from '../engine/commands/block-helpers';
-import { indent, outdent } from '../engine/commands/block-structure';
-import type { ToolbarItem } from '../extensions/ui-types';
-import { addBlockBelow } from '../gutter/add-block-below';
-import type { QuoinLabels } from '../i18n/labels';
+} from '../icons';
 import { linkItem, markItem } from '../menus/bubble/bubble-items';
 import type { ViewController } from '../view';
 

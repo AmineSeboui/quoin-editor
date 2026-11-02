@@ -1,5 +1,5 @@
-import { PenLine, Sparkles } from 'lucide-react';
 import type { BlockMenuAction } from '../../gutter/block-menu-items';
+import { PenLine, Sparkles } from '../../icons';
 import type { ViewController } from '../../view';
 import type { SlashItem, ToolbarItem } from '../ui-types';
 import type { AiStream } from './ai-actions';

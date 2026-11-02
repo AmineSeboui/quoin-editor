@@ -1,6 +1,6 @@
-import { SmilePlus } from 'lucide-react';
 import type { EditorState } from '../../engine';
 import { styleTargets, type BlockMenuAction } from '../../gutter/block-menu-items';
+import { SmilePlus } from '../../icons';
 import { allCallouts } from './all-callouts';
 import type { EmojiLabels } from './emoji-labels';
 import { requestIcon } from './icon-request';

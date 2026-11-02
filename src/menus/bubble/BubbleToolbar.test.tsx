@@ -1,7 +1,6 @@
 import { createRef, useState } from 'react';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Star } from 'lucide-react';
 import { axe } from 'vitest-axe';
 import { mountCanvas, paragraph } from '../../blocks/void/test-canvas';
 import { BlockCanvas } from '../../canvas/BlockCanvas';
@@ -10,6 +9,7 @@ import type * as UiStoreModule from '../../canvas/ui-store';
 import type { CanvasUiStore } from '../../canvas/ui-store';
 import { defineExtension, textSelection, type Pos } from '../../engine';
 import type { ExtensionUI, ToolbarItem } from '../../extensions/ui-types';
+import { Sparkles } from '../../icons';
 import type { QuoinBlock } from '../../types';
 
 const stores = vi.hoisted(() => [] as CanvasUiStore[]);
@@ -63,7 +63,7 @@ describe('the bubble toolbar', () => {
 
   it('offers its controls in order, with the ones extensions add last', () => {
     const run = vi.fn();
-    openToolbar(undefined, withBubbleItem({ id: 'star', title: 'Star', icon: Star, run }));
+    openToolbar(undefined, withBubbleItem({ id: 'star', title: 'Star', icon: Sparkles, run }));
     const names = within(toolbar())
       .getAllByRole('button')
       .map((button) => button.getAttribute('aria-label') ?? button.textContent);

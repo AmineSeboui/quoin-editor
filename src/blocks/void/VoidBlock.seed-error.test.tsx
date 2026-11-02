@@ -1,6 +1,6 @@
 import { act, fireEvent, screen } from '@testing-library/react';
-import { ShieldAlert } from 'lucide-react';
 import { resetDevWarnings } from '../../dev-warn';
+import { MessageSquare } from '../../icons';
 import { defineBlock } from '../../registry';
 import type { QuoinBlock } from '../../types';
 import { mountCanvas, paragraph, testBlockTypes } from './test-canvas';
@@ -10,7 +10,7 @@ const refused = new Error('owner is required');
 const strict = defineBlock<{ owner: string }>({
   type: 'STRICT',
   label: 'Strict',
-  icon: ShieldAlert,
+  icon: MessageSquare,
   parse: (data) => {
     if (typeof data.owner !== 'string') throw refused;
     return { owner: data.owner };
@@ -21,7 +21,7 @@ const strict = defineBlock<{ owner: string }>({
 const inserter = defineBlock<{ note: string }>({
   type: 'INSERTER',
   label: 'Inserter',
-  icon: ShieldAlert,
+  icon: MessageSquare,
   alwaysEditing: true,
   editor: ({ onInsertBlock }) => (
     <button type="button" onClick={() => onInsertBlock?.('STRICT')}>

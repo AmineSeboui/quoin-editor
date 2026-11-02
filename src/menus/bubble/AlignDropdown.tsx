@@ -1,6 +1,5 @@
 'use client';
 
-import { AlignCenter, AlignJustify, AlignLeft, AlignRight, CheckIcon } from 'lucide-react';
 import type { Align, EditorState } from '../../engine';
 import { alignOrUndefined } from '../../engine/blocks/data-fields';
 import { setTextAlign } from '../../engine/commands/block-style';
@@ -8,6 +7,7 @@ import { blockById } from '../../engine/model/doc';
 import { selectedBlockIds } from '../../engine/state/selection';
 import { MenuIcon } from '../../gutter/MenuIcon';
 import { useLabels } from '../../i18n/use-labels';
+import { AlignCenter, AlignJustify, AlignLeft, AlignRight, Check } from '../../icons';
 import { Button } from '../../ui/button';
 import { DropdownMenuRadioGroup, DropdownMenuRadioItem } from '../../ui/dropdown-menu';
 import type { ViewController } from '../../view';
@@ -43,7 +43,7 @@ export function AlignDropdown({ controller, state }: AlignDropdownProps) {
     <ToolbarMenu controller={controller} trigger={trigger}>
       <DropdownMenuRadioGroup value={value} onValueChange={(align) => controller.run(setTextAlign(align as Align))}>
         {ALIGNS.map((align) => (
-          <DropdownMenuRadioItem key={align} value={align} indicator={<CheckIcon className="size-4" />}>
+          <DropdownMenuRadioItem key={align} value={align} indicator={<Check className="size-4" />}>
             <MenuIcon icon={ICONS[align]} />
             {labels[LABEL_KEYS[align]]}
           </DropdownMenuRadioItem>

@@ -4,6 +4,9 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 
 ## Unreleased
 
+### Changed
+- Quoin draws its own icons and no longer depends on `lucide-react`, so an install is about 36 MB and 4,300 files lighter and the canvas about 3.5 kB gzip smaller. The drawings are Lucide's, so nothing looks different. An icon carries its name in `data-quoin-icon`, such as `data-quoin-icon="check"`, where it had the `lucide` and `lucide-check` classes. A custom block's `icon` still takes any component that accepts a `className` and `aria-hidden`, a lucide one included: if you import from `lucide-react`, list it in your own dependencies.
+
 ### Fixed
 - The comment marker beside a block is named after the count it shows, `1 comment` or `3 comments`, where it was `Comments (1)`, so a voice command that says what is on screen reaches it. A host that sets `showComments` in its labels is not affected.
 

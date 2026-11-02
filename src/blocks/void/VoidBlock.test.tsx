@@ -1,7 +1,7 @@
 import { act, fireEvent, screen } from '@testing-library/react';
-import { Paperclip } from 'lucide-react';
 import { nodeSelection } from '../../engine';
 import { resetDevWarnings } from '../../dev-warn';
+import { Paperclip } from '../../icons';
 import { defineBlock } from '../../registry';
 import type { QuoinBlock, UploadResult } from '../../types';
 import { UploadField } from '../../upload/UploadField';

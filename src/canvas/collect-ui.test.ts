@@ -1,9 +1,9 @@
-import { Star } from 'lucide-react';
 import { coreBlocks } from '../blocks/core';
 import { inPlaceOverlays, inPlaceRenderers } from '../blocks/in-place-renderers';
 import { textRenderers } from '../blocks/text/text-renderers';
 import { defineExtension } from '../engine';
 import type { ExtensionUI, SlashItem } from '../extensions/ui-types';
+import { Sparkles } from '../icons';
 import { defineBlock } from '../registry';
 import { collectUi } from './collect-ui';
 
@@ -11,8 +11,8 @@ const slashItem = (id: string): SlashItem => ({ id, title: id, group: 'basic', r
 const withUi = (name: string, ui: unknown) => defineExtension({ name, ui });
 const Drawn = () => null;
 
-const chart = defineBlock({ type: 'CHART', label: 'Chart', icon: Star, preview: () => null });
-const hidden = defineBlock({ type: 'HIDDEN', label: 'Hidden', icon: Star, preview: () => null, inSlashPalette: false });
+const chart = defineBlock({ type: 'CHART', label: 'Chart', icon: Sparkles, preview: () => null });
+const hidden = defineBlock({ type: 'HIDDEN', label: 'Hidden', icon: Sparkles, preview: () => null, inSlashPalette: false });
 
 describe('collectUi', () => {
   it('lists the slash commands of the extensions in order, then one per registered type no built-in inserts', () => {
@@ -33,8 +33,8 @@ describe('collectUi', () => {
   });
 
   it('draws a host definition of a type it draws itself as a void block, one typed in place only read-only', () => {
-    const markdown = defineBlock({ type: 'MARKDOWN', label: 'Markdown', icon: Star, preview: () => null });
-    const divider = defineBlock({ type: 'DIVIDER', label: 'Divider', icon: Star, preview: () => null });
+    const markdown = defineBlock({ type: 'MARKDOWN', label: 'Markdown', icon: Sparkles, preview: () => null });
+    const divider = defineBlock({ type: 'DIVIDER', label: 'Divider', icon: Sparkles, preview: () => null });
     const definitions = [...coreBlocks, markdown, divider];
     const editable = collectUi([], definitions).renderers;
     const readOnly = collectUi([], definitions, true).renderers;
@@ -61,7 +61,7 @@ describe('collectUi', () => {
   });
 
   it('draws a host definition of CODE as a void block, and no code block where none is registered', () => {
-    const snippet = defineBlock({ type: 'CODE', label: 'Snippet', icon: Star, preview: () => null });
+    const snippet = defineBlock({ type: 'CODE', label: 'Snippet', icon: Sparkles, preview: () => null });
     const { renderers } = collectUi([], [...coreBlocks, snippet]);
     expect(renderers.CODE).toBe(collectUi([], [snippet]).renderers.CODE);
     expect(renderers.CODE).not.toBe(inPlaceRenderers.CODE);
@@ -72,7 +72,7 @@ describe('collectUi', () => {
     const ui = collectUi([withUi('a', { overlays: [Drawn] })], coreBlocks);
     expect(ui.renderers.IMAGE).toBe(inPlaceRenderers.IMAGE);
     expect(ui.overlays).toEqual([Drawn, inPlaceOverlays.IMAGE, inPlaceOverlays.FILE]);
-    const photo = defineBlock({ type: 'IMAGE', label: 'Photo', icon: Star, preview: () => null });
+    const photo = defineBlock({ type: 'IMAGE', label: 'Photo', icon: Sparkles, preview: () => null });
     const hosted = collectUi([], [...coreBlocks, photo]);
     expect(hosted.renderers.IMAGE).not.toBe(inPlaceRenderers.IMAGE);
     expect(hosted.overlays).toEqual([inPlaceOverlays.FILE]);
@@ -83,7 +83,7 @@ describe('collectUi', () => {
     const ui = collectUi([], coreBlocks, true);
     expect(ui.renderers.FILE).toBe(inPlaceRenderers.FILE);
     expect(ui.overlays).toContain(inPlaceOverlays.FILE);
-    const attachment = defineBlock({ type: 'FILE', label: 'Attachment', icon: Star, preview: () => null });
+    const attachment = defineBlock({ type: 'FILE', label: 'Attachment', icon: Sparkles, preview: () => null });
     const hosted = collectUi([], [...coreBlocks, attachment]);
     expect(hosted.renderers.FILE).not.toBe(inPlaceRenderers.FILE);
     expect(hosted.overlays).not.toContain(inPlaceOverlays.FILE);
@@ -113,8 +113,8 @@ describe('collectUi', () => {
   });
 
   it('gathers block menu items, bubble items and overlays, and ignores a ui field that is not an object', () => {
-    const action = { id: 'star', label: 'Star', icon: Star, run: () => {} };
-    const button = { id: 'star', title: 'Star', icon: Star, run: () => {} };
+    const action = { id: 'star', label: 'Star', icon: Sparkles, run: () => {} };
+    const button = { id: 'star', title: 'Star', icon: Sparkles, run: () => {} };
     const ui: ExtensionUI = { blockMenuItems: [action], bubbleItems: [button], overlays: [Drawn] };
     const collected = collectUi([withUi('a', ui), withUi('b', 'nonsense'), withUi('c', null)], []);
     expect(collected.blockMenuItems).toEqual([action]);

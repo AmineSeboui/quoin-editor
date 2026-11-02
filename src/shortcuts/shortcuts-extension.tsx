@@ -1,12 +1,12 @@
 'use client';
 
-import { Keyboard } from 'lucide-react';
 import { returnFocusToText } from '../blocks/text/return-focus-to-text';
 import { useCanvasUi, useCanvasUiStore, type CanvasUiState, type CanvasUiStore } from '../canvas/ui-store';
 import { defineExtension, type Command, type Extension } from '../engine';
 import type { SlashItem } from '../extensions/ui-types';
 import type { QuoinLabels } from '../i18n/labels';
 import { useLabels } from '../i18n/use-labels';
+import { Keyboard } from '../icons';
 import type { ViewController } from '../view';
 import { ShortcutsDialog } from './ShortcutsDialog';
 

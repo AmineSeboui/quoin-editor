@@ -1,12 +1,12 @@
-import { SquareCheck } from 'lucide-react';
 import { defineBlock } from 'quoin-editor';
+import { ListTodo } from '../../src/icons';
 
 type TickData = { done: boolean };
 
 export const tickDemo = defineBlock<TickData>({
   type: 'TICK_DEMO',
   label: 'Tick',
-  icon: SquareCheck,
+  icon: ListTodo,
   inSlashPalette: false,
   preview: ({ data, onChange }) => (
     <input

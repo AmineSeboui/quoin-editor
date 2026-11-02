@@ -1,8 +1,8 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Paperclip } from 'lucide-react';
 import { BlockCanvas } from '../canvas/BlockCanvas';
 import { coreBlocks } from '../blocks/core';
+import { Paperclip } from '../icons';
 import { defineBlock } from '../registry';
 import type { QuoinLabels } from '../i18n/labels';
 import type { BlockEditorProps, QuoinBlock, UploadFn } from '../types';

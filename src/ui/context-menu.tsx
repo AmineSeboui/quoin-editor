@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import * as ContextMenuPrimitive from "@radix-ui/react-context-menu";
-import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react";
+import { Check, ChevronRight, Circle } from "../icons";
 import { cn } from "./cn";
 import {
   MENU_CHECKABLE_ITEM,
@@ -84,7 +84,7 @@ const ContextMenuCheckboxItem = /* @__PURE__ */ React.forwardRef<
     >
       <span className={MENU_ITEM_INDICATOR}>
         <ContextMenuPrimitive.ItemIndicator>
-          <CheckIcon className="size-4" />
+          <Check className="size-4" />
         </ContextMenuPrimitive.ItemIndicator>
       </span>
       {children}
@@ -103,7 +103,7 @@ const ContextMenuRadioItem = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof ContextMenuPrimitive.RadioItem>,
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.RadioItem> & { indicator?: React.ReactNode }
 >(function ContextMenuRadioItem(
-  { className, children, indicator = <CircleIcon className="size-2 fill-current" />, ...props },
+  { className, children, indicator = <Circle className="size-2 fill-current" />, ...props },
   ref,
 ) {
   return (
@@ -170,7 +170,7 @@ const ContextMenuSubTrigger = /* @__PURE__ */ React.forwardRef<
       {...props}
     >
       {children}
-      <ChevronRightIcon className="ml-auto size-4" />
+      <ChevronRight className="ml-auto size-4" />
     </ContextMenuPrimitive.SubTrigger>
   );
 });

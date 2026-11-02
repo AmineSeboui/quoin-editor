@@ -1,10 +1,10 @@
 'use client';
 
-import { Repeat2 } from 'lucide-react';
 import { drawsType } from '../blocks/block-drawing';
 import { useQuoin } from '../context';
 import { setBlockType } from '../engine';
 import { useLabels } from '../i18n/use-labels';
+import { Repeat2 } from '../icons';
 import type { ViewController } from '../view';
 import { MenuIcon } from './MenuIcon';
 import type { MenuKit } from './menu-kit';

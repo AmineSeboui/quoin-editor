@@ -1,5 +1,5 @@
 import { render } from '@testing-library/react';
-import { FileText } from 'lucide-react';
+import { FileText } from './icons';
 import { defineBlock, blockByType, paletteBlocks, type AnyBlockDefinition } from './registry';
 import type { BlockEditorProps } from './types';
 

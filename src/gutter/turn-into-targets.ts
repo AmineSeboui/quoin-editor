@@ -1,4 +1,6 @@
 import type { ComponentType } from 'react';
+import type { BlockAttrs } from '../engine';
+import type { QuoinLabels } from '../i18n/labels';
 import {
   Code,
   Heading1,
@@ -11,9 +13,7 @@ import {
   MessageSquare,
   TextQuote,
   Type,
-} from 'lucide-react';
-import type { BlockAttrs } from '../engine';
-import type { QuoinLabels } from '../i18n/labels';
+} from '../icons';
 
 export type TurnIntoTarget = {
   id: string;

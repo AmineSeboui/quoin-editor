@@ -1,7 +1,7 @@
 import { act, fireEvent, screen } from '@testing-library/react';
-import { ListChecks } from 'lucide-react';
 import { moveBlocksDown } from '../../engine/commands/block-structure';
 import { splitBlock } from '../../engine/commands/split-block';
+import { ListTodo } from '../../icons';
 import { defineBlock } from '../../registry';
 import type { BlockPreviewProps, QuoinBlock } from '../../types';
 import { mountCanvas, paragraph, testBlockTypes } from './test-canvas';
@@ -14,7 +14,7 @@ const previewProps: BlockPreviewProps<ChecklistData>[] = [];
 const checklist = defineBlock<ChecklistData>({
   type: 'CHECKLIST',
   label: 'Checklist',
-  icon: ListChecks,
+  icon: ListTodo,
   editor: ({ data, blockId, index, onChange, onRemove }) => {
     renders.editor.push(blockId ?? '');
     return (

@@ -1,5 +1,4 @@
 import type { ComponentType } from 'react';
-import { ArrowDown, ArrowUp, Copy, CopyPlus, Link, Trash } from 'lucide-react';
 import { blockRangeSelection, toMarkdown, type Command, type Editor, type EditorState } from '../engine';
 import { descendantsEnd, selectedBlockRange } from '../engine/commands/block-helpers';
 import { deleteBlocks, duplicateBlocks, moveBlocksDown, moveBlocksUp } from '../engine/commands/block-structure';
@@ -9,6 +8,7 @@ import type { InternalEditor } from '../engine/extension/editor';
 import { createDoc, requireBlockIndex } from '../engine/model/doc';
 import { selectedBlockIds } from '../engine/state/selection';
 import type { QuoinLabels } from '../i18n/labels';
+import { ArrowDown, ArrowUp, Copy, CopyPlus, Link, Trash } from '../icons';
 import type { ViewController } from '../view';
 import { copyText } from './copy-text';
 import { noChange, runOnBlocks } from './run-on-blocks';

@@ -1,10 +1,10 @@
 'use client';
 
-import { ExternalLink, Pencil, Unlink } from 'lucide-react';
 import { useMemo, useRef, type RefObject } from 'react';
 import type { CanvasUiStore } from '../../canvas/ui-store';
 import { sanitizeHref, textSelection } from '../../engine';
 import type { QuoinLabels } from '../../i18n/labels';
+import { ExternalLink, Pencil, Unlink } from '../../icons';
 import { Button } from '../../ui/button';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
 import { preventDefault } from '../../ui/prevent-default';

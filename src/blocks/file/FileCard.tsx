@@ -1,9 +1,9 @@
 'use client';
 
 import { useRef } from 'react';
-import { Download } from 'lucide-react';
 import { useQuoin } from '../../context';
 import { optionalNumber } from '../../engine/blocks/data-fields';
+import { Download } from '../../icons';
 import { bubblePart } from '../../menus/bubble/bubble-part';
 import type { BlockRenderProps } from '../../view';
 import { str } from '../../engine/blocks/data-fields';

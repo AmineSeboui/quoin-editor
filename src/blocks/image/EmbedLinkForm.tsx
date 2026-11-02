@@ -1,8 +1,8 @@
 'use client';
 
 import { useId, useState, type FormEvent } from 'react';
-import { Check } from 'lucide-react';
 import { useLabels } from '../../i18n/use-labels';
+import { Check } from '../../icons';
 import { linkAddress } from '../../menus/link/link-address';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';

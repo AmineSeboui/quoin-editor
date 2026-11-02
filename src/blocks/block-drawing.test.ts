@@ -1,10 +1,10 @@
-import { Star } from 'lucide-react';
+import { Sparkles } from '../icons';
 import { defineBlock } from '../registry';
 import { drawsType, opensEditor } from './block-drawing';
 import { coreBlocks } from './core';
 
-const chart = defineBlock({ type: 'CHART', label: 'Chart', icon: Star, preview: () => null });
-const snippet = defineBlock({ type: 'CODE', label: 'Snippet', icon: Star, preview: () => null });
+const chart = defineBlock({ type: 'CHART', label: 'Chart', icon: Sparkles, preview: () => null });
+const snippet = defineBlock({ type: 'CODE', label: 'Snippet', icon: Sparkles, preview: () => null });
 
 describe('drawsType', () => {
   it('draws the code block only while a definition of CODE is registered', () => {

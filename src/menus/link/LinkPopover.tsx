@@ -1,11 +1,11 @@
 'use client';
 
-import { Check, ExternalLink, Unlink } from 'lucide-react';
 import { useId, useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
 import { sanitizeHref } from '../../engine';
 import { unsetLink } from '../../engine/commands/marks';
 import { isCollapsed } from '../../engine/state/selection';
 import type { QuoinLabels } from '../../i18n/labels';
+import { Check, ExternalLink, Unlink } from '../../icons';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';

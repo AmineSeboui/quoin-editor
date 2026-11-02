@@ -1,5 +1,5 @@
 import { act, fireEvent, screen } from '@testing-library/react';
-import { ListChecks } from 'lucide-react';
+import { ListTodo } from '../../icons';
 import { defineBlock } from '../../registry';
 import type { QuoinBlock } from '../../types';
 import { mountCanvas, paragraph, testBlockTypes } from './test-canvas';
@@ -9,7 +9,7 @@ type TodoData = { done: boolean; note: string };
 const todo = defineBlock<TodoData>({
   type: 'TODO',
   label: 'Todo',
-  icon: ListChecks,
+  icon: ListTodo,
   editor: ({ data }) => <p>{data.note}</p>,
   preview: ({ data, onChange }) => (
     <div>

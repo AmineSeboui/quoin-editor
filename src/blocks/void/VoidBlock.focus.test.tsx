@@ -1,14 +1,14 @@
 import { createPortal } from 'react-dom';
 import { act, fireEvent, screen } from '@testing-library/react';
-import { StickyNote } from 'lucide-react';
 import { nodeSelection } from '../../engine';
+import { Sticker } from '../../icons';
 import { defineBlock } from '../../registry';
 import { bookmarkBlock, mountCanvas, paragraph, testBlockTypes } from './test-canvas';
 
 const pickerNote = defineBlock({
   type: 'PICKER_NOTE',
   label: 'Picker note',
-  icon: StickyNote,
+  icon: Sticker,
   editor: () => (
     <div>
       <input aria-label="Note field" />

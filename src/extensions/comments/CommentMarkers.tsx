@@ -1,7 +1,7 @@
 'use client';
 
-import { MessageSquare } from 'lucide-react';
 import type { RefObject } from 'react';
+import { MessageSquare } from '../../icons';
 import { cn } from '../../ui/cn';
 import { FOCUS_RING } from '../../ui/focus';
 import type { CommentsEnv } from './comments-env';

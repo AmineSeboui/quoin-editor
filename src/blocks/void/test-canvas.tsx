@@ -1,9 +1,9 @@
 import { createRef, useState } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { Bookmark, StickyNote } from 'lucide-react';
 import { BlockCanvas } from '../../canvas/BlockCanvas';
 import type { BlockCanvasProps, QuoinEditorHandle } from '../../canvas/canvas-props';
 import { nodeSelection } from '../../engine';
+import { Bookmark, Sticker } from '../../icons';
 import { defineBlock } from '../../registry';
 import type { BlockEditorProps, QuoinBlock } from '../../types';
 import { coreBlocks } from '../core';
@@ -39,7 +39,7 @@ export const bookmark = defineBlock<BookmarkData>({
 export const pinnedNote = defineBlock<{ note: string }>({
   type: 'PINNED',
   label: 'Pinned note',
-  icon: StickyNote,
+  icon: Sticker,
   alwaysEditing: true,
   editor: ({ data, onChange }) => (
     <textarea aria-label="Pinned note text" value={data.note} onChange={(event) => onChange({ note: event.target.value })} />
@@ -50,7 +50,7 @@ export const pinnedNote = defineBlock<{ note: string }>({
 export const scratch = defineBlock<{ note: string }>({
   type: 'SCRATCH',
   label: 'Scratch note',
-  icon: StickyNote,
+  icon: Sticker,
   editor: ({ data }) => <textarea aria-label="Scratch" defaultValue={data.note} />,
 });
 

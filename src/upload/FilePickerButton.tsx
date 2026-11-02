@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Upload } from 'lucide-react';
+import { Upload } from '../icons';
 import { Button } from '../ui/button';
 
 /** Props for `FilePickerButton`. */

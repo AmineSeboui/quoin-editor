@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Link } from 'lucide-react';
 import { useLabels } from '../../i18n/use-labels';
+import { Link } from '../../icons';
 import { Button } from '../../ui/button';
 import type { ViewController } from '../../view';
 import { UploadArea } from '../upload/UploadArea';

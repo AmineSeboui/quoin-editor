@@ -119,9 +119,9 @@ describe('a narrow canvas', () => {
     expect(screen.queryByRole('list', { name: 'Comments' })).toBeNull();
     const markers = Array.from(canvas.container.querySelectorAll('.quoin-comments-marker'));
     expect(markers.map((marker) => [marker.getAttribute('data-block'), marker.getAttribute('aria-label')])).toEqual([
-      ['a', 'Comments (1)'],
-      ['b', 'Comments (1)'],
-      ['', 'Comments (1)'],
+      ['a', '1 comment'],
+      ['b', '1 comment'],
+      ['', '1 comment'],
     ]);
     expect(markers.every((marker) => (marker as HTMLElement).style.transform.startsWith('translateY('))).toBe(true);
   });

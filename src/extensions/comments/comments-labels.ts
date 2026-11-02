@@ -32,10 +32,12 @@ function englishDate(createdAt: string): string {
   return Number.isNaN(date.getTime()) ? createdAt : DATE.format(date);
 }
 
+const counted = (count: number) => `${count} ${count === 1 ? 'comment' : 'comments'}`;
+
 export const englishCommentsLabels: CommentsLabels = {
   comment: 'Comment',
   comments: 'Comments',
-  showComments: (count) => `Comments (${count})`,
+  showComments: counted,
   thread: (anchorText) => `Comment on "${anchorText}"`,
   threadsHere: 'Comments on this text',
   textRemoved: 'Text removed',
@@ -45,7 +47,7 @@ export const englishCommentsLabels: CommentsLabels = {
   resolve: 'Resolve',
   delete: 'Delete',
   close: 'Close',
-  commentCount: (count) => `${count} ${count === 1 ? 'comment' : 'comments'}`,
+  commentCount: counted,
   postedAt: englishDate,
 };
 

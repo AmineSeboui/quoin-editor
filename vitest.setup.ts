@@ -5,8 +5,7 @@ import * as matchers from 'vitest-axe/matchers';
 import type { AxeMatchers } from 'vitest-axe/matchers';
 
 declare module 'vitest' {
-  interface Assertion extends AxeMatchers {}
-  interface AsymmetricMatchersContaining extends AxeMatchers {}
+  interface Matchers<R extends void | Promise<void> = void | Promise<void>, T = unknown> extends AxeMatchers {}
 }
 
 expect.extend(matchers);

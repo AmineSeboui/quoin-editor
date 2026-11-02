@@ -4,7 +4,7 @@ import { emojiByShortcode, searchEmoji, skinTones } from './index';
 const SMILEY = '\u{1F603}';
 const SMILE = '\u{1F604}';
 const PARTY_POPPER = '\u{1F389}';
-const THUMBS_UP = '\u{1F44D}\uFE0F';
+const THUMBS_UP = '\u{1F44D}';
 
 const glyphs = (found: readonly Emoji[]) => found.map(({ emoji }) => emoji);
 

@@ -106,6 +106,13 @@ describe('the files search engines and link previews read', () => {
     assert.match(robots, new RegExp(`^Sitemap: ${SITE_URL}sitemap.xml$`, 'm'));
   });
 
+  // Search Console re-reads this file to keep the site verified, so removing it loses the owner's access.
+  it('ships the Google Search Console verification file', () => {
+    const file = 'googleced1a4c00a4650ee.html';
+    const text = existsSync(join(dist, file)) ? readText(join(dist, file)) : '';
+    assert.equal(text, `google-site-verification: ${file}`);
+  });
+
   it('ships a 1280 by 640 og.png and a favicon', () => {
     assert.ok(existsSync(join(dist, 'og.png')), 'no og.png');
     assert.deepEqual(pngSize(join(dist, 'og.png')), { width: 1280, height: 640 });

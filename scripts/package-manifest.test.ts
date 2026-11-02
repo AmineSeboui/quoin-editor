@@ -8,12 +8,22 @@ import { packageEntries } from './package-entries.mjs';
 const manifest = JSON.parse(readText(join(root, 'package.json')));
 
 describe('the package manifest', () => {
-  it('describes the 1.0 editor', () => {
+  // npm ranks a search mostly on the exact phrase appearing in the name, the description or the keywords.
+  it('describes the editor in the phrases people search npm with', () => {
     expect(manifest.description).toBe(
-      'Markdown-native block editor for React: live formatting, Notion-style menus, drag and drop, collaboration hooks and your own React blocks. MIT.',
+      'Rich markdown editor for React: a Notion-style block editor and rich text editor with real-time collaboration, AI, a slash menu and drag and drop. MIT.',
     );
     expect(manifest.keywords).toEqual(
-      expect.arrayContaining(['block-editor', 'markdown-editor', 'wysiwyg', 'rich-text-editor', 'collaborative-editing', 'yjs']),
+      expect.arrayContaining([
+        'markdown-editor',
+        'rich-markdown-editor',
+        'react-markdown-editor',
+        'rich-text-editor',
+        'block-editor',
+        'wysiwyg',
+        'collaborative-editing',
+        'yjs',
+      ]),
     );
     expect(new Set(manifest.keywords).size).toBe(manifest.keywords.length);
   });

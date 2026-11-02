@@ -29,6 +29,10 @@ describe('every page of the built site', () => {
         assert.equal(canonicalOf(html), SITE_URL + path);
       });
 
+      it('says in its title that Quoin is a markdown editor', () => {
+        assert.match(titleOf(html), /markdown editor/i);
+      });
+
       it('has Open Graph and Twitter tags with the shared picture', () => {
         assert.equal(metaOf(html, 'property', 'og:title'), titleOf(html));
         assert.equal(metaOf(html, 'property', 'og:description'), metaOf(html, 'name', 'description'));
@@ -62,6 +66,31 @@ describe('every page of the built site', () => {
     const built = pages.filter(({ html }) => html !== '');
     assert.equal(new Set(built.map(({ html }) => titleOf(html))).size, built.length);
     assert.equal(new Set(built.map(({ html }) => metaOf(html, 'name', 'description'))).size, built.length);
+  });
+});
+
+describe('the structured data of the home page', () => {
+  const blocks = [...builtPage('').matchAll(/<script type="application\/ld\+json">([^<]*)<\/script>/g)];
+  const graph = blocks.length === 1 ? JSON.parse(blocks[0][1])['@graph'] : [];
+  const ofType = (type) => graph.find((node) => node['@type'] === type) ?? {};
+
+  it('names the site Quoin, also known by its package name', () => {
+    assert.equal(blocks.length, 1, 'one JSON-LD block');
+    assert.deepEqual(ofType('WebSite'), { '@type': 'WebSite', name: 'Quoin', alternateName: 'quoin-editor', url: SITE_URL });
+  });
+
+  it('describes the package as source code with its repository, its npm page and its licence', () => {
+    const code = ofType('SoftwareSourceCode');
+    assert.equal(code.codeRepository, 'https://github.com/AmineSeboui/quoin-editor');
+    assert.deepEqual(code.sameAs, [code.codeRepository, 'https://www.npmjs.com/package/quoin-editor']);
+    assert.equal(code.license, 'https://opensource.org/licenses/MIT');
+    assert.equal(code.description, metaOf(builtPage(''), 'name', 'description'));
+  });
+
+  it('is left off the other pages', () => {
+    for (const path of expectedPages().filter((path) => path !== '')) {
+      assert.doesNotMatch(builtPage(path), /application\/ld\+json/, `/${path}`);
+    }
   });
 });
 

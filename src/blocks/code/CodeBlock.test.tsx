@@ -117,10 +117,10 @@ describe('the code block', () => {
       mountCanvas([code('k', 'let a;')]);
       const copy = screen.getByRole('button', { name: 'Copy code' });
       await act(async () => void fireEvent.click(copy));
-      expect(copy.querySelector('.lucide-check')).not.toBeNull();
+      expect(copy.querySelector('[data-quoin-icon="check"]')).not.toBeNull();
       act(() => void vi.advanceTimersByTime(1500));
-      expect(copy.querySelector('.lucide-check')).toBeNull();
-      expect(copy.querySelector('.lucide-copy')).not.toBeNull();
+      expect(copy.querySelector('[data-quoin-icon="check"]')).toBeNull();
+      expect(copy.querySelector('[data-quoin-icon="copy"]')).not.toBeNull();
     } finally {
       vi.useRealTimers();
       Reflect.deleteProperty(navigator, 'clipboard');

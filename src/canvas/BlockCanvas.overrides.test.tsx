@@ -1,9 +1,9 @@
 import { act, fireEvent, screen } from '@testing-library/react';
-import { Star } from 'lucide-react';
 import { coreBlocks } from '../blocks/core';
 import { mountCanvas, paragraph } from '../blocks/void/test-canvas';
 import { resetDevWarnings } from '../dev-warn';
 import { nodeSelection } from '../engine';
+import { Sparkles } from '../icons';
 import { blockByType, defineBlock, type AnyBlockDefinition } from '../registry';
 import type { BlockPreviewProps, QuoinBlock } from '../types';
 
@@ -17,7 +17,7 @@ const hostBlock = (type: string, editor = false): AnyBlockDefinition =>
   defineBlock({
     type,
     label: `Host ${type}`,
-    icon: Star,
+    icon: Sparkles,
     preview: ({ blockId }) => <p data-testid={`host-${blockId}`}>{type}</p>,
     ...(editor ? { editor: () => <input aria-label={`${type} field`} /> } : {}),
   });

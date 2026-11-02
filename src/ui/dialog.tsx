@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { XIcon } from "lucide-react";
+import { X } from "../icons";
 import { cn } from "./cn";
 import { FOCUS_RING } from "./focus";
 import { ICON_TAP_TARGET_FLOOR } from "./touch-target";
@@ -70,7 +70,7 @@ const DialogContent = /* @__PURE__ */ React.forwardRef<
             ICON_TAP_TARGET_FLOOR,
           )}
         >
-          <XIcon />
+          <X />
           <span className="sr-only">{closeLabel}</span>
         </DialogPrimitive.Close>
       </DialogPrimitive.Content>

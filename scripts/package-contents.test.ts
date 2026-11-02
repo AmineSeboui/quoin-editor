@@ -7,7 +7,7 @@ import { readText, releaseHeading, root, sectionOf } from './docs-sources.mjs';
 
 type Packed = { size: number; unpackedSize: number; files: { path: string }[] };
 
-const DOCUMENTS = ['package.json', 'README.md', 'LICENSE', 'CHANGELOG.md', 'MIGRATION.md'];
+const DOCUMENTS = ['package.json', 'README.md', 'LICENSE', 'CHANGELOG.md', 'MIGRATION.md', 'THIRD_PARTY_NOTICES.md'];
 const STATED = 'about 1 MB packed, under 5 MB unpacked';
 const ABOUT_1_MB = { min: 850_000, max: 1_150_000 };
 const UNDER_5_MB = 5_000_000;

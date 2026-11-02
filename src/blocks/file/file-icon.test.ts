@@ -1,4 +1,4 @@
-import { FileArchive, FileIcon, FileImage, FileMusic, FilePlay, FileText } from 'lucide-react';
+import { FileArchive, FileIcon, FileImage, FileMusic, FilePlay, FileText } from '../../icons';
 import { fileIcon } from './file-icon';
 
 describe('the icon of a file', () => {

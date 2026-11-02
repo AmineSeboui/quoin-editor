@@ -1,8 +1,8 @@
-import { AlignCenter, AlignLeft, AlignRight, Download, Pencil } from 'lucide-react';
 import { alignOrUndefined } from '../../engine/blocks/data-fields';
 import { blockById } from '../../engine/model/doc';
 import type { ToolbarItem } from '../../extensions/ui-types';
 import type { QuoinLabels } from '../../i18n/labels';
+import { AlignCenter, AlignLeft, AlignRight, Download, Pencil } from '../../icons';
 import { setBlockAttrs } from '../text/set-block-attrs';
 import { deleteItem, replaceItem } from '../void/node-toolbar-items';
 

@@ -36,7 +36,7 @@ describe('a file block holding a file', () => {
 
   it('shows an icon for the type of the file, and no size for a file that has none', () => {
     mountCanvas([file({ size: undefined, mime: undefined, filename: 'backup.zip' })], { resolveAssetUrl });
-    expect(card().querySelector('svg.lucide-file-archive')).not.toBeNull();
+    expect(card().querySelector('svg[data-quoin-icon="file-archive"]')).not.toBeNull();
     expect(card()).toHaveTextContent(/^backup\.zipDownload$/);
   });
 

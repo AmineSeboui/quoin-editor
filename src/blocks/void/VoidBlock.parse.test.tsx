@@ -1,6 +1,6 @@
 import { act, fireEvent, screen } from '@testing-library/react';
-import { ListTodo } from 'lucide-react';
 import { moveBlocksDown } from '../../engine/commands/block-structure';
+import { ListTodo } from '../../icons';
 import { blockTypeSlashItems } from '../../menus/slash/slash-items';
 import { defineBlock } from '../../registry';
 import type { QuoinBlock } from '../../types';

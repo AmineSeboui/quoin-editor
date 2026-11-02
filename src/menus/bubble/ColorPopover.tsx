@@ -1,12 +1,12 @@
 'use client';
 
-import { Baseline } from 'lucide-react';
 import type { Command, EditorState } from '../../engine';
 import { setMark, unsetMark } from '../../engine/commands/marks';
 import { markRanges, rangeContent } from '../../engine/commands/selection-marks';
 import { ColorGroups, type ColorKey } from '../../gutter/ColorMenu';
 import { DROPDOWN_KIT } from '../../gutter/menu-kit';
 import { useLabels } from '../../i18n/use-labels';
+import { Baseline } from '../../icons';
 import { Button } from '../../ui/button';
 import type { ViewController } from '../../view';
 import { ToolbarMenu } from './ToolbarMenu';

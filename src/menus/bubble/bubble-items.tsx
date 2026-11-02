@@ -1,11 +1,11 @@
 'use client';
 
 import type { Ref } from 'react';
-import { Bold, Code, Italic, Link, Strikethrough, Subscript, Superscript, Underline } from 'lucide-react';
 import { toggleMark, type EditorState } from '../../engine';
 import { isActive } from '../../engine/commands/is-active';
 import type { ToolbarItem } from '../../extensions/ui-types';
 import type { QuoinLabels } from '../../i18n/labels';
+import { Bold, Code, Italic, Link, Strikethrough, Subscript, Superscript, Underline } from '../../icons';
 import { Button } from '../../ui/button';
 import type { ViewController } from '../../view';
 

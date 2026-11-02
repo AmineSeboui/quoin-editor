@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { GripVertical, Plus } from 'lucide-react';
 import { useCanvasUi, type CanvasUiStore } from '../canvas/ui-store';
 import { DragOverlay, type DragOverlayHandle } from '../drag/DragOverlay';
 import { useBlockDrag } from '../drag/use-block-drag';
 import { useLabels } from '../i18n/use-labels';
+import { GripVertical, Plus } from '../icons';
 import { keepFocus } from '../menus/floating/keep-focus';
 import { Button } from '../ui/button';
 import { cn } from '../ui/cn';

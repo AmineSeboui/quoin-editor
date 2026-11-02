@@ -1,4 +1,4 @@
-import { Code, FileText, Image, MessageSquare, Paperclip } from 'lucide-react';
+import { Code, FileText, Image, MessageSquare, Paperclip } from '../icons';
 import { defineBlock, type AnyBlockDefinition } from '../registry';
 import { CalloutPreview, CodePreview, FilePreview, ImagePreview, MarkdownPreview } from './previews';
 

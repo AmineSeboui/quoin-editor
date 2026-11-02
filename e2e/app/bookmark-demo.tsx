@@ -1,5 +1,5 @@
-import { Bookmark } from 'lucide-react';
 import { defineBlock } from 'quoin-editor';
+import { Bookmark } from '../../src/icons';
 
 type BookmarkData = { url: string };
 

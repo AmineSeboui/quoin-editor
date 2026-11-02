@@ -1,5 +1,5 @@
-import { Table } from 'lucide-react';
 import { insertTable } from '../../engine/commands/table-commands';
+import { Table } from '../../icons';
 import type { SlashItem } from '../ui-types';
 import type { TableLabels } from './table-labels';
 

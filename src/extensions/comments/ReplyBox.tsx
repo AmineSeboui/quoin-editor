@@ -1,7 +1,7 @@
 'use client';
 
-import { SendHorizontal } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
+import { SendHorizontal } from '../../icons';
 import { Button } from '../../ui/button';
 import { sendReply } from './comment-actions';
 import { CommentAvatar } from './CommentAvatar';

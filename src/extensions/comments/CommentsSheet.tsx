@@ -1,8 +1,8 @@
 'use client';
 
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { XIcon } from 'lucide-react';
 import { useRef } from 'react';
+import { X } from '../../icons';
 import { Button } from '../../ui/button';
 import type { CommentsEnv } from './comments-env';
 import type { CommentsState } from './comments-plugin';
@@ -59,7 +59,7 @@ export function CommentsSheet({ env, entries, value, onToggle, onClose, returnFo
             <DialogPrimitive.Title className="text-sm font-semibold">{labels.comments}</DialogPrimitive.Title>
             <DialogPrimitive.Close asChild>
               <Button type="button" variant="ghost" size="icon-sm" aria-label={labels.close}>
-                <XIcon />
+                <X />
               </Button>
             </DialogPrimitive.Close>
           </div>

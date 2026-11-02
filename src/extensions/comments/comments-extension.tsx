@@ -1,7 +1,7 @@
 'use client';
 
-import { MessageSquarePlus } from 'lucide-react';
 import { defineExtension, getPluginState, type Extension } from '../../engine';
+import { MessageSquarePlus } from '../../icons';
 import type { ViewController } from '../../view';
 import type { ExtensionUI, ToolbarItem } from '../ui-types';
 import { hasCommentableText, requestComment, watchCreates, type CreateThread } from './comment-create';

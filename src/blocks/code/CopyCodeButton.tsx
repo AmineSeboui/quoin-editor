@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Check, Copy } from 'lucide-react';
 import { copyText } from '../../gutter/copy-text';
 import { useLabels } from '../../i18n/use-labels';
+import { Check, Copy } from '../../icons';
 import { Button } from '../../ui/button';
 import type { ViewController } from '../../view';
 import { useReadOnly } from '../../view/react/use-read-only';

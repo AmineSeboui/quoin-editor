@@ -1,9 +1,9 @@
 'use client';
 
 import { Fragment, type CSSProperties, type ReactNode, type Ref } from 'react';
-import { GripHorizontal, GripVertical } from 'lucide-react';
 import { returnFocusToText } from '../../blocks/text/return-focus-to-text';
 import { MenuIcon } from '../../gutter/MenuIcon';
+import { GripHorizontal, GripVertical } from '../../icons';
 import { bubblePart } from '../../menus/bubble/bubble-part';
 import {
   DropdownMenu,

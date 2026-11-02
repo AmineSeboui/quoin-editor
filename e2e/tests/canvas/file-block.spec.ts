@@ -84,7 +84,7 @@ test('the replace button of a selected file uploads another file in its place', 
   await expect
     .poll(() => fileData(page, 'f'))
     .toEqual({ storageKey: 'key-song.mp3', filename: 'song.mp3', size: 4, mime: 'audio/mpeg' });
-  await expect(shell(page, 'f').locator('svg.lucide-file-music')).toBeVisible();
+  await expect(shell(page, 'f').locator('svg[data-quoin-icon="file-music"]')).toBeVisible();
 });
 
 test('/file opens the upload button of a new file block, and a key typed next leaves the block in place', async ({

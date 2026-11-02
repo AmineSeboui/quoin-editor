@@ -1,4 +1,4 @@
-import { AppWindow, Bookmark } from 'lucide-react';
+import { AppWindow, Bookmark } from '../../icons';
 import type { SlashItem } from '../ui-types';
 import type { EmbedLabels } from './embed-labels';
 import { requestLink } from './link-request';

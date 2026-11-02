@@ -66,7 +66,7 @@ A definition has these fields:
 | --- | --- | --- |
 | `type` | yes | The string stored on each block. It is how the registry finds the definition. |
 | `label` | yes | The name shown in the block menu and the slash menu. |
-| `icon` | yes | A [lucide](https://lucide.dev) icon component. Quoin depends on `lucide-react@^1`; add that same major to your own dependencies to import icons, so you do not end up with a second copy and mismatched icon types. |
+| `icon` | yes | Any component that takes a `className` and `aria-hidden`, such as a [lucide](https://lucide.dev) icon. Quoin brings no icon library of its own, so add the one you import from to your dependencies. |
 | `editor` | one of the two | The editing surface, opened by a double click, the block's Edit button or Enter on the selected block, and closed by Escape. It receives the props listed below. Omit it for a block that is never editable here. |
 | `preview` | one of the two | What the block shows when its editor is closed, and everywhere on a read-only canvas. It receives the props listed below. Omit it for an edit-only block. |
 | `initialData` | no | Seeds `data` when a block of this type is inserted. It is checked against the editor's data type. |

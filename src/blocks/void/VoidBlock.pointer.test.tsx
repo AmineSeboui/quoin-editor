@@ -1,6 +1,6 @@
 import { act, fireEvent, screen } from '@testing-library/react';
-import { Box } from 'lucide-react';
 import { nodeSelection, textSelection } from '../../engine';
+import { AppWindow } from '../../icons';
 import { defineBlock } from '../../registry';
 import { NATIVE_INTERACTION } from '../../view/selection/native-interaction';
 import { bookmarkBlock, mountCanvas, paragraph, testBlockTypes } from './test-canvas';
@@ -10,7 +10,7 @@ const CONTROLS = ['summary', 'video', 'audio', 'editable', 'focusable', 'link', 
 const widgets = defineBlock({
   type: 'WIDGETS',
   label: 'Widgets',
-  icon: Box,
+  icon: AppWindow,
   editor: () => <input aria-label="Widgets field" />,
   preview: () => (
     <div>

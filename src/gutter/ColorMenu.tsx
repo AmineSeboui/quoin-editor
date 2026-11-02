@@ -1,12 +1,12 @@
 'use client';
 
 import { useId, type ReactNode } from 'react';
-import { CheckIcon, Palette } from 'lucide-react';
 import { PALETTE, type EngineBlock } from '../engine';
 import { paletteOrUndefined } from '../engine/blocks/data-fields';
 import { setBlockColor } from '../engine/commands/block-style';
 import type { PaletteName } from '../engine/markdown/palette-rgb';
 import { useLabels } from '../i18n/use-labels';
+import { Check, Palette } from '../icons';
 import type { ViewController } from '../view';
 import { MenuIcon } from './MenuIcon';
 import type { MenuKit } from './menu-kit';
@@ -48,7 +48,7 @@ export function ColorGroups({ kit, value, onPick }: ColorGroupsProps) {
       <kit.Label id={titleId}>{title}</kit.Label>
       <kit.RadioGroup aria-labelledby={titleId} value={value[key]} onValueChange={(name) => onPick(key, name)}>
         {PALETTE.map((name) => (
-          <kit.RadioItem key={name} value={name} indicator={<CheckIcon className="size-4" />}>
+          <kit.RadioItem key={name} value={name} indicator={<Check className="size-4" />}>
             {swatches[key](name)}
             {labels.colors[name]}
           </kit.RadioItem>

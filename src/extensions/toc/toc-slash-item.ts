@@ -1,5 +1,5 @@
-import { TableOfContents } from 'lucide-react';
 import { insertBlockToWrite } from '../../blocks/insert-blocks';
+import { TableOfContents } from '../../icons';
 import type { SlashItem } from '../ui-types';
 import type { TocLabels } from './toc-labels';
 

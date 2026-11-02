@@ -1,6 +1,6 @@
 {
   "name": "quoin-editor",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Markdown-native block editor for React: live formatting, Notion-style menus, drag and drop, collaboration hooks and your own React blocks. MIT.",
   "license": "MIT",
   "author": {
@@ -49,7 +49,8 @@
     "README.md",
     "LICENSE",
     "CHANGELOG.md",
-    "MIGRATION.md"
+    "MIGRATION.md",
+    "THIRD_PARTY_NOTICES.md"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -285,8 +286,7 @@
     "@radix-ui/react-dropdown-menu": "^2.1.6",
     "@radix-ui/react-popover": "^1.1.6",
     "@radix-ui/react-slot": "^1.4.0",
-    "clsx": "^2.1.1",
-    "lucide-react": "^1.17.0"
+    "clsx": "^2.1.1"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",

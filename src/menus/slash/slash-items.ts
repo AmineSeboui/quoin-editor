@@ -1,5 +1,4 @@
 import type { ComponentType } from 'react';
-import { Image, Minus, Paperclip } from 'lucide-react';
 import { drawsType, opensEditor } from '../../blocks/block-drawing';
 import { insertBlockToWrite, type NewBlock } from '../../blocks/insert-blocks';
 import { createBlockCodec, type BlockAttrs, type EditorState } from '../../engine';
@@ -7,6 +6,7 @@ import { specFor } from '../../engine/blocks/unknown-spec';
 import type { SlashGroup, SlashItem } from '../../extensions/ui-types';
 import { turnIntoTargets } from '../../gutter/turn-into-targets';
 import type { QuoinLabels, SlashBlockCommand } from '../../i18n/labels';
+import { Image, Minus, Paperclip } from '../../icons';
 import { paletteBlocks, seedData, type AnyBlockDefinition } from '../../registry';
 
 type Details = { group: SlashGroup; keywords: readonly string[]; shortcut?: string };

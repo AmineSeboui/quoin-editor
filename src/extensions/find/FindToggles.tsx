@@ -1,8 +1,8 @@
 'use client';
 
 import type { ComponentType } from 'react';
-import { CaseSensitive, Regex, WholeWord } from 'lucide-react';
 import type { SearchOptions } from '../../engine/find/find-types';
+import { CaseSensitive, Regex, WholeWord } from '../../icons';
 import { Button } from '../../ui/button';
 import type { FindLabels } from './find-labels';
 

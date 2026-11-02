@@ -1,10 +1,10 @@
 'use client';
 
-import { CheckIcon, Droplet, Sticker } from 'lucide-react';
 import { CALLOUT_ICONS, CALLOUT_TONES, calloutTone } from '../blocks/text/callout-tone';
 import type { EngineBlock } from '../engine';
 import { setAttrs } from '../engine/commands/block-style';
 import { useLabels } from '../i18n/use-labels';
+import { Check, Droplet, Sticker } from '../icons';
 import type { ViewController } from '../view';
 import { MenuIcon } from './MenuIcon';
 import type { MenuKit } from './menu-kit';
@@ -32,7 +32,7 @@ export function CalloutMenus({ kit, controller, blocks }: CalloutMenusProps) {
         <kit.SubContent>
           <kit.RadioGroup value={sharedTone(blocks)} onValueChange={(tone) => apply({ tone })}>
             {CALLOUT_TONES.map((tone) => (
-              <kit.RadioItem key={tone} value={tone} indicator={<CheckIcon className="size-4" />}>
+              <kit.RadioItem key={tone} value={tone} indicator={<Check className="size-4" />}>
                 {labels.calloutTones[tone]}
               </kit.RadioItem>
             ))}

@@ -1,11 +1,11 @@
 'use client';
 
 import { useRef, type CSSProperties, type KeyboardEvent } from 'react';
-import { Plus } from 'lucide-react';
 import type { Command, EngineBlock } from '../../engine';
 import { addColumn, addRow, setColumnAlign, toggleHeaderRow } from '../../engine/commands/table-commands';
 import { columnAligns, tableShape } from '../../engine/commands/table-shape';
 import { MenuIcon } from '../../gutter/MenuIcon';
+import { Plus } from '../../icons';
 import { keepFocus } from '../../menus/floating/keep-focus';
 import {
   DropdownMenuCheckboxItem,

@@ -36,7 +36,7 @@ describe('the package manifest', () => {
   });
 
   it('publishes the build and the documents a reader of the tarball needs', () => {
-    expect(manifest.files).toEqual(['dist', 'README.md', 'LICENSE', 'CHANGELOG.md', 'MIGRATION.md']);
+    expect(manifest.files).toEqual(['dist', 'README.md', 'LICENSE', 'CHANGELOG.md', 'MIGRATION.md', 'THIRD_PARTY_NOTICES.md']);
     expect(manifest.sideEffects).toEqual(['*.css']);
   });
 });

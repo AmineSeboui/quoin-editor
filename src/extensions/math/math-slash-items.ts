@@ -1,9 +1,9 @@
-import { Radical, Sigma } from 'lucide-react';
 import { insertBlockToWrite } from '../../blocks/insert-blocks';
 import type { EditorState } from '../../engine';
 import { blockById } from '../../engine/model/doc';
 import { inlineText, marksAt } from '../../engine/model/inline';
 import { hasMark } from '../../engine/model/marks';
+import { Radical, Sigma } from '../../icons';
 import type { SlashItem } from '../ui-types';
 import type { MathLabels } from './math-labels';
 import { openMath } from './math-target';

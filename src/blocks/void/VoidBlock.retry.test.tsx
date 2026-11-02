@@ -1,13 +1,13 @@
 import { render, screen } from '@testing-library/react';
-import { ListChecks } from 'lucide-react';
 import { BlockCanvas } from '../../canvas/BlockCanvas';
+import { ListTodo } from '../../icons';
 import { defineBlock } from '../../registry';
 import type { QuoinBlock } from '../../types';
 import { paragraph, testBlockTypes } from './test-canvas';
 
 const blocks: QuoinBlock[] = [paragraph('a', 'one'), { id: 'n', type: 'NOTICE', data: { text: 'Hello' } }];
 
-const common = { type: 'NOTICE', label: 'Notice', icon: ListChecks };
+const common = { type: 'NOTICE', label: 'Notice', icon: ListTodo };
 
 const broken = defineBlock<{ text: string }>({
   ...common,

@@ -188,13 +188,11 @@ describe('fromHTML structures', () => {
     const parser = (tag: string, depth: number) => ({
       parseFromString: () => {
         const doc = new DOMParser().parseFromString('', 'text/html');
-        let current: Node = doc.createTextNode('deep');
-        for (let level = 0; level < depth; level++) {
-          const wrapper = doc.createElement(tag);
-          wrapper.appendChild(current);
-          current = wrapper;
-        }
-        doc.body.replaceChildren(current);
+        const outer = doc.createElement(tag);
+        let inner = outer;
+        for (let level = 1; level < depth; level++) inner = inner.appendChild(doc.createElement(tag));
+        inner.appendChild(doc.createTextNode('deep'));
+        doc.body.replaceChildren(outer);
         return doc;
       },
     });

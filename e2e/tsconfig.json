@@ -3,7 +3,6 @@
   "compilerOptions": {
     "types": ["node", "vite/client"],
     "noEmit": true,
-    "baseUrl": ".",
     "paths": {
       "quoin-editor": ["../src/index.ts"],
       "quoin-editor/view": ["../src/view-static/index.ts"],

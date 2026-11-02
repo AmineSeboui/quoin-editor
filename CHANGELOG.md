@@ -4,6 +4,9 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 
 ## Unreleased
 
+### Changed
+- The emoji data comes from emojibase-data 18. It adds nine emoji, such as 🫝 pickle and 🛙 lighthouse, and an emoji that is drawn as an emoji by default, such as 👍, is inserted without the U+FE0F variation selector it carried.
+
 ### Fixed
 - The comment marker beside a block is named after the count it shows, `1 comment` or `3 comments`, where it was `Comments (1)`, so a voice command that says what is on screen reaches it. A host that sets `showComments` in its labels is not affected.
 

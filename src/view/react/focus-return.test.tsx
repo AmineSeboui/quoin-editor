@@ -19,8 +19,8 @@ function mount() {
     act(() => controller.dispatch(controller.editor.createTransaction().setSelection(selection)));
   const domSelection = () => readSelection(controller.registry, document.getSelection());
   const caretIn = (id: string, offset: number) => document.getSelection()!.collapse(hostOf(container, id).firstChild!, offset);
-  // jsdom collapses the selection to the start of whatever it focuses once the focus events have run, which no browser
-  // does to a selection already inside, so the DOM selection is read as the events reach the document.
+  // jsdom collapses the selection to the start of whatever it focuses before the focus events run, which no
+  // browser does to a selection already inside, so the DOM selection is read once the editor has answered them.
   const focusAndRead = (id: string) => {
     let seen: Selection | null = null;
     document.addEventListener('focusin', () => (seen = domSelection()), { once: true });
@@ -54,7 +54,7 @@ describe('focus that returns to the editor', () => {
     outside.focus();
     const write = vi.spyOn(controller, 'syncSelectionToDom');
     hostOf(container, 'c').dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }));
-    expect(focusAndRead('c')).toBeNull();
+    expect(focusAndRead('c')).toEqual(textSelection(at('c', 0)));
     expect(write).not.toHaveBeenCalled();
   });
 

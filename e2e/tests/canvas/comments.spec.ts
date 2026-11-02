@@ -156,7 +156,7 @@ test('a narrow canvas lists the threads in a sheet opened from a marker beside t
   await openComments(page);
   await expect(rail(page)).toHaveCount(0);
   const marker = page.locator('.quoin-comments-marker[data-block="q"]');
-  await expect(marker).toHaveAccessibleName('Comments (1)');
+  await expect(marker).toHaveAccessibleName('1 comment');
   await marker.click();
   const sheet = page.getByRole('dialog', { name: 'Comments' });
   await expect(sheet.getByRole('button', { name: /^about this/ })).toHaveAttribute('aria-expanded', 'true');

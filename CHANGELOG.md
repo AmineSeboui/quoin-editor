@@ -6,8 +6,6 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 
 ### Changed
 - Quoin draws its own icons and no longer depends on `lucide-react`, so an install is about 36 MB and 4,300 files lighter and the canvas about 3.5 kB gzip smaller. The drawings are Lucide's, so nothing looks different. An icon carries its name in `data-quoin-icon`, such as `data-quoin-icon="check"`, where it had the `lucide` and `lucide-check` classes. A custom block's `icon` still takes any component that accepts a `className` and `aria-hidden`, a lucide one included: if you import from `lucide-react`, list it in your own dependencies.
-
-### Changed
 - The emoji data comes from emojibase-data 18. It adds nine emoji, such as 🫝 pickle and 🛙 lighthouse, and an emoji that is drawn as an emoji by default, such as 👍, is inserted without the U+FE0F variation selector it carried.
 
 ### Fixed

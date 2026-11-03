@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { SourceMap, type SourceMapPayload } from 'node:module';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -27,11 +27,20 @@ describe('withClientDirective', () => {
   });
 });
 
-describeBuilt('a built client entry', ['ai.js', 'ai.js.map', 'ai.cjs', 'ai.cjs.map'], () => {
-  it.each(['ai.js', 'ai.cjs'])('%s starts with the directive on its own line and maps later lines to their source', (file) => {
-    const lines = readFileSync(resolve(dist, file), 'utf8').split('\n');
-    expect(lines[0]).toBe("'use client';");
-    const map = JSON.parse(readFileSync(resolve(dist, `${file}.map`), 'utf8')) as SourceMapPayload;
+// Both builds carry the directive; only the ESM one carries a sourcemap, so only it is read back through one.
+describeBuilt('a built client entry', ['ai.js', 'ai.js.map', 'ai.cjs'], () => {
+  it.each(['ai.js', 'ai.cjs'])('%s starts with the directive on its own line', (file) => {
+    expect(readFileSync(resolve(dist, file), 'utf8').split('\n')[0]).toBe("'use client';");
+  });
+
+  it('has no sourcemap beside the CommonJS build, and no comment pointing at one', () => {
+    expect(existsSync(resolve(dist, 'ai.cjs.map'))).toBe(false);
+    expect(readFileSync(resolve(dist, 'ai.cjs'), 'utf8')).not.toContain('sourceMappingURL');
+  });
+
+  it('maps the later lines of the ESM build to their source', () => {
+    const lines = readFileSync(resolve(dist, 'ai.js'), 'utf8').split('\n');
+    const map = JSON.parse(readFileSync(resolve(dist, 'ai.js.map'), 'utf8')) as SourceMapPayload;
     expect(map.mappings.startsWith(';')).toBe(true);
     const line = lines.findIndex((candidate) => candidate.includes('closeStreaming(markdown'));
     const entry = new SourceMap(map).findEntry(line, lines[line].indexOf('closeStreaming'));

@@ -4,6 +4,9 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 
 ## Unreleased
 
+### Added
+- `quoin-editor/highlight` colours code blocks, in every language the block's language picker offers. `usePrismHighlighter` is a `highlight` for `BlockCanvas`, and the grammars behind it are a chunk fetched the first time a canvas using it mounts, so a page that imports none of this downloads none of it. Six theme tokens, `--quoin-syntax-comment`, `-keyword`, `-string`, `-number`, `-function` and `-variable`, colour the runs, each held by a test to 4.5:1 on a code block in both themes. The `highlight` prop is unchanged, so a highlighter of your own still replaces it.
+
 ### Changed
 - An image with no alt text is announced as `Image, no alt text`, where it was `Image, no description`, so the editor speaks the term the badge beside it and the alt text popover already use. A host that sets `imageNoAlt` in its labels is not affected.
 - Every slash menu description is a noun phrase: `List with bullets`, `Quotation, set apart`, `Image, uploaded or linked` and `File to download`, where some were written as instructions and others carried a leading article. The block names above them are unchanged, and a host that sets `slashDescriptions` is not affected.

@@ -8,6 +8,7 @@ const PINNED: Readonly<Record<string, { load: () => Promise<object>; exports: re
     exports: ['commentsExtension', 'createCommentThreads', 'englishCommentsLabels'],
   },
   ai: { load: () => import('./ai'), exports: ['aiExtension', 'englishAiLabels'] },
+  highlight: { load: () => import('./highlight'), exports: ['usePrismHighlighter'] },
   table: {
     load: () => import('./table'),
     exports: [

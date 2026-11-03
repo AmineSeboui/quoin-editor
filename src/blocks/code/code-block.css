@@ -102,3 +102,59 @@
     opacity: 1;
   }
 }
+
+/* The runs a highlighter names. Prism's token types are grouped onto the six syntax colours of the palette: a type it
+   draws that is not listed here keeps the block's own colour, so an unmapped grammar reads as plain code. */
+.quoin .quoin-tok-comment,
+.quoin .quoin-tok-prolog,
+.quoin .quoin-tok-doctype,
+.quoin .quoin-tok-cdata {
+  color: var(--quoin-syntax-comment);
+  font-style: italic;
+}
+
+.quoin .quoin-tok-keyword,
+.quoin .quoin-tok-atrule,
+.quoin .quoin-tok-rule,
+.quoin .quoin-tok-important,
+.quoin .quoin-tok-selector {
+  color: var(--quoin-syntax-keyword);
+}
+
+.quoin .quoin-tok-string,
+.quoin .quoin-tok-char,
+.quoin .quoin-tok-attr-value,
+.quoin .quoin-tok-regex,
+.quoin .quoin-tok-inserted {
+  color: var(--quoin-syntax-string);
+}
+
+.quoin .quoin-tok-number,
+.quoin .quoin-tok-boolean,
+.quoin .quoin-tok-constant,
+.quoin .quoin-tok-symbol {
+  color: var(--quoin-syntax-number);
+}
+
+.quoin .quoin-tok-function,
+.quoin .quoin-tok-class-name,
+.quoin .quoin-tok-tag,
+.quoin .quoin-tok-builtin,
+.quoin .quoin-tok-function-variable {
+  color: var(--quoin-syntax-function);
+}
+
+.quoin .quoin-tok-variable,
+.quoin .quoin-tok-attr-name,
+.quoin .quoin-tok-property,
+.quoin .quoin-tok-parameter,
+.quoin .quoin-tok-deleted {
+  color: var(--quoin-syntax-variable);
+}
+
+.quoin .quoin-tok-punctuation,
+.quoin .quoin-tok-operator,
+.quoin .quoin-tok-entity,
+.quoin .quoin-tok-url {
+  color: var(--quoin-muted-foreground);
+}

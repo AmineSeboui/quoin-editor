@@ -6,16 +6,28 @@ import { directiveFiles, tsupEntries } from './scripts/entry-outputs.mjs';
 import { makeMapsPortable } from './scripts/portable-maps.mjs';
 import { lazyChunks, packageEntries } from './scripts/package-entries.mjs';
 
+// A file the CommonJS build writes, which carries no sourcemap of its own.
+const EMPTY_MAP = { version: 3, file: '', sources: [], sourcesContent: [], names: [], mappings: '' };
+
+const readMap = async (path: string) => {
+  try {
+    return JSON.parse(await readFile(`${path}.map`, 'utf8'));
+  } catch {
+    return null;
+  }
+};
+
 // esbuild keeps the directive in ESM output but buries it behind the CJS prelude. It goes on a line of its own and
-// the sourcemap gains an empty first line, so every mapped line keeps its source place.
+// the sourcemap gains an empty first line, so every mapped line keeps its source place. The CommonJS build ships no
+// maps, so there the code is fixed and nothing is written beside it.
 async function ensureDirective(file: string) {
   const path = `dist/${file}`;
   const source = await readFile(path, 'utf8');
-  const map = JSON.parse(await readFile(`${path}.map`, 'utf8'));
-  const result = withClientDirective(source, map);
+  const map = await readMap(path);
+  const result = withClientDirective(source, map ?? EMPTY_MAP);
   if (result.code === source) return;
   await writeFile(path, result.code);
-  await writeFile(`${path}.map`, JSON.stringify(result.map));
+  if (map !== null) await writeFile(`${path}.map`, JSON.stringify(result.map));
 }
 
 // esbuild already drops unused modules; the Rollup pass of treeshake merges a chunk's imports and drops the arguments

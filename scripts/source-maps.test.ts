@@ -19,7 +19,7 @@ function origin(file: string, text: string) {
   return { source, line: existsSync(source) ? readFileSync(source, 'utf8').split('\n')[entry.originalLine] : undefined };
 }
 
-describeBuilt('the built sourcemaps', ['view.js.map', 'view.cjs.map'], () => {
+describeBuilt('the built sourcemaps', ['view.js.map'], () => {
   it('leave out the source text', () => {
     expect(maps().length).toBeGreaterThan(0);
     expect(maps().filter((file) => 'sourcesContent' in readMap(file))).toEqual([]);
@@ -33,9 +33,17 @@ describeBuilt('the built sourcemaps', ['view.js.map', 'view.cjs.map'], () => {
     expect(maps().filter((file) => withoutRepeatedSegments(readMap(file).mappings) !== readMap(file).mappings)).toEqual([]);
   });
 
-  it.each(['view.js', 'view.cjs'])('map a line of %s back to the line of src that wrote it', (file) => {
-    const { source, line } = origin(file, '"quoin-view"');
+  it('map a line of view.js back to the line of src that wrote it', () => {
+    const { source, line } = origin('view.js', '"quoin-view"');
     expect(source).toBe(resolve(dist, '..', 'src', 'view-static', 'QuoinView.tsx'));
     expect(line).toContain("'quoin-view'");
+  });
+
+  // Only the ESM build ships them, so the tarball stays under the 5 MB the README states.
+  it('are written for the ESM build alone, with nothing left pointing at a map that is not shipped', () => {
+    expect(maps().filter((file) => file.endsWith('.cjs.map'))).toEqual([]);
+    const cjs = readdirSync(dist).filter((file) => file.endsWith('.cjs'));
+    expect(cjs.length).toBeGreaterThan(0);
+    expect(cjs.filter((file) => readFileSync(resolve(dist, file), 'utf8').includes('sourceMappingURL'))).toEqual([]);
   });
 });

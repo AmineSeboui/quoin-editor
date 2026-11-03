@@ -32,7 +32,7 @@ Quoin is a rich markdown editor and block editor for React. Every text block sta
 npm install quoin-editor
 ```
 
-React 18.2 or 19, TypeScript 5.4 or later. Tailwind is optional, v3 and v4 both work. The npm tarball is about 1 MB packed, under 5 MB unpacked: ESM and CommonJS builds, with sourcemaps that leave out the source text. A page loads only the entries it imports.
+React 18.2 or 19, TypeScript 5.4 or later. Tailwind is optional, v3 and v4 both work. The npm tarball is about 1 MB packed, under 5 MB unpacked: ESM and CommonJS builds, and sourcemaps for the ESM one that leave out the source text. A page loads only the entries it imports.
 
 ## Quickstart
 

@@ -153,6 +153,34 @@ const extensions = [statsExtension({ limit: 280, focusMode: true, typography: { 
 
 `footer: false` leaves the footer out and keeps the rest. `useEditorStats(controller)` returns `{ characters, words, blocks }` for a count of your own, with the controller of a `BlockCanvas` handle or, inside the canvas, of `useViewController()`.
 
+## The markdown source
+
+`quoin-editor/source` shows the document as the markdown it is stored as, read only, beside or below the canvas. It answers the question a writer asks before saving: what exactly goes into the file.
+
+```tsx
+import { useState } from 'react';
+import { BlockCanvas, type QuoinBlock, type QuoinEditorHandle } from 'quoin-editor';
+import { QuoinSource } from 'quoin-editor/source';
+
+export function Editor({ blocks, onChange }: { blocks: QuoinBlock[]; onChange: (next: QuoinBlock[]) => void }) {
+  const [handle, setHandle] = useState<QuoinEditorHandle | null>(null);
+  return (
+    <div className="side-by-side">
+      <BlockCanvas ref={setHandle} blocks={blocks} onChange={onChange} />
+      {handle && <QuoinSource controller={handle.controller} />}
+    </div>
+  );
+}
+```
+
+The handle is held in state rather than a ref because a ref does not re-render, and the pane needs the canvas to exist before it can read it. The pane is a labelled region a screen reader can find, it takes a tab stop so it can be scrolled from the keyboard, and the block holding the caret is tinted as you move through the document.
+
+`useEditorSource(controller)` returns `{ markdown, active }` for a pane of your own: the same markdown, and `active` as the `{ from, to }` lines the caret's block is drawn on, both counted from zero and both inside the block. Both are read again at most once per animation frame however many edits or caret moves it holds.
+
+What the pane shows is the markdown of the whole document, not of each block in turn. A block is not serialised alone, because a list item reads the items above it and so spells itself differently on its own; the lines of a block are found instead from the lengths of the document's prefixes. If you pass `comments`, `lossless` or `resolveAssetUrl` to the canvas, pass the same to `useEditorSource` or `QuoinSource` as its second argument or its `options` prop, so the pane reads as the document is stored.
+
+The pane is read only. Editing the markdown back into the document is not supported yet: it would have to keep the id of every block whose markdown did not change, or every comment anchor and every collaborator's view would move under them.
+
 ## Writing an extension
 
 Every feature above is an extension, and a host's own is built the same way, with `defineExtension` from `quoin-editor/engine` and passed in `extensions`. An extension has a `name`, and may add block types (`blocks`), marks, atoms, input and paste rules, a `keymap`, `commands`, `plugins` and `decorations`, react to each transaction (`onTransaction`), refuse one (`filterTransaction`), or run when the editor mounts (`onMount`); the `Extension` type declares each field. Its `ui` field, an `ExtensionUI` from the main entry, adds to the canvas: slash menu items, bubble toolbar buttons, block menu items, block renderers and their names, and overlays drawn over the canvas. Define `ui.renderers` and its components at module level: a component declared inside a render is a new type each time, and every block it draws is mounted again. A renderer for a text block that draws no `EditableRegion` for its text is passed over by ArrowUp and ArrowDown, and a click on it selects the block's text as a whole, as a block selection of that one block rather than a node selection. The attributes a `decorations` entry of kind `block` puts on its block's element are filtered to the names that start with `data-` or `aria-`: `style`, `className`, `class`, event handlers and `dangerouslySetInnerHTML` are dropped. An inline decoration is held to a different rule on purpose, because the built-in selection, find, comments, presence and AI highlights paint with `class` and `style`: its attributes are written as given, except that any name starting with `on`, in any case, is left out. A widget decoration writes no attributes of its own; its renderer builds the element. A renderer that throws while drawing its block does not take the canvas down: that block draws a fallback named by the `blockError` label (`Block could not be drawn` in English) inside its own element, which keeps its `data-block-id` and `data-type`, so selection and keyboard navigation still pass over it, and the other blocks keep working. A click on the fallback of a text block selects the block's text as a whole, as a block selection of that one block rather than a node selection, so Delete removes it. The error goes to the canvas's `onError` when one is given, and React reports it as it does any caught error; the block is drawn again when its data changes, or when its renderer does, as when the host passes a fixed renderer or new `blockTypes`. A canvas drawn inside another's tree, from a renderer or an overlay, owns its text and the menus and popovers it opens: focus in any of them is in that canvas, not the one around it, for presence, comments and AI.

@@ -9,6 +9,10 @@ const PINNED: Readonly<Record<string, { load: () => Promise<object>; exports: re
   },
   ai: { load: () => import('./ai'), exports: ['aiExtension', 'englishAiLabels'] },
   highlight: { load: () => import('./highlight'), exports: ['usePrismHighlighter'] },
+  source: {
+    load: () => import('./source'),
+    exports: ['QuoinSource', 'useEditorSource', 'blockLines', 'englishSourceLabels'],
+  },
   table: {
     load: () => import('./table'),
     exports: [

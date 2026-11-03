@@ -219,3 +219,8 @@ main > .lede {
     font-size: 2rem;
   }
 }
+
+.editor-source {
+  margin-top: 1rem;
+  max-height: 18rem;
+}

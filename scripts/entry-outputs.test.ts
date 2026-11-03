@@ -87,7 +87,7 @@ describe('the package entry list', () => {
     expect(incrementalBudget(9_999)).toBe(10_399);
   });
 
-  it('publishes the Yjs adapter, presence, comments, AI, highlighting, every feature, then the catalogue, held to what they add', () => {
+  it('publishes the Yjs adapter, presence, comments, AI, highlighting, the source pane, every feature, then the catalogue, held to what they add', () => {
     const optIn = packageEntries.slice(6);
     expect(optIn.map(({ name }) => name)).toEqual([
       'yjs',
@@ -95,6 +95,7 @@ describe('the package entry list', () => {
       'comments',
       'ai',
       'highlight',
+      'source',
       ...featureEntries.map(({ name }) => name),
       'catalogue',
     ]);

@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { BlockCanvas, type QuoinBlock } from 'quoin-editor';
+import { BlockCanvas, type QuoinBlock, type QuoinEditorHandle } from 'quoin-editor';
 import { catalogue } from 'quoin-editor/catalogue';
 import { usePrismHighlighter } from 'quoin-editor/highlight';
 import type { MentionResult } from 'quoin-editor/mention';
+import { QuoinSource } from 'quoin-editor/source';
 import { everyBlock } from '../content/every-block';
 import { resolveAssetUrl } from '../site/asset-url';
 
@@ -18,16 +19,27 @@ const search = async (query: string) =>
 export default function BlocksEditor() {
   const [blocks, setBlocks] = useState<QuoinBlock[]>(everyBlock);
   const [extensions] = useState(() => catalogue({ mention: { search } }));
+  const [handle, setHandle] = useState<QuoinEditorHandle | null>(null);
   const highlight = usePrismHighlighter();
   return (
-    <BlockCanvas
-      blocks={blocks}
-      onChange={setBlocks}
-      extensions={extensions}
-      highlight={highlight}
-      resolveAssetUrl={resolveAssetUrl}
-      aria-label="Every block"
-      className="editor-frame"
-    />
+    <>
+      <BlockCanvas
+        ref={setHandle}
+        blocks={blocks}
+        onChange={setBlocks}
+        extensions={extensions}
+        highlight={highlight}
+        resolveAssetUrl={resolveAssetUrl}
+        aria-label="Every block"
+        className="editor-frame"
+      />
+      {handle && (
+        <QuoinSource
+          controller={handle.controller}
+          options={{ resolveAssetUrl }}
+          className="editor-source"
+        />
+      )}
+    </>
   );
 }

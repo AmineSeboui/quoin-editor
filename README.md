@@ -77,13 +77,13 @@ Each competitor cell links to the page that shows it; the Tiptap UI cell also dr
 | --- | --- | --- | --- | --- |
 | Stored document | Block array, markdown per text block | [JSON, or HTML][tt-store] | [Block JSON][bn-formats] | [JSON][ej-repo] |
 | Markdown | The storage format | [`@tiptap/markdown`, an early release][tt-md] | [Export and import, documented as lossy][bn-formats] | [Community plugin][ej-awesome] |
-| Notion-style UI | Included, MIT | [MIT menus and drag handle][tt-review]; [Notion-like template on a paid plan][tt-notion] | [Included][bn-home] | [Toolbox and inline toolbar][ej-home] |
+| Notion-style UI | Included, MIT | [MIT menus and drag handle][tt-review]; [Notion-like template on a paid plan][tt-notion] | [Included][bn-home] | [Toolbox and inline toolbar][ej-repo] |
 | Licence | MIT | [MIT core, paid Pro extensions][tt-repo] | [MPL-2.0, `xl-*` packages GPL-3.0 or commercial][bn-repo] | [Apache-2.0][ej-repo] |
-| Real-time collaboration | Yjs, opt-in entry | [Yjs][tt-collab] | [Yjs][bn-collab] | [On its roadmap][ej-repo] |
+| Real-time collaboration | Yjs, opt-in entry | [Yjs][tt-collab] | [Yjs][bn-collab] | [On its roadmap, in progress][ej-repo] |
 | Comments | Opt-in, your store | [Paid plan][tt-comments] | [Built in, on Yjs or a thread store][bn-comments] | [Community plugin][ej-awesome] |
-| Framework | React | [React, Vue, Svelte, plain JavaScript and more][tt-install] | [React][bn-start] | [Plain JavaScript][ej-start] |
+| Framework | React | [React, Vue, Svelte, plain JavaScript and more][tt-install] | [React, or vanilla JS with your own UI][bn-vanilla] | [Plain JavaScript][ej-start] |
 
-Sources, checked on 2026-10-23: Tiptap [persistence][tt-store], [markdown][tt-md], [Notion-like template][tt-notion], [repository][tt-repo], [collaboration][tt-collab], [comments][tt-comments], [install][tt-install]; BlockNote [home][bn-home], [formats][bn-formats], [repository][bn-repo], [collaboration][bn-collab], [comments][bn-comments], [getting started][bn-start]; Editor.js [home][ej-home], [repository][ej-repo], [getting started][ej-start], [awesome-editorjs][ej-awesome].
+Sources, checked on 2026-11-03: Tiptap [persistence][tt-store], [markdown][tt-md], [Notion-like template][tt-notion], [repository][tt-repo], [collaboration][tt-collab], [comments][tt-comments], [install][tt-install]; BlockNote [home][bn-home], [formats][bn-formats], [repository][bn-repo], [collaboration][bn-collab], [comments][bn-comments], [getting started][bn-start], [vanilla JS][bn-vanilla]; Editor.js [home][ej-home], [repository][ej-repo], [getting started][ej-start], [awesome-editorjs][ej-awesome].
 
 [tt-store]: https://tiptap.dev/docs/editor/core-concepts/persistence
 [tt-md]: https://tiptap.dev/docs/editor/markdown
@@ -99,6 +99,7 @@ Sources, checked on 2026-10-23: Tiptap [persistence][tt-store], [markdown][tt-md
 [bn-collab]: https://www.blocknotejs.org/docs/features/collaboration
 [bn-comments]: https://www.blocknotejs.org/docs/features/collaboration/comments
 [bn-start]: https://www.blocknotejs.org/docs/getting-started
+[bn-vanilla]: https://www.blocknotejs.org/docs/getting-started/vanilla-js
 [ej-home]: https://editorjs.io/
 [ej-repo]: https://github.com/codex-team/editor.js
 [ej-start]: https://editorjs.io/getting-started

@@ -278,7 +278,7 @@
   },
   "scripts": {
     "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
-    "build": "npm run clean && tsup && npm run build:css",
+    "build": "npm run clean && tsup && npm run build:css && node scripts/drop-cjs-maps.mjs",
     "build:css": "tailwindcss -i ./src/styles.css -o ./dist/styles.css --minify",
     "build:emoji": "node scripts/build-emoji-data.mjs",
     "check:css": "node scripts/check-css-scope.mjs dist/styles.css",

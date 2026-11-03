@@ -9,6 +9,8 @@ const README = join(root, 'README.md');
 const README_LIMIT = 10_240;
 const readme = readText(README);
 const pages = [{ slug: 'README', path: README }, ...docsSources()];
+const packageVersion: string = JSON.parse(readText(join(root, 'package.json'))).version;
+const packageMinor = packageVersion.split('.').slice(0, 2).join('.');
 
 const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const linkedSlugs = (markdown: string) =>
@@ -44,6 +46,12 @@ describe('the README', () => {
 
   it('links the hero animation from the folder the docs site serves', () => {
     expect(readme).toContain('](demo/public/quoin-demo.gif)');
+  });
+
+  it('heads the comparison table with the minor version the package is at', () => {
+    const heading = readme.match(/\| Feature \| Quoin (\d+\.\d+) \|/);
+    expect(heading).not.toBeNull();
+    expect(heading?.[1]).toBe(packageMinor);
   });
 });
 

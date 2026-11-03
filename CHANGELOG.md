@@ -2,6 +2,11 @@
 
 Every release of `quoin-editor` is listed here, newest first, in the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). From 1.0.0 the package follows [semantic versioning](https://semver.org/): a breaking change waits for the next major version. Until then, Quoin was 0.x and a minor version could contain breaking changes; those known at release were marked "Breaking". The 0.x sections are kept as they were released, "Docs" headings included. Moving from 0.4 to 1.0 is covered step by step in [MIGRATION.md](MIGRATION.md). Review finding ids such as F-17 are those of the 0.4.0 review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73).
 
+## Unreleased
+
+### Added
+- `quoin-editor/highlight` colours code blocks, in every language the block's language picker offers. `usePrismHighlighter` is a `highlight` for `BlockCanvas`, and the grammars behind it are a chunk fetched the first time a canvas using it mounts, so a page that imports none of this downloads none of it. Six theme tokens, `--quoin-syntax-comment`, `-keyword`, `-string`, `-number`, `-function` and `-variable`, colour the runs, each held by a test to 4.5:1 on a code block in both themes. The `highlight` prop is unchanged, so a highlighter of your own still replaces it.
+
 ## 1.4.1 (2026-11-02)
 
 ### Changed

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { BlockCanvas, type QuoinBlock } from 'quoin-editor';
 import { catalogue } from 'quoin-editor/catalogue';
+import { usePrismHighlighter } from 'quoin-editor/highlight';
 import type { MentionResult } from 'quoin-editor/mention';
 import { everyBlock } from '../content/every-block';
 import { resolveAssetUrl } from '../site/asset-url';
@@ -17,11 +18,13 @@ const search = async (query: string) =>
 export default function BlocksEditor() {
   const [blocks, setBlocks] = useState<QuoinBlock[]>(everyBlock);
   const [extensions] = useState(() => catalogue({ mention: { search } }));
+  const highlight = usePrismHighlighter();
   return (
     <BlockCanvas
       blocks={blocks}
       onChange={setBlocks}
       extensions={extensions}
+      highlight={highlight}
       resolveAssetUrl={resolveAssetUrl}
       aria-label="Every block"
       className="editor-frame"

@@ -51,6 +51,9 @@ const ANCHOR_ALPHA = Number(ANCHOR_TINT.exec(commentsCss)![1]) / 100;
 /** The surface behind a highlighted row in a menu, a select and the palette. */
 const HIGHLIGHT = 'accent';
 
+/** The syntax colours, read from the palette so one added later is held to the same contrast. */
+const SYNTAX = [...new Set([...css.matchAll(/--quoin-(syntax-[\w-]+):/g)].map(([, name]) => name))];
+
 const BAR = /var\(--quoin-([\w-]+)\)/.exec(HIGHLIGHT_BAR)![1];
 
 describe.each<Theme>(['light', 'dark'])('%s theme', (theme) => {
@@ -83,6 +86,14 @@ describe.each<Theme>(['light', 'dark'])('%s theme', (theme) => {
   it('keeps muted text at 4.5:1 or more on the page and on a popover', () => {
     expect(contrast(theme, 'muted-foreground', 'background')).toBeGreaterThanOrEqual(4.5);
     expect(contrast(theme, 'muted-foreground', 'popover')).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it.each(SYNTAX)('keeps %s at 4.5:1 or more on the code block it is drawn on', (name) => {
+    expect(contrast(theme, name, 'muted')).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('names a syntax colour for each of the six groups the code stylesheet paints', () => {
+    expect(SYNTAX).toHaveLength(6);
   });
 
   it('draws an unchecked task box at 3:1 or more on the page, a selected block and every background colour', () => {

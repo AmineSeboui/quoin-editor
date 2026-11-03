@@ -181,7 +181,7 @@ describe('englishLabels', () => {
     expect([englishLabels.replaceImage, englishLabels.download]).toEqual(['Replace image', 'Download']);
     expect([englishLabels.altText, englishLabels.save]).toEqual(['Alt text', 'Save']);
     expect(englishLabels.altTextHint).toBe('Required. Describe what the image shows for anyone who cannot see it.');
-    expect(englishLabels.imageNoAlt).toBe('Image, no description');
+    expect(englishLabels.imageNoAlt).toBe('Image, no alt text');
     expect([englishLabels.decorativeImage, englishLabels.noAltBadge]).toEqual(['Decorative image', 'No alt text']);
     expect(englishLabels.addAltText).toBe('No alt text, add alt text');
   });

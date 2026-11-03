@@ -31,7 +31,7 @@ describe('an image block with no picture yet', () => {
     await user.upload(screen.getByLabelText('Upload image'), png);
     await waitFor(() => expect(imageData()).toEqual({ storageKey: 'key/cat.png', alt: '', width: 40, height: 30 }));
     expect(upload).toHaveBeenCalledWith(png, 'image');
-    expect(screen.getByRole('img', { name: 'Image, no description' })).toHaveAttribute('src', '/cdn/key/cat.png');
+    expect(screen.getByRole('img', { name: 'Image, no alt text' })).toHaveAttribute('src', '/cdn/key/cat.png');
   });
 
   it('hands focus to the image, selected as a whole, once the upload picked from its button lands', async () => {

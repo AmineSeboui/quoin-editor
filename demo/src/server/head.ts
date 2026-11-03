@@ -6,7 +6,7 @@ export const OG_IMAGE = {
   path: 'og.png',
   width: 1280,
   height: 640,
-  alt: 'Quoin. Blocks on screen. Markdown on disk. A release notes excerpt as the editor shows it and as the markdown it stores.',
+  alt: 'Quoin, a rich markdown editor for React. Blocks on screen. Markdown on disk. A release notes excerpt as the editor shows it and as the markdown it stores.',
 };
 
 const escape = (text: string) =>

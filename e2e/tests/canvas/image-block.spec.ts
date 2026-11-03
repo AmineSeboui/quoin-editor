@@ -28,7 +28,7 @@ test('a PNG dropped on an empty image block is uploaded through the host and dra
   const area = (await page.locator('.quoin-image-upload').boundingBox())!;
   await dropEvent(page, { x: area.x + area.width - 8, y: area.y + area.height / 2 }, { files: [fixture] });
   await expect.poll(() => imageData(page)).toEqual(measured);
-  const picture = shell(page).getByRole('img', { name: 'Image, no description' });
+  const picture = shell(page).getByRole('img', { name: 'Image, no alt text' });
   await expect.poll(() => picture.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBe(FIXTURE_PNG.width);
   expect((await blocks(page)).map((block) => block.type)).toEqual(['MARKDOWN', 'IMAGE', 'MARKDOWN']);
 });

@@ -22,12 +22,12 @@ export function HomePage() {
           {TAGLINE_LINES.map((line) => (
             <span key={line}>{line}</span>
           ))}
+          <span className="hero-what">A rich markdown editor and block editor for React</span>
         </h1>
         <p className="lede">
-          Quoin is a rich markdown editor and block editor for React. Every text block stays readable markdown inside a typed
-          array you hold in your own state. Writers get live formatting, a slash menu, drag handles, real-time co-editing and AI that writes
-          into the page; you get a document you can save, diff in git or hand to an LLM without a conversion step. MIT
-          licensed.
+          Every text block stays readable markdown inside a typed array you hold in your own state. Writers get live
+          formatting, a slash menu, drag handles, real-time co-editing and AI that writes into the page; you get a document
+          you can save, diff in git or hand to an LLM without a conversion step. MIT licensed.
         </p>
         <div className="hero-actions">
           <a className="button" href={pageHref(guidePages[0].path)}>

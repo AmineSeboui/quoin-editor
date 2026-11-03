@@ -34,7 +34,7 @@ describe('a block the canvas selects as a whole', () => {
     });
     expect(names).toEqual([
       'A cat',
-      'Image, no description',
+      'Image, no alt text',
       'No image chosen',
       'Divider',
       'Code, TypeScript',

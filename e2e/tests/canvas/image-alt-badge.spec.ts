@@ -3,7 +3,7 @@ import { blocks, openEditor } from '../../support/editor';
 
 const alt = async (page: Page) => (await blocks(page)).find((block) => block.id === 'img')?.data.alt;
 const badge = (page: Page) => page.getByRole('button', { name: 'No alt text, add alt text' });
-const field = (page: Page) => page.getByRole('textbox', { name: 'Alt text' });
+const field = (page: Page) => page.getByRole('textbox', { name: 'Alt text', exact: true });
 const scrollY = (page: Page) => page.evaluate(() => window.scrollY);
 
 async function openFromBadge(page: Page) {

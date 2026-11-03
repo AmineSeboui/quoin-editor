@@ -110,6 +110,7 @@ QUOIN_REACT=18 npm run check:consumer
 - Every string the canvas shows or speaks comes from its labels, so a host can translate it.
 - The engine (`src/engine`) has no runtime dependency and imports nothing from React or the rest of the package; `npm run lint` checks what it imports.
 - Prose in docs, comments and messages avoids em and en dashes; typographic characters in code and tests are written as `\u` escapes.
+- Prose is British English: `colour`, `licence`, `grey`. Code keeps the spelling of what it names, so a CSS property, a public key such as `textColor` and the label that mirrors it stay American.
 
 ## Licence
 

@@ -25,7 +25,7 @@ describe('the no alt text badge of an image', () => {
     expect(badge()).toHaveTextContent(/^No alt text$/);
     expect(badge()).toHaveAccessibleName('No alt text, add alt text');
     expect(badge()!.getAttribute('aria-label')!.startsWith(badge()!.textContent!)).toBe(true);
-    expect(screen.getByRole('img')).toHaveAccessibleName('Image, no description');
+    expect(screen.getByRole('img')).toHaveAccessibleName('Image, no alt text');
   });
 
   it('takes its name and its text from the labels it is given', () => {

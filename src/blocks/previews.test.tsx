@@ -38,7 +38,7 @@ describe('previews', () => {
 
   it('names a picture with no alt text as the canvas does', () => {
     wrap(<ImagePreview data={{ storageKey: 'a.png', alt: '' }} />);
-    expect(screen.getByRole('img', { name: 'Image, no description' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Image, no alt text' })).toBeInTheDocument();
   });
 
   it('shows a hint instead of a broken image when no key is set', () => {

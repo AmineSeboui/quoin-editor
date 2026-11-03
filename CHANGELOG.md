@@ -2,6 +2,12 @@
 
 Every release of `quoin-editor` is listed here, newest first, in the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). From 1.0.0 the package follows [semantic versioning](https://semver.org/): a breaking change waits for the next major version. Until then, Quoin was 0.x and a minor version could contain breaking changes; those known at release were marked "Breaking". The 0.x sections are kept as they were released, "Docs" headings included. Moving from 0.4 to 1.0 is covered step by step in [MIGRATION.md](MIGRATION.md). Review finding ids such as F-17 are those of the 0.4.0 review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73).
 
+## Unreleased
+
+### Changed
+- An image with no alt text is announced as `Image, no alt text`, where it was `Image, no description`, so the editor speaks the term the badge beside it and the alt text popover already use. A host that sets `imageNoAlt` in its labels is not affected.
+- Every slash menu description is a noun phrase: `List with bullets`, `Quotation, set apart`, `Image, uploaded or linked` and `File to download`, where some were written as instructions and others carried a leading article. The block names above them are unchanged, and a host that sets `slashDescriptions` is not affected.
+
 ## 1.4.1 (2026-11-02)
 
 ### Changed

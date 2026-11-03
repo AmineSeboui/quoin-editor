@@ -29,7 +29,7 @@ describe('the image block', () => {
 
   it('draws a linked picture from its address, and names a picture with no alt text as such', () => {
     mountCanvas([image({ storageKey: '', alt: '', url: 'https://quoin.dev/cat.png' })], { resolveAssetUrl });
-    expect(screen.getByRole('img', { name: 'Image, no description' })).toHaveAttribute('src', 'https://quoin.dev/cat.png');
+    expect(screen.getByRole('img', { name: 'Image, no alt text' })).toHaveAttribute('src', 'https://quoin.dev/cat.png');
   });
 
   it('keeps the measured size on the picture and its width as a share of the block', () => {

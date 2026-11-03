@@ -38,7 +38,11 @@ export const featureEntries = [
  * on its own, which the entry that loads it leaves out of its measure.
  * @type {{ name: string, source: string, total: number }[]}
  */
-export const lazyChunks = [{ name: 'emoji-data', source: 'src/emoji/index.ts', total: 60_000 }];
+export const lazyChunks = [
+  { name: 'emoji-data', source: 'src/emoji/index.ts', total: 60_000 },
+  // The grammars are a fixed set, so this moves only when Prism is upgraded or a language joins the combobox.
+  { name: 'prism-grammars', source: 'src/blocks/code/prism/prism-grammars.ts', total: 34_000 },
+];
 
 /** @type {PackageEntry[]} */
 export const packageEntries = [
@@ -59,6 +63,8 @@ export const packageEntries = [
   { name: 'comments', source: 'src/comments.ts', client: true, added: incrementalBudget(6_560) },
   // The host's model streams through a callback no catalogue option could carry, so it stays out as comments do.
   { name: 'ai', source: 'src/ai.ts', client: true, added: incrementalBudget(8_769) },
+  // The hook alone: the grammars it loads build into the prism-grammars chunk, which it leaves out of its measure.
+  { name: 'highlight', source: 'src/highlight.ts', client: true, added: incrementalBudget(612) },
   ...featureEntries,
   { name: 'catalogue', source: 'src/catalogue.ts', client: true, added: incrementalBudget(28_865) },
 ];

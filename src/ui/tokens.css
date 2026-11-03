@@ -23,6 +23,14 @@
   --quoin-success: oklch(0.55 0.14 155);
   --quoin-warning: oklch(0.6 0.16 65);
   --quoin-tip: oklch(0.54 0.17 300);
+  /* The syntax colours of a highlighted code block. Unlike the callout tones above, these are type, so each is
+     lightened or darkened until it reads at 4.5:1 on --quoin-muted, which is what a code block is drawn on. */
+  --quoin-syntax-comment: oklch(0.52 0.025 263);
+  --quoin-syntax-keyword: oklch(0.49 0.19 300);
+  --quoin-syntax-string: oklch(0.47 0.13 155);
+  --quoin-syntax-number: oklch(0.5 0.15 55);
+  --quoin-syntax-function: oklch(0.5 0.18 255);
+  --quoin-syntax-variable: oklch(0.52 0.17 25);
   --quoin-selection: oklch(0.6 0.19 266 / 24%);
   /* The tint of text a comment thread is anchored to, painted translucent so overlapping anchors stack, the opaque tint
      of the anchor whose thread is open, and the rule under both, thicker when open. Body and palette text read at
@@ -82,6 +90,12 @@
   --quoin-success: oklch(0.74 0.15 155);
   --quoin-warning: oklch(0.79 0.15 65);
   --quoin-tip: oklch(0.74 0.13 300);
+  --quoin-syntax-comment: oklch(0.68 0.02 262);
+  --quoin-syntax-keyword: oklch(0.8 0.13 300);
+  --quoin-syntax-string: oklch(0.82 0.14 155);
+  --quoin-syntax-number: oklch(0.83 0.13 60);
+  --quoin-syntax-function: oklch(0.8 0.12 255);
+  --quoin-syntax-variable: oklch(0.79 0.12 25);
   --quoin-selection: oklch(0.7 0.15 268 / 32%);
   --quoin-comment: oklch(0.35 0.08 90);
   --quoin-comment-active: oklch(0.3 0.08 85);

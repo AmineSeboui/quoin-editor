@@ -1,5 +1,5 @@
 import type { emojiByShortcode, searchEmoji, skinTones } from '../../emoji/index';
-import { lazyLoad } from './lazy-load';
+import { lazyLoad } from '../../lazy-load';
 
 /** The emoji dataset and its search, loaded on demand. */
 export type EmojiData = {

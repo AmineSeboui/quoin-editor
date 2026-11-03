@@ -63,8 +63,14 @@ describe('the changelog', () => {
     expect(headings).toEqual(['Added', 'Changed', 'Removed', 'Fixed', 'Security', 'Known gaps']);
   });
 
+  // Every Added list, not 1.0.0's alone, since an entry published later is named by the release that introduced it.
+  const added = changelog
+    .split(/^### /m)
+    .filter((section) => section.startsWith('Added'))
+    .join('\n');
+
   it.each(packageEntries.map((entry) => [specifier(entry)]))('names the %s entry under Added', (name) => {
-    expect(entryNamed(part('Added'), name)).toBe(true);
+    expect(entryNamed(added, name)).toBe(true);
   });
 
   it.each(['useBlockList', 'useAutoGrow', 'useMarkdownKeymap', 'TEXT_COMMANDS', '@dnd-kit', 'cmdk', 'tailwind-merge', 'class-variance-authority', '@radix-ui/react-label', '@radix-ui/react-select'])(

@@ -9,7 +9,26 @@ description: How the code, image and file blocks are typed into, selected, uploa
 
 A code block is typed in place: Tab and Shift+Tab indent and outdent the selected lines, Enter keeps the indentation of the line, the arrows leave the block from its first and last lines, and Backspace in an empty block turns it into a paragraph. Its header holds a language picker (Alt+F10 from the code reaches it) and a copy button. The canvas draws code blocks, and offers to insert them, while `blockTypes` registers `CODE`, as `coreBlocks` does.
 
-Pass `highlight` to colour the code. It gets the code and the block's language as stored, which can be an alias such as `ts`, and returns one array of tokens per line, `{ text, color?, className? }`, whose texts spell the line exactly. Wrap Shiki, Prism or highlight.js in one, and keep the function stable. A highlighter that throws, or whose tokens do not spell the code, leaves the code as plain text. A token's `color` is left out when it holds what could leave the `color` declaration or load a resource: any of `;` `{` `}` `\` `"` `'` `<` `>` `!`, a `/*`, or `url(`, `image(`, `image-set(` or `expression(` in any case. So a value such as `red;background-image:url(...)` is not drawn, in a server render of the canvas too, as `QuoinView` leaves it out, while `var(--shiki-foreground, #24292e)`, `hsl(var(--primary))`, `color-mix()` and `light-dark()` are drawn.
+### Colouring the code
+
+Code is drawn plainly until the canvas is given a `highlight`. `quoin-editor/highlight` is one, ready to pass:
+
+```tsx
+import { BlockCanvas, type QuoinBlock } from 'quoin-editor';
+import { usePrismHighlighter } from 'quoin-editor/highlight';
+
+export function Editor({ blocks, onChange }: { blocks: QuoinBlock[]; onChange: (next: QuoinBlock[]) => void }) {
+  return <BlockCanvas blocks={blocks} onChange={onChange} highlight={usePrismHighlighter()} />;
+}
+```
+
+It covers every language the picker offers. The grammars are a chunk of their own, fetched the first time a canvas using the hook mounts, so a page that imports none of this downloads none of it, and a page that does keeps its first render plain and redraws once they arrive. A canvas mounted after that gets them on its first render. If the chunk fails to load the code stays plain, and the next canvas to mount tries again.
+
+Colours come from six theme tokens, `--quoin-syntax-comment`, `-keyword`, `-string`, `-number`, `-function` and `-variable`, each tuned to read at 4.5:1 on a code block in both light and dark mode. Restyle them as you would any other token (theming page), or style the `quoin-tok-` classes directly for finer control.
+
+### Writing your own highlighter
+
+`highlight` gets the code and the block's language as stored, which can be an alias such as `ts`, and returns one array of tokens per line, `{ text, color?, className? }`, whose texts spell the line exactly. Wrap any highlighter in one, and keep the function stable. A highlighter that throws, or whose tokens do not spell the code, leaves the code as plain text. A token's `color` is left out when it holds what could leave the `color` declaration or load a resource: any of `;` `{` `}` `\` `"` `'` `<` `>` `!`, a `/*`, or `url(`, `image(`, `image-set(` or `expression(` in any case. So a value such as `red;background-image:url(...)` is not drawn, in a server render of the canvas too, as `QuoinView` leaves it out, while `var(--shiki-foreground, #24292e)`, `hsl(var(--primary))`, `color-mix()` and `light-dark()` are drawn.
 
 ```tsx
 import { BlockCanvas, type CodeHighlighter, type QuoinBlock } from 'quoin-editor';

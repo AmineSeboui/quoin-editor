@@ -5,6 +5,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 ## Unreleased
 
 ### Added
+- `quoin-editor/source` shows the document as the markdown it is stored as, read only, beside or below the canvas. `QuoinSource` draws it with the block holding the caret marked, and `useEditorSource` gives the same markdown and the lines of that block for a pane of your own. What it shows is `toMarkdown` of the whole document, not of each block in turn, because a list item spells itself differently alone.
 - `quoin-editor/highlight` colours code blocks, in every language the block's language picker offers. `usePrismHighlighter` is a `highlight` for `BlockCanvas`, and the grammars behind it are a chunk fetched the first time a canvas using it mounts, so a page that imports none of this downloads none of it. Six theme tokens, `--quoin-syntax-comment`, `-keyword`, `-string`, `-number`, `-function` and `-variable`, colour the runs, each held by a test to 4.5:1 on a code block in both themes. The `highlight` prop is unchanged, so a highlighter of your own still replaces it.
 
 ## 1.4.1 (2026-11-02)

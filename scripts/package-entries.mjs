@@ -65,6 +65,8 @@ export const packageEntries = [
   { name: 'ai', source: 'src/ai.ts', client: true, added: incrementalBudget(8_769) },
   // The hook alone: the grammars it loads build into the prism-grammars chunk, which it leaves out of its measure.
   { name: 'highlight', source: 'src/highlight.ts', client: true, added: incrementalBudget(612) },
+  // The pane reads the document through the markdown serialiser the main entry already holds.
+  { name: 'source', source: 'src/source.ts', client: true, added: incrementalBudget(770) },
   ...featureEntries,
   { name: 'catalogue', source: 'src/catalogue.ts', client: true, added: incrementalBudget(28_865) },
 ];

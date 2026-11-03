@@ -1,0 +1,28 @@
+.quoin-source {
+  overflow: auto;
+  border-radius: var(--quoin-radius);
+  background: var(--quoin-muted);
+  color: var(--quoin-foreground);
+}
+
+.quoin-source:focus-visible {
+  outline: 2px solid var(--quoin-ring);
+  outline-offset: 2px;
+}
+
+/* The same type metrics as a code block, so a document reads the same in the pane as it does in the one it names. */
+.quoin-source .quoin-source-text {
+  margin: 0;
+  padding: 0.75rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.875rem;
+  line-height: 1.5rem;
+  white-space: pre;
+  tab-size: 2;
+}
+
+/* The run the caret's block is drawn on. A tint rather than a colour, so the line reads the same either way. */
+.quoin-source .quoin-source-active {
+  border-radius: 2px;
+  background: var(--quoin-selection);
+}

@@ -58,6 +58,17 @@ describe('the changelog', () => {
     expect(versions.slice(at)).toEqual(['1.0.0', '0.4.2', '0.4.1', '0.4.0', '0.3.0', '0.2.0', '0.1.1', '0.1.0']);
   });
 
+  // A merge can bring a second Added or Changed into a section beside the one already there, which git resolves
+  // without a conflict and a reader then meets as two lists of the same kind. 1.4.0 shipped that way.
+  it('gives each release at most one heading of a kind', () => {
+    const repeated = titles.flatMap((title) => {
+      const headings = [...sectionOf(changelog, `## ${title}`).matchAll(/^### (.+)$/gm)].map(([, name]) => name);
+      const twice = [...new Set(headings.filter((name, at) => headings.indexOf(name) !== at))];
+      return twice.length === 0 ? [] : [`${title}: ${twice.join(', ')}`];
+    });
+    expect(repeated).toEqual([]);
+  });
+
   it('sorts the 1.0.0 changes under Added, Changed, Removed, Fixed and Security, then the known gaps', () => {
     const headings = [...release.matchAll(/^### (.+)$/gm)].map(([, heading]) => heading);
     expect(headings).toEqual(['Added', 'Changed', 'Removed', 'Fixed', 'Security', 'Known gaps']);

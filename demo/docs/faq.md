@@ -1,6 +1,6 @@
 ---
 title: FAQ
-description: Why the package is called quoin-editor, what the name means, which frameworks it supports and what the 1.0 version promises.
+description: Why the package is called quoin-editor, what the name means, which frameworks it supports and what its semantic versioning promises.
 ---
 
 # FAQ

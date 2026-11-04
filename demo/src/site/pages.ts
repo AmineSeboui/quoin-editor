@@ -10,7 +10,8 @@ export type PageKind =
   | { kind: 'server-rendering' }
   | { kind: 'comparison' }
   | { kind: 'migration' }
-  | { kind: 'changelog' };
+  | { kind: 'changelog' }
+  | { kind: 'not-found' };
 
 export type Page = PageKind & { path: string; title: string; description: string };
 
@@ -108,3 +109,11 @@ export const homePage: Page = {
 };
 
 export const pages: Page[] = [homePage, ...guidePages, ...demoPages, ...referencePages];
+
+/** What a host serves for an address the site has no page for; written to the root as `404.html`, outside `pages`. */
+export const notFoundPage: Page = {
+  kind: 'not-found',
+  path: '404.html',
+  title: 'Page not found',
+  description: 'That address has no page on the Quoin site. The guide, the live demos and the changelog are listed here.',
+};

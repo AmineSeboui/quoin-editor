@@ -4,6 +4,7 @@
   --site-width: 76rem;
   --site-gutter: 1.5rem;
   --site-header: 3.75rem;
+  --site-header-offset: var(--site-header);
   --site-surface: var(--quoin-muted);
   --site-hairline: var(--quoin-border);
   color-scheme: light;
@@ -14,8 +15,24 @@
 }
 
 html {
-  scroll-padding-top: calc(var(--site-header) + 1.5rem);
+  scroll-padding-top: calc(var(--site-header-offset) + 1.5rem);
   -webkit-text-size-adjust: 100%;
+}
+
+html[data-dialog] {
+  overflow: hidden;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  clip-path: inset(50%);
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 body {
@@ -90,7 +107,7 @@ a {
 .site-header-inner {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1rem;
   min-height: var(--site-header);
 }
 
@@ -129,6 +146,23 @@ a {
   min-width: 0;
 }
 
+.site-nav,
+.guide-nav {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.site-nav::-webkit-scrollbar,
+.guide-nav::-webkit-scrollbar {
+  display: none;
+}
+
+/* Only once the row really is wider than its box, so the edge is not faded when every item already fits. */
+.site-nav[data-overflow],
+.guide-nav[data-overflow] {
+  mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
+}
+
 .site-nav ul,
 .guide-nav ul {
   margin: 0;
@@ -151,7 +185,7 @@ a {
 }
 
 .site-nav a {
-  padding: 0.375rem 0.625rem;
+  padding: 0.375rem 0.5rem;
   font-size: 0.9375rem;
   font-weight: 500;
 }
@@ -254,6 +288,13 @@ a {
   gap: 3.5rem;
 }
 
+@media (min-width: 80rem) {
+  .page-with-nav {
+    grid-template-columns: 13.5rem minmax(0, 1fr) 13rem;
+    gap: 3rem;
+  }
+}
+
 .guide-nav {
   position: sticky;
   top: calc(var(--site-header) + 2rem);
@@ -342,13 +383,17 @@ main:focus {
 }
 
 @media (max-width: 64rem) {
+  :root {
+    --site-header-offset: 6rem;
+  }
+
   .site-header-inner {
     flex-wrap: wrap;
     gap: 0 1rem;
   }
 
   .brand {
-    min-height: var(--site-header);
+    min-height: 3.375rem;
   }
 
   .site-actions {
@@ -359,36 +404,39 @@ main:focus {
     flex-basis: 100%;
     order: 1;
     margin-inline: calc(var(--site-gutter) * -1);
-    padding: 0 var(--site-gutter) 0.625rem;
-    overflow-x: auto;
-    scrollbar-width: none;
-    mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
+    padding: 0 var(--site-gutter) 0.5rem;
   }
 
   .page-with-nav {
     grid-template-columns: minmax(0, 1fr);
-    gap: 2rem;
+    gap: 1.5rem;
   }
 
+  /* One scrolling row rather than seventeen wrapped chips, which filled a phone screen before the page began. */
   .guide-nav {
     position: static;
     max-height: none;
-    overflow: visible;
+    margin-inline: calc(var(--site-gutter) * -1);
+    padding: 0 var(--site-gutter) 0.25rem;
   }
 
   .guide-nav ul {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 0.25rem;
   }
 
   .guide-nav a {
-    padding: 0.25rem 0.625rem;
+    padding: 0.375rem 0.75rem;
     white-space: nowrap;
   }
 
   .guide-nav a[aria-current] {
     box-shadow: none;
+  }
+
+  .page-toc {
+    display: none;
   }
 }
 
@@ -397,16 +445,13 @@ main:focus {
     --site-gutter: 1rem;
   }
 
-  .site-header {
-    position: static;
-  }
-
-  html {
-    scroll-padding-top: 1rem;
-  }
-
   .page {
-    padding-block: 2rem 3.5rem;
+    padding-block: 1.5rem 3.5rem;
+  }
+
+  .site-nav a,
+  .site-action {
+    padding-inline: 0.5rem;
   }
 }
 

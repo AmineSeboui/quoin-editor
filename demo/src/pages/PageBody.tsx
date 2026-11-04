@@ -3,6 +3,7 @@ import { ComparisonPage } from './ComparisonPage';
 import { AiPage, BlocksPage, CollaborationPage, CommentsPage, ServerRenderingPage } from './demo-pages';
 import { DocPage } from './DocPage';
 import { HomePage } from './HomePage';
+import { NotFoundPage } from './NotFoundPage';
 import { RootGuidePage } from './RootGuidePage';
 
 export function PageBody({ page }: { page: Page }) {
@@ -26,5 +27,7 @@ export function PageBody({ page }: { page: Page }) {
     case 'migration':
     case 'changelog':
       return <RootGuidePage guide={page.kind} />;
+    case 'not-found':
+      return <NotFoundPage />;
   }
 }

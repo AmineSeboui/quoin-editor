@@ -22,13 +22,14 @@ export const documentTitle = (page: Page) => (page.kind === 'home' ? page.title 
 
 /** The tags a search engine and a link preview read: title, description, canonical address, Open Graph and Twitter. */
 export function headTags(page: Page): string {
+  const listed = page.kind !== 'not-found';
   const url = SITE_URL + page.path;
   const image = SITE_URL + OG_IMAGE.path;
   const title = documentTitle(page);
   return [
     `<title>${escape(title)}</title>`,
     meta('name', 'description', page.description),
-    `<link rel="canonical" href="${url}" />`,
+    ...(listed ? [`<link rel="canonical" href="${url}" />`] : [meta('name', 'robots', 'noindex')]),
     `<link rel="icon" href="${BASE}favicon.svg" type="image/svg+xml" />`,
     meta('property', 'og:type', page.kind === 'home' ? 'website' : 'article'),
     meta('property', 'og:site_name', SITE_NAME),

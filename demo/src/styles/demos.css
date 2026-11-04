@@ -195,6 +195,13 @@ main > .lede {
     border-inline-start: 0;
     border-top: 1px solid var(--site-hairline);
   }
+
+  /* Stacked, the markdown ran to a screen and a half before the page's own features; it scrolls in place instead. */
+  .storage-disk .pane-body {
+    max-height: 18rem;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
 }
 
 @media (max-width: 40rem) {

@@ -3,8 +3,7 @@ import { existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { STRUCTURAL_ECHO_WINDOW } from '../src/engine/extension/echo-tracker';
-import { REFERENCE_SLUGS } from './api-reference.mjs';
-import { DOCS_URL, docsDir, docsSources, readText, root } from './docs-sources.mjs';
+import { DOCS_URL, docsDir, docsSources, readText, REFERENCE_SLUGS, root } from './docs-sources.mjs';
 
 const README = join(root, 'README.md');
 const README_LIMIT = 10_240;

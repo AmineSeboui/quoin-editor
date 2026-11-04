@@ -4,10 +4,9 @@ import { fileURLToPath } from 'node:url';
 import { referencePage } from './api-page.mjs';
 import { ENGINE_SECTIONS, VIEW_SECTIONS } from './api-sections.mjs';
 import { readEntries } from './api-surface.mjs';
-import { docsDir, DOCS_URL, root } from './docs-sources.mjs';
+import { docsDir, DOCS_URL, REFERENCE_SLUGS, root } from './docs-sources.mjs';
 
-const ENGINE_SLUG = 'engine-reference';
-const HEADLESS_SLUG = 'headless-reference';
+const [ENGINE_SLUG, HEADLESS_SLUG] = REFERENCE_SLUGS;
 const ENGINE_LINK = `[Engine reference](${DOCS_URL}${ENGINE_SLUG}/)`;
 const HEADLESS_LINK = `[Headless reference](${DOCS_URL}${HEADLESS_SLUG}/)`;
 
@@ -36,9 +35,6 @@ const HEADLESS = {
   ],
   sections: VIEW_SECTIONS,
 };
-
-/** The docs pages the reference is generated into, in the order the guide lists them. */
-export const REFERENCE_SLUGS = [ENGINE_SLUG, HEADLESS_SLUG];
 
 /** The two generated reference pages, by their slug, as the docs sources hold them. */
 export function referenceMarkdown() {

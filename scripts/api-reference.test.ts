@@ -1,9 +1,9 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 import { describeBuilt } from '../test/support/built-dist';
-import { REFERENCE_SLUGS, referenceFile, referenceMarkdown } from './api-reference.mjs';
+import { referenceFile, referenceMarkdown } from './api-reference.mjs';
 import { readEntries } from './api-surface.mjs';
-import { readText, root } from './docs-sources.mjs';
+import { readText, REFERENCE_SLUGS, root } from './docs-sources.mjs';
 
 const generated: Map<string, string> = referenceMarkdown();
 const [ENGINE, HEADLESS] = REFERENCE_SLUGS as [string, string];

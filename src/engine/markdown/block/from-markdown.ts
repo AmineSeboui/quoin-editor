@@ -5,6 +5,7 @@ import { treeToBlocks } from './tree-to-blocks';
 
 export type FromMarkdownOptions = { softBreak?: 'newline' | 'space'; newId?: () => string };
 
+/** A markdown file read back into blocks, one text block per line, ready to pass to the canvas as `blocks`. */
 export function fromMarkdown(markdown: string, options: FromMarkdownOptions = {}): QuoinBlock[] {
   const { document, refs } = parseBlocks(markdown);
   const drafts = treeToBlocks(document, { softBreak: options.softBreak ?? 'space', refs });

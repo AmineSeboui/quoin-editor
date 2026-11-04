@@ -1,3 +1,4 @@
+/** The colour names a writer can pick for text and for a background, each a `--quoin-color-*` token. */
 export const PALETTE = [
   'default',
   'gray',

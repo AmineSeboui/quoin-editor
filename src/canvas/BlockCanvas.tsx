@@ -34,6 +34,10 @@ import { useTypedInPlaceWarning } from './use-typed-in-place-warning';
 // Room at the start of every line for the gutter: two small controls, or on a touch screen one 44 px handle.
 const GUTTER_ROOM = 'ps-12';
 
+/**
+ * The editor with the whole canvas UI: the slash menu, the bubble toolbar, the block menu, drag handles, the mobile
+ * tools and the shortcuts dialog. The document is controlled, `blocks` in and `onChange` out, as an input's value is.
+ */
 export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(function BlockCanvas(
   {
     blocks,

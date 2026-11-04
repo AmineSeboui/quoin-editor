@@ -18,5 +18,6 @@ export type HTMLOptions = {
   taskLabel?: string;
 };
 
+/** A whole document as HTML, for a page, an email or a feed. It loads no React and needs no DOM. */
 export const toHTML = (blocks: readonly QuoinBlock[], options: HTMLOptions = {}): string =>
   serializeHtml(documentNodes(blocks, options));

@@ -18,8 +18,11 @@ export type UseQuoinEditorOptions = {
 
 type Callbacks = Pick<UseQuoinEditorOptions, 'onChange' | 'onTransaction' | 'onFiles'>;
 
-// The editor, its extensions and its render options are read once. The callbacks are read through a ref, so a new
-// function identity on every render changes nothing.
+/**
+ * The editor and the controller that binds it to the page, for a host that draws its own chrome around `EditorView`.
+ * The editor, its extensions and its render options are read once; the callbacks are read through a ref, so a new
+ * function identity on every render changes nothing.
+ */
 export function useQuoinEditor(options: UseQuoinEditorOptions): ViewController {
   const { blocks, readOnly = false } = options;
   const callbacks = useRef<Callbacks>(options);

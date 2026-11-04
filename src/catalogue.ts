@@ -3,6 +3,7 @@
 import type { Extension } from './engine';
 import { createCatalogue, type CatalogueOptionsOf } from './extensions/create-catalogue';
 // Through each feature's entry, which reaches the whole main entry, for the reason src/table.ts gives.
+import { diagramExtension } from './diagram';
 import { embedExtension } from './embed';
 import { emojiExtension } from './emoji';
 import { findExtension } from './find';
@@ -16,6 +17,7 @@ const features = {
   table: tableExtension,
   embed: embedExtension,
   math: mathExtension,
+  diagram: diagramExtension,
   toc: tocExtension,
   mention: mentionExtension,
   emoji: emojiExtension,

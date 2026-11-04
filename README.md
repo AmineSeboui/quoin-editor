@@ -62,7 +62,7 @@ What `onChange` hands you, and what you store:
 | Entry | What it adds |
 | --- | --- |
 | `quoin-editor` | The canvas: text, lists, tasks, quotes, callouts, toggles, dividers, code, images and files, with every menu and toolbar |
-| `quoin-editor/table`, `/embed`, `/math`, `/toc`, `/mention`, `/emoji`, `/find`, `/stats` | Opt-in features, each its own entry; `quoin-editor/catalogue` adds them all |
+| `quoin-editor/table`, `/embed`, `/math`, `/diagram`, `/toc`, `/mention`, `/emoji`, `/find`, `/stats` | Opt-in features, each its own entry; `quoin-editor/catalogue` adds them all |
 | `quoin-editor/highlight` | Syntax colouring for code blocks, in every language the picker offers, fetched on demand |
 | `quoin-editor/yjs`, `/presence` | Real-time co-editing through your own Yjs provider, and collaborators' carets |
 | `quoin-editor/comments` | Comment threads anchored to text, kept in your store |

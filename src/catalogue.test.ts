@@ -8,16 +8,18 @@ describe('the catalogue entry', () => {
       'table',
       'embed',
       'math',
+      'diagram',
       'toc',
       'mention',
       'emoji',
       'find',
       'stats',
     ]);
-    const [table, embed, math, toc, mention, emoji, find, stats] = catalogue({
+    const [table, embed, math, diagram, toc, mention, emoji, find, stats] = catalogue({
       table: { labels: { table: 'Tableau' } },
       embed: { labels: { embed: 'Int\u00e9grer' } },
       math: { renderMath: () => '<b>drawn</b>', labels: { inlineEquation: 'Formule' } },
+      diagram: { render: () => '<svg></svg>', languages: ['plantuml'] },
       toc: { labels: { tableOfContents: 'Sommaire' } },
       mention: { search: async () => [], labels: { mentionDescription: (kind) => `Mention (${kind})` } },
       emoji: { labels: { chooseIcon: "Choisir l'ic\u00f4ne" } },
@@ -29,6 +31,7 @@ describe('the catalogue entry', () => {
     expect((math.ui as ExtensionUI).slashItems?.map((item) => item.title)).toEqual(['Block equation', 'Formule']);
     const drawn = (math.ui as ExtensionUI).render?.atoms?.math(atom('math', { latex: 'x' }), document);
     expect(drawn?.innerHTML).toBe('<b>drawn</b>');
+    expect(Object.keys((diagram.ui as ExtensionUI).renderers ?? {})).toEqual(['CODE']);
     expect((toc.ui as ExtensionUI).slashItems?.map((item) => item.title)).toEqual(['Sommaire']);
     const chip = (mention.ui as ExtensionUI).render?.atoms?.mention(atom('mention', { id: '1', label: 'Ada', kind: 'user' }), document);
     expect(chip?.getAttribute('aria-description')).toBe('Mention (user)');
@@ -52,6 +55,7 @@ describe('the catalogue entry', () => {
     expect(catalogue({ table: false }).map((extension) => extension.name)).toEqual([
       'embed',
       'math',
+      'diagram',
       'toc',
       'mention',
       'emoji',
@@ -62,6 +66,7 @@ describe('the catalogue entry', () => {
       table: false,
       embed: false,
       math: false,
+      diagram: false,
       toc: false,
       mention: false,
       emoji: false,

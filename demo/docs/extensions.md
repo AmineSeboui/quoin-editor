@@ -69,6 +69,25 @@ const extensions = [
 
 `$$` and a space at the start of a paragraph, or `/` and Block equation, make a math block and open its editor, a popover with the LaTeX and a live preview. A click on a math block, or Enter on one selected as a whole, opens it too: Mod+Enter or Save stores the LaTeX, Enter starts a new line, and Escape keeps what was there, each handing focus back to the block. A formula typed between dollars, such as `$x^2$`, becomes a formula in the line as its closing dollar is typed, wherever the markdown reads one, so `$5 and $10` stays text; Backspace right after gives the dollars back. A dollar in code never opens or closes a formula, and no formula runs across the edge of a link or of other formatting. A formula typed between backticks, such as `` `$x$` ``, stays a formula inside the code, because it converts before the closing backtick makes the code. Backspace right after a formula selects it, and a second Backspace deletes it; Shift with an arrow steps a selection over it whole, and a drag or a Shift+click that ends on it takes it whole. A click on a formula, or Enter while it is selected, opens the same editor, where Enter stores and Shift+Enter starts a new line, and Inline equation in the `/` menu opens it at the caret, writing the formula there once a LaTeX is stored and leaving the text as it was otherwise; Enter with the caret after a formula starts a new line as anywhere else, and Shift+click extends the selection. A press outside the editor, or Tab out of it, stores the LaTeX too, and a press leaves focus where it lands. Storing an empty formula removes it, and an empty block shows "Empty equation". Each store is one undo step. A read-only canvas draws blocks and formulas and opens no editor.
 
+## Diagrams
+
+`quoin-editor/diagram` draws a code block whose language names a diagram through a renderer you pass, and shows the source under the drawing, where a writer already knows to edit it. Quoin draws no diagrams itself and bundles no engine, so the renderer is yours to choose.
+
+```tsx
+import { diagramExtension } from 'quoin-editor/diagram';
+
+// Stands for `import mermaid from 'mermaid'`.
+declare const mermaid: { render(id: string, code: string): { svg: string } };
+
+const extensions = [diagramExtension({ render: (code) => mermaid.render('d', code).svg })];
+```
+
+The markup the renderer gives is inserted as it is, exactly as `renderMath` is, so a host drawing from text it did not write sanitises first. `languages` chooses which code languages are drawn rather than highlighted, `['mermaid']` by default; a language left out stays an ordinary code block, and so does every block when no `render` is given. A renderer that throws, or gives anything but markup with something in it, leaves the block showing its source rather than losing it.
+
+The document is unchanged by any of this. A diagram is a fenced code block with a language, the same thing it would be without the extension, so a file written here opens as a diagram in anything else that reads the same fence, and as code everywhere else. Nothing new is stored and nothing is lost if the extension is removed.
+
+The drawing is hidden from assistive technology with `aria-hidden`, because the source below it is the accessible content and reading both would say everything twice. The block is named by its language, as "mermaid diagram". The drawing sits on the page's own background rather than the code block's, so a diagram drawn for a light or a dark page reads on either.
+
 ## Table of contents
 
 `quoin-editor/toc` draws `TOC` blocks as a navigation named "Table of contents" that lists the headings of the document as links, nested by level, and follows them as they are written. A heading with no text is left out, and a skipped level nests one deep, as in the table of contents `toHTML` writes. `/` and Table of contents inserts one; with no headings it shows "Add headings to build the table of contents". A second table of contents in the same document, and any after it, is named with its number, "Table of contents 2", so that each navigation has a name of its own.

@@ -1,7 +1,18 @@
 import { expect, test } from '@playwright/test';
-import { stayLocal } from './support';
+import { axeViolations, stayLocal } from './support';
 
 test.beforeEach(({ page }) => stayLocal(page));
+
+for (const theme of ['light', 'dark'] as const) {
+  test(`the open search panel breaks no axe rule in the ${theme} theme`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: theme });
+    await page.goto('docs/faq/');
+    await page.getByRole('button', { name: 'Search the guide' }).click();
+    await page.getByRole('combobox', { name: 'Search the guide' }).fill('markdown');
+    await expect(page.getByRole('option').first()).toBeVisible();
+    expect(await axeViolations(page)).toEqual([]);
+  });
+}
 
 test('a code block copies itself, and says so', async ({ page, context, browserName }) => {
   test.skip(browserName === 'webkit', 'WebKit grants no clipboard permission to a headless page.');

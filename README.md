@@ -64,6 +64,7 @@ What `onChange` hands you, and what you store:
 | `quoin-editor` | The canvas: text, lists, tasks, quotes, callouts, toggles, dividers, code, images and files, with every menu and toolbar |
 | `quoin-editor/table`, `/embed`, `/math`, `/diagram`, `/toc`, `/mention`, `/emoji`, `/find`, `/stats` | Opt-in features, each its own entry; `quoin-editor/catalogue` adds them all |
 | `quoin-editor/highlight` | Syntax colouring for code blocks, in every language the picker offers, fetched on demand |
+| `quoin-editor/source` | The document as the markdown it is stored as, read only, beside or below the canvas |
 | `quoin-editor/yjs`, `/presence` | Real-time co-editing through your own Yjs provider, and collaborators' carets |
 | `quoin-editor/comments` | Comment threads anchored to text, kept in your store |
 | `quoin-editor/ai` | Your model's answers streamed into the document; Quoin never calls a model |
@@ -74,7 +75,7 @@ What `onChange` hands you, and what you store:
 
 Each competitor cell links to the page that shows it; the Tiptap UI cell also draws on the review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73) (2026-10-12).
 
-| Feature | Quoin 1.6 | Tiptap 3 | BlockNote | Editor.js |
+| Feature | Quoin 1.7 | Tiptap 3 | BlockNote | Editor.js |
 | --- | --- | --- | --- | --- |
 | Stored document | Block array, markdown per text block | [JSON, or HTML][tt-store] | [Block JSON][bn-formats] | [JSON][ej-repo] |
 | Markdown | The storage format | [`@tiptap/markdown`, an early release][tt-md] | [Export and import, documented as lossy][bn-formats] | [Community plugin][ej-awesome] |

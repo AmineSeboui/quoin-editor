@@ -2,7 +2,7 @@
 
 Every release of `quoin-editor` is listed here, newest first, in the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). From 1.0.0 the package follows [semantic versioning](https://semver.org/): a breaking change waits for the next major version. Until then, Quoin was 0.x and a minor version could contain breaking changes; those known at release were marked "Breaking". The 0.x sections are kept as they were released, "Docs" headings included. Moving from 0.4 to 1.0 is covered step by step in [MIGRATION.md](MIGRATION.md). Review finding ids such as F-17 are those of the 0.4.0 review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73).
 
-## Unreleased
+## 1.7.0 (2026-11-04)
 
 ### Added
 - `quoin-editor/diagram` draws a code block whose language names a diagram, such as `mermaid`, through a renderer you pass, which may answer at once or with a promise as the common engines do, with its source below the drawing where a writer already edits it. Quoin draws no diagrams itself and bundles no engine. The document is unchanged: a diagram is a fenced code block, and opens as one anywhere else. A renderer that throws or draws nothing leaves the source alone rather than losing the block.

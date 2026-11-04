@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { isDated, readText, releaseHeading, root, sectionOf } from './docs-sources.mjs';
@@ -120,5 +121,30 @@ describe('the changelog', () => {
     expect(part('Security')).toMatch(/toDocx/);
     expect(part('Security')).toMatch(/mailto/);
     expect(part('Security')).toMatch(/highlight/);
+  });
+});
+
+const git = (...args: string[]) => execFileSync('git', args, { cwd: root, encoding: 'utf8' });
+const tags = new Set(git('tag', '--list').split('\n'));
+const releases = [...changelog.matchAll(/^## (1\.\d+\.\d+) \(\d{4}-\d{2}-\d{2}\)$/gm)].map(([, release]) => release);
+const untagged = releases.filter((release) => !tags.has(`v${release}`));
+const taggedSection = (release: string) => {
+  const tagged = git('show', `v${release}:CHANGELOG.md`);
+  return sectionOf(tagged, releaseHeading(tagged, release));
+};
+
+// Tagging a release while a feature branch is in flight dates that branch's entries by accident: merging it folds
+// its Unreleased list into the section the release has just dated, which git resolves without a conflict and the
+// heading rule above reads as one list of each kind. 1.5.0 shipped that way. A tag is the record of what a version
+// published, so a dated section has to keep reading as its tag left it. The 0.x sections predate the promise.
+describe('every 1.x release', () => {
+  it('is tagged, but for the newest, which a release branch dates before its tag exists', () => {
+    expect(releases.length).toBeGreaterThan(0);
+    expect(untagged.length).toBeLessThan(2);
+    expect(untagged).toEqual(releases.slice(0, untagged.length));
+  });
+
+  it.each(releases.filter((release) => tags.has(`v${release}`)))('%s reads as its tag left it', (release) => {
+    expect(sectionOf(changelog, releaseHeading(changelog, release))).toBe(taggedSection(release));
   });
 });

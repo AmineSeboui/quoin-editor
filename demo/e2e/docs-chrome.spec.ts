@@ -14,14 +14,21 @@ for (const theme of ['light', 'dark'] as const) {
   });
 }
 
-test('a code block copies itself, and says so', async ({ page, context, browserName }) => {
-  test.skip(browserName === 'webkit', 'WebKit grants no clipboard permission to a headless page.');
+test('a code block copies itself', async ({ page, context, browserName }) => {
+  test.skip(browserName !== 'chromium', 'Only Chromium gives a headless page both clipboard permissions.');
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await page.goto('docs/getting-started/');
-  const copy = page.getByRole('button', { name: 'Copy the command' }).first();
-  await copy.click();
-  await expect(page.getByRole('status')).toHaveText('Copied');
+  await page.getByRole('button', { name: 'Copy the command' }).first().click();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('npm install quoin-editor');
+});
+
+test('a copy says so, for a reader who cannot see the check', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: () => Promise.resolve() } });
+  });
+  await page.goto('docs/getting-started/');
+  await page.getByRole('button', { name: 'Copy the command' }).first().click();
+  await expect(page.getByRole('status')).toHaveText('Copied');
 });
 
 test('the table of contents marks the section the reader has reached', async ({ page }) => {

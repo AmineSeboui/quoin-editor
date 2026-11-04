@@ -31,6 +31,8 @@ export const GUIDE_ORDER = [
   'server-rendering',
   'headless',
   'api',
+  'engine-reference',
+  'headless-reference',
   'accessibility',
   'faq',
   'styles-history',

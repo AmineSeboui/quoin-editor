@@ -18,11 +18,14 @@ export const codeSamples = (markdown) =>
 
 export const readText = (path) => readFileSync(path, 'utf8');
 
+/** The docs pages the API reference is generated into, whose code is declarations rather than code to run. */
+export const REFERENCE_SLUGS = ['engine-reference', 'headless-reference'];
+
 /** The pages whose samples a consumer copies from: the README, the migration guide and the docs pages. */
 export const samplePages = () => [
   { slug: 'readme', path: join(root, 'README.md') },
   { slug: 'migration', path: join(root, 'MIGRATION.md') },
-  ...docsSources(),
+  ...docsSources().filter(({ slug }) => !REFERENCE_SLUGS.includes(slug)),
 ];
 
 /**

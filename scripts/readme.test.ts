@@ -3,7 +3,7 @@ import { existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { STRUCTURAL_ECHO_WINDOW } from '../src/engine/extension/echo-tracker';
-import { DOCS_URL, docsDir, docsSources, readText, root } from './docs-sources.mjs';
+import { DOCS_URL, docsDir, docsSources, readText, REFERENCE_SLUGS, root } from './docs-sources.mjs';
 
 const README = join(root, 'README.md');
 const README_LIMIT = 10_240;
@@ -31,6 +31,13 @@ const anchorsOf = (slug: string) =>
     .split('\n')
     .filter((line) => /^#{1,6} /.test(line))
     .map((line) => headingAnchor(line.replace(/^#+ /, '')));
+
+const REPOSITORY_FILE = /\b(?:src|e2e|scripts|test)\/[\w./-]*\.(?:[cm]?[jt]sx?|css)\b/;
+const linkTargetsDropped = (markdown: string) => markdown.replace(/\]\([^)]*\)/g, ']()');
+
+// The generated reference sends each export to the line that declares it, so a path is a link target there, never copy.
+const visibleCopy = (slug: string, path: string) =>
+  REFERENCE_SLUGS.includes(slug) ? linkTargetsDropped(readText(path)) : readText(path);
 
 // npm and GitHub render the README in full, so it carries the pitch and the links, and the docs pages carry the rest.
 describe('the README', () => {
@@ -78,8 +85,8 @@ describe('the README and the docs sources', () => {
     expect(readText(path)).not.toMatch(/fully accessible|exactly as written|wysiwyg/i);
   });
 
-  it.each(pages.map(({ slug, path }) => [slug, path]))('%s names no source or test file of the repository', (_, path) => {
-    expect(readText(path)).not.toMatch(/\b(?:src|e2e|scripts|test)\/[\w./-]*\.(?:[cm]?[jt]sx?|css)\b/);
+  it.each(pages.map(({ slug, path }) => [slug, path]))('%s names no source or test file of the repository', (slug, path) => {
+    expect(visibleCopy(slug, path)).not.toMatch(REPOSITORY_FILE);
   });
 });
 

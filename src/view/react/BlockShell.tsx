@@ -13,7 +13,7 @@ import { useEngaged } from './use-engaged';
 import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect';
 import { useReaderChoices } from './use-reader-choices';
 
-type BlockShellProps = {
+export type BlockShellProps = {
   block: EngineBlock;
   renderers: Readonly<Record<string, BlockRenderer>>;
 };

@@ -4,6 +4,9 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 
 ## Unreleased
 
+### Added
+- `quoin-editor/headless` exports the types its own signatures already named, so a host can write them down rather than reach them through `Parameters` and `ReturnType`: `Announcer` with `Spoken`, `Engagement`, `FocusTarget`, `HostRegistry` with `HostEntry`, and `NodeReveal`, all reached through `ViewController`; `CaretPoint`, which `caretFromPoint` returns; and `BlockShellProps` and `SelectionSinkProps`, taken by the two components named after them. They reach `quoin-editor` too, which re-exports the headless entry. Nothing new runs and no type changes shape.
+
 ### Changed
 - The exports a host meets first carry a documentation comment, so an editor explains them on hover: `BlockCanvas`, `EditorView`, `useQuoinEditor`, `createEditor`, `toMarkdown`, `toHTML`, `toPlainText`, `fromMarkdown`, `PALETTE` and `englishLabels`. Nothing about their behaviour changes.
 

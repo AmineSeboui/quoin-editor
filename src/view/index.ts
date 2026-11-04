@@ -1,9 +1,14 @@
 export { ViewController, type ViewControllerOptions } from './controller/view-controller';
+export type { Announcer, Spoken } from './controller/announcer';
+export type { Engagement } from './controller/engagement';
+export type { FocusTarget } from './controller/focus-target';
 export { hostKey } from './controller/host-registry';
+export type { HostEntry, HostRegistry } from './controller/host-registry';
 export type { KeyInterceptor } from './input/keydown';
-export { caretFromPoint } from './navigation/caret-from-point';
+export { caretFromPoint, type CaretPoint } from './navigation/caret-from-point';
 export { isCrossSelection } from './selection/selection-decorations';
 export type { BlockLabel } from './selection/selection-sink';
+export type { NodeReveal } from './selection/node-reveal';
 export { domMapOf, renderInline } from './dom/render-inline';
 export type { AtomRenderer, DomMap, DomPoint, RenderOptions, WidgetRenderer } from './dom/render-inline';
 export { useViewController } from './react/editor-context';
@@ -12,8 +17,8 @@ export { useQuoinEditor, type UseQuoinEditorOptions } from './react/use-quoin-ed
 export { EditorView, type EditorViewProps } from './react/EditorView';
 export type { BlockPlaceholder } from './react/block-placeholder';
 export { EditableRegion, type EditableRegionProps } from './react/EditableRegion';
-export { BlockShell } from './react/BlockShell';
-export { SelectionSink } from './react/SelectionSink';
+export { BlockShell, type BlockShellProps } from './react/BlockShell';
+export { SelectionSink, type SelectionSinkProps } from './react/SelectionSink';
 export {
   defaultRenderers,
   VoidBlockFallback,

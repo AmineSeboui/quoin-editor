@@ -18,6 +18,11 @@ export const everyBlock: QuoinBlock[] = [
   { id: 'divider', type: 'DIVIDER', data: {} },
   text('h2-media', '### Code, media and data'),
   { id: 'code', type: 'CODE', data: { language: 'ts', code: "const greeting: string = 'Blocks on screen';\nconsole.log(greeting);" } },
+  {
+    id: 'diagram',
+    type: 'CODE',
+    data: { language: 'mermaid', code: 'sequenceDiagram\n  Writer->>Canvas: types\n  Canvas->>Markdown: stores' },
+  },
   { id: 'image', type: 'IMAGE', data: { storageKey: 'sample-image.svg', alt: 'Three blocks locked in a frame by a wedge', widthPercent: 60 } },
   { id: 'file', type: 'FILE', data: { storageKey: 'sample-notes.txt', filename: 'sample-notes.txt', size: 99, mime: 'text/plain' } },
   { id: 'table', type: 'TABLE', data: { rows: [['Block', 'Stored as'], ['Paragraph', 'Markdown'], ['Table', 'Rows of cells']], header: true, align: [null, null] } },

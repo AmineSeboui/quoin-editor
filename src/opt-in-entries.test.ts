@@ -39,6 +39,10 @@ const PINNED: Readonly<Record<string, { load: () => Promise<object>; exports: re
   },
   embed: { load: () => import('./embed'), exports: ['embedExtension', 'englishEmbedLabels'] },
   math: { load: () => import('./math'), exports: ['mathExtension', 'englishMathLabels'] },
+  diagram: {
+    load: () => import('./diagram'),
+    exports: ['diagramExtension', 'DEFAULT_DIAGRAM_LANGUAGES', 'englishDiagramLabels'],
+  },
   toc: { load: () => import('./toc'), exports: ['tocExtension', 'englishTocLabels', 'headings'] },
   mention: { load: () => import('./mention'), exports: ['mentionExtension', 'englishMentionLabels'] },
   emoji: { load: () => import('./emoji'), exports: ['emojiExtension', 'englishEmojiLabels', 'loadEmojiData'] },

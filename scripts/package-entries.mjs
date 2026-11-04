@@ -25,6 +25,7 @@ export const featureEntries = [
   { name: 'table', source: 'src/table.ts', client: true, added: incrementalBudget(9_461) },
   { name: 'embed', source: 'src/embed.ts', client: true, added: incrementalBudget(4_499) },
   { name: 'math', source: 'src/math.ts', client: true, added: incrementalBudget(4_421) },
+  { name: 'diagram', source: 'src/diagram.ts', client: true, added: incrementalBudget(562) },
   { name: 'toc', source: 'src/toc.ts', client: true, added: incrementalBudget(1_803) },
   { name: 'mention', source: 'src/mention.ts', client: true, added: incrementalBudget(2_837) },
   { name: 'emoji', source: 'src/emoji.ts', client: true, added: incrementalBudget(3_149) },
@@ -68,5 +69,5 @@ export const packageEntries = [
   // The pane reads the document through the markdown serialiser the main entry already holds.
   { name: 'source', source: 'src/source.ts', client: true, added: incrementalBudget(770) },
   ...featureEntries,
-  { name: 'catalogue', source: 'src/catalogue.ts', client: true, added: incrementalBudget(28_865) },
+  { name: 'catalogue', source: 'src/catalogue.ts', client: true, added: incrementalBudget(28_820) },
 ];

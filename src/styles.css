@@ -23,6 +23,7 @@
 @import "./extensions/embed/embed-block.css" layer(quoin.components);
 @import "./extensions/atoms/selected-atom.css" layer(quoin.components);
 @import "./extensions/math/math-block.css" layer(quoin.components);
+@import "./extensions/diagram/diagram.css" layer(quoin.components);
 @import "./extensions/toc/toc-block.css" layer(quoin.components);
 @import "./extensions/mention/mention.css" layer(quoin.components);
 @import "./extensions/find/find.css" layer(quoin.components);

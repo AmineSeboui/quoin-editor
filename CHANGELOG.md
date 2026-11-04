@@ -5,6 +5,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 ## 1.6.0 (2026-11-04)
 
 ### Added
+- `quoin-editor/diagram` draws a code block whose language names a diagram, such as `mermaid`, through a renderer you pass, which may answer at once or with a promise as the common engines do, with its source below the drawing where a writer already edits it. Quoin draws no diagrams itself and bundles no engine. The document is unchanged: a diagram is a fenced code block, and opens as one anywhere else. A renderer that throws or draws nothing leaves the source alone rather than losing the block.
 - `quoin-editor/source` shows the document as the markdown it is stored as, read only, beside or below the canvas. `QuoinSource` draws it with the block holding the caret marked, and `useEditorSource` gives the same markdown and the lines of that block for a pane of your own. What it shows is `toMarkdown` of the whole document, not of each block in turn, because a list item spells itself differently alone.
 
 ### Changed

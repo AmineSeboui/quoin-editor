@@ -1,0 +1,21 @@
+.quoin .quoin-diagram {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* The drawing the host made, on the page's own background so a diagram drawn for light or dark reads either way. */
+.quoin .quoin-diagram-output {
+  display: flex;
+  justify-content: center;
+  overflow-x: auto;
+  padding: 0.75rem;
+  border: 1px solid var(--quoin-border);
+  border-radius: var(--quoin-radius);
+  background: var(--quoin-background);
+}
+
+.quoin .quoin-diagram-output > svg {
+  max-width: 100%;
+  height: auto;
+}

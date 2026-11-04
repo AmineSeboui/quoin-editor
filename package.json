@@ -213,6 +213,16 @@
         "default": "./dist/math.cjs"
       }
     },
+    "./diagram": {
+      "import": {
+        "types": "./dist/diagram.d.ts",
+        "default": "./dist/diagram.js"
+      },
+      "require": {
+        "types": "./dist/diagram.d.cts",
+        "default": "./dist/diagram.cjs"
+      }
+    },
     "./toc": {
       "import": {
         "types": "./dist/toc.d.ts",

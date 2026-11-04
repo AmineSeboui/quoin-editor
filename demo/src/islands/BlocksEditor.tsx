@@ -6,6 +6,7 @@ import type { MentionResult } from 'quoin-editor/mention';
 import { QuoinSource } from 'quoin-editor/source';
 import { everyBlock } from '../content/every-block';
 import { resolveAssetUrl } from '../site/asset-url';
+import { renderDiagram } from '../site/diagram';
 
 const PEOPLE: MentionResult[] = [
   { id: 'ada', label: 'Ada Lovelace', kind: 'user', description: 'Mathematician' },
@@ -18,7 +19,7 @@ const search = async (query: string) =>
 
 export default function BlocksEditor() {
   const [blocks, setBlocks] = useState<QuoinBlock[]>(everyBlock);
-  const [extensions] = useState(() => catalogue({ mention: { search } }));
+  const [extensions] = useState(() => catalogue({ mention: { search }, diagram: { render: renderDiagram } }));
   const [handle, setHandle] = useState<QuoinEditorHandle | null>(null);
   const highlight = usePrismHighlighter();
   return (

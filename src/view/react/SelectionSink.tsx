@@ -6,7 +6,7 @@ import { useEditorState } from './use-editor-state';
 import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect';
 import { useReadOnly } from './use-read-only';
 
-type SelectionSinkProps = { label?: string; blockLabel?: BlockLabel };
+export type SelectionSinkProps = { label?: string; blockLabel?: BlockLabel };
 
 // Holds the focus and the text of a selection across blocks or of whole blocks. The controller fills it, never React.
 // A block selected as a whole names it, is no multi-line field and asks for no virtual keyboard, which a tap on a

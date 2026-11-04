@@ -47,6 +47,17 @@ function BlockShell(props: BlockShellProps): ReactNode
 
 [BlockShell on GitHub](src/view/react/BlockShell.tsx#L32)
 
+### BlockShellProps
+
+```ts
+type BlockShellProps = {
+  block: EngineBlock;
+  renderers: Readonly<Record<string, BlockRenderer>>;
+};
+```
+
+[BlockShellProps on GitHub](src/view/react/BlockShell.tsx#L16)
+
 ### defaultRenderers
 
 ```ts
@@ -133,6 +144,14 @@ function SelectionSink(props: SelectionSinkProps): JSX.Element
 
 [SelectionSink on GitHub](src/view/react/SelectionSink.tsx#L14)
 
+### SelectionSinkProps
+
+```ts
+type SelectionSinkProps = { label?: string; blockLabel?: BlockLabel };
+```
+
+[SelectionSinkProps on GitHub](src/view/react/SelectionSink.tsx#L9)
+
 ### useEditorState
 
 ```ts
@@ -191,6 +210,46 @@ const VoidBlockFallback: BlockRenderer
 
 The object that binds an editor to the page: it dispatches transactions, holds the editable hosts and keeps the DOM in step.
 
+### Announcer
+
+```ts
+type Announcer = {
+  announce(message: string): void;
+  current(): Spoken | null;
+  subscribe(listener: () => void): () => void;
+};
+```
+
+[Announcer on GitHub](src/view/controller/announcer.ts#L10)
+
+### Engagement
+
+```ts
+type Engagement = {
+  readonly engaged: boolean;
+  engage(): void;
+  subscribe(listener: () => void): () => void;
+};
+```
+
+[Engagement on GitHub](src/view/controller/engagement.ts#L4)
+
+### FocusTarget
+
+```ts
+type FocusTarget = Pos | 'start' | 'end';
+```
+
+[FocusTarget on GitHub](src/view/controller/focus-target.ts#L4)
+
+### HostEntry
+
+```ts
+type HostEntry = { readonly block: string; readonly region: string; readonly element: HTMLElement };
+```
+
+[HostEntry on GitHub](src/view/controller/host-registry.ts#L1)
+
 ### hostKey
 
 ```ts
@@ -198,6 +257,32 @@ function hostKey(block: string, region: string): string
 ```
 
 [hostKey on GitHub](src/view/controller/host-registry.ts#L10)
+
+### HostRegistry
+
+```ts
+type HostRegistry = {
+  register(block: string, region: string, element: HTMLElement): () => void;
+  get(block: string, region: string): HTMLElement | undefined;
+  locate(node: Node | null): HostEntry | null;
+  all(): IterableIterator<HostEntry>;
+};
+```
+
+[HostRegistry on GitHub](src/view/controller/host-registry.ts#L3)
+
+### Spoken
+
+```ts
+type Spoken = {
+  readonly message: string;
+  readonly state: EditorState | undefined;
+  readonly serial: number;
+  readonly at: number;
+};
+```
+
+[Spoken on GitHub](src/view/controller/announcer.ts#L3)
 
 ### ViewController
 
@@ -358,6 +443,23 @@ function isCrossSelection(selection: Selection | null): boolean
 
 [isCrossSelection on GitHub](src/view/selection/selection-decorations.ts#L8)
 
+### NodeReveal
+
+```ts
+type NodeReveal = {
+  /** Marks a block a press is selecting, which is under the pointer already. */
+  pressed(block: string): void;
+  /** Forgets the block shown once the selection leaves it, however it leaves, so coming back brings it into view. */
+  follow(selection: Selection | null): void;
+  /** Brings the block into view once; a change made here also brings in the block a settle left where it was. */
+  show(selection: Selection | null, local?: boolean): void;
+  /** Counts the block a selection holds as shown, and as owed to the next change made here if it was not shown yet. */
+  settle(selection: Selection | null): void;
+};
+```
+
+[NodeReveal on GitHub](src/view/selection/node-reveal.ts#L5)
+
 ## Keys
 
 Where a host takes a key before the editor does.
@@ -381,3 +483,11 @@ function caretFromPoint(doc: Document, x: number, y: number): CaretPoint | null
 ```
 
 [caretFromPoint on GitHub](src/view/navigation/caret-from-point.ts#L3)
+
+### CaretPoint
+
+```ts
+type CaretPoint = { node: Node; offset: number };
+```
+
+[CaretPoint on GitHub](src/view/navigation/caret-from-point.ts#L1)

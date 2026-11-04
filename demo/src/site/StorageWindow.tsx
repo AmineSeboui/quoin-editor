@@ -19,7 +19,9 @@ export function StorageWindow({ screen, markdown }: Props) {
           <h2 id="disk-heading">On disk</h2>
           <span className="pane-file">release-notes.md</span>
         </header>
-        <pre className="pane-body">{markdown}</pre>
+        <pre className="pane-body" tabIndex={0} aria-label="The markdown file, a region that scrolls">
+          {markdown}
+        </pre>
         <p className="pane-note">What onChange hands you, once typing pauses for {SETTLE_DELAY} ms.</p>
       </section>
     </div>

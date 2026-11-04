@@ -1,5 +1,5 @@
 import { BrandMark } from './BrandMark';
-import { GitHubIcon, MoonIcon, SunIcon } from './icons';
+import { GitHubIcon, MoonIcon, SearchIcon, SunIcon } from './icons';
 import { demoPages, guidePages, referencePages, type Page } from './pages';
 import { NPM_URL, pageHref, REPO_URL } from './site';
 
@@ -50,6 +50,11 @@ export function SiteHeader({ page }: { page: Page }) {
           </ul>
         </nav>
         <div className="site-actions">
+          <button type="button" className="site-search" aria-label="Search the guide" hidden data-search-open>
+            <SearchIcon />
+            <span>Search</span>
+            <kbd>/</kbd>
+          </button>
           <a className="site-action" href={NPM_URL}>
             npm
           </a>

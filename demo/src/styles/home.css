@@ -46,14 +46,63 @@
   margin-top: 1.75rem;
 }
 
+.clip {
+  position: relative;
+  margin: 0;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--site-hairline);
+  border-radius: 1rem;
+  background: var(--site-surface);
+  box-shadow: 0 1px 2px var(--quoin-shadow), 0 32px 64px -32px var(--quoin-shadow);
+  overflow: hidden;
+}
+
 .reel-clip {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
+}
+
+.clip-toggle {
+  position: absolute;
+  inset-inline-end: 0.75rem;
+  bottom: 0.75rem;
+  display: inline-grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
   border: 1px solid var(--site-hairline);
-  border-radius: 1rem;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--quoin-background) 88%, transparent);
+  backdrop-filter: blur(8px);
+  color: var(--quoin-foreground);
+  cursor: pointer;
+}
+
+.clip-toggle[hidden] {
+  display: none;
+}
+
+.clip-toggle:hover {
   background: var(--quoin-background);
-  box-shadow: 0 1px 2px var(--quoin-shadow), 0 32px 64px -32px var(--quoin-shadow);
+}
+
+.clip-toggle .icon-play,
+.clip[data-state='paused'] .clip-toggle .icon-pause {
+  display: none;
+}
+
+.clip[data-state='paused'] .clip-toggle .icon-play {
+  display: block;
+}
+
+.clip:has(.reel-clip[hidden]) .clip-toggle {
+  inset: 0;
+  margin: auto;
+  width: 3.5rem;
+  height: 3.5rem;
 }
 
 .features {

@@ -2,6 +2,11 @@
 
 Every release of `quoin-editor` is listed here, newest first, in the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). From 1.0.0 the package follows [semantic versioning](https://semver.org/): a breaking change waits for the next major version. Until then, Quoin was 0.x and a minor version could contain breaking changes; those known at release were marked "Breaking". The 0.x sections are kept as they were released, "Docs" headings included. Moving from 0.4 to 1.0 is covered step by step in [MIGRATION.md](MIGRATION.md). Review finding ids such as F-17 are those of the 0.4.0 review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73).
 
+## Unreleased
+
+### Changed
+- The exports a host meets first carry a documentation comment, so an editor explains them on hover: `BlockCanvas`, `EditorView`, `useQuoinEditor`, `createEditor`, `toMarkdown`, `toHTML`, `toPlainText`, `fromMarkdown`, `PALETTE` and `englishLabels`. Nothing about their behaviour changes.
+
 ## 1.7.0 (2026-11-04)
 
 ### Added

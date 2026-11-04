@@ -17,6 +17,8 @@ From `quoin-editor/embed`: `embedExtension`, its `EmbedOptions`, `EmbedLabels` a
 
 From `quoin-editor/math`: `mathExtension`, its `MathOptions`, `MathLabels` and `englishMathLabels`, and the `RenderMath` type.
 
+From `quoin-editor/diagram`: `diagramExtension`, its `DiagramOptions`, `DiagramLabels` and `englishDiagramLabels`, the `RenderDiagram` type for the renderer you pass, and `DEFAULT_DIAGRAM_LANGUAGES`, the languages a code block offers to draw.
+
 From `quoin-editor/toc`: `tocExtension`, its `TocOptions`, `TocLabels` and `englishTocLabels`, and `headings` with its `TocHeading` type.
 
 From `quoin-editor/mention`: `mentionExtension`, its `MentionOptions`, `MentionLabels` and `englishMentionLabels`, and the `Mention`, `MentionResult` and `MentionSearch` types.
@@ -26,6 +28,10 @@ From `quoin-editor/emoji`: `emojiExtension`, its `EmojiOptions`, `EmojiLabels` a
 From `quoin-editor/find`: `findExtension`, its `FindOptions`, `FindLabels` and `englishFindLabels`, `findMatches` and `replaceMatches`, and the `SearchOptions`, `FindQuery`, `FindMatch` and `FindResult` types.
 
 From `quoin-editor/stats`: `statsExtension`, its `StatsOptions`, `StatsLabels` and `englishStatsLabels`, and `useEditorStats` with its `EditorStats` type.
+
+From `quoin-editor/source`: `QuoinSource` with its `QuoinSourceProps` type, the read-only pane that shows the document as the markdown it is stored as, `useEditorSource` with its `EditorSource` type for a pane of your own, `blockLines` with its `LineSpan` type, and `englishSourceLabels` with its `SourceLabels` type.
+
+From `quoin-editor/highlight`: `usePrismHighlighter`, the `CodeHighlighter` a code block reads, fetching each language from Prism as the picker asks for it.
 
 From `quoin-editor/yjs`: `yjsCollaboration` with its `YjsCollaborationOptions`, `YjsCollaboration`, `CollaborationUser`, `YjsAwareness` and `Seed` types, and `collaborationExtension`, `applyRemote` and the `CollaborationAdapter` and `CollaborationHistory` types for an adapter of your own. Like the engine entry it has no `'use client'` banner and needs no DOM.
 

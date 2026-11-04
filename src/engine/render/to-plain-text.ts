@@ -8,6 +8,7 @@ export function plainTextBlocks(blocks: readonly QuoinBlock[], schema: Schema): 
   return engineBlocksOf(blocks, schema).map((block) => blockPlainText(block, schema));
 }
 
+/** A whole document as plain text, its markup dropped, for a search index, a summary or a word count. */
 export function toPlainText(blocks: readonly QuoinBlock[], options: { schema?: Schema } = {}): string {
   return plainTextBlocks(blocks, options.schema ?? createSchema()).join('\n');
 }

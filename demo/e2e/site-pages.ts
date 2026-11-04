@@ -18,4 +18,5 @@ export const sitePages: { path: string; live: boolean }[] = [
   { path: 'comparison/', live: false },
   { path: 'migration/', live: false },
   { path: 'changelog/', live: false },
+  { path: '404.html', live: false },
 ];

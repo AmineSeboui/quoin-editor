@@ -86,6 +86,7 @@ function join(pieces: readonly Piece[]): string {
   return markdown.length === 0 ? '' : `${markdown.join('')}\n`;
 }
 
+/** A whole document as one markdown file, each block spelled as the lines it is stored as. */
 export function toMarkdown(blocks: readonly QuoinBlock[], options: ToMarkdownOptions = {}): string {
   const schema = options.schema ?? createSchema();
   const codec = createBlockCodec(schema);

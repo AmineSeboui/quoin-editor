@@ -73,6 +73,7 @@ export type InternalEditor<F extends CommandFactories = CoreCommands> = Editor<F
 
 type Listener = (state: EditorState, tr: Transaction | null) => void;
 
+/** The editing engine on its own, with no React and no DOM, for a host that drives it itself or runs it on a server. */
 export function createEditor<F extends CommandFactories = CoreCommands>(options: EditorOptions): Editor<F> {
   return createInternalEditor<F>(options);
 }

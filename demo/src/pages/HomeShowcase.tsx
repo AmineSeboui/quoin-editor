@@ -1,3 +1,4 @@
+import { PauseIcon, PlayIcon } from '../site/icons';
 import { BASE, pageHref } from '../site/site';
 
 type Reel = {
@@ -52,7 +53,22 @@ export function HomeShowcase() {
               </a>
             </p>
           </div>
-          <img className="reel-clip" src={`${BASE}${clip}`} alt={alt} width={1280} height={720} loading="lazy" decoding="async" />
+          <figure className="clip" data-clip-figure data-state="playing">
+            <img
+              className="reel-clip"
+              src={`${BASE}${clip}`}
+              data-clip={`${BASE}${clip}`}
+              alt={alt}
+              width={1280}
+              height={720}
+              loading="lazy"
+              decoding="async"
+            />
+            <button type="button" className="clip-toggle" aria-label="Pause the recording" aria-pressed="true" hidden>
+              <PlayIcon />
+              <PauseIcon />
+            </button>
+          </figure>
         </section>
       ))}
     </div>

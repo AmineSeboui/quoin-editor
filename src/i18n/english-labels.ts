@@ -1,6 +1,7 @@
 import { formatSize } from '../blocks/file/format-size';
 import type { QuoinLabels } from './labels';
 
+/** Every string the canvas shows or speaks, in English. Pass `labels` to the canvas to change any of them. */
 export const englishLabels: Required<QuoinLabels> = {
   document: 'Editor',
   editorHint: 'Press Escape, then Tab, to leave the editor.',

@@ -50,6 +50,10 @@ const NO_RENDERERS: Readonly<Record<string, BlockRenderer>> = {};
 const HINT = 'Press Escape, then Tab, to leave the editor.';
 const BLOCKS_SELECTED = (count: number) => `${count} ${count === 1 ? 'block' : 'blocks'} selected`;
 
+/**
+ * The editable view with none of the canvas UI: one editable host per text block, drawn by the renderers given to it.
+ * It keeps the element it drew for each block, so define `renderers` once rather than on every render.
+ */
 export function EditorView({
   controller,
   renderers = NO_RENDERERS,

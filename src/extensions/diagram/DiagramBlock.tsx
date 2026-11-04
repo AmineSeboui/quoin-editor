@@ -1,12 +1,11 @@
 'use client';
 
-import { useMemo } from 'react';
-import { str } from '../../engine/blocks/data-fields';
 import { CodeBlock } from '../../blocks/code/CodeBlock';
+import { str } from '../../engine/blocks/data-fields';
 import type { BlockRenderer } from '../../view';
 import type { DiagramFeature } from './diagram-feature';
 import { isDiagramLanguage } from './diagram-languages';
-import { renderedDiagram } from './rendered-diagram';
+import { useDiagramMarkup } from './use-diagram-markup';
 
 /**
  * A code block whose language the feature draws: the drawing above, and the code block itself below, so the source
@@ -18,10 +17,7 @@ export function diagramRenderer(feature: DiagramFeature): BlockRenderer {
     const language = str(block.attrs.language);
     const code = str(block.attrs.code);
     const draws = isDiagramLanguage(feature.languages, language);
-    const markup = useMemo(
-      () => (draws ? renderedDiagram(feature.render, code, language) : null),
-      [draws, code, language],
-    );
+    const markup = useDiagramMarkup(feature, code, language, draws);
 
     if (!draws) return <CodeBlock block={block} controller={controller} />;
     return (

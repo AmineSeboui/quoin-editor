@@ -77,12 +77,16 @@ const extensions = [
 import { diagramExtension } from 'quoin-editor/diagram';
 
 // Stands for `import mermaid from 'mermaid'`.
-declare const mermaid: { render(id: string, code: string): { svg: string } };
+declare const mermaid: { render(id: string, code: string): Promise<{ svg: string }> };
 
-const extensions = [diagramExtension({ render: (code) => mermaid.render('d', code).svg })];
+const extensions = [
+  diagramExtension({ render: async (code) => (await mermaid.render('d', code)).svg }),
+];
 ```
 
-The markup the renderer gives is inserted as it is, exactly as `renderMath` is, so a host drawing from text it did not write sanitises first. `languages` chooses which code languages are drawn rather than highlighted, `['mermaid']` by default; a language left out stays an ordinary code block, and so does every block when no `render` is given. A renderer that throws, or gives anything but markup with something in it, leaves the block showing its source rather than losing it.
+`render` may answer at once or with a promise, because the common engines parse and lay out asynchronously. The markup it gives is inserted as it is, exactly as `renderMath` is, so a host drawing from text it did not write sanitises first. `languages` chooses which code languages are drawn rather than highlighted, `['mermaid']` by default; a language left out stays an ordinary code block, and so does every block when no `render` is given. A renderer that throws, rejects, or gives anything but markup with something in it, leaves the block showing its source rather than losing it.
+
+While the next drawing is being made the one already on screen stays, so a block does not blink away on every keystroke, and an answer that arrives for a source the writer has already moved past is dropped rather than drawn.
 
 The document is unchanged by any of this. A diagram is a fenced code block with a language, the same thing it would be without the extension, so a file written here opens as a diagram in anything else that reads the same fence, and as code everywhere else. Nothing new is stored and nothing is lost if the extension is removed.
 

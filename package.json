@@ -1,6 +1,6 @@
 {
   "name": "quoin-editor",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Rich markdown editor for React: a Notion-style block editor and rich text editor with real-time collaboration, AI, a slash menu and drag and drop. MIT.",
   "license": "MIT",
   "author": {

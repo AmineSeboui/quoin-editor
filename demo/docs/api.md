@@ -5,11 +5,13 @@ description: What each entry of quoin-editor exports, from the canvas to the Wor
 
 # Exports
 
+What each entry of the package is for. The [Engine reference](https://amineseboui.github.io/quoin-editor/docs/engine-reference/) and the [Headless reference](https://amineseboui.github.io/quoin-editor/docs/headless-reference/) list every name those two entries export, each with its signature, generated from the source when the site is built.
+
 From `quoin-editor`: `BlockCanvas`, `QuoinProvider`, `useQuoin`, `defineBlock`, `blockByType`, `paletteBlocks`, `coreBlocks`, `UploadField`, `FilePickerButton`, `useAutosave`, `formatShortcut`, `englishLabels`, `resolveLabels`, `useLabels`, and everything in `quoin-editor/headless`, with their types (`QuoinBlock`, `QuoinEditorHandle`, `UploadFn`, `UploadResult`, `BlockDefinition`, `AnyBlockDefinition`, `BlockEditorProps`, `BlockPreviewProps`, `BlockCanvasProps`, `UploadFieldProps`, `FilePickerButtonProps` and others), and the [core block data shapes](https://amineseboui.github.io/quoin-editor/docs/custom-blocks/#what-the-core-blocks-store): `MarkdownBlockData`, `CalloutBlockData`, `CodeBlockData`, `ImageBlockData`, `FileBlockData` and `CoreBlockData`.
 
-From `quoin-editor/headless`: the editing engine and its editable view, with no canvas UI.
+From `quoin-editor/headless`: the editing engine and its editable view, with no canvas UI. Every name it adds to the engine is in the [Headless reference](https://amineseboui.github.io/quoin-editor/docs/headless-reference/).
 
-From `quoin-editor/engine`: the engine alone, with no React and no `'use client'` banner.
+From `quoin-editor/engine`: the engine alone, with no React and no `'use client'` banner. Every name it exports is in the [Engine reference](https://amineseboui.github.io/quoin-editor/docs/engine-reference/).
 
 From `quoin-editor/table`: `tableExtension`, its `TableLabels` and `englishTableLabels`, and the table commands and cell selection.
 

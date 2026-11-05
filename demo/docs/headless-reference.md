@@ -47,9 +47,11 @@ type BlockRenderProps = { block: EngineBlock; controller: ViewController };
 function BlockShell(props: BlockShellProps): ReactNode
 ```
 
-[BlockShell on GitHub](src/view/react/BlockShell.tsx#L36)
+[BlockShell on GitHub](src/view/react/BlockShell.tsx#L37)
 
 ### BlockShellProps
+
+**Deprecated.** Removed in 2.0.0 with `BlockShell`, the component it types.
 
 ```ts
 type BlockShellProps = {
@@ -58,7 +60,7 @@ type BlockShellProps = {
 };
 ```
 
-[BlockShellProps on GitHub](src/view/react/BlockShell.tsx#L16)
+[BlockShellProps on GitHub](src/view/react/BlockShell.tsx#L17)
 
 ### defaultRenderers
 
@@ -148,15 +150,17 @@ type EditorViewProps = {
 function SelectionSink(props: SelectionSinkProps): JSX.Element
 ```
 
-[SelectionSink on GitHub](src/view/react/SelectionSink.tsx#L18)
+[SelectionSink on GitHub](src/view/react/SelectionSink.tsx#L19)
 
 ### SelectionSinkProps
+
+**Deprecated.** Removed in 2.0.0 with `SelectionSink`, the component it types.
 
 ```ts
 type SelectionSinkProps = { label?: string; blockLabel?: BlockLabel };
 ```
 
-[SelectionSinkProps on GitHub](src/view/react/SelectionSink.tsx#L9)
+[SelectionSinkProps on GitHub](src/view/react/SelectionSink.tsx#L10)
 
 ### useEditorState
 

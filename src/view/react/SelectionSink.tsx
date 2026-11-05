@@ -6,6 +6,7 @@ import { useEditorState } from './use-editor-state';
 import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect';
 import { useReadOnly } from './use-read-only';
 
+/** @deprecated Removed in 2.0.0 with `SelectionSink`, the component it types. */
 export type SelectionSinkProps = { label?: string; blockLabel?: BlockLabel };
 
 // Holds the focus and the text of a selection across blocks or of whole blocks. The controller fills it, never React.

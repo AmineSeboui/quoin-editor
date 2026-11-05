@@ -9,6 +9,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 
 ### Changed
 - The exports a host meets first carry a documentation comment, so an editor explains them on hover: `BlockCanvas`, `EditorView`, `useQuoinEditor`, `createEditor`, `toMarkdown`, `toHTML`, `toPlainText`, `fromMarkdown`, `PALETTE` and `englishLabels`. Nothing about their behaviour changes.
+- `BlockShell`, `SelectionSink`, `defaultRenderers`, `VoidBlockFallback` and `isCrossSelection` are marked deprecated, in an editor and on the headless reference, and they go in 2.0.0. All five are internal to the view layer and a host has no use for them: `EditorView` draws the first two itself and a second copy of either takes the registration with the controller from the first, a renderer of your own draws a block's text with `EditableRegion` rather than reaching for `defaultRenderers`, a block shell already falls back to `VoidBlockFallback` when no renderer draws a block's type, and a host reads `anchor` and `head` of the public `Selection` to tell a selection that spans blocks or regions from one held inside a single region. `BlockRenderProps` and `BlockRenderer` stay public, so a renderer table still types. Every name is still exported and still does what it did.
 
 ## 1.7.0 (2026-11-04)
 

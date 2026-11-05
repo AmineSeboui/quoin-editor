@@ -41,11 +41,13 @@ type BlockRenderProps = { block: EngineBlock; controller: ViewController };
 
 ### BlockShell
 
+**Deprecated.** Internal to the view layer and removed in 2.0.0: `EditorView` draws a shell for every block already, and a second shell for a block takes that block's registration with the controller from the first.
+
 ```ts
 function BlockShell(props: BlockShellProps): ReactNode
 ```
 
-[BlockShell on GitHub](src/view/react/BlockShell.tsx#L32)
+[BlockShell on GitHub](src/view/react/BlockShell.tsx#L36)
 
 ### BlockShellProps
 
@@ -60,11 +62,13 @@ type BlockShellProps = {
 
 ### defaultRenderers
 
+**Deprecated.** Internal to the view layer and removed in 2.0.0: a renderer of your own draws a block's text with `EditableRegion`, which is what each of these three does.
+
 ```ts
 const defaultRenderers: Readonly<Record<string, BlockRenderer>>
 ```
 
-[defaultRenderers on GitHub](src/view/react/default-renderers.tsx#L10)
+[defaultRenderers on GitHub](src/view/react/default-renderers.tsx#L14)
 
 ### EditableRegion
 
@@ -138,11 +142,13 @@ type EditorViewProps = {
 
 ### SelectionSink
 
+**Deprecated.** Internal to the view layer and removed in 2.0.0: `EditorView` draws one already, and a second sink takes the registration with the controller from the first.
+
 ```ts
 function SelectionSink(props: SelectionSinkProps): JSX.Element
 ```
 
-[SelectionSink on GitHub](src/view/react/SelectionSink.tsx#L14)
+[SelectionSink on GitHub](src/view/react/SelectionSink.tsx#L18)
 
 ### SelectionSinkProps
 
@@ -200,11 +206,13 @@ function useViewController(): ViewController
 
 ### VoidBlockFallback
 
+**Deprecated.** Internal to the view layer and removed in 2.0.0: a block shell falls back to it already when no renderer draws a block's type.
+
 ```ts
 const VoidBlockFallback: BlockRenderer
 ```
 
-[VoidBlockFallback on GitHub](src/view/react/default-renderers.tsx#L16)
+[VoidBlockFallback on GitHub](src/view/react/default-renderers.tsx#L24)
 
 ## The controller
 
@@ -437,11 +445,13 @@ type BlockLabel = (block: EngineBlock, schema: Schema) => string;
 
 ### isCrossSelection
 
+**Deprecated.** Internal to the view layer and removed in 2.0.0: a host reads `anchor` and `head` of the public `Selection` to tell a selection that spans blocks or regions from one held inside a single region.
+
 ```ts
 function isCrossSelection(selection: Selection | null): boolean
 ```
 
-[isCrossSelection on GitHub](src/view/selection/selection-decorations.ts#L8)
+[isCrossSelection on GitHub](src/view/selection/selection-decorations.ts#L12)
 
 ### NodeReveal
 

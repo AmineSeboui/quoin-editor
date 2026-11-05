@@ -13,6 +13,7 @@ import { useEngaged } from './use-engaged';
 import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect';
 import { useReaderChoices } from './use-reader-choices';
 
+/** @deprecated Removed in 2.0.0 with `BlockShell`, the component it types. */
 export type BlockShellProps = {
   block: EngineBlock;
   renderers: Readonly<Record<string, BlockRenderer>>;

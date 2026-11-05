@@ -122,8 +122,8 @@ test('Mod+click leaves the link to the browser, which opens the page at the head
     page.context().waitForEvent('page'),
     entry(page, 'Using it').click({ modifiers: ['ControlOrMeta'] }),
   ]);
+  await expect.poll(() => new URL(opened.url()).hash).toBe('#block-usage');
   await opened.waitForLoadState();
-  expect(new URL(opened.url()).hash).toBe('#block-usage');
   await expect(opened.locator('[data-block-id="usage"] [data-quoin-host]')).toBeInViewport();
   expect(new URL(page.url()).hash).toBe('');
 });

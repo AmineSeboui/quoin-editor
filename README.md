@@ -69,6 +69,7 @@ What `onChange` hands you, and what you store:
 | `quoin-editor/comments` | Comment threads anchored to text, kept in your store |
 | `quoin-editor/ai` | Your model's answers streamed into the document; Quoin never calls a model |
 | `quoin-editor/view`, `/diff`, `/docx` | Server rendering with no hooks, a diff of two versions, a Word export |
+| `quoin-editor/locale-ar`, `/locale-de`, `/locale-es`, `/locale-fr`, `/locale-ja`, `/locale-pt`, `/locale-zh` | Every string the editor shows, in that language; English is built in |
 | `quoin-editor/headless`, `/engine` | The editor without the canvas UI, and the engine alone with no React |
 
 ## Why Quoin
@@ -115,6 +116,7 @@ Sources, checked on 2026-11-03: Tiptap [persistence][tt-store], [markdown][tt-md
 - [Extensions](https://amineseboui.github.io/quoin-editor/docs/extensions/): every opt-in feature, and writing your own
 - [Collaboration](https://amineseboui.github.io/quoin-editor/docs/collaboration/), [comments](https://amineseboui.github.io/quoin-editor/docs/comments/) and [AI](https://amineseboui.github.io/quoin-editor/docs/ai/)
 - [Server rendering](https://amineseboui.github.io/quoin-editor/docs/server-rendering/): read-only, `QuoinView`, `QuoinDiff`, `toDocx`
+- [Localization](https://amineseboui.github.io/quoin-editor/docs/localization/): the locale packs, and writing a language of your own
 - [Accessibility](https://amineseboui.github.io/quoin-editor/docs/accessibility/): what each test suite checks, and what it does not yet
 - [FAQ](https://amineseboui.github.io/quoin-editor/docs/faq/): the package name, stability, React versions, and [upgrading from 0.4](MIGRATION.md)
 

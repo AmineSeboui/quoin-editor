@@ -6,7 +6,7 @@ import { STRUCTURAL_ECHO_WINDOW } from '../src/engine/extension/echo-tracker';
 import { DOCS_URL, docsDir, docsSources, readText, REFERENCE_SLUGS, root } from './docs-sources.mjs';
 
 const README = join(root, 'README.md');
-const README_LIMIT = 10_240;
+const README_LIMIT = 14_336;
 const readme = readText(README);
 const pages = [{ slug: 'README', path: README }, ...docsSources()];
 const packageVersion: string = JSON.parse(readText(join(root, 'package.json'))).version;

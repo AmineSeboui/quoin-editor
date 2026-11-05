@@ -6,8 +6,8 @@ import { readme } from '../site/sources';
 export function ComparisonPage() {
   return (
     <>
-      <h1>Quoin vs Tiptap, BlockNote and Editor.js</h1>
-      <MarkdownArticle markdown={readmeSection(readme, 'Why Quoin')} />
+      <h1>Quoin vs Tiptap, BlockNote, Editor.js, Lexical and Plate</h1>
+      <MarkdownArticle markdown={readmeSection(readme, 'Why Quoin')} className="prose-wide" />
     </>
   );
 }

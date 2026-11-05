@@ -2,6 +2,11 @@
   max-width: 46rem;
 }
 
+/* Seven columns of comparison need more room than a line of prose wants to be. */
+.prose.prose-wide {
+  max-width: 64rem;
+}
+
 .prose h1 {
   margin: 0 0 1.25rem;
   font-size: 2.5rem;

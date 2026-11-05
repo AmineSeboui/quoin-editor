@@ -76,17 +76,18 @@ What `onChange` hands you, and what you store:
 
 Each competitor cell links to the page that shows it; the Tiptap UI cell also draws on the review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73) (2026-10-12).
 
-| Feature | Quoin 1.7 | Tiptap 3 | BlockNote | Editor.js |
-| --- | --- | --- | --- | --- |
-| Stored document | Block array, markdown per text block | [JSON, or HTML][tt-store] | [Block JSON][bn-formats] | [JSON][ej-repo] |
-| Markdown | The storage format | [`@tiptap/markdown`, an early release][tt-md] | [Export and import, documented as lossy][bn-formats] | [Community plugin][ej-awesome] |
-| Notion-style UI | Included, MIT | [MIT menus and drag handle][tt-review]; [Notion-like template on a paid plan][tt-notion] | [Included][bn-home] | [Toolbox and inline toolbar][ej-repo] |
-| Licence | MIT | [MIT core, paid Pro extensions][tt-repo] | [MPL-2.0, `xl-*` packages GPL-3.0 or commercial][bn-repo] | [Apache-2.0][ej-repo] |
-| Real-time collaboration | Yjs, opt-in entry | [Yjs][tt-collab] | [Yjs][bn-collab] | [On its roadmap, in progress][ej-repo] |
-| Comments | Opt-in, your store | [Paid plan][tt-comments] | [Built in, on Yjs or a thread store][bn-comments] | [Community plugin][ej-awesome] |
-| Framework | React | [React, Vue, Svelte, plain JavaScript and more][tt-install] | [React, or vanilla JS with your own UI][bn-vanilla] | [Plain JavaScript][ej-start] |
+| Feature | Quoin 1.8 | Tiptap 3 | BlockNote | Editor.js | Lexical | Plate |
+| --- | --- | --- | --- | --- | --- | --- |
+| Stored document | Block array, markdown per text block | [JSON, or HTML][tt-store] | [Block JSON][bn-formats] | [JSON][ej-repo] | [Editor state, as JSON][lx-intro] | [Slate JSON][pl-docs] |
+| Markdown | The storage format | [`@tiptap/markdown`, an early release][tt-md] | [Export and import, documented as lossy][bn-formats] | [Community plugin][ej-awesome] | [`@lexical/markdown`, in and out][lx-md] | [`@platejs/markdown`, in and out][pl-md] |
+| Notion-style UI | Included, MIT | [MIT menus and drag handle][tt-review]; [Notion-like template on a paid plan][tt-notion] | [Included][bn-home] | [Toolbox and inline toolbar][ej-repo] | [None; you draw it][lx-intro] | [MIT components][pl-repo]; [Notion-like set on a paid licence][pl-pro] |
+| Licence | MIT | [MIT core, paid Pro extensions][tt-repo] | [MPL-2.0, `xl-*` packages GPL-3.0 or commercial][bn-repo] | [Apache-2.0][ej-repo] | [MIT][lx-repo] | [MIT, with paid Plus components][pl-pro] |
+| Real-time collaboration | Yjs, opt-in entry | [Yjs][tt-collab] | [Yjs][bn-collab] | [On its roadmap, in progress][ej-repo] | [Yjs][lx-collab] | [Yjs][pl-yjs] |
+| Comments | Opt-in, your store | [Paid plan][tt-comments] | [Built in, on Yjs or a thread store][bn-comments] | [Community plugin][ej-awesome] | [None shipped; a playground example][lx-repo] | [`@platejs/comment`, as text marks][pl-comment] |
+| Localization | Seven packs, every string | [None shipped; the UI is yours][tt-ui] | [24 locales built in][bn-i18n] | [An i18n API; you bring the words][ej-i18n] | [None shipped; it draws no UI][lx-repo] | [None shipped; the UI is yours][pl-docs] |
+| Framework | React | [React, Vue, Svelte, plain JavaScript and more][tt-install] | [React, or vanilla JS with your own UI][bn-vanilla] | [Plain JavaScript][ej-start] | [Any, with React bindings][lx-repo] | [React][pl-repo] |
 
-Sources, checked on 2026-11-03: Tiptap [persistence][tt-store], [markdown][tt-md], [Notion-like template][tt-notion], [repository][tt-repo], [collaboration][tt-collab], [comments][tt-comments], [install][tt-install]; BlockNote [home][bn-home], [formats][bn-formats], [repository][bn-repo], [collaboration][bn-collab], [comments][bn-comments], [getting started][bn-start], [vanilla JS][bn-vanilla]; Editor.js [home][ej-home], [repository][ej-repo], [getting started][ej-start], [awesome-editorjs][ej-awesome].
+Sources, checked on 2026-11-05: Tiptap [persistence][tt-store], [markdown][tt-md], [Notion-like template][tt-notion], [repository][tt-repo], [collaboration][tt-collab], [comments][tt-comments], [install][tt-install], [UI components][tt-ui]; BlockNote [home][bn-home], [formats][bn-formats], [repository][bn-repo], [collaboration][bn-collab], [comments][bn-comments], [getting started][bn-start], [vanilla JS][bn-vanilla], [localization][bn-i18n]; Editor.js [home][ej-home], [repository][ej-repo], [getting started][ej-start], [awesome-editorjs][ej-awesome], [i18n][ej-i18n]; Lexical [docs][lx-intro], [repository][lx-repo], [markdown][lx-md], [collaboration][lx-collab]; Plate [docs][pl-docs], [repository][pl-repo], [markdown][pl-md], [collaboration][pl-yjs], [comments][pl-comment], [Plate Plus][pl-pro].
 
 [tt-store]: https://tiptap.dev/docs/editor/core-concepts/persistence
 [tt-md]: https://tiptap.dev/docs/editor/markdown
@@ -107,6 +108,19 @@ Sources, checked on 2026-11-03: Tiptap [persistence][tt-store], [markdown][tt-md
 [ej-repo]: https://github.com/codex-team/editor.js
 [ej-start]: https://editorjs.io/getting-started
 [ej-awesome]: https://github.com/editor-js/awesome-editorjs
+[tt-ui]: https://tiptap.dev/docs/ui-components/components/overview
+[bn-i18n]: https://www.blocknotejs.org/docs/features/localization
+[ej-i18n]: https://editorjs.io/i18n/
+[lx-intro]: https://lexical.dev/docs/intro
+[lx-repo]: https://github.com/facebook/lexical
+[lx-md]: https://lexical.dev/docs/packages/lexical-markdown
+[lx-collab]: https://lexical.dev/docs/collaboration/react
+[pl-docs]: https://platejs.org/docs
+[pl-repo]: https://github.com/udecode/plate
+[pl-md]: https://platejs.org/docs/markdown
+[pl-yjs]: https://platejs.org/docs/yjs
+[pl-comment]: https://platejs.org/docs/comment
+[pl-pro]: https://pro.platejs.org
 
 ## Learn more
 

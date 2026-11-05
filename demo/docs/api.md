@@ -35,7 +35,7 @@ From `quoin-editor/source`: `QuoinSource` with its `QuoinSourceProps` type, the 
 
 From `quoin-editor/highlight`: `usePrismHighlighter`, the `CodeHighlighter` a code block reads, fetching each language from Prism as the picker asks for it.
 
-From `quoin-editor/locale-ar`, `/locale-de`, `/locale-es`, `/locale-fr`, `/locale-ja`, `/locale-pt` and `/locale-zh`: every label set in that language, named after it, `frLabels` for the canvas and `frTableLabels`, `frAiLabels` and the rest for the features. Data alone, with no React and nothing that runs at load; see [Localization](https://amineseboui.github.io/quoin-editor/docs/localization/).
+From `quoin-editor/locale-ar`, `quoin-editor/locale-de`, `quoin-editor/locale-es`, `quoin-editor/locale-fr`, `quoin-editor/locale-ja`, `quoin-editor/locale-pt` and `quoin-editor/locale-zh`: every label set in that language, named after it, `frLabels` for the canvas and `frTableLabels`, `frAiLabels` and the rest for the features. Data alone, with no React and nothing that runs at load; see [Localization](https://amineseboui.github.io/quoin-editor/docs/localization/).
 
 From `quoin-editor/yjs`: `yjsCollaboration` with its `YjsCollaborationOptions`, `YjsCollaboration`, `CollaborationUser`, `YjsAwareness` and `Seed` types, and `collaborationExtension`, `applyRemote` and the `CollaborationAdapter` and `CollaborationHistory` types for an adapter of your own. Like the engine entry it has no `'use client'` banner and needs no DOM.
 

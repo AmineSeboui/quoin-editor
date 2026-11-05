@@ -69,7 +69,7 @@ What `onChange` hands you, and what you store:
 | `quoin-editor/comments` | Comment threads anchored to text, kept in your store |
 | `quoin-editor/ai` | Your model's answers streamed into the document; Quoin never calls a model |
 | `quoin-editor/view`, `/diff`, `/docx` | Server rendering with no hooks, a diff of two versions, a Word export |
-| `quoin-editor/locale-fr`, and ar, de, es, ja, pt, zh | Every string the editor shows, in that language |
+| `quoin-editor/locale-ar`, `/locale-de`, `/locale-es`, `/locale-fr`, `/locale-ja`, `/locale-pt`, `/locale-zh` | Every string the editor shows, in that language |
 | `quoin-editor/headless`, `/engine` | The editor without the canvas UI, and the engine alone with no React |
 
 ## Why Quoin

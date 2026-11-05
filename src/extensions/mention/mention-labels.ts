@@ -1,3 +1,5 @@
+import { mergeLabels } from '../../i18n/merge-labels';
+
 /** Every string the mention feature shows or speaks. */
 export type MentionLabels = {
   /** The name of the menu `@` opens. */
@@ -18,7 +20,4 @@ export const englishMentionLabels: MentionLabels = {
 };
 
 /** The English labels with the host's overrides on top. A key left out, or passed as undefined, stays English. */
-export function resolveMentionLabels(overrides?: Partial<MentionLabels>): MentionLabels {
-  const given = Object.entries(overrides ?? {}).filter(([, value]) => value !== undefined);
-  return given.length === 0 ? englishMentionLabels : { ...englishMentionLabels, ...Object.fromEntries(given) };
-}
+export const resolveMentionLabels = (overrides?: Partial<MentionLabels>): MentionLabels => mergeLabels(englishMentionLabels, overrides);

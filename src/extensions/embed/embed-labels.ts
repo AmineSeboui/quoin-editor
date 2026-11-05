@@ -1,3 +1,5 @@
+import { mergeLabels } from '../../i18n/merge-labels';
+
 /** Every string the embed and bookmark feature shows or speaks. */
 export type EmbedLabels = {
   /** The slash command, the name of an embed, and the choice offered for a pasted link. */
@@ -45,7 +47,4 @@ export const englishEmbedLabels: EmbedLabels = {
 };
 
 /** The English labels with the host's overrides on top. A key left out, or passed as undefined, stays English. */
-export function resolveEmbedLabels(overrides?: Partial<EmbedLabels>): EmbedLabels {
-  const given = Object.entries(overrides ?? {}).filter(([, value]) => value !== undefined);
-  return given.length === 0 ? englishEmbedLabels : { ...englishEmbedLabels, ...Object.fromEntries(given) };
-}
+export const resolveEmbedLabels = (overrides?: Partial<EmbedLabels>): EmbedLabels => mergeLabels(englishEmbedLabels, overrides);

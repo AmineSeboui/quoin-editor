@@ -1,0 +1,15 @@
+export { ptAiLabels } from './pt/ai';
+export { ptCommentsLabels } from './pt/comments';
+export { ptLabels } from './pt/core';
+export { ptDiagramLabels } from './pt/diagram';
+export { ptDiffLabels } from './pt/diff';
+export { ptEmbedLabels } from './pt/embed';
+export { ptEmojiLabels } from './pt/emoji';
+export { ptFindLabels } from './pt/find';
+export { ptMathLabels } from './pt/math';
+export { ptMentionLabels } from './pt/mention';
+export { ptPresenceLabels } from './pt/presence';
+export { ptSourceLabels } from './pt/source';
+export { ptStatsLabels } from './pt/stats';
+export { ptTableLabels } from './pt/table';
+export { ptTocLabels } from './pt/toc';

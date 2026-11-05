@@ -1,3 +1,5 @@
+import { mergeLabels } from '../i18n/merge-labels';
+
 /** Every string the diff view shows or speaks. */
 export type DiffLabels = {
   /** The label of a block only the newer version has. */
@@ -69,7 +71,4 @@ export const englishDiffLabels: DiffLabels = {
 };
 
 /** The English labels with the host's overrides on top. A key left out, or passed as undefined, stays English. */
-export function resolveDiffLabels(overrides?: Partial<DiffLabels>): DiffLabels {
-  const given = Object.entries(overrides ?? {}).filter(([, value]) => value !== undefined);
-  return given.length === 0 ? englishDiffLabels : { ...englishDiffLabels, ...Object.fromEntries(given) };
-}
+export const resolveDiffLabels = (overrides?: Partial<DiffLabels>): DiffLabels => mergeLabels(englishDiffLabels, overrides);

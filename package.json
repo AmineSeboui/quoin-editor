@@ -123,6 +123,76 @@
         "default": "./dist/docx.cjs"
       }
     },
+    "./locale-ar": {
+      "import": {
+        "types": "./dist/locale-ar.d.ts",
+        "default": "./dist/locale-ar.js"
+      },
+      "require": {
+        "types": "./dist/locale-ar.d.cts",
+        "default": "./dist/locale-ar.cjs"
+      }
+    },
+    "./locale-de": {
+      "import": {
+        "types": "./dist/locale-de.d.ts",
+        "default": "./dist/locale-de.js"
+      },
+      "require": {
+        "types": "./dist/locale-de.d.cts",
+        "default": "./dist/locale-de.cjs"
+      }
+    },
+    "./locale-es": {
+      "import": {
+        "types": "./dist/locale-es.d.ts",
+        "default": "./dist/locale-es.js"
+      },
+      "require": {
+        "types": "./dist/locale-es.d.cts",
+        "default": "./dist/locale-es.cjs"
+      }
+    },
+    "./locale-fr": {
+      "import": {
+        "types": "./dist/locale-fr.d.ts",
+        "default": "./dist/locale-fr.js"
+      },
+      "require": {
+        "types": "./dist/locale-fr.d.cts",
+        "default": "./dist/locale-fr.cjs"
+      }
+    },
+    "./locale-ja": {
+      "import": {
+        "types": "./dist/locale-ja.d.ts",
+        "default": "./dist/locale-ja.js"
+      },
+      "require": {
+        "types": "./dist/locale-ja.d.cts",
+        "default": "./dist/locale-ja.cjs"
+      }
+    },
+    "./locale-pt": {
+      "import": {
+        "types": "./dist/locale-pt.d.ts",
+        "default": "./dist/locale-pt.js"
+      },
+      "require": {
+        "types": "./dist/locale-pt.d.cts",
+        "default": "./dist/locale-pt.cjs"
+      }
+    },
+    "./locale-zh": {
+      "import": {
+        "types": "./dist/locale-zh.d.ts",
+        "default": "./dist/locale-zh.js"
+      },
+      "require": {
+        "types": "./dist/locale-zh.d.cts",
+        "default": "./dist/locale-zh.cjs"
+      }
+    },
     "./yjs": {
       "import": {
         "types": "./dist/yjs.d.ts",

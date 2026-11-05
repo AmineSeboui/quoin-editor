@@ -25,6 +25,7 @@ export const GUIDE_ORDER = [
   'uploads',
   'extensions',
   'keyboard',
+  'localization',
   'collaboration',
   'comments',
   'ai',

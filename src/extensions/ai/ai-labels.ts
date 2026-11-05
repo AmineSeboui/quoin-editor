@@ -1,4 +1,5 @@
 import type { AiAction } from './ai-actions';
+import { mergeLabels } from '../../i18n/merge-labels';
 
 /** Every string AI actions show or speak. */
 export type AiLabels = {
@@ -74,7 +75,4 @@ export const englishAiLabels: AiLabels = {
 };
 
 /** The English labels with the host's overrides on top. A key left out, or passed as undefined, stays English. */
-export function resolveAiLabels(overrides?: Partial<AiLabels>): AiLabels {
-  const given = Object.entries(overrides ?? {}).filter(([, value]) => value !== undefined);
-  return given.length === 0 ? englishAiLabels : { ...englishAiLabels, ...Object.fromEntries(given) };
-}
+export const resolveAiLabels = (overrides?: Partial<AiLabels>): AiLabels => mergeLabels(englishAiLabels, overrides);

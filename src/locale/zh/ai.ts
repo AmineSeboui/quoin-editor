@@ -1,0 +1,37 @@
+import type { AiLabels } from '../../extensions/ai/ai-labels';
+
+/** Every string AI actions show or speak, in Simplified Chinese. */
+export const zhAiLabels: AiLabels = {
+  askAi: '询问 AI',
+  askAiDescription: '用 AI 撰写或修改',
+  actions: {
+    continue: '继续写作',
+    improve: '润色文字',
+    fix: '修正拼写和语法',
+    shorten: '缩短',
+    lengthen: '扩写',
+    simplify: '简化语言',
+    tone: '改变语气',
+    translate: '翻译',
+    summarize: '总结',
+    explain: '解释',
+    custom: '询问 AI',
+  },
+  menu: 'AI 操作',
+  prompt: '让 AI 撰写或修改',
+  tonePrompt: '想要的语气，例如友好',
+  translatePrompt: '要翻译成的语言',
+  ask: (prompt) => `询问 AI：${prompt}`,
+  response: 'AI 回复',
+  writing: '正在撰写',
+  stopped: '已停止',
+  stop: '停止',
+  accept: '采用',
+  discard: '放弃',
+  retry: '重试',
+  followUp: '告诉 AI 接下来做什么',
+  failed: 'AI 无法回复',
+  written: (text) => `AI 回复已就绪：${text}`,
+  halted: (text) => `已停止。AI 目前的回复：${text}`,
+  targetGone: '对应的文字已被删除，采用会把回复插入到它原来的位置',
+};

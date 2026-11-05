@@ -1,0 +1,15 @@
+export { arAiLabels } from './ar/ai';
+export { arCommentsLabels } from './ar/comments';
+export { arLabels } from './ar/core';
+export { arDiagramLabels } from './ar/diagram';
+export { arDiffLabels } from './ar/diff';
+export { arEmbedLabels } from './ar/embed';
+export { arEmojiLabels } from './ar/emoji';
+export { arFindLabels } from './ar/find';
+export { arMathLabels } from './ar/math';
+export { arMentionLabels } from './ar/mention';
+export { arPresenceLabels } from './ar/presence';
+export { arSourceLabels } from './ar/source';
+export { arStatsLabels } from './ar/stats';
+export { arTableLabels } from './ar/table';
+export { arTocLabels } from './ar/toc';

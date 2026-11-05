@@ -1,3 +1,5 @@
+import { mergeLabels } from '../../i18n/merge-labels';
+
 /** Every string the table feature shows or speaks. Rows and columns are counted from 1. */
 export type TableLabels = {
   /** The slash command, and the name of a table. */
@@ -81,7 +83,4 @@ export const englishTableLabels: TableLabels = {
 };
 
 /** The English labels with the host's overrides on top. A key left out, or passed as undefined, stays English. */
-export function resolveTableLabels(overrides?: Partial<TableLabels>): TableLabels {
-  const given = Object.entries(overrides ?? {}).filter(([, value]) => value !== undefined);
-  return given.length === 0 ? englishTableLabels : { ...englishTableLabels, ...Object.fromEntries(given) };
-}
+export const resolveTableLabels = (overrides?: Partial<TableLabels>): TableLabels => mergeLabels(englishTableLabels, overrides);

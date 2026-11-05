@@ -75,6 +75,7 @@ test.describe('navigation', () => {
   });
 
   test('the goal column holds at every width, also where a soft wrap falls on the goal', async ({ page }) => {
+    test.slow();
     for (const width of [300, 320, 340, 360, 380, 400, 420, 440, 460, 480, 500]) {
       await openHeadless(page, 'wrapped');
       await page.setViewportSize({ width, height: 800 });

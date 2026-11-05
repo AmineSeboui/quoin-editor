@@ -1,0 +1,37 @@
+import type { AiLabels } from '../../extensions/ai/ai-labels';
+
+/** Every string AI actions show or speak, in Portuguese. */
+export const ptAiLabels: AiLabels = {
+  askAi: 'Perguntar à IA',
+  askAiDescription: 'Escrever ou editar com IA',
+  actions: {
+    continue: 'Continuar escrevendo',
+    improve: 'Melhorar a escrita',
+    fix: 'Corrigir a ortografia e a gramática',
+    shorten: 'Encurtar',
+    lengthen: 'Alongar',
+    simplify: 'Simplificar a linguagem',
+    tone: 'Mudar o tom',
+    translate: 'Traduzir',
+    summarize: 'Resumir',
+    explain: 'Explicar',
+    custom: 'Perguntar à IA',
+  },
+  menu: 'Ações da IA',
+  prompt: 'Peça à IA para escrever ou editar',
+  tonePrompt: 'Tom a adotar, por exemplo amigável',
+  translatePrompt: 'Idioma para o qual traduzir',
+  ask: (prompt) => `Perguntar à IA: ${prompt}`,
+  response: 'Resposta da IA',
+  writing: 'Escrevendo',
+  stopped: 'Parada',
+  stop: 'Parar',
+  accept: 'Aceitar',
+  discard: 'Descartar',
+  retry: 'Tentar de novo',
+  followUp: 'Diga à IA o que fazer em seguida',
+  failed: 'A IA não conseguiu responder',
+  written: (text) => `Resposta da IA pronta: ${text}`,
+  halted: (text) => `Parada. Resposta da IA até agora: ${text}`,
+  targetGone: 'O texto a que isto se referia foi removido, então Aceitar insere a resposta onde ele estava',
+};

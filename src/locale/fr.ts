@@ -1,0 +1,15 @@
+export { frAiLabels } from './fr/ai';
+export { frCommentsLabels } from './fr/comments';
+export { frLabels } from './fr/core';
+export { frDiagramLabels } from './fr/diagram';
+export { frDiffLabels } from './fr/diff';
+export { frEmbedLabels } from './fr/embed';
+export { frEmojiLabels } from './fr/emoji';
+export { frFindLabels } from './fr/find';
+export { frMathLabels } from './fr/math';
+export { frMentionLabels } from './fr/mention';
+export { frPresenceLabels } from './fr/presence';
+export { frSourceLabels } from './fr/source';
+export { frStatsLabels } from './fr/stats';
+export { frTableLabels } from './fr/table';
+export { frTocLabels } from './fr/toc';

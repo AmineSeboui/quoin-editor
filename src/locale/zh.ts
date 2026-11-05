@@ -1,0 +1,15 @@
+export { zhAiLabels } from './zh/ai';
+export { zhCommentsLabels } from './zh/comments';
+export { zhLabels } from './zh/core';
+export { zhDiagramLabels } from './zh/diagram';
+export { zhDiffLabels } from './zh/diff';
+export { zhEmbedLabels } from './zh/embed';
+export { zhEmojiLabels } from './zh/emoji';
+export { zhFindLabels } from './zh/find';
+export { zhMathLabels } from './zh/math';
+export { zhMentionLabels } from './zh/mention';
+export { zhPresenceLabels } from './zh/presence';
+export { zhSourceLabels } from './zh/source';
+export { zhStatsLabels } from './zh/stats';
+export { zhTableLabels } from './zh/table';
+export { zhTocLabels } from './zh/toc';

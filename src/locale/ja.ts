@@ -1,0 +1,15 @@
+export { jaAiLabels } from './ja/ai';
+export { jaCommentsLabels } from './ja/comments';
+export { jaLabels } from './ja/core';
+export { jaDiagramLabels } from './ja/diagram';
+export { jaDiffLabels } from './ja/diff';
+export { jaEmbedLabels } from './ja/embed';
+export { jaEmojiLabels } from './ja/emoji';
+export { jaFindLabels } from './ja/find';
+export { jaMathLabels } from './ja/math';
+export { jaMentionLabels } from './ja/mention';
+export { jaPresenceLabels } from './ja/presence';
+export { jaSourceLabels } from './ja/source';
+export { jaStatsLabels } from './ja/stats';
+export { jaTableLabels } from './ja/table';
+export { jaTocLabels } from './ja/toc';

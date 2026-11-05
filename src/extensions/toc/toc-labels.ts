@@ -1,3 +1,5 @@
+import { mergeLabels } from '../../i18n/merge-labels';
+
 /** Every string the table of contents feature shows or speaks. */
 export type TocLabels = {
   /** The slash command, and the name of a table of contents and of its navigation. */
@@ -17,7 +19,4 @@ export const englishTocLabels: TocLabels = {
 };
 
 /** The English labels with the host's overrides on top. A key left out, or passed as undefined, stays English. */
-export function resolveTocLabels(overrides?: Partial<TocLabels>): TocLabels {
-  const given = Object.entries(overrides ?? {}).filter(([, value]) => value !== undefined);
-  return given.length === 0 ? englishTocLabels : { ...englishTocLabels, ...Object.fromEntries(given) };
-}
+export const resolveTocLabels = (overrides?: Partial<TocLabels>): TocLabels => mergeLabels(englishTocLabels, overrides);

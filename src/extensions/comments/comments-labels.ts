@@ -1,3 +1,5 @@
+import { mergeLabels } from '../../i18n/merge-labels';
+
 /** Every string comments show or speak. */
 export type CommentsLabels = {
   /** The toolbar button that comments on the selected text. */
@@ -52,7 +54,4 @@ export const englishCommentsLabels: CommentsLabels = {
 };
 
 /** The English labels with the host's overrides on top. A key left out, or passed as undefined, stays English. */
-export function resolveCommentsLabels(overrides?: Partial<CommentsLabels>): CommentsLabels {
-  const given = Object.entries(overrides ?? {}).filter(([, value]) => value !== undefined);
-  return given.length === 0 ? englishCommentsLabels : { ...englishCommentsLabels, ...Object.fromEntries(given) };
-}
+export const resolveCommentsLabels = (overrides?: Partial<CommentsLabels>): CommentsLabels => mergeLabels(englishCommentsLabels, overrides);

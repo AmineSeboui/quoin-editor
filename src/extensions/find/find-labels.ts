@@ -1,3 +1,5 @@
+import { mergeLabels } from '../../i18n/merge-labels';
+
 /** Every string the find and replace feature shows or speaks. */
 export type FindLabels = {
   /** The name of the panel. */
@@ -45,7 +47,4 @@ export const englishFindLabels: FindLabels = {
 };
 
 /** The English labels with the host's overrides on top. A key left out, or passed as undefined, stays English. */
-export function resolveFindLabels(overrides?: Partial<FindLabels>): FindLabels {
-  const given = Object.entries(overrides ?? {}).filter(([, value]) => value !== undefined);
-  return given.length === 0 ? englishFindLabels : { ...englishFindLabels, ...Object.fromEntries(given) };
-}
+export const resolveFindLabels = (overrides?: Partial<FindLabels>): FindLabels => mergeLabels(englishFindLabels, overrides);

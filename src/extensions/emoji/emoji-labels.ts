@@ -1,4 +1,5 @@
 import type { EmojiGroup } from '../../emoji/emoji-types';
+import { mergeLabels } from '../../i18n/merge-labels';
 
 /** Every string the emoji feature shows or speaks. */
 export type EmojiLabels = {
@@ -42,7 +43,4 @@ export const englishEmojiLabels: EmojiLabels = {
 };
 
 /** The English labels with the host's overrides on top. A key left out, or passed as undefined, stays English. */
-export function resolveEmojiLabels(overrides?: Partial<EmojiLabels>): EmojiLabels {
-  const given = Object.entries(overrides ?? {}).filter(([, value]) => value !== undefined);
-  return given.length === 0 ? englishEmojiLabels : { ...englishEmojiLabels, ...Object.fromEntries(given) };
-}
+export const resolveEmojiLabels = (overrides?: Partial<EmojiLabels>): EmojiLabels => mergeLabels(englishEmojiLabels, overrides);

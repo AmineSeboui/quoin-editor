@@ -1,3 +1,5 @@
+import { mergeLabels } from '../../i18n/merge-labels';
+
 /** Every string the stats footer shows and the character limit speaks. */
 export type StatsLabels = {
   /** How many characters, words and blocks the document holds. */
@@ -23,7 +25,4 @@ export const englishStatsLabels: StatsLabels = {
 };
 
 /** The English labels with the host's overrides on top. A key left out, or passed as undefined, stays English. */
-export function resolveStatsLabels(overrides?: Partial<StatsLabels>): StatsLabels {
-  const given = Object.entries(overrides ?? {}).filter(([, value]) => value !== undefined);
-  return given.length === 0 ? englishStatsLabels : { ...englishStatsLabels, ...Object.fromEntries(given) };
-}
+export const resolveStatsLabels = (overrides?: Partial<StatsLabels>): StatsLabels => mergeLabels(englishStatsLabels, overrides);

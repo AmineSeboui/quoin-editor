@@ -1,3 +1,5 @@
+import { mergeLabels } from '../../i18n/merge-labels';
+
 /** Every string the math feature shows or speaks. */
 export type MathLabels = {
   /** The name of a math block. */
@@ -33,7 +35,4 @@ export const englishMathLabels: MathLabels = {
 };
 
 /** The English labels with the host's overrides on top. A key left out, or passed as undefined, stays English. */
-export function resolveMathLabels(overrides?: Partial<MathLabels>): MathLabels {
-  const given = Object.entries(overrides ?? {}).filter(([, value]) => value !== undefined);
-  return given.length === 0 ? englishMathLabels : { ...englishMathLabels, ...Object.fromEntries(given) };
-}
+export const resolveMathLabels = (overrides?: Partial<MathLabels>): MathLabels => mergeLabels(englishMathLabels, overrides);

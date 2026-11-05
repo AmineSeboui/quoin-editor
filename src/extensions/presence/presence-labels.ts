@@ -1,3 +1,5 @@
+import { mergeLabels } from '../../i18n/merge-labels';
+
 /** Every string presence shows or speaks. Names come as a list of the people meant, in the order they came. */
 export type PresenceLabels = {
   /** Said through the live region when people open the document. */
@@ -21,7 +23,4 @@ export const englishPresenceLabels: PresenceLabels = {
 };
 
 /** The English labels with the host's overrides on top. A key left out, or passed as undefined, stays English. */
-export function resolvePresenceLabels(overrides?: Partial<PresenceLabels>): PresenceLabels {
-  const given = Object.entries(overrides ?? {}).filter(([, value]) => value !== undefined);
-  return given.length === 0 ? englishPresenceLabels : { ...englishPresenceLabels, ...Object.fromEntries(given) };
-}
+export const resolvePresenceLabels = (overrides?: Partial<PresenceLabels>): PresenceLabels => mergeLabels(englishPresenceLabels, overrides);

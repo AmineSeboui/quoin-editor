@@ -7,17 +7,12 @@ describe('view entry', () => {
   it('exports the documented surface', () => {
     expect(Object.keys(view).sort()).toMatchInlineSnapshot(`
       [
-        "BlockShell",
         "EditableRegion",
         "EditorView",
-        "SelectionSink",
         "ViewController",
-        "VoidBlockFallback",
         "caretFromPoint",
-        "defaultRenderers",
         "domMapOf",
         "hostKey",
-        "isCrossSelection",
         "renderInline",
         "useEditorState",
         "useQuoinEditor",

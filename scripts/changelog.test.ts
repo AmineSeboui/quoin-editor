@@ -43,10 +43,10 @@ describe('the newest section', () => {
     expect(titles[0] === 'Unreleased' || titles[0] === versionHeading.slice(3)).toBe(true);
   });
 
-  it.skipIf(titles[0] === heading.slice(3))('sorts its changes under Added, Changed, Fixed and Known limits, each a list', () => {
+  it.skipIf(titles[0] === heading.slice(3))('sorts its changes under Added, Changed, Removed, Fixed and Known limits, each a list', () => {
     const headings = [...newest.matchAll(/^### (.+)$/gm)].map(([, title]) => title);
     expect(headings.length).toBeGreaterThan(0);
-    expect(headings.every((title) => ['Added', 'Changed', 'Fixed', 'Known limits'].includes(title))).toBe(true);
+    expect(headings.every((title) => ['Added', 'Changed', 'Removed', 'Fixed', 'Known limits'].includes(title))).toBe(true);
     for (const title of headings) expect(sectionOf(newest, `### ${title}`).trim()).toMatch(/^- /);
   });
 });

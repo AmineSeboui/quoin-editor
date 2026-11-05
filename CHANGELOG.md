@@ -2,6 +2,11 @@
 
 Every release of `quoin-editor` is listed here, newest first, in the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). From 1.0.0 the package follows [semantic versioning](https://semver.org/): a breaking change waits for the next major version. Until then, Quoin was 0.x and a minor version could contain breaking changes; those known at release were marked "Breaking". The 0.x sections are kept as they were released, "Docs" headings included. Moving from 0.4 to 1.0 is covered step by step in [MIGRATION.md](MIGRATION.md). Review finding ids such as F-17 are those of the 0.4.0 review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73).
 
+## Unreleased
+
+### Removed
+- Seven names the view layer only ever calls itself leave `quoin-editor/view`, and with it `quoin-editor/headless` and `quoin-editor`. `BlockShell` and `SelectionSink`, with the `BlockShellProps` and `SelectionSinkProps` that typed them, are drawn by `EditorView` itself and register themselves with the controller, so a second copy of either takes the registration from the first. `VoidBlockFallback` is what a block shell already falls back to when no renderer draws a block type, so a renderer table that names it changes nothing. `defaultRenderers` held the three renderers a canvas already reaches for on its own; a renderer of your own draws its text with `EditableRegion`, which is what those three do. `isCrossSelection` answers whether a text selection spans blocks or regions, which is what painting and the arrow keys ask; a host that wants the answer reads `anchor` and `head` of the public `Selection`, and were it to earn a place it belongs beside `textSelection` in `quoin-editor/engine` rather than in the React entry. `BlockRenderProps` and `BlockRenderer` stay, so a renderer table still types. The five values among the seven were marked deprecated in 1.8.0. Removing a published name is breaking, so this lands in 2.0.0; [MIGRATION.md](MIGRATION.md) covers the move.
+
 ## 1.8.0 (2026-11-05)
 
 ### Added

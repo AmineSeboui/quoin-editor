@@ -26,26 +26,26 @@ Every word the editor shows or speaks is a label, and every label can be replace
 The canvas takes the core set as `labels`:
 
 ```tsx
-import { BlockCanvas } from 'quoin-editor';
+import { BlockCanvas, type QuoinBlock } from 'quoin-editor';
 import { frLabels } from 'quoin-editor/locale-fr';
 import 'quoin-editor/styles.css';
 
-export function Editor() {
-  return <BlockCanvas labels={frLabels} />;
+export function Editor({ blocks, onChange }: { blocks: QuoinBlock[]; onChange: (next: QuoinBlock[]) => void }) {
+  return <BlockCanvas blocks={blocks} onChange={onChange} labels={frLabels} />;
 }
 ```
 
 Each feature carries its own set, and takes it the same way, through the feature's options:
 
 ```tsx
-import { BlockCanvas } from 'quoin-editor';
+import { BlockCanvas, type QuoinBlock } from 'quoin-editor';
 import { catalogue } from 'quoin-editor/catalogue';
-import { frLabels, frTableLabels, frFindLabels } from 'quoin-editor/locale-fr';
+import { frFindLabels, frLabels, frTableLabels } from 'quoin-editor/locale-fr';
 
-const extensions = [catalogue({ table: { labels: frTableLabels }, find: { labels: frFindLabels } })];
+const extensions = catalogue({ table: { labels: frTableLabels }, find: { labels: frFindLabels } });
 
-export function Editor() {
-  return <BlockCanvas labels={frLabels} extensions={extensions} />;
+export function Editor({ blocks, onChange }: { blocks: QuoinBlock[]; onChange: (next: QuoinBlock[]) => void }) {
+  return <BlockCanvas blocks={blocks} onChange={onChange} labels={frLabels} extensions={extensions} />;
 }
 ```
 
@@ -58,13 +58,13 @@ A pack covers all fifteen sets: the canvas itself and the table, AI, comments, f
 Labels merge key by key over the defaults, so a host can take a pack and change one string, or stay in English and change a few:
 
 ```tsx
-import { BlockCanvas } from 'quoin-editor';
+import { BlockCanvas, type QuoinBlock } from 'quoin-editor';
 import { frLabels } from 'quoin-editor/locale-fr';
 
 const labels = { ...frLabels, askAi: 'Demander à Claude' };
 
-export function Editor() {
-  return <BlockCanvas labels={labels} />;
+export function Editor({ blocks, onChange }: { blocks: QuoinBlock[]; onChange: (next: QuoinBlock[]) => void }) {
+  return <BlockCanvas blocks={blocks} onChange={onChange} labels={labels} />;
 }
 ```
 
@@ -80,8 +80,8 @@ import { frLabels } from 'quoin-editor/locale-fr';
 
 frLabels.resultCount(0); // "0 résultat"
 frLabels.resultCount(2); // "2 résultats"
+arLabels.resultCount(1); // "نتيجة واحدة"
 arLabels.resultCount(2); // "نتيجتان"
-arLabels.resultCount(3); // "٣ نتائج"
 ```
 
 Numbers, dates and file sizes follow the same path: `Intl.NumberFormat` for grouping and decimals, `Intl.DateTimeFormat` for the time a comment was posted, `Intl.ListFormat` for a list of collaborators, and each pack's own unit names for a file size (`1,5 Ko` in French, `1.5 KB` in German).

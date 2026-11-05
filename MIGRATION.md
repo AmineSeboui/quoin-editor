@@ -1,4 +1,8 @@
-# Migrating from 0.4 to 1.0
+# Migrating Quoin
+
+Two upgrades are written up here. [0.4 to 1.0](#migrating-from-04-to-10) is the rewrite; [1.x to 2.0](#migrating-from-1x-to-20) takes seven names the view layer only ever called itself out of the public entries.
+
+## Migrating from 0.4 to 1.0
 
 Quoin 1.0 keeps the 0.4 document format and the `BlockCanvas` contract, and replaces everything under them: the card and textarea of each block give way to an editor of Quoin's own that types into the page in place. Most hosts upgrade by changing the version and reading the list below; the [checklist](#checklist) at the end sums it up. Every change is listed in the [changelog](CHANGELOG.md).
 
@@ -8,13 +12,13 @@ npm install quoin-editor@^1
 
 React 18.2 or 19 and TypeScript 5.4 or later, as in 0.4.
 
-## Data
+### Data
 
-### No migration is needed
+#### No migration is needed
 
 A document is still a `QuoinBlock[]` of `{ id, type, data }`, and every key of the five 0.4 block types keeps its name and meaning (`MarkdownBlockData`, `CalloutBlockData`, `CodeBlockData`, `ImageBlockData` and `FileBlockData`). Store and load the same arrays. 1.0 adds optional keys, listed [below](#new-optional-keys). Blocks nobody edits are handed back by `onChange` as the very objects you supplied, so a stored 0.4 document is never rewritten by being opened. The one exception is a block whose id repeats another's: it gets a fresh id.
 
-### Multi-paragraph markdown blocks split on their first edit
+#### Multi-paragraph markdown blocks split on their first edit
 
 A 0.4 `MARKDOWN` block could hold a whole page: several paragraphs, a list, a table. A 1.0 text block holds one line: a paragraph, a heading, a list item, a task or a quote. A 0.4 block of several lines is drawn line by line and kept as it is until someone edits it. On that first edit it is split: the first line keeps the block's id, the others take ids derived from it (`<id>-2`, `<id>-3` and on, skipping any id the document already has), a table becomes a `TABLE` block and an image alone on its line an `IMAGE` block. Each piece is written back as the canonical markdown of its line, so a host that diffs stored strings sees those blocks change once.
 
@@ -33,11 +37,11 @@ export const edited: QuoinBlock[] = [
 ];
 ```
 
-### The `indent` field
+#### The `indent` field
 
 `QuoinBlock` gains an optional `indent`, the nesting depth shared by every block type: a nested list item, or a block inside a toggle. It is written only when it is above 0. Code that copies, validates or stores blocks should keep it.
 
-### New optional keys
+#### New optional keys
 
 1.0 writes keys that 0.4 never wrote, each only once a writer uses what it holds:
 
@@ -50,21 +54,21 @@ export const edited: QuoinBlock[] = [
 
 The block itself may carry `indent`, and documents may hold the new block types `DIVIDER`, `TOGGLE`, `TABLE`, `EMBED`, `BOOKMARK`, `MATH` and `TOC`. A host whose schema rejects unknown keys or types would reject a paragraph that was aligned, or an image that was resized. Add the keys above as optional, or let unknown keys through: in zod, `.passthrough()` (zod 3) or `.loose()` (zod 4) on the `data` schema; in JSON Schema, `"additionalProperties": true`.
 
-### Captions and callout bodies are inline markdown
+#### Captions and callout bodies are inline markdown
 
 An image's `caption` and a callout's `body` were plain text in 0.4. In 1.0 they are typed in place and stored as inline markdown, like a paragraph. A 0.4 caption such as `A **sleepy** cat` now shows "sleepy" in bold, and `&amp;` shows as `&`. To keep a character literal in stored data, escape it with a backslash (`\*\*`); text typed in the canvas is escaped for you.
 
-### Named HTML entities
+#### Named HTML entities
 
 Numeric character references (`&#233;`, `&#xE9;`) are always decoded. Of the named entities, only the 23 most common are: `&amp;`, `&lt;`, `&gt;`, `&quot;`, `&apos;`, `&nbsp;`, `&copy;`, `&reg;`, `&trade;`, `&hellip;`, `&mdash;`, `&ndash;`, `&lsquo;`, `&rsquo;`, `&ldquo;`, `&rdquo;`, `&laquo;`, `&raquo;`, `&times;`, `&divide;`, `&deg;`, `&middot;` and `&bull;`. Any other, such as `&eacute;`, stays literal text, and is written back escaped (`\&eacute;`) once its block is edited. The full HTML5 table would add about 10 KB gzip to the engine. Workaround: replace other named entities with the character itself or its numeric reference before you import the markdown.
 
-### Inline images in imported markdown
+#### Inline images in imported markdown
 
 An image alone on its line becomes an `IMAGE` block. An image inside a paragraph, such as `see ![chart](chart.png) below`, stays literal text, since 1.0 has no inline image. Workaround: put each image on a line of its own before you import the markdown, or write an extension that adds an inline image atom.
 
-## API
+### API
 
-### `BlockCanvas`
+#### `BlockCanvas`
 
 Every 0.4 prop keeps its name, and its meaning except as the changes below say: `blocks`, `onChange`, `onDelete`, `blockTypes`, `upload`, `resolveAssetUrl`, `onError`, `readOnly`, `className`, `id` and `aria-label`. New ones are optional:
 
@@ -83,7 +87,7 @@ Two behaviours changed:
 - **`onDelete` reports more.** Besides the block menu's Delete, it reports whole blocks removed by typing over a selected block or by pasting over selected blocks. A line that Backspace or Delete merges into its neighbour is still not reported. To restore a block, splice it back into `blocks` once they no longer hold it, as on a later click of an Undo toast, not inside the callback.
 - **A collaborative canvas is uncontrolled.** A canvas given `collaborationExtension` from `quoin-editor/yjs` takes its content from the shared document. Pass the starting blocks once and keep echoing `onChange`; while the shared document is connected, any other array handed to `blocks` is ignored, with a warning in development.
 
-### `defineBlock`
+#### `defineBlock`
 
 `defineBlock` takes the same definition. `icon` now accepts any component that takes a `className` and `aria-hidden`, not only a lucide one. A custom block shows its `preview` at rest, and its `editor` opens on a double click, its Edit button or Enter on the selected block; Escape closes it.
 
@@ -107,17 +111,17 @@ export function Editor({ blocks, onChange }: { blocks: QuoinBlock[]; onChange: (
 }
 ```
 
-### `useQuoin`
+#### `useQuoin`
 
 `QuoinConfig`, which `useQuoin()` returns to a custom block, gains `highlight` and the required `controller` and `labels`. `QuoinProvider` fills them in, so only a `QuoinConfig` built by hand, such as a test double for a custom block, needs `controller: null` and `labels: englishLabels` added.
 
-### Entries
+#### Entries
 
 - `quoin-editor/headless` now exports the view and the engine (`useQuoinEditor`, `EditorView`, `createEditor` and the rest), and none of the 0.4 helpers. The main entry re-exports all of it.
 - `formatShortcut` is exported from `quoin-editor` only. Import it from there instead of `quoin-editor/headless`.
 - `quoin-editor/engine` is the engine alone, with no React and no `'use client'` banner: import `toMarkdown`, `toHTML` and the other pure functions from it in a server component.
 
-### Removed helpers
+#### Removed helpers
 
 The 0.4 helpers worked on the text of a textarea. In 1.0 each is an engine command, run through the canvas's ref (`handle.current?.editor.commands.<name>(...)`) or a headless editor, or is no longer needed.
 
@@ -163,11 +167,11 @@ export function Editor({ blocks, onChange }: { blocks: QuoinBlock[]; onChange: (
 }
 ```
 
-### Command names of the design spec
+#### Command names of the design spec
 
 The 1.0 design spec named `mergeBackward`, `mergeForward` and `insertBlocks` as commands. They are not commands: `deleteBackward` at the start of a block joins it to the one before, `deleteForward` at its end joins the next one to it, and `insertBlockAfter` and `insertSlice` insert blocks. Use those names.
 
-### Labels
+#### Labels
 
 Strings come from `labels`. Two keys are functions rather than strings: `blockDeleted(n)` and `undoHint(shortcut)`. English callout tone names are written in lower case in the tone chip and its menu; give `calloutTones` to write them otherwise:
 
@@ -185,7 +189,7 @@ export function Editor({ blocks, onChange }: { blocks: QuoinBlock[]; onChange: (
 }
 ```
 
-## Features that now need an import
+### Features that now need an import
 
 In 0.4 the slash palette's Table command wrote a markdown table into the block. In 1.0 a table is a `TABLE` block, drawn and edited by `quoin-editor/table`, which a page loads only when it imports it. Without it, a table, including one split out of a 0.4 block, is drawn as an unsupported block and its data is kept as it was. The one-line change is to pass the extension:
 
@@ -202,22 +206,22 @@ export function Editor({ blocks, onChange }: { blocks: QuoinBlock[]; onChange: (
 
 `catalogue()` from `quoin-editor/catalogue` adds every opt-in feature at once: tables, embeds, math, a table of contents, mentions, emoji, find and replace and stats.
 
-## Styling
+### Styling
 
 - Every 0.4 `--quoin-` token keeps its name, and the stylesheet still sits in the one `quoin` cascade layer.
 - New tokens: `--quoin-selection`, the writer's text and background colours `--quoin-color-*` and `--quoin-bg-*`, `--quoin-comment`, `--quoin-comment-active` and `--quoin-comment-edge`, `--quoin-diff-inserted` and `--quoin-diff-deleted`, and `--quoin-link`. Each has a light and a dark default; a host that maps its own tokens onto Quoin's can map these too.
 - `color-scheme` is declared for light and dark.
 - The DOM and the class names inside the canvas are new. CSS that targeted 0.4 internals, such as a block card or its textarea, no longer matches; style through the tokens.
 
-## React 18
+### React 18
 
 React 18.2 and 19 are both supported, as 0.4.1 made them. CI typechecks the packed package against both majors and renders the server entries in plain Node on each, and `BlockCanvas` forwards its ref, so a `QuoinEditorHandle` reaches you on React 18 too.
 
-## The package
+### The package
 
 The tarball ships ESM and CommonJS builds of every entry, with their sourcemaps. The sourcemaps leave out `sourcesContent`: a debugger maps to the original file names and lines, but shows their text only where it can read the sources, such as from the repository at the release tag.
 
-## Checklist
+### Checklist
 
 - [ ] Install `quoin-editor@^1`.
 - [ ] Keep `indent` and the new optional keys when you copy, validate or store blocks, and let a strict schema accept them.
@@ -231,3 +235,113 @@ The tarball ships ESM and CommonJS builds of every entry, with their sourcemaps.
 - [ ] Pass `tableExtension()` (or `catalogue()`) if your documents hold tables.
 - [ ] Map the new tokens if you map Quoin's tokens to your own, and drop CSS that targeted 0.4 internals.
 - [ ] Treat a canvas with a collaboration extension as uncontrolled.
+
+## Migrating from 1.x to 2.0
+
+Quoin 2.0 keeps the document format, the props of every component and every command of 1.x. What changes is the published surface: seven names that only the view layer ever called itself stop being exported from `quoin-editor/view`, and so from `quoin-editor/headless` and `quoin-editor` with it. Five of them have carried a deprecation notice since 1.8.0, shown by an editor on hover and on the [headless reference](https://amineseboui.github.io/quoin-editor/docs/headless-reference/); the other two are the prop types of the two components, and go with them. Nothing else is removed and nothing behaves differently, so a host that imports none of the seven upgrades by changing the version.
+
+```bash
+npm install quoin-editor@^2
+```
+
+React 18.2 or 19 and TypeScript 5.4 or later, as in 1.x.
+
+### Exports that are gone
+
+| 1.x | 2.0 | Notes |
+| --- | --- | --- |
+| `defaultRenderers` | `EditableRegion` | The one removal with a cost, [below](#defaultrenderers). |
+| `BlockShell`, `BlockShellProps` | Nothing | [`EditorView` draws a shell for every block already.](#blockshell-and-selectionsink) |
+| `SelectionSink`, `SelectionSinkProps` | Nothing | [`EditorView` draws one already.](#blockshell-and-selectionsink) |
+| `VoidBlockFallback` | Nothing | [A block shell falls back to it on its own.](#voidblockfallback) |
+| `isCrossSelection` | `Selection` | [Four lines over `anchor` and `head`.](#iscrossselection) |
+
+`BlockRenderProps` and `BlockRenderer` stay public, so a renderer table still types.
+
+#### `defaultRenderers`
+
+A paragraph, a heading, a bullet, a numbered item, a task and a quote are all `MARKDOWN` blocks drawn by one renderer. A host that wanted its own quote therefore had to name `MARKDOWN` in its table, and could hand every other kind back to the default:
+
+```jsx
+import { defaultRenderers, EditableRegion } from 'quoin-editor';
+
+const Markdown = defaultRenderers.MARKDOWN;
+
+export const renderers = {
+  MARKDOWN: (props) =>
+    props.block.attrs.kind === 'quote' ? (
+      <figure className="pull-quote">
+        <EditableRegion block={props.block.id} region="text" label="Quote" />
+      </figure>
+    ) : (
+      <Markdown {...props} />
+    ),
+};
+```
+
+In 2.0 that renderer owns every kind, and draws each one's text with `EditableRegion`, which is what the default renderer does inside:
+
+```tsx
+import { EditableRegion, type BlockRenderer } from 'quoin-editor';
+
+const LABELS: Record<string, string> = {
+  heading: 'Heading',
+  bullet: 'Bullet list item',
+  ordered: 'Numbered list item',
+  task: 'Task',
+  quote: 'Quote',
+};
+
+export const renderers: Record<string, BlockRenderer> = {
+  MARKDOWN: ({ block }) => {
+    const kind = typeof block.attrs.kind === 'string' ? block.attrs.kind : '';
+    const text = <EditableRegion block={block.id} region="text" label={LABELS[kind] ?? 'Paragraph'} />;
+    if (kind === 'quote') return <figure className="pull-quote">{text}</figure>;
+    if (kind === 'heading') {
+      const level = typeof block.attrs.level === 'number' ? block.attrs.level : 1;
+      return <div role="heading" aria-level={level} className="quoin-heading">{text}</div>;
+    }
+    if (kind === 'bullet') {
+      return (
+        <div className="quoin-list-item" data-list="bullet">
+          <span className="quoin-marker" aria-hidden="true">{'•'}</span>
+          {text}
+        </div>
+      );
+    }
+    return text;
+  },
+};
+```
+
+`EditableRegion` takes the block's id, the name of the region to draw (`text` for every markdown kind) and an accessible name, and is the same editable host the default renderer mounts, so the caret, the selection and the decorations keep working.
+
+Two kinds ask for more than markup, and the sample above leaves both drawn as plain text. A numbered item shows its running number, which counts the ordered blocks above it at the same indent; a task shows a checkbox that runs the `toggleTask` command against its own block. Neither the counter nor the checkbox is public, so a host that overrides `MARKDOWN` and still wants those two drawn the way Quoin draws them writes them itself. A host that only wants to restyle a kind has a cheaper way out: leave `MARKDOWN` out of the renderer table and style the markup the default renderer already writes, which carries `data-kind` on the block and the `quoin-heading`, `quoin-list-item`, `quoin-task` and `quoin-quote` class names.
+
+#### `BlockShell` and `SelectionSink`
+
+Neither was ever something to render. `EditorView` draws one `SelectionSink` and one `BlockShell` per block, and each registers itself with the `ViewController` on mount (`controller.registerSink`, `controller.registerBlockElement`). A second copy takes that registration from the first, so a host that rendered either lost the selection or the block it meant to help. Drop the import; the editor already draws both. `BlockShellProps` and `SelectionSinkProps` named their props and go with them.
+
+#### `VoidBlockFallback`
+
+A block shell falls back to it already when no renderer in the table draws a block's type, so a table that named it only restated the default. Drop the entry and the import.
+
+#### `isCrossSelection`
+
+It asked whether a text selection spans blocks or regions, which is what painting and the arrow keys ask. It reads `anchor` and `head` of the public `Selection`, so a host that wants the answer writes it:
+
+```ts
+import type { Selection } from 'quoin-editor/engine';
+
+export const spansBlocks = (selection: Selection | null): boolean =>
+  selection?.kind === 'text' &&
+  (selection.anchor.block !== selection.head.block || selection.anchor.region !== selection.head.region);
+```
+
+### 2.0 checklist
+
+- [ ] Install `quoin-editor@^2`.
+- [ ] Drop any `BlockShell` or `SelectionSink` you render, and the `BlockShellProps` and `SelectionSinkProps` that typed them.
+- [ ] Drop any `VoidBlockFallback` entry from a renderer table.
+- [ ] Replace `isCrossSelection` with the predicate above.
+- [ ] Draw every `MARKDOWN` kind yourself if your table names `MARKDOWN`, or leave `MARKDOWN` out and style the default markup instead.

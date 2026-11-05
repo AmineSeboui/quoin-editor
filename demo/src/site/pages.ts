@@ -85,9 +85,9 @@ export const referencePages: Page[] = [
   {
     kind: 'comparison',
     path: 'comparison/',
-    title: 'Quoin vs Tiptap, BlockNote and Editor.js',
+    title: 'Quoin vs Tiptap, BlockNote, Editor.js, Lexical and Plate',
     description:
-      'A Tiptap, BlockNote or Editor.js alternative? Quoin beside each on storage, markdown, UI, licence, collaboration, comments and frameworks, dated and sourced.',
+      'A Tiptap, BlockNote, Editor.js, Lexical or Plate alternative? Quoin beside each on storage, markdown, UI, licence, collaboration, comments, localization and frameworks, dated and sourced.',
   },
   {
     kind: 'migration',

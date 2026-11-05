@@ -7,6 +7,11 @@ const FEATURES = [
     path: 'comments/',
   },
   {
+    title: 'Seven languages',
+    text: 'Arabic, German, Spanish, French, Japanese, Portuguese and Chinese, every string the editor shows or speaks, with counts and dates written the way each language writes them.',
+    path: 'docs/localization/',
+  },
+  {
     title: 'Every block you expect',
     text: 'Callouts, toggles, tasks, code, tables, math, embeds, mentions and a table of contents.',
     path: 'blocks/',

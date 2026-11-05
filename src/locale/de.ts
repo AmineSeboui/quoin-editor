@@ -1,0 +1,15 @@
+export { deAiLabels } from './de/ai';
+export { deCommentsLabels } from './de/comments';
+export { deLabels } from './de/core';
+export { deDiagramLabels } from './de/diagram';
+export { deDiffLabels } from './de/diff';
+export { deEmbedLabels } from './de/embed';
+export { deEmojiLabels } from './de/emoji';
+export { deFindLabels } from './de/find';
+export { deMathLabels } from './de/math';
+export { deMentionLabels } from './de/mention';
+export { dePresenceLabels } from './de/presence';
+export { deSourceLabels } from './de/source';
+export { deStatsLabels } from './de/stats';
+export { deTableLabels } from './de/table';
+export { deTocLabels } from './de/toc';

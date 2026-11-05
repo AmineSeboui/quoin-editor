@@ -1,0 +1,37 @@
+import type { AiLabels } from '../../extensions/ai/ai-labels';
+
+/** Every string AI actions show or speak, in German. */
+export const deAiLabels: AiLabels = {
+  askAi: 'KI fragen',
+  askAiDescription: 'Mit KI schreiben oder bearbeiten',
+  actions: {
+    continue: 'Weiterschreiben',
+    improve: 'Text verbessern',
+    fix: 'Rechtschreibung und Grammatik korrigieren',
+    shorten: 'Kürzen',
+    lengthen: 'Ausführlicher',
+    simplify: 'Sprache vereinfachen',
+    tone: 'Ton ändern',
+    translate: 'Übersetzen',
+    summarize: 'Zusammenfassen',
+    explain: 'Erklären',
+    custom: 'KI fragen',
+  },
+  menu: 'KI-Aktionen',
+  prompt: 'Bitten Sie die KI zu schreiben oder zu bearbeiten',
+  tonePrompt: 'Gewünschter Ton, etwa freundlich',
+  translatePrompt: 'Sprache, in die übersetzt wird',
+  ask: (prompt) => `KI fragen: ${prompt}`,
+  response: 'Antwort der KI',
+  writing: 'Schreibt',
+  stopped: 'Gestoppt',
+  stop: 'Stoppen',
+  accept: 'Übernehmen',
+  discard: 'Verwerfen',
+  retry: 'Erneut versuchen',
+  followUp: 'Sagen Sie der KI, was als Nächstes zu tun ist',
+  failed: 'Die KI konnte nicht antworten',
+  written: (text) => `Antwort der KI bereit: ${text}`,
+  halted: (text) => `Gestoppt. Antwort der KI bisher: ${text}`,
+  targetGone: 'Der gemeinte Text wurde entfernt; Übernehmen fügt die Antwort dort ein, wo er stand',
+};

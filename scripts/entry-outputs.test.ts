@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import tsupConfig from '../tsup.config';
 import { directiveFiles, packageExports, specifier, tsupEntries } from './entry-outputs.mjs';
-import { featureEntries, incrementalBudget, lazyChunks, packageEntries } from './package-entries.mjs';
+import { featureEntries, incrementalBudget, lazyChunks, localeEntries, packageEntries } from './package-entries.mjs';
 
 const entries = [
   { name: 'index', source: 'src/index.ts', client: true, total: 1_000 },
@@ -66,7 +66,9 @@ describe('the package entry list', () => {
   });
 
   it('keeps the absolute budgets of the main, headless and engine entries, and of the view, diff and docx a server loads alone', () => {
-    const totals = packageEntries.filter((entry) => entry.total !== undefined).map(({ name, total }) => [name, total]);
+    const totals = packageEntries
+      .filter((entry) => entry.total !== undefined && !localeEntries.includes(entry))
+      .map(({ name, total }) => [name, total]);
     expect(totals).toEqual([
       ['index', 157_000],
       ['headless', 73_000],
@@ -87,8 +89,23 @@ describe('the package entry list', () => {
     expect(incrementalBudget(9_999)).toBe(10_399);
   });
 
+  it('ships a locale pack per language, each held to a budget of its own', () => {
+    expect(localeEntries.map(({ name }) => name)).toEqual([
+      'locale-ar',
+      'locale-de',
+      'locale-es',
+      'locale-fr',
+      'locale-ja',
+      'locale-pt',
+      'locale-zh',
+    ]);
+    expect(localeEntries.every(({ source, client }) => source.startsWith('src/locale/') && !client)).toBe(true);
+    expect(localeEntries.every(({ total }) => Number.isInteger(total) && Number(total) > 0)).toBe(true);
+    expect(packageEntries.slice(6, 6 + localeEntries.length)).toEqual(localeEntries);
+  });
+
   it('publishes the Yjs adapter, presence, comments, AI, highlighting, the source pane, every feature, then the catalogue, held to what they add', () => {
-    const optIn = packageEntries.slice(6);
+    const optIn = packageEntries.filter((entry) => entry.added !== undefined);
     expect(optIn.map(({ name }) => name)).toEqual([
       'yjs',
       'presence',

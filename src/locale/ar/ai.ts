@@ -1,0 +1,37 @@
+import type { AiLabels } from '../../extensions/ai/ai-labels';
+
+/** Every string AI actions show or speak, in Arabic. */
+export const arAiLabels: AiLabels = {
+  askAi: 'اسأل الذكاء الاصطناعي',
+  askAiDescription: 'اكتب أو عدّل بالذكاء الاصطناعي',
+  actions: {
+    continue: 'تابع الكتابة',
+    improve: 'حسّن الصياغة',
+    fix: 'صحّح الإملاء والنحو',
+    shorten: 'اختصر',
+    lengthen: 'أطل',
+    simplify: 'بسّط اللغة',
+    tone: 'غيّر الأسلوب',
+    translate: 'ترجم',
+    summarize: 'لخّص',
+    explain: 'اشرح',
+    custom: 'اسأل الذكاء الاصطناعي',
+  },
+  menu: 'إجراءات الذكاء الاصطناعي',
+  prompt: 'اطلب من الذكاء الاصطناعي أن يكتب أو يعدّل',
+  tonePrompt: 'الأسلوب المطلوب، ودود مثلًا',
+  translatePrompt: 'اللغة المراد الترجمة إليها',
+  ask: (prompt) => `اسأل الذكاء الاصطناعي: ${prompt}`,
+  response: 'رد الذكاء الاصطناعي',
+  writing: 'يكتب الآن',
+  stopped: 'توقّف',
+  stop: 'إيقاف',
+  accept: 'قبول',
+  discard: 'تجاهل',
+  retry: 'إعادة المحاولة',
+  followUp: 'أخبر الذكاء الاصطناعي بما يفعله بعد ذلك',
+  failed: 'تعذّر على الذكاء الاصطناعي الرد',
+  written: (text) => `رد الذكاء الاصطناعي جاهز: ${text}`,
+  halted: (text) => `توقّف. الرد حتى الآن: ${text}`,
+  targetGone: 'حُذف النص المقصود، لذا سيُدرج القبول الرد في موضعه السابق',
+};

@@ -1,0 +1,37 @@
+import type { AiLabels } from '../../extensions/ai/ai-labels';
+
+/** Every string AI actions show or speak, in French. */
+export const frAiLabels: AiLabels = {
+  askAi: 'Demander à l’IA',
+  askAiDescription: 'Écrire ou modifier avec l’IA',
+  actions: {
+    continue: 'Continuer à écrire',
+    improve: 'Améliorer le texte',
+    fix: 'Corriger l’orthographe et la grammaire',
+    shorten: 'Raccourcir',
+    lengthen: 'Allonger',
+    simplify: 'Simplifier le langage',
+    tone: 'Changer de ton',
+    translate: 'Traduire',
+    summarize: 'Résumer',
+    explain: 'Expliquer',
+    custom: 'Demander à l’IA',
+  },
+  menu: 'Actions de l’IA',
+  prompt: 'Demandez à l’IA d’écrire ou de modifier',
+  tonePrompt: 'Ton à prendre, par exemple amical',
+  translatePrompt: 'Langue vers laquelle traduire',
+  ask: (prompt) => `Demander à l’IA : ${prompt}`,
+  response: 'Réponse de l’IA',
+  writing: 'Rédaction en cours',
+  stopped: 'Arrêté',
+  stop: 'Arrêter',
+  accept: 'Accepter',
+  discard: 'Abandonner',
+  retry: 'Réessayer',
+  followUp: 'Dites à l’IA quoi faire ensuite',
+  failed: 'L’IA n’a pas pu répondre',
+  written: (text) => `Réponse de l’IA prête : ${text}`,
+  halted: (text) => `Arrêté. Réponse de l’IA jusqu’ici : ${text}`,
+  targetGone: 'Le texte visé a été supprimé ; Accepter insérera la réponse là où il se trouvait',
+};

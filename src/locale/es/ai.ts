@@ -1,0 +1,37 @@
+import type { AiLabels } from '../../extensions/ai/ai-labels';
+
+/** Every string AI actions show or speak, in Spanish. */
+export const esAiLabels: AiLabels = {
+  askAi: 'Preguntar a la IA',
+  askAiDescription: 'Escribir o editar con IA',
+  actions: {
+    continue: 'Seguir escribiendo',
+    improve: 'Mejorar la redacción',
+    fix: 'Corregir la ortografía y la gramática',
+    shorten: 'Acortar',
+    lengthen: 'Alargar',
+    simplify: 'Simplificar el lenguaje',
+    tone: 'Cambiar el tono',
+    translate: 'Traducir',
+    summarize: 'Resumir',
+    explain: 'Explicar',
+    custom: 'Preguntar a la IA',
+  },
+  menu: 'Acciones de la IA',
+  prompt: 'Pide a la IA que escriba o edite',
+  tonePrompt: 'Tono que adoptar, por ejemplo cercano',
+  translatePrompt: 'Idioma al que traducir',
+  ask: (prompt) => `Preguntar a la IA: ${prompt}`,
+  response: 'Respuesta de la IA',
+  writing: 'Escribiendo',
+  stopped: 'Detenida',
+  stop: 'Detener',
+  accept: 'Aceptar',
+  discard: 'Descartar',
+  retry: 'Reintentar',
+  followUp: 'Dile a la IA qué hacer a continuación',
+  failed: 'La IA no ha podido responder',
+  written: (text) => `Respuesta de la IA lista: ${text}`,
+  halted: (text) => `Detenida. Respuesta de la IA hasta ahora: ${text}`,
+  targetGone: 'El texto al que se refería se ha eliminado, así que Aceptar la insertará donde estaba',
+};

@@ -45,6 +45,21 @@ export const lazyChunks = [
   { name: 'prism-grammars', source: 'src/blocks/code/prism/prism-grammars.ts', total: 34_000 },
 ];
 
+/**
+ * A language the package ships every label in, as data a host passes to `labels` and to each feature it turns on. A
+ * pack imports no code of the package, only its types, so it is measured on its own like a core entry.
+ * @type {PackageEntry[]}
+ */
+export const localeEntries = [
+  { name: 'locale-ar', source: 'src/locale/ar.ts', client: false, total: incrementalBudget(6_708) },
+  { name: 'locale-de', source: 'src/locale/de.ts', client: false, total: incrementalBudget(5_483) },
+  { name: 'locale-es', source: 'src/locale/es.ts', client: false, total: incrementalBudget(5_494) },
+  { name: 'locale-fr', source: 'src/locale/fr.ts', client: false, total: incrementalBudget(5_499) },
+  { name: 'locale-ja', source: 'src/locale/ja.ts', client: false, total: incrementalBudget(6_212) },
+  { name: 'locale-pt', source: 'src/locale/pt.ts', client: false, total: incrementalBudget(5_480) },
+  { name: 'locale-zh', source: 'src/locale/zh.ts', client: false, total: incrementalBudget(5_804) },
+];
+
 /** @type {PackageEntry[]} */
 export const packageEntries = [
   { name: MAIN_ENTRY, source: 'src/index.ts', client: true, total: 157_000 },
@@ -56,6 +71,7 @@ export const packageEntries = [
   { name: 'diff', source: 'src/diff/index.ts', client: false, total: 26_961 },
   // Word documents written in a browser, a worker or Node, loaded alone like the view: most of it is the block reading.
   { name: 'docx', source: 'src/docx/index.ts', client: false, total: 25_891 },
+  ...localeEntries,
   // Measured as what it adds to the main entry, like a feature: the engine entry it loads is a part of the main entry.
   { name: 'yjs', source: 'src/yjs.ts', client: false, added: incrementalBudget(8_498) },
   // Collaborators drawn in the canvas: a client entry, apart from the adapter, which a worker or a server can load alone.

@@ -1,0 +1,15 @@
+export { esAiLabels } from './es/ai';
+export { esCommentsLabels } from './es/comments';
+export { esLabels } from './es/core';
+export { esDiagramLabels } from './es/diagram';
+export { esDiffLabels } from './es/diff';
+export { esEmbedLabels } from './es/embed';
+export { esEmojiLabels } from './es/emoji';
+export { esFindLabels } from './es/find';
+export { esMathLabels } from './es/math';
+export { esMentionLabels } from './es/mention';
+export { esPresenceLabels } from './es/presence';
+export { esSourceLabels } from './es/source';
+export { esStatsLabels } from './es/stats';
+export { esTableLabels } from './es/table';
+export { esTocLabels } from './es/toc';

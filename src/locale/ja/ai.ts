@@ -1,0 +1,37 @@
+import type { AiLabels } from '../../extensions/ai/ai-labels';
+
+/** Every string AI actions show or speak, in Japanese. */
+export const jaAiLabels: AiLabels = {
+  askAi: 'AI に依頼',
+  askAiDescription: 'AI で書く、または直す',
+  actions: {
+    continue: '続きを書く',
+    improve: '文章を良くする',
+    fix: 'つづりと文法を直す',
+    shorten: '短くする',
+    lengthen: '長くする',
+    simplify: 'やさしい言葉にする',
+    tone: '調子を変える',
+    translate: '翻訳する',
+    summarize: '要約する',
+    explain: '説明する',
+    custom: 'AI に依頼',
+  },
+  menu: 'AI の操作',
+  prompt: 'AI に書くことや直すことを頼む',
+  tonePrompt: '求める調子、たとえば親しみやすく',
+  translatePrompt: '翻訳したい言語',
+  ask: (prompt) => `AI に依頼: ${prompt}`,
+  response: 'AI の回答',
+  writing: '作成中',
+  stopped: '停止しました',
+  stop: '停止',
+  accept: '反映',
+  discard: '破棄',
+  retry: 'やり直す',
+  followUp: '次にしてほしいことを AI に伝える',
+  failed: 'AI は回答できませんでした',
+  written: (text) => `AI の回答ができました: ${text}`,
+  halted: (text) => `停止しました。ここまでの回答: ${text}`,
+  targetGone: '対象の文章が削除されたため、反映するとその場所に回答が挿入されます',
+};

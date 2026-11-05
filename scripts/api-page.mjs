@@ -2,8 +2,14 @@ import { inSection } from './api-sections.mjs';
 
 const oneLine = (text) => text.replace(/\s+/g, ' ').trim();
 
-const entryText = ({ name, doc, signature, file, line }) =>
-  [`### ${name}`, doc ? oneLine(doc) : null, `\`\`\`ts\n${signature}\n\`\`\``, `[${name} on GitHub](${file}#L${line})`]
+const entryText = ({ name, doc, deprecated, signature, file, line }) =>
+  [
+    `### ${name}`,
+    deprecated ? `**Deprecated.** ${oneLine(deprecated)}` : null,
+    doc ? oneLine(doc) : null,
+    `\`\`\`ts\n${signature}\n\`\`\``,
+    `[${name} on GitHub](${file}#L${line})`,
+  ]
     .filter((part) => part !== null)
     .join('\n\n');
 

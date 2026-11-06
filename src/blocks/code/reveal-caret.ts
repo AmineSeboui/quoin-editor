@@ -35,5 +35,5 @@ export function revealCaret(area: HTMLTextAreaElement, drawn: HTMLElement, mark:
   const left = atLineStart ? null : caretLeft(drawn, caret);
   mark.style.top = `${(parseFloat(style.paddingTop) || 0) + line * (parseFloat(style.lineHeight) || 0)}px`;
   mark.style.left = `${left ?? 0}px`;
-  mark.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  mark.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
 }

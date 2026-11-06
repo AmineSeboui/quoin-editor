@@ -79,7 +79,7 @@ export function SuggestionMenu<T>(props: SuggestionMenuProps<T>) {
   const listbox = useRef<HTMLDivElement>(null);
 
   useIsomorphicLayoutEffect(() => {
-    listbox.current?.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest' });
+    listbox.current?.querySelector('[aria-selected="true"]')?.scrollIntoView?.({ block: 'nearest' });
   }, [activeIndex, sections]);
 
   if (trigger === null) return null;

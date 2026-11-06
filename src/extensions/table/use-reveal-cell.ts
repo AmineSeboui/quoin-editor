@@ -22,6 +22,6 @@ export function useRevealCell(controller: ViewController, blockId: string): void
     const host = region === null ? undefined : controller.registry.get(blockId, region);
     const root = controller.root;
     if (!host || !root?.contains(root.ownerDocument.activeElement)) return;
-    host.closest('td, th')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    host.closest('td, th')?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
   }, [controller, blockId, region]);
 }

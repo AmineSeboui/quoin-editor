@@ -7,6 +7,9 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 ### Changed
 - `BlockShellProps` and `SelectionSinkProps` are marked deprecated, as the two components they type already were in 1.8.0, and they go with them in 2.0.0. The components carried the marker and the prop types did not, so a host that named a type without drawing the component itself was told nothing. Both are still exported and still describe the same props.
 
+### Fixed
+- An editable canvas warns in development when a definition of `CODE`, `IMAGE` or `FILE` replaces the preview that edits it and brings no editor of its own. Quoin edits those three in their preview rather than through an `editor`, so such a definition left a block the canvas drew and nobody could write in: no editable node, no language picker, and for an image or a file no toolbar and no way to fill the empty state. Nothing was logged, and the warning that would have caught it covered `MARKDOWN`, `CALLOUT` and `TOGGLE` only, whose consequence is milder since the canvas keeps drawing and typing into those. The migration guide said as much by naming only that first set, and now names both. Nothing about what the canvas draws changes.
+
 ## 1.8.0 (2026-11-05)
 
 ### Added

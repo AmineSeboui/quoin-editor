@@ -43,3 +43,10 @@ export const drawsType = (definitions: readonly AnyBlockDefinition[], type: stri
 export const opensEditor = (definitions: readonly AnyBlockDefinition[], type: string): boolean =>
   drawnInPlace(definitions, type) ||
   (!drawnAsText(definitions, type, false) && blockByType(definitions, type)?.editor !== undefined);
+
+/**
+ * The types Quoin edits through its preview that a host's own definition replaces without bringing an editor, which
+ * leaves an editable canvas drawing a block nobody can write in.
+ */
+export const definedWithoutEditor = (definitions: readonly AnyBlockDefinition[]): string[] =>
+  Object.keys(inPlaceRenderers).filter((type) => hostDefines(definitions, type) && !opensEditor(definitions, type));

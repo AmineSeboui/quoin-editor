@@ -133,6 +133,12 @@ Sources, checked on 2026-11-05: Tiptap [persistence][tt-store], [markdown][tt-md
 - [Accessibility](https://amineseboui.github.io/quoin-editor/docs/accessibility/): what each test suite checks, and what it does not yet
 - [FAQ](https://amineseboui.github.io/quoin-editor/docs/faq/): the package name, stability, React versions, and [upgrading from 0.4](MIGRATION.md)
 
+## Sponsors
+
+Quoin is MIT, with no paid tier and nothing held back behind a licence. It is built and maintained by one person. [Sponsoring it](https://github.com/sponsors/AmineSeboui) pays for the time that keeps issues answered and releases going out.
+
+No sponsors yet. Yours would be the first name here.
+
 ## The name
 
 A quoin is the wedge a letterpress printer tightens to lock blocks of type into the frame, so nothing moves while the page is printed. Quoin does the same for blocks of markdown.

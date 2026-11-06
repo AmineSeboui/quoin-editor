@@ -1,6 +1,6 @@
 import { Sparkles } from '../icons';
 import { defineBlock } from '../registry';
-import { drawsType, opensEditor } from './block-drawing';
+import { definedWithoutEditor, drawsType, opensEditor } from './block-drawing';
 import { coreBlocks } from './core';
 
 const chart = defineBlock({ type: 'CHART', label: 'Chart', icon: Sparkles, preview: () => null });
@@ -34,5 +34,31 @@ describe('opensEditor', () => {
     expect(opensEditor(coreBlocks, 'IMAGE')).toBe(true);
     expect(opensEditor(coreBlocks, 'FILE')).toBe(true);
     expect(opensEditor([...coreBlocks, snippet], 'CODE')).toBe(false);
+  });
+});
+
+describe('definedWithoutEditor', () => {
+  const editable = defineBlock({
+    type: 'CODE',
+    label: 'Snippet',
+    icon: Sparkles,
+    preview: () => null,
+    editor: () => null,
+  });
+
+  it('names a type whose host definition replaces the preview that edits it', () => {
+    expect(definedWithoutEditor([...coreBlocks, snippet])).toEqual(['CODE']);
+  });
+
+  it('names none while Quoin draws its own', () => {
+    expect(definedWithoutEditor(coreBlocks)).toEqual([]);
+  });
+
+  it('names none where the host definition brings an editor of its own', () => {
+    expect(definedWithoutEditor([...coreBlocks, editable])).toEqual([]);
+  });
+
+  it('names none for a type Quoin never edited in place', () => {
+    expect(definedWithoutEditor([...coreBlocks, chart])).toEqual([]);
   });
 });

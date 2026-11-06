@@ -87,7 +87,7 @@ Two behaviours changed:
 
 `defineBlock` takes the same definition. `icon` now accepts any component that takes a `className` and `aria-hidden`, not only a lucide one. A custom block shows its `preview` at rest, and its `editor` opens on a double click, its Edit button or Enter on the selected block; Escape closes it.
 
-A definition of a type the canvas types into in place, `MARKDOWN`, `CALLOUT` or `TOGGLE`, now draws only on a read-only canvas, and an editable canvas warns in development. To change how one of them looks while it is edited, give an extension a renderer for the type in `ui.renderers`:
+A definition of a type the canvas types into in place, `MARKDOWN`, `CALLOUT` or `TOGGLE`, now draws only on a read-only canvas, and an editable canvas warns in development. `CODE`, `IMAGE` and `FILE` are edited in their `preview` rather than through an `editor`, so a definition that replaces the preview and brings no editor of its own leaves a block an editable canvas draws and nobody can write in; that warns in development too. To draw one of those three your own way on a read-only canvas and keep Quoin's editing where the canvas is editable, register your definition only while `readOnly` is set. To change how one of them looks while it is edited, give an extension a renderer for the type in `ui.renderers`:
 
 ```tsx
 import { BlockCanvas, EditableRegion, type BlockRenderer, type ExtensionUI, type QuoinBlock } from 'quoin-editor';

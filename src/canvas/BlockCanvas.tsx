@@ -29,7 +29,7 @@ import { CanvasUiProvider, createCanvasUiStore } from './ui-store';
 import { useBlockLinkTarget } from './use-block-link-target';
 import { useDeleteReporter } from './use-delete-reporter';
 import { useStructureAnnouncements } from './use-structure-announcements';
-import { useTypedInPlaceWarning } from './use-typed-in-place-warning';
+import { useDefinitionWarnings } from './use-definition-warnings';
 
 // Room at the start of every line for the gutter: two small controls, or on a touch screen one 44 px handle.
 const GUTTER_ROOM = 'ps-12';
@@ -79,7 +79,7 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
     () => collectUi(allExtensions, blockTypes, readOnly, () => latestOnError.current),
     [allExtensions, blockTypes, readOnly],
   );
-  useTypedInPlaceWarning(blockTypes, readOnly);
+  useDefinitionWarnings(blockTypes, readOnly);
   const [focusOnMount] = useState(autoFocus);
   const controller = useQuoinEditor({
     blocks,

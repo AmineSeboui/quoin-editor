@@ -10,3 +10,5 @@ demo/dist-server
 playwright-report
 playwright-report-dist
 test-results
+blob-report
+blob-reports

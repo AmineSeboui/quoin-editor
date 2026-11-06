@@ -46,7 +46,7 @@ npm run record:demo && npm run render:og
 | `npm run typecheck` | TypeScript over the sources and the Playwright specs |
 | `npm test` | The Vitest suite, in jsdom |
 | `npm run test:coverage` | The same, with the coverage thresholds: 90 percent of lines on `src/engine`, 95 on `src/view`, 97 on `src/blocks`, 98 on `src/ui`, 98 on `src/hooks` (`useAutosave`), 98 on `src/context.tsx` (`useQuoin`), 98 on `src/i18n` (`useLabels`), 97 on `src/canvas` and 97 on `src/menus` |
-| `npm run test:e2e` | The Playwright suite, against a harness served by Vite |
+| `npm run test:e2e` | The Playwright suite, against a harness served by Vite, bundled first where `CI` is set |
 | `npm run test:e2e:dist` | A smoke set of the Playwright specs in Chromium, against the same harness over the built `dist/` (run `npm run build` first) |
 | `npm run check:css` | Every rule of the built stylesheet is scoped to the editor |
 | `npm run check:directives` | Client entries carry `'use client'`, server entries do not |
@@ -59,7 +59,9 @@ npm run record:demo && npm run render:og
 
 Write the test first, see it fail, then make it pass, and keep it. Unit tests sit next to the code they test (`*.test.ts` or `*.test.tsx`); browser behaviour, such as typing, selection, the clipboard, drag and drop and axe scans, belongs in `e2e/tests`.
 
-Playwright runs on Chromium, Firefox and WebKit in CI. To run one browser locally:
+Playwright runs on Chromium, Firefox and WebKit in CI, split across six shards that each report a blob. The `e2e` job merges those into the one HTML report the run attaches, and carries the shards and the smoke set over the built package as its own result, so the branch policy has one check to require. Locally the harness is served by the Vite development server, so an edit to it needs no restart; where `CI` is set it is bundled first and served as static files, which spares every test the hundreds of module requests a navigation would otherwise make.
+
+To run one browser locally:
 
 ```bash
 npx playwright test --project=chromium

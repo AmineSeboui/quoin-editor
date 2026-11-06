@@ -40,8 +40,8 @@ export function HomePage() {
               <CheckIcon />
             </button>
           </div>
-          <a className="text-link" href={pageHref('blocks/')}>
-            See every block
+          <a className="text-link" href={pageHref('playground/')}>
+            Open the playground
           </a>
         </div>
       </section>

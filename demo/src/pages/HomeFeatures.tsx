@@ -12,6 +12,16 @@ const FEATURES = [
     path: 'docs/localization/',
   },
   {
+    title: 'Code blocks that colour and draw',
+    text: 'Syntax colouring in every language the picker offers, fetched the first time a canvas needs it, and a fenced block whose language names a diagram, drawn by the renderer you pass.',
+    path: 'docs/extensions/',
+  },
+  {
+    title: 'The markdown, side by side',
+    text: 'Show the document as the markdown it is stored as, read only, with the block holding the caret marked, beside or below the canvas.',
+    path: 'playground/',
+  },
+  {
     title: 'Every block you expect',
     text: 'Callouts, toggles, tasks, code, tables, math, embeds, mentions and a table of contents.',
     path: 'blocks/',

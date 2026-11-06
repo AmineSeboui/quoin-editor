@@ -20,6 +20,7 @@ export const docSlugs = () =>
 export const expectedPages = () => [
   '',
   ...docSlugs().map((slug) => `docs/${slug}/`),
+  'playground/',
   'blocks/',
   'collaboration/',
   'ai/',

@@ -1,6 +1,6 @@
 import type { Page } from '../site/pages';
 import { ComparisonPage } from './ComparisonPage';
-import { AiPage, BlocksPage, CollaborationPage, CommentsPage, ServerRenderingPage } from './demo-pages';
+import { AiPage, BlocksPage, CollaborationPage, CommentsPage, PlaygroundPage, ServerRenderingPage } from './demo-pages';
 import { DocPage } from './DocPage';
 import { HomePage } from './HomePage';
 import { NotFoundPage } from './NotFoundPage';
@@ -12,6 +12,8 @@ export function PageBody({ page }: { page: Page }) {
       return <HomePage />;
     case 'doc':
       return <DocPage slug={page.slug} />;
+    case 'playground':
+      return <PlaygroundPage page={page} />;
     case 'blocks':
       return <BlocksPage page={page} />;
     case 'collaboration':

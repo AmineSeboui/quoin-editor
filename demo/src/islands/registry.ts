@@ -5,6 +5,7 @@ type Loader = () => Promise<{ default: ComponentType }>;
 /** Each interactive piece a page can hold, loaded only on the pages that hold it. */
 export const islands = {
   home: () => import('./HomeEditor'),
+  playground: () => import('./Playground'),
   blocks: () => import('./BlocksEditor'),
   collaboration: () => import('./CollaborationPair'),
   ai: () => import('./AiEditor'),

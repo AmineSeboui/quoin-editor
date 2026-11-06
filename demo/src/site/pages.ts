@@ -3,6 +3,7 @@ import { docSources } from './sources';
 export type PageKind =
   | { kind: 'home' }
   | { kind: 'doc'; slug: string }
+  | { kind: 'playground' }
   | { kind: 'blocks' }
   | { kind: 'collaboration' }
   | { kind: 'ai' }
@@ -49,6 +50,13 @@ export const guidePages: Page[] = [...docSources.values()]
   .map(({ slug, title, description }) => ({ kind: 'doc', slug, path: `docs/${slug}/`, title, description }));
 
 export const demoPages: Page[] = [
+  {
+    kind: 'playground',
+    path: 'playground/',
+    title: 'Playground',
+    description:
+      'Quoin in eight languages, with syntax highlighting and the markdown source pane switched on and off, and the code behind every setting beside it.',
+  },
   {
     kind: 'blocks',
     path: 'blocks/',

@@ -14,6 +14,6 @@ export function inPlace(element: HTMLElement, change: () => void): void {
   change();
   for (const { at, left, top } of before) {
     const now = scrollOf(at);
-    if (now.left !== left || now.top !== top) at.scrollTo({ left, top, behavior: 'instant' });
+    if (now.left !== left || now.top !== top) at.scrollTo?.({ left, top, behavior: 'instant' });
   }
 }

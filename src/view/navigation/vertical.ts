@@ -17,7 +17,7 @@ function lineInView(host: HTMLElement, last: boolean): DOMRect | null {
   const line = lineEdgeRect(host, last);
   const view = host.ownerDocument.defaultView;
   if (!line || !view || (line.top >= 0 && line.bottom <= view.innerHeight)) return line;
-  host.scrollIntoView({ block: 'nearest' });
+  host.scrollIntoView?.({ block: 'nearest' });
   return lineEdgeRect(host, last);
 }
 

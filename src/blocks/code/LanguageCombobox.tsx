@@ -45,7 +45,7 @@ export function LanguageCombobox({ blockId, controller, language, field, onDone 
   const optionId = (index: number) => `${listboxId}-${index}`;
 
   useIsomorphicLayoutEffect(() => {
-    list.current?.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest' });
+    list.current?.querySelector('[aria-selected="true"]')?.scrollIntoView?.({ block: 'nearest' });
   }, [active]);
 
   const close = () => {

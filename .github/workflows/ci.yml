@@ -58,7 +58,7 @@ jobs:
         env:
           QUOIN_REACT: ${{ matrix.react }}
 
-  e2e:
+  e2e-shards:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -80,10 +80,29 @@ jobs:
           path: blob-report
           retention-days: 1
 
-  # A shard reports nothing readable on its own, so the run is read from the one report merged out of them all.
-  e2e-report:
+  e2e-dist:
     runs-on: ubuntu-latest
-    needs: e2e
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - run: npm run test:e2e:dist
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-dist
+          path: playwright-report-dist
+
+  # The branch policy requires a check named e2e, and a shard reports under a name of its own and nothing readable
+  # on its own either, so this job stands for the suite: it merges their reports and carries their result.
+  e2e:
+    runs-on: ubuntu-latest
+    needs: [e2e-shards, e2e-dist]
     if: ${{ !cancelled() }}
     steps:
       - uses: actions/checkout@v7
@@ -104,24 +123,8 @@ jobs:
           name: playwright-report
           path: playwright-report
           retention-days: 7
-
-  e2e-dist:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - run: npm run build
-      - run: npm run test:e2e:dist
-      - if: failure()
-        uses: actions/upload-artifact@v7
-        with:
-          name: playwright-report-dist
-          path: playwright-report-dist
+      - if: ${{ needs.e2e-shards.result != 'success' || needs.e2e-dist.result != 'success' }}
+        run: exit 1
 
   site:
     runs-on: ubuntu-latest

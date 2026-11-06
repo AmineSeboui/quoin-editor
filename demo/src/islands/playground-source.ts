@@ -1,44 +1,81 @@
-import { SET_SUFFIX } from './playground-languages';
+import { SET_SUFFIX, type LabelSets } from './playground-languages';
 
-export type Settings = { language: string; highlighting: boolean; source: boolean; readOnly: boolean };
+export type Settings = {
+  language: string;
+  comments: boolean;
+  ai: boolean;
+  collaboration: boolean;
+  highlighting: boolean;
+  source: boolean;
+  readOnly: boolean;
+};
 
 const SHOWN_FEATURES = ['table', 'find'] as const;
 
-const localeImport = (language: string, source: boolean): string => {
-  const names = ['core' as const, ...SHOWN_FEATURES, ...(source ? (['source'] as const) : [])]
-    .map((set) => `${language}${SET_SUFFIX[set]}`)
-    .sort();
-  return `import { ${names.join(', ')} } from 'quoin-editor/locale-${language}';`;
-};
+const localeSets = ({ comments, ai, collaboration, source }: Settings): (keyof LabelSets)[] => [
+  'core',
+  ...SHOWN_FEATURES,
+  ...(comments ? (['comments'] as const) : []),
+  ...(ai ? (['ai'] as const) : []),
+  ...(collaboration ? (['presence'] as const) : []),
+  ...(source ? (['source'] as const) : []),
+];
 
 /** The tsx this page is passing right now, for a reader to copy into their own editor. */
-export function playgroundSource({ language, highlighting, source, readOnly }: Settings): string {
+export function playgroundSource(settings: Settings): string {
+  const { language, comments, ai, collaboration, highlighting, source, readOnly } = settings;
   const translated = language !== 'en';
-  const labelled = (set: keyof typeof SET_SUFFIX) => (translated ? `${language}${SET_SUFFIX[set]}` : null);
+  const named = (set: keyof LabelSets) => (translated ? `${language}${SET_SUFFIX[set]}` : null);
+  const labelled = (set: keyof LabelSets) => (translated ? `, labels: ${named(set)}` : '');
 
-  const imports = [`import { BlockCanvas } from 'quoin-editor';`, `import { catalogue } from 'quoin-editor/catalogue';`];
-  if (highlighting) imports.push(`import { usePrismHighlighter } from 'quoin-editor/highlight';`);
-  if (translated) imports.push(localeImport(language, source));
-  if (source) imports.push(`import { QuoinSource } from 'quoin-editor/source';`);
+  const imports = [
+    `import { BlockCanvas } from 'quoin-editor';`,
+    ai ? `import { aiExtension } from 'quoin-editor/ai';` : null,
+    `import { catalogue } from 'quoin-editor/catalogue';`,
+    comments ? `import { commentsExtension } from 'quoin-editor/comments';` : null,
+    highlighting ? `import { usePrismHighlighter } from 'quoin-editor/highlight';` : null,
+    translated
+      ? `import { ${localeSets(settings)
+          .map((set) => named(set))
+          .sort()
+          .join(', ')} } from 'quoin-editor/locale-${language}';`
+      : null,
+    collaboration ? `import { presenceExtension } from 'quoin-editor/presence';` : null,
+    source ? `import { QuoinSource } from 'quoin-editor/source';` : null,
+    collaboration ? `import { collaborationExtension, yjsCollaboration } from 'quoin-editor/yjs';` : null,
+  ].filter((line) => line !== null);
 
-  const features = SHOWN_FEATURES.map((set) => `  ${set}: { labels: ${labelled(set)} },`);
-  const extensions = translated
-    ? ['const extensions = catalogue({', ...features, '  // every other feature the same way, through its own options', '});']
-    : ['const extensions = catalogue();'];
+  const features = SHOWN_FEATURES.map((set) => `    ${set}: { labels: ${named(set)} },`);
+  const inCatalogue = translated
+    ? ['  ...catalogue({', ...features, '    // every other feature the same way', '  }),']
+    : ['  ...catalogue(),'];
+
+  const extensions = [
+    'const extensions = [',
+    ...inCatalogue,
+    comments ? `  commentsExtension({ threads, currentUser, onCreate, onReply, onResolve, onDelete${labelled('comments')} }),` : null,
+    ai ? `  aiExtension({ stream: model${labelled('ai')} }),` : null,
+    collaboration ? '  collaborationExtension(collaboration),' : null,
+    collaboration ? `  presenceExtension(collaboration${translated ? `, { labels: ${named('presence')} }` : ''}),` : null,
+    '];',
+  ].filter((line) => line !== null);
 
   const props = [
     `  key="${language}"`,
     '  blocks={blocks}',
     '  onChange={setBlocks}',
     '  extensions={extensions}',
-    translated ? `  labels={${labelled('core')}}` : null,
+    translated ? `  labels={${named('core')}}` : null,
     highlighting ? '  highlight={usePrismHighlighter()}' : null,
     readOnly ? '  readOnly' : null,
   ].filter((line) => line !== null);
 
-  const pane = source
-    ? ['', `<QuoinSource controller={handle.controller}${translated ? ` labels={${labelled('source')}}` : ''} />`]
-    : [];
+  const panes = [
+    ...(source
+      ? ['', `<QuoinSource controller={handle.controller}${translated ? ` labels={${named('source')}}` : ''} />`]
+      : []),
+    ...(collaboration ? ['', '// and a second canvas, with a yjsCollaboration of its own on the same channel'] : []),
+  ];
 
-  return [...imports, '', ...extensions, '', '<BlockCanvas', ...props, '/>', ...pane].join('\n');
+  return [...imports, '', ...extensions, '', '<BlockCanvas', ...props, '/>', ...panes].join('\n');
 }

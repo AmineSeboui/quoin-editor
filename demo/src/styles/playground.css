@@ -40,6 +40,39 @@
   padding: 1.25rem 1.5rem 1.5rem;
 }
 
+/* A fieldset carries an intrinsic minimum width that stops it shrinking inside a grid. */
+.play-group {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.play-group + .play-group {
+  padding-top: 1.375rem;
+  border-top: 1px solid var(--site-hairline);
+}
+
+.play-group legend {
+  padding: 0;
+  color: var(--quoin-muted-foreground);
+  font-size: 0.8125rem;
+}
+
+.play-group > * + * {
+  margin-top: 1.25rem;
+}
+
+.play-peer {
+  margin-top: 1.5rem;
+}
+
+.play-peer h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
 .play-field label,
 .play-toggle label {
   font-size: 0.9375rem;

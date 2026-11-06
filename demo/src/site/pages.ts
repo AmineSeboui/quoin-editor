@@ -55,7 +55,7 @@ export const demoPages: Page[] = [
     path: 'playground/',
     title: 'Playground',
     description:
-      'Quoin in eight languages, with syntax highlighting and the markdown source pane switched on and off, and the code behind every setting beside it.',
+      'Quoin in eight languages, with comments, AI, collaboration, syntax highlighting and the markdown source pane switched on and off, and the code behind every setting beside it.',
   },
   {
     kind: 'blocks',

@@ -13,9 +13,10 @@ export function PlaygroundPage({ page }: { page: Page }) {
   return (
     <DemoPage page={page} guide="localization" guideTitle="Localization">
       <p>
-        Every setting here is a prop, and the code beside the editor is the code that sets it, ready to copy. Picking a
-        language downloads that pack and remounts the canvas with a new <code>key</code>, because a canvas reads its
-        extensions once. Highlighting, the markdown pane and read only take effect where they are.
+        Every setting here is a prop, and the code beside the editor is the code that sets it, ready to copy. The
+        settings are in two groups because Quoin treats them differently: a canvas reads its extensions once, so the
+        language, comments, AI and the second collaborator are read as it mounts and changing any of them remounts it
+        with a new <code>key</code>. Highlighting, the markdown pane and read only are props it answers to at once.
       </p>
       <Island name="playground" blocks={everyBlock} />
     </DemoPage>

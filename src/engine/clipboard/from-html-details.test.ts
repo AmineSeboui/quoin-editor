@@ -201,7 +201,9 @@ describe('fromHTML structures', () => {
       expect(JSON.stringify(blocks)).toContain('deep');
       expect(Math.max(...blocks.map((block) => block.indent ?? 0))).toBeLessThan(110);
     }
-  });
+    // Eight documents of 1500 nested elements each: a second on an idle machine, several when the suite saturates
+    // the cores around it, which is past the default and is why this failed now and then.
+  }, 60_000);
 });
 
 describe('fromHTML environment', () => {

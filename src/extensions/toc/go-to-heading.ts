@@ -23,5 +23,5 @@ export function goToHeading(controller: ViewController, blockId: string): void {
   const landed = headBlockId(editor.state.selection);
   const shell = landed === null ? undefined : controller.blockElement(landed);
   const behavior = reducesMotion(root.ownerDocument.defaultView) ? 'auto' : 'smooth';
-  shell?.scrollIntoView({ behavior, block: 'start' });
+  shell?.scrollIntoView?.({ behavior, block: 'start' });
 }

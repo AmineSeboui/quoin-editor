@@ -43,10 +43,10 @@ describe('the newest section', () => {
     expect(titles[0] === 'Unreleased' || titles[0] === versionHeading.slice(3)).toBe(true);
   });
 
-  it.skipIf(titles[0] === heading.slice(3))('sorts its changes under Added, Changed, Fixed and Known limits, each a list', () => {
+  it.skipIf(titles[0] === heading.slice(3))('sorts its changes under Added, Changed, Removed, Fixed and Known limits, each a list', () => {
     const headings = [...newest.matchAll(/^### (.+)$/gm)].map(([, title]) => title);
     expect(headings.length).toBeGreaterThan(0);
-    expect(headings.every((title) => ['Added', 'Changed', 'Fixed', 'Known limits'].includes(title))).toBe(true);
+    expect(headings.every((title) => ['Added', 'Changed', 'Removed', 'Fixed', 'Known limits'].includes(title))).toBe(true);
     for (const title of headings) expect(sectionOf(newest, `### ${title}`).trim()).toMatch(/^- /);
   });
 });
@@ -68,6 +68,14 @@ describe('the changelog', () => {
       return twice.length === 0 ? [] : [`${title}: ${twice.join(', ')}`];
     });
     expect(repeated).toEqual([]);
+  });
+
+  // Unreleased may hold a removal waiting for the next major, so the heading is allowed there and the mistake to
+  // catch is dating that section as anything but a major, which is the moment the promise would be broken.
+  it('gives no dated minor or patch a Removed heading, since a published name waits for a major', () => {
+    const dated = titles.filter((title) => /^\d+\.\d+\.\d+ \(\d{4}-\d{2}-\d{2}\)$/.test(title));
+    const minors = dated.filter((title) => !/^\d+\.0\.0 /.test(title));
+    expect(minors.filter((title) => /^### Removed$/m.test(sectionOf(changelog, `## ${title}`)))).toEqual([]);
   });
 
   it('sorts the 1.0.0 changes under Added, Changed, Removed, Fixed and Security, then the known gaps', () => {

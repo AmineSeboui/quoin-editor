@@ -13,8 +13,7 @@ import { useEngaged } from './use-engaged';
 import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect';
 import { useReaderChoices } from './use-reader-choices';
 
-/** @deprecated Removed in 2.0.0 with `BlockShell`, the component it types. */
-export type BlockShellProps = {
+type BlockShellProps = {
   block: EngineBlock;
   renderers: Readonly<Record<string, BlockRenderer>>;
 };
@@ -30,10 +29,6 @@ function rendererFor(renderers: Readonly<Record<string, BlockRenderer>>, type: s
   return VoidBlockFallback;
 }
 
-/**
- * @deprecated Internal to the view layer and removed in 2.0.0: `EditorView` draws a shell for every block already,
- * and a second shell for a block takes that block's registration with the controller from the first.
- */
 export const BlockShell = memo(function BlockShell({ block, renderers }: BlockShellProps) {
   const controller = useViewController();
   const ref = useRef<HTMLDivElement>(null);

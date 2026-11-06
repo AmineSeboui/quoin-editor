@@ -6,7 +6,6 @@ export { hostKey } from './controller/host-registry';
 export type { HostEntry, HostRegistry } from './controller/host-registry';
 export type { KeyInterceptor } from './input/keydown';
 export { caretFromPoint, type CaretPoint } from './navigation/caret-from-point';
-export { isCrossSelection } from './selection/selection-decorations';
 export type { BlockLabel } from './selection/selection-sink';
 export type { NodeReveal } from './selection/node-reveal';
 export { domMapOf, renderInline } from './dom/render-inline';
@@ -17,11 +16,4 @@ export { useQuoinEditor, type UseQuoinEditorOptions } from './react/use-quoin-ed
 export { EditorView, type EditorViewProps } from './react/EditorView';
 export type { BlockPlaceholder } from './react/block-placeholder';
 export { EditableRegion, type EditableRegionProps } from './react/EditableRegion';
-export { BlockShell, type BlockShellProps } from './react/BlockShell';
-export { SelectionSink, type SelectionSinkProps } from './react/SelectionSink';
-export {
-  defaultRenderers,
-  VoidBlockFallback,
-  type BlockRenderProps,
-  type BlockRenderer,
-} from './react/default-renderers';
+export type { BlockRenderProps, BlockRenderer } from './react/block-renderer-types';

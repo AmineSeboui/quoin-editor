@@ -11,7 +11,7 @@ const migration = readText(MIGRATION);
 const manifest = JSON.parse(readText(join(root, 'package.json')));
 
 const mappingRows = () =>
-  sectionOf(migration, '### Removed helpers')
+  sectionOf(migration, '#### Removed helpers')
     .split('\n')
     .filter((line) => /^\| `/.test(line))
     .map((line) => line.split('|').map((cell) => cell.trim()));
@@ -53,12 +53,12 @@ describe('the migration guide', () => {
   it.each(['align', 'color', 'background', 'icon', 'url', 'widthPercent', 'mime'])(
     'names the optional key %s that 1.0 writes, for a strict schema',
     (key) => {
-      expect(sectionOf(migration, '### New optional keys')).toContain(`\`${key}\``);
+      expect(sectionOf(migration, '#### New optional keys')).toContain(`\`${key}\``);
     },
   );
 
   it('tells a strict schema how to accept the new keys', () => {
-    expect(sectionOf(migration, '### New optional keys')).toMatch(/passthrough\(\)[\s\S]*additionalProperties/);
+    expect(sectionOf(migration, '#### New optional keys')).toMatch(/passthrough\(\)[\s\S]*additionalProperties/);
   });
 
   it.each(['insertAt', 'update', 'remove', 'undo', 'move', 'reorder', 'reset'])('maps BlockList.%s', (member) => {
@@ -66,7 +66,7 @@ describe('the migration guide', () => {
   });
 
   it('ends with a checklist', () => {
-    expect(sectionOf(migration, '## Checklist')).toMatch(/^- \[ \] /m);
+    expect(sectionOf(migration, '### Checklist')).toMatch(/^- \[ \] /m);
   });
 
   it('maps every 0.4 headless helper to something 1.0 has and drops it from 1.0', () => {

@@ -6,16 +6,11 @@ import { useEditorState } from './use-editor-state';
 import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect';
 import { useReadOnly } from './use-read-only';
 
-/** @deprecated Removed in 2.0.0 with `SelectionSink`, the component it types. */
-export type SelectionSinkProps = { label?: string; blockLabel?: BlockLabel };
+type SelectionSinkProps = { label?: string; blockLabel?: BlockLabel };
 
 // Holds the focus and the text of a selection across blocks or of whole blocks. The controller fills it, never React.
 // A block selected as a whole names it, is no multi-line field and asks for no virtual keyboard, which a tap on a
 // picture should not raise.
-/**
- * @deprecated Internal to the view layer and removed in 2.0.0: `EditorView` draws one already, and a second sink
- * takes the registration with the controller from the first.
- */
 export function SelectionSink({ label = 'Selected content', blockLabel }: SelectionSinkProps) {
   const controller = useViewController();
   const ref = useRef<HTMLDivElement>(null);

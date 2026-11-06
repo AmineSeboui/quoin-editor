@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { QuoinBlock } from 'quoin-editor';
 import { toggleMark } from 'quoin-editor/engine';
-import { defaultRenderers, EditorView, useQuoinEditor, type BlockRenderer, type RenderOptions } from 'quoin-editor/headless';
+import { EditableRegion, EditorView, useQuoinEditor, type BlockRenderer, type RenderOptions } from 'quoin-editor/headless';
 import { collaborative } from './collab-extensions';
 import { timeEdits } from './time-edits';
 
@@ -79,10 +79,9 @@ const docs: Record<string, QuoinBlock[]> = {
 };
 
 const THROWING_RENDERERS: Record<string, BlockRenderer> = {
-  MARKDOWN: (props) => {
-    if (props.block.id === 'b') throw new Error('cannot draw');
-    const Markdown = defaultRenderers.MARKDOWN;
-    return <Markdown {...props} />;
+  MARKDOWN: ({ block }) => {
+    if (block.id === 'b') throw new Error('cannot draw');
+    return <EditableRegion block={block.id} region="text" label="Paragraph" />;
   },
 };
 

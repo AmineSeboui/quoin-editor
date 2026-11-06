@@ -16,6 +16,6 @@ export function keepScroll(element: Element, change: () => void): void {
   change();
   for (const [at, left, top] of before) {
     const [, nowLeft, nowTop] = offsetOf(at);
-    if (nowLeft !== left || nowTop !== top) at.scrollTo({ left, top, behavior: 'instant' });
+    if (nowLeft !== left || nowTop !== top) at.scrollTo?.({ left, top, behavior: 'instant' });
   }
 }

@@ -38,7 +38,7 @@ export function createNodeReveal(element: (block: string) => HTMLElement | undef
     show(selection, local) {
       const block = nodeOf(selection);
       if (block !== null && block !== pressed && (block !== shown || (local && block === owed))) {
-        element(block)?.scrollIntoView({ block: 'nearest' });
+        element(block)?.scrollIntoView?.({ block: 'nearest' });
       }
       if (local) owed = null;
       shown = block;

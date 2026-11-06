@@ -14,7 +14,7 @@ function revealLinkedBlock(controller: ViewController, hash: string): boolean {
   const { editor } = controller;
   const { doc, schema } = editor.state;
   editor.dispatch(editor.createTransaction().setSelection(startOf(doc, schema, id)));
-  shell.scrollIntoView({ block: 'center' });
+  shell.scrollIntoView?.({ block: 'center' });
   return true;
 }
 

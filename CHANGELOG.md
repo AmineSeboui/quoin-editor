@@ -7,6 +7,9 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 ### Changed
 - `BlockShellProps` and `SelectionSinkProps` are marked deprecated, as the two components they type already were in 1.8.0, and they go with them in 2.0.0. The components carried the marker and the prop types did not, so a host that named a type without drawing the component itself was told nothing. Both are still exported and still describe the same props.
 
+### Fixed
+- A menu no longer throws where `Element.prototype.scrollIntoView` is absent, which is jsdom with no stub and any webview that omits it. Ten calls guarded the element they had queried but not the method on it, so an element that existed without the method was called anyway and threw a `TypeError` that left Quoin for the host's tree, replacing the page wherever an error boundary caught it. The calls are in the slash and language menus, the code block's caret reveal, a block link's target, a table cell, a heading jumped to from the table of contents and vertical caret movement. Keeping the highlighted entry in view is the whole of what a host without the method now loses. Two `scrollTo` calls that restore a scroll position after a change carried the same shape and are guarded with them.
+
 ## 1.8.0 (2026-11-05)
 
 ### Added

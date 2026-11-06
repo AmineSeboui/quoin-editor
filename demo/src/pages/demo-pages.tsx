@@ -9,6 +9,19 @@ import { Island } from '../site/Island';
 import type { Page } from '../site/pages';
 import { DemoPage } from './DemoPage';
 
+export function PlaygroundPage({ page }: { page: Page }) {
+  return (
+    <DemoPage page={page} guide="localization" guideTitle="Localization">
+      <p>
+        Every setting here is a prop, and the code beside the editor is the code that sets it, ready to copy. Picking a
+        language downloads that pack and remounts the canvas with a new <code>key</code>, because a canvas reads its
+        extensions once. Highlighting, the markdown pane and read only take effect where they are.
+      </p>
+      <Island name="playground" blocks={everyBlock} />
+    </DemoPage>
+  );
+}
+
 export function BlocksPage({ page }: { page: Page }) {
   return (
     <DemoPage page={page} guide="extensions" guideTitle="Opt-in features">

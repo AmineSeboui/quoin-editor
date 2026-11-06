@@ -7,6 +7,7 @@ import './styles/prose.css';
 import './styles/code.css';
 import './styles/docs.css';
 import './styles/demos.css';
+import './styles/playground.css';
 import './styles/home.css';
 import './styles/search.css';
 import { wireClips } from './clip-player';

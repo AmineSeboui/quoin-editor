@@ -7,6 +7,7 @@ type Current = 'page' | 'true' | undefined;
 type Item = { label: string; path: string; current: (page: Page) => Current };
 
 const LABELS: Record<string, string> = {
+  playground: 'Playground',
   blocks: 'Blocks',
   collaboration: 'Collaboration',
   ai: 'AI',

@@ -25,6 +25,10 @@ React 18.2 and later, React 19 included. `npm run check:consumer` typechecks the
 
 From 1.0, Quoin follows semantic versioning: a breaking change waits for the next major version, and every change is listed in the [changelog](https://github.com/AmineSeboui/quoin-editor/blob/main/CHANGELOG.md). Until 1.0, a minor version could break, so pin `~0.4.0` to stay on 0.4.
 
+## How do I upgrade from 1.x to 2.0?
+
+Change the version. 2.0 keeps the document format, the props of every component and every command of 1.x, and removes seven names that only the view layer ever called itself: `BlockShell`, `SelectionSink`, the `BlockShellProps` and `SelectionSinkProps` that typed them, `VoidBlockFallback`, `defaultRenderers` and `isCrossSelection`. Five of the seven carried a deprecation notice from 1.8.0. A host that imports none of them has nothing else to do, and the [migration guide](https://github.com/AmineSeboui/quoin-editor/blob/main/MIGRATION.md#migrating-from-1x-to-20) covers the one with a cost, `defaultRenderers`, whose text a renderer of your own draws with `EditableRegion`.
+
 ## How do I upgrade from 0.4?
 
 A 0.4 document loads in 1.0 as it is, and the `BlockCanvas` props keep their names. The [migration guide](https://github.com/AmineSeboui/quoin-editor/blob/main/MIGRATION.md) lists what changes, from multi-paragraph blocks that split on their first edit to the 0.4 helpers that became engine commands, and ends with a checklist.

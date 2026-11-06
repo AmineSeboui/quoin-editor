@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { BlockCanvas, type QuoinBlock, type QuoinEditorHandle } from 'quoin-editor';
 import { catalogue, type CatalogueOptions } from 'quoin-editor/catalogue';
 import { usePrismHighlighter } from 'quoin-editor/highlight';
-import type { MentionResult } from 'quoin-editor/mention';
 import { QuoinSource } from 'quoin-editor/source';
 import { everyBlock } from '../content/every-block';
+import { searchPeople } from '../content/people';
 import { resolveAssetUrl } from '../site/asset-url';
 import { renderDiagram } from '../site/diagram';
 import { PlaygroundCode } from './PlaygroundCode';
@@ -12,16 +12,8 @@ import { languageNamed, type LabelSets } from './playground-languages';
 import { PlaygroundSettings } from './PlaygroundSettings';
 import { playgroundSource, type Settings } from './playground-source';
 
-const PEOPLE: MentionResult[] = [
-  { id: 'ada', label: 'Ada Lovelace', kind: 'user', description: 'Mathematician' },
-  { id: 'grace', label: 'Grace Hopper', kind: 'user', description: 'Computer scientist' },
-  { id: 'alan', label: 'Alan Turing', kind: 'user', description: 'Computer scientist' },
-];
-
-const search = async (query: string) => PEOPLE.filter(({ label }) => label.toLowerCase().includes(query.toLowerCase()));
-
 const options = (sets: LabelSets | null): CatalogueOptions => ({
-  mention: { search, labels: sets?.mention },
+  mention: { search: searchPeople, labels: sets?.mention },
   diagram: { render: renderDiagram, labels: sets?.diagram },
   table: { labels: sets?.table },
   find: { labels: sets?.find },

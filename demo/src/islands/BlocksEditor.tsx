@@ -2,24 +2,15 @@ import { useState } from 'react';
 import { BlockCanvas, type QuoinBlock, type QuoinEditorHandle } from 'quoin-editor';
 import { catalogue } from 'quoin-editor/catalogue';
 import { usePrismHighlighter } from 'quoin-editor/highlight';
-import type { MentionResult } from 'quoin-editor/mention';
 import { QuoinSource } from 'quoin-editor/source';
 import { everyBlock } from '../content/every-block';
+import { searchPeople } from '../content/people';
 import { resolveAssetUrl } from '../site/asset-url';
 import { renderDiagram } from '../site/diagram';
 
-const PEOPLE: MentionResult[] = [
-  { id: 'ada', label: 'Ada Lovelace', kind: 'user', description: 'Mathematician' },
-  { id: 'grace', label: 'Grace Hopper', kind: 'user', description: 'Computer scientist' },
-  { id: 'alan', label: 'Alan Turing', kind: 'user', description: 'Computer scientist' },
-];
-
-const search = async (query: string) =>
-  PEOPLE.filter(({ label }) => label.toLowerCase().includes(query.toLowerCase()));
-
 export default function BlocksEditor() {
   const [blocks, setBlocks] = useState<QuoinBlock[]>(everyBlock);
-  const [extensions] = useState(() => catalogue({ mention: { search }, diagram: { render: renderDiagram } }));
+  const [extensions] = useState(() => catalogue({ mention: { search: searchPeople }, diagram: { render: renderDiagram } }));
   const [handle, setHandle] = useState<QuoinEditorHandle | null>(null);
   const highlight = usePrismHighlighter();
   return (

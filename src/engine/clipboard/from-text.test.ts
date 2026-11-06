@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
 import { looksLikeMarkdown, plainTextToBlocks } from './from-text';
 import { sliceFromClipboard } from './slice-from-clipboard';

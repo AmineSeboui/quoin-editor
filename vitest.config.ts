@@ -1,14 +1,15 @@
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 
+const environment = {
+  globals: true,
+  environment: 'jsdom' as const,
+  css: { include: [/\.css\?raw$/] },
+  setupFiles: ['./vitest.setup.ts'],
+};
+
 export default defineConfig({
-  plugins: [react()],
   test: {
-    globals: true,
-    environment: 'jsdom',
-    css: { include: [/\.css\?raw$/] },
-    setupFiles: ['./vitest.setup.ts'],
-    include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.ts'],
     coverage: {
       provider: 'v8',
       include: [
@@ -48,5 +49,27 @@ export default defineConfig({
       },
       reporter: ['text-summary', 'html', 'json'],
     },
+    projects: [
+      {
+        test: {
+          ...environment,
+          name: 'without-dom',
+          // The engine, the collaboration layer and the build scripts run without a DOM, so their tests do too, which
+          // spares each of them a jsdom and fails if one of them reaches for the document. The dozen that parse or
+          // write HTML go through the browser's own parser and ask for a DOM in a docblock.
+          environment: 'node',
+          include: ['src/engine/**/*.test.ts', 'src/yjs/**/*.test.ts', 'scripts/**/*.test.ts'],
+        },
+      },
+      {
+        plugins: [react()],
+        test: {
+          ...environment,
+          name: 'dom',
+          include: ['src/**/*.test.{ts,tsx}'],
+          exclude: [...configDefaults.exclude, 'src/engine/**/*.test.ts', 'src/yjs/**/*.test.ts'],
+        },
+      },
+    ],
   },
 });

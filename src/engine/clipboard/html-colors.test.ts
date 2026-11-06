@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
 import { PALETTE } from '../markdown/palette';
 import { PALETTE_RGB, type PaletteKind } from '../markdown/palette-rgb';

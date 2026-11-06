@@ -1,5 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 import base from './playwright.config';
+import { harnessServer } from './e2e/harness-server';
 
 const smoke = [
   'smoke.spec.ts',
@@ -24,7 +25,7 @@ export default defineConfig({
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
   ],
   webServer: {
-    command: 'vite --config e2e/vite.config.ts --mode dist',
+    command: harnessServer('dist'),
     url: 'http://localhost:5180',
     reuseExistingServer: !process.env.CI,
   },

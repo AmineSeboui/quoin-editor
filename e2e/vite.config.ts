@@ -20,7 +20,11 @@ export const builtAliases = aliasesTo(({ name }) => `dist/${name}.js`);
 /** The `dist` mode serves the harness over the built package, on a port of its own so it never reuses the source server. */
 export default defineConfig(({ mode }) => {
   const built = mode === 'dist';
+  const port = built ? 5180 : 5179;
   return {
+    // The bundled harness keeps React's development build, the one the dev server serves: a production React
+    // changes typing latency enough to move the ratios the performance budgets are held to.
+    define: { 'process.env.NODE_ENV': JSON.stringify('development') },
     root: here('./app'),
     cacheDir: here(built ? '../node_modules/.vite-dist' : '../node_modules/.vite'),
     plugins: [react()],
@@ -30,6 +34,24 @@ export default defineConfig(({ mode }) => {
         ...(built ? builtAliases : entryAliases),
       ],
     },
-    server: { port: built ? 5180 : 5179, strictPort: true },
+    build: {
+      outDir: here(built ? '../node_modules/.harness-dist' : '../node_modules/.harness'),
+      emptyOutDir: true,
+      // A failing run is read from its trace, so the bundle keeps the names and the lines of the source it came from.
+      minify: false,
+      sourcemap: true,
+      rollupOptions: {
+        input: [here('./app/index.html'), here('./app/docx.html')],
+        // A spec intercepts the emoji dataset by name, so it is held in a chunk named here rather than by the
+        // bundler, whose names differ between platforms, and no cache-busting hash stands in the way.
+        output: {
+          chunkFileNames: 'assets/[name].js',
+          entryFileNames: 'assets/[name].js',
+          manualChunks: (id: string) => (/emoji[\\/]data\.ts$|emoji-data\.js$/.test(id) ? 'emoji-data' : undefined),
+        },
+      },
+    },
+    server: { port, strictPort: true },
+    preview: { port, strictPort: true },
   };
 });

@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
-import { blocks, openEditor } from '../../support/editor';
+import { blocks, caretSettled, openEditor } from '../../support/editor';
 
 const dialog = (page: Page) => page.getByRole('dialog', { name: 'Keyboard shortcuts' });
 const host = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
@@ -55,6 +55,8 @@ test('a block duplicated from the block menu or with Mod+D is announced with the
   await page.getByRole('menuitem', { name: 'Duplicate' }).click();
   await expect.poll(async () => (await blocks(page)).length).toBe(6);
   await expect(page.getByRole('status')).toHaveText('Block inserted at position 3 of 6');
+  const copy = (await blocks(page))[2].id;
+  await caretSettled(page, host(page, copy));
   await page.keyboard.press('ControlOrMeta+d');
   await expect.poll(async () => (await blocks(page)).length).toBe(7);
   await expect(page.getByRole('status')).toHaveText('Block inserted at position 4 of 7');

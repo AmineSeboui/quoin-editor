@@ -42,14 +42,33 @@ test('the menu opens above a line near the bottom of the window', async ({ page 
 const scrollingRoot = (page: Page) =>
   page.locator('#root').evaluate((element) => Object.assign(element.style, { height: '320px', overflowY: 'auto' }));
 
+// Both rectangles are read in one pass, and only once three frames running agree on the gap. Read one at a time the
+// two belong to different layouts, and read while the menu is still being moved the answer describes neither the place
+// it left nor the one it is going to.
+async function settledGapUnderLine(page: Page, line: Locator): Promise<number> {
+  const [lineHandle, popupHandle] = [await line.elementHandle(), await popup(page).elementHandle()];
+  return page.evaluate(
+    async ([above, menu]) => {
+      const gap = () => menu!.getBoundingClientRect().y - above!.getBoundingClientRect().bottom;
+      let settled = 0;
+      let previous = gap();
+      for (let frame = 0; frame < 60 && settled < 2; frame++) {
+        await new Promise(requestAnimationFrame);
+        const current = gap();
+        settled = current === previous ? settled + 1 : 0;
+        previous = current;
+      }
+      return previous;
+    },
+    [lineHandle, popupHandle] as const,
+  );
+}
+
 async function expectMenuToFollowScrolling(page: Page, line: Locator) {
-  const gapUnderLine = async () => {
-    const lineBox = await box(line);
-    return (await box(popup(page))).y - (lineBox.y + lineBox.height);
-  };
   await page.locator('#root').evaluate((element) => element.scrollBy(0, 40));
-  await expect.poll(gapUnderLine).toBeLessThan(16);
-  expect(await gapUnderLine()).toBeGreaterThanOrEqual(0);
+  const gap = await settledGapUnderLine(page, line);
+  expect(gap, 'the menu sits under its line').toBeGreaterThanOrEqual(0);
+  expect(gap, 'the menu keeps up with its line').toBeLessThan(16);
 }
 
 test('the menu follows its line when the editor scrolls inside a container', async ({ page }) => {

@@ -52,10 +52,10 @@ describe('the newest section', () => {
 });
 
 describe('the changelog', () => {
-  it('has a 1.0.0 section above every 0.x release and below every 1.x one', () => {
+  it('has a 1.0.0 section above every 0.x release and below every later one', () => {
     const versions = [...changelog.matchAll(/^## (\d+\.\d+\.\d+)/gm)].map(([, version]) => version);
     const at = versions.indexOf('1.0.0');
-    expect(versions.slice(0, at).every((later) => later.startsWith('1.'))).toBe(true);
+    expect(versions.slice(0, at).every((later) => !later.startsWith('0.'))).toBe(true);
     expect(versions.slice(at)).toEqual(['1.0.0', '0.4.2', '0.4.1', '0.4.0', '0.3.0', '0.2.0', '0.1.1', '0.1.0']);
   });
 
@@ -134,7 +134,7 @@ describe('the changelog', () => {
 
 const git = (...args: string[]) => execFileSync('git', args, { cwd: root, encoding: 'utf8' });
 const tags = new Set(git('tag', '--list').split('\n'));
-const releases = [...changelog.matchAll(/^## (1\.\d+\.\d+) \(\d{4}-\d{2}-\d{2}\)$/gm)].map(([, release]) => release);
+const releases = [...changelog.matchAll(/^## ([1-9]\d*\.\d+\.\d+) \(\d{4}-\d{2}-\d{2}\)$/gm)].map(([, release]) => release);
 const untagged = releases.filter((release) => !tags.has(`v${release}`));
 const taggedSection = (release: string) => {
   const tagged = git('show', `v${release}:CHANGELOG.md`);
@@ -145,7 +145,7 @@ const taggedSection = (release: string) => {
 // its Unreleased list into the section the release has just dated, which git resolves without a conflict and the
 // heading rule above reads as one list of each kind. 1.5.0 shipped that way. A tag is the record of what a version
 // published, so a dated section has to keep reading as its tag left it. The 0.x sections predate the promise.
-describe('every 1.x release', () => {
+describe('every release from 1.0 on', () => {
   it('is tagged, but for the newest, which a release branch dates before its tag exists', () => {
     expect(releases.length).toBeGreaterThan(0);
     expect(untagged.length).toBeLessThan(2);

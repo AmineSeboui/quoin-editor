@@ -92,8 +92,9 @@ export const referencePages: Page[] = [
   {
     kind: 'migration',
     path: 'migration/',
-    title: 'Migrating from 0.4 to 1.0',
-    description: 'What a host of quoin-editor 0.4 changes to move to 1.0: data, props, styles, blocks and a checklist.',
+    title: 'Migrating Quoin',
+    description:
+      'What a host of quoin-editor changes to move up a major version: 1.x to 2.0, where seven view-internal exports go, and 0.4 to 1.0, where the data, props, styles and blocks changed.',
   },
   {
     kind: 'changelog',

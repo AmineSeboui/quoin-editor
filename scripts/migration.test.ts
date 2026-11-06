@@ -90,7 +90,7 @@ describe('the migration guide', () => {
   });
 
   it('is linked from the README and the FAQ', () => {
-    expect(readText(join(root, 'README.md'))).toContain('](MIGRATION.md)');
+    expect(readText(join(root, 'README.md'))).toMatch(/\]\(MIGRATION\.md(?:#[\w-]+)?\)/);
     expect(readText(join(root, 'demo', 'docs', 'faq.md'))).toContain('/blob/main/MIGRATION.md');
   });
 });

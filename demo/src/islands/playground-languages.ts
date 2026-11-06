@@ -1,10 +1,13 @@
 import type { QuoinLabels } from 'quoin-editor';
+import type { AiLabels } from 'quoin-editor/ai';
+import type { CommentsLabels } from 'quoin-editor/comments';
 import type { DiagramLabels } from 'quoin-editor/diagram';
 import type { EmbedLabels } from 'quoin-editor/embed';
 import type { EmojiLabels } from 'quoin-editor/emoji';
 import type { FindLabels } from 'quoin-editor/find';
 import type { MathLabels } from 'quoin-editor/math';
 import type { MentionLabels } from 'quoin-editor/mention';
+import type { PresenceLabels } from 'quoin-editor/presence';
 import type { SourceLabels } from 'quoin-editor/source';
 import type { StatsLabels } from 'quoin-editor/stats';
 import type { TableLabels } from 'quoin-editor/table';
@@ -12,6 +15,9 @@ import type { TocLabels } from 'quoin-editor/toc';
 
 export type LabelSets = {
   core: QuoinLabels;
+  ai: AiLabels;
+  comments: CommentsLabels;
+  presence: PresenceLabels;
   diagram: DiagramLabels;
   embed: EmbedLabels;
   emoji: EmojiLabels;
@@ -26,6 +32,9 @@ export type LabelSets = {
 
 export const SET_SUFFIX: Record<keyof LabelSets, string> = {
   core: 'Labels',
+  ai: 'AiLabels',
+  comments: 'CommentsLabels',
+  presence: 'PresenceLabels',
   diagram: 'DiagramLabels',
   embed: 'EmbedLabels',
   emoji: 'EmojiLabels',

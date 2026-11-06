@@ -1,41 +1,34 @@
-import { useEffect, useMemo, useState } from 'react';
-import { BlockCanvas, type QuoinBlock, type QuoinEditorHandle } from 'quoin-editor';
-import { catalogue, type CatalogueOptions } from 'quoin-editor/catalogue';
+import { useEffect, useState } from 'react';
+import type { QuoinBlock } from 'quoin-editor';
 import { usePrismHighlighter } from 'quoin-editor/highlight';
-import { QuoinSource } from 'quoin-editor/source';
 import { everyBlock } from '../content/every-block';
-import { searchPeople } from '../content/people';
-import { resolveAssetUrl } from '../site/asset-url';
-import { renderDiagram } from '../site/diagram';
+import { PlaygroundCanvas } from './PlaygroundCanvas';
 import { PlaygroundCode } from './PlaygroundCode';
+import { seedThreads } from './playground-comments';
 import { languageNamed, type LabelSets } from './playground-languages';
-import { PlaygroundSettings } from './PlaygroundSettings';
+import { PlaygroundPeer } from './PlaygroundPeer';
 import { playgroundSource, type Settings } from './playground-source';
-
-const options = (sets: LabelSets | null): CatalogueOptions => ({
-  mention: { search: searchPeople, labels: sets?.mention },
-  diagram: { render: renderDiagram, labels: sets?.diagram },
-  table: { labels: sets?.table },
-  find: { labels: sets?.find },
-  toc: { labels: sets?.toc },
-  emoji: { labels: sets?.emoji },
-  math: { labels: sets?.math },
-  embed: { labels: sets?.embed },
-  stats: { labels: sets?.stats },
-});
+import { PlaygroundSettings } from './PlaygroundSettings';
+import { usePlaygroundCollaboration } from './use-playground-collaboration';
 
 type Applied = { code: string; sets: LabelSets | null };
 
+const START: Settings = {
+  language: 'en',
+  comments: false,
+  ai: false,
+  collaboration: false,
+  highlighting: true,
+  source: false,
+  readOnly: false,
+};
+
 export default function Playground() {
-  const [settings, setSettings] = useState<Settings>({
-    language: 'en',
-    highlighting: true,
-    source: false,
-    readOnly: false,
-  });
+  const [settings, setSettings] = useState<Settings>(START);
   const [applied, setApplied] = useState<Applied>({ code: 'en', sets: null });
   const [blocks, setBlocks] = useState<QuoinBlock[]>(everyBlock);
-  const [handle, setHandle] = useState<QuoinEditorHandle | null>(null);
+  const [threads] = useState(seedThreads);
+  const [channel] = useState(() => `quoin-playground-${crypto.randomUUID()}`);
   const highlight = usePrismHighlighter();
 
   const wanted = settings.language;
@@ -55,36 +48,42 @@ export default function Playground() {
     };
   }, [wanted, applied.code]);
 
-  const extensions = useMemo(() => catalogue(options(applied.sets)), [applied]);
-  const source = useMemo(() => playgroundSource({ ...settings, language: applied.code }), [settings, applied.code]);
+  const { comments, ai, collaboration } = settings;
+  const pair = usePlaygroundCollaboration(collaboration, channel, applied.sets?.presence);
+  const mounted = `${applied.code}:${comments}:${ai}:${collaboration}`;
+
+  // With collaboration on, the canvas waits a tick for the pair: it reads its extensions once, so mounting before
+  // they exist would leave it out of the shared document for good.
+  const ready = !collaboration || pair !== null;
 
   return (
     <div className="play-layout">
       <PlaygroundSettings settings={settings} onChange={setSettings} loading={applied.code !== wanted} />
       <div className="play-editor">
-        <BlockCanvas
-          key={applied.code}
-          ref={setHandle}
-          blocks={blocks}
-          onChange={setBlocks}
-          extensions={extensions}
-          labels={applied.sets?.core}
-          highlight={settings.highlighting ? highlight : undefined}
-          readOnly={settings.readOnly}
-          resolveAssetUrl={resolveAssetUrl}
-          aria-label="Playground"
-          className="editor-frame"
-        />
-        {settings.source && handle && (
-          <QuoinSource
-            controller={handle.controller}
-            options={{ resolveAssetUrl }}
-            labels={applied.sets?.source}
-            className="editor-source"
+        {ready && (
+          <PlaygroundCanvas
+            key={mounted}
+            mount={{ comments, ai, collaboration }}
+            sets={applied.sets}
+            threads={threads}
+            shared={pair?.writer ?? []}
+            blocks={blocks}
+            onChange={setBlocks}
+            highlight={settings.highlighting ? highlight : undefined}
+            readOnly={settings.readOnly}
+            source={settings.source}
+          />
+        )}
+        {pair && (
+          <PlaygroundPeer
+            key={`peer:${mounted}`}
+            shared={pair.partner}
+            sets={applied.sets}
+            highlight={settings.highlighting ? highlight : undefined}
           />
         )}
       </div>
-      <PlaygroundCode source={source} />
+      <PlaygroundCode source={playgroundSource({ ...settings, language: applied.code })} />
     </div>
   );
 }

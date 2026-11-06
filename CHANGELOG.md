@@ -5,6 +5,7 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 ## Unreleased
 
 ### Added
+- The playground also switches comments, AI actions and a second collaborator on and off. Comments anchor a thread to a range and keep it in a store of the page’s own, AI streams canned text where a host would pass its model, and collaboration draws a second canvas with a Yjs document of its own that reconciles with the first over a BroadcastChannel. The settings are in two groups now, those a canvas reads as it mounts and those it answers to at once, because the three new ones are extensions and remount it where highlighting and read only do not.
 - A playground page on the site switches the editor between English and the seven locale packs, turns syntax colouring and the markdown source pane on and off, and draws the canvas read only, with the tsx for whatever is set beside it to copy. Picking a language downloads that pack and remounts the canvas, since a canvas reads its extensions once, and the other three take effect where they are. The home page links it from the hero, and two cards there name the code block colouring and the markdown pane, which shipped in 1.5.0 and 1.6.0 and the page had never mentioned. Nothing in the package changes.
 - The FAQ answers how to upgrade from 1.x to 2.0 beside the 0.4 answer it already carried, naming all seven removed exports and pointing at the section of the migration guide that covers them.
 

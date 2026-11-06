@@ -51,6 +51,7 @@ export function playgroundSource(settings: Settings): string {
     : ['  ...catalogue(),'];
 
   const extensions = [
+    ...(collaboration ? ['const collaboration = yjsCollaboration({ doc, awareness, user });', ''] : []),
     'const extensions = [',
     ...inCatalogue,
     comments ? `  commentsExtension({ threads, currentUser, onCreate, onReply, onResolve, onDelete${labelled('comments')} }),` : null,

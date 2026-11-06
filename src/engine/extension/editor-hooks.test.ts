@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, expect, it, vi } from 'vitest';
 import type { Command } from '../commands/command';
 import { createPluginKey, type PluginSpec } from '../state/plugin';

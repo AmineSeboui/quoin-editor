@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { caret, md, startEditor } from '../test-support/editor-fixtures';
 import { fromHTML } from './from-html';

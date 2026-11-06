@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
 import { createBlockCodec } from '../blocks/codec';
 import type { Command } from '../commands/command';

@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
 import { createEditor, createInternalEditor } from './editor';
 import { caret, md, range, startEditor } from '../test-support/editor-fixtures';

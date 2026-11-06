@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
 import type { QuoinBlock } from '../model/quoin-block';
 import { toHTML, type HTMLOptions } from './to-html';

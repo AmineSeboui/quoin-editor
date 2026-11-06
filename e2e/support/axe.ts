@@ -15,29 +15,49 @@ function settleAnimations(page: Page) {
 
 type Scope = '.quoin-editor' | '.quoin' | 'main' | `[role="${'menu' | 'listbox' | 'dialog' | 'toolbar'}"]`;
 
-// The ids of the rules the editor breaks, so a failing spec says which. Only the editor is scanned by default: the page
-// around it is the harness's. '.quoin' also takes in the menus, toolbars and dialogs the canvas portals out of it, and
-// a role scans one of them alone.
+type Violation = { id: string; impact?: string | null; nodes: readonly { target: unknown }[] };
+
 const SCROLLING = 'scrollable-region-focusable';
 
 // The code of an editable code block scrolls with the caret, which reaches it through the editor's one tab stop, as a
 // text field's content does, so its scroller needs no tab stop of its own.
 const EDITABLE_CODE = '.quoin-code-scroll[data-quoin-native]';
 
+const selectorsOf = (violation: Violation) =>
+  violation.nodes
+    .flatMap(({ target }) => (Array.isArray(target) ? target : [target]))
+    .filter((selector): selector is string => typeof selector === 'string');
+
+/** Whether anything the scrolling rule caught is a scroller of its own rather than the code of an editable block. */
+const scrollsOutsideEditableCode = (page: Page, violation: Violation) =>
+  page.evaluate(
+    ({ selectors, editableCode }) =>
+      selectors.some((selector) => {
+        const node = document.querySelector(selector);
+        return node !== null && node.closest(editableCode) === null;
+      }),
+    { selectors: selectorsOf(violation), editableCode: EDITABLE_CODE },
+  );
+
+/**
+ * The ids of the rules the editor breaks, so a failing spec says which. Only the editor is scanned by default: the page
+ * around it is the harness's. '.quoin' also takes in the menus, toolbars and dialogs the canvas portals out of it, and
+ * a role scans one of them alone.
+ */
 export async function axeViolations(
   page: Page,
   impacts: 'all' | 'serious' = 'all',
   scope: Scope | readonly Scope[] = '.quoin-editor',
 ): Promise<string[]> {
   await settleAnimations(page);
-  const scoped = () => {
-    const builder = new AxeBuilder({ page });
-    for (const selector of ([] as Scope[]).concat(scope)) builder.include(selector);
-    return builder;
-  };
-  const { violations } = await scoped().disableRules([SCROLLING]).analyze();
-  const scrolling = await scoped().withRules([SCROLLING]).exclude(EDITABLE_CODE).analyze();
-  return [...violations, ...scrolling.violations]
+  const builder = new AxeBuilder({ page });
+  for (const selector of ([] as Scope[]).concat(scope)) builder.include(selector);
+  const { violations } = await builder.analyze();
+  const reported: Violation[] = [];
+  for (const violation of violations) {
+    if (violation.id !== SCROLLING || (await scrollsOutsideEditableCode(page, violation))) reported.push(violation);
+  }
+  return reported
     .filter((violation) => impacts === 'all' || violation.impact === 'serious' || violation.impact === 'critical')
     .map((violation) => violation.id);
 }

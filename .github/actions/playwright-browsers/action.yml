@@ -1,0 +1,45 @@
+name: Playwright browsers
+description: Restores the browser binaries from the cache, downloading them only when it misses. Run it after npm ci.
+
+inputs:
+  browsers:
+    description: The browsers to install, space separated, as playwright install takes them.
+    required: true
+  working-directory:
+    description: The directory holding the Playwright that owns them.
+    default: .
+
+runs:
+  using: composite
+  steps:
+    - id: plan
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        BROWSERS: ${{ inputs.browsers }}
+      run: |
+        echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+        echo "slug=${BROWSERS// /-}" >> "$GITHUB_OUTPUT"
+
+    # The binaries a version downloads are its own, and a job that wants three of them must not be served a cache
+    # holding one, so both go in the key.
+    - id: cache
+      uses: actions/cache@v6
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-${{ steps.plan.outputs.version }}-${{ steps.plan.outputs.slug }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        BROWSERS: ${{ inputs.browsers }}
+      run: npx playwright install --with-deps $BROWSERS
+
+    # The browsers come back from the cache but the apt packages they link against do not, and those live outside it.
+    - if: steps.cache.outputs.cache-hit == 'true'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        BROWSERS: ${{ inputs.browsers }}
+      run: npx playwright install-deps $BROWSERS

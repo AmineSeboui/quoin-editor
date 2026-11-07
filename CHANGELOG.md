@@ -2,7 +2,7 @@
 
 Every release of `quoin-editor` is listed here, newest first, in the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). From 1.0.0 the package follows [semantic versioning](https://semver.org/): a breaking change waits for the next major version. Until then, Quoin was 0.x and a minor version could contain breaking changes; those known at release were marked "Breaking". The 0.x sections are kept as they were released, "Docs" headings included. Moving from 0.4 to 1.0, and from 1.x to 2.0, is covered step by step in [MIGRATION.md](MIGRATION.md). Review finding ids such as F-17 are those of the 0.4.0 review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73).
 
-## Unreleased
+## 2.0.1 (2026-11-07)
 
 ### Added
 - The playground also switches comments, AI actions and a second collaborator on and off. Comments anchor a thread to a range and keep it in a store of the page’s own, AI streams canned text where a host would pass its model, and collaboration draws a second canvas with a Yjs document of its own that reconciles with the first over a BroadcastChannel. The settings are in two groups now, those a canvas reads as it mounts and those it answers to at once, because the three new ones are extensions and remount it where highlighting and read only do not.

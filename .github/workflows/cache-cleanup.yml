@@ -1,0 +1,64 @@
+name: Cache cleanup
+
+# A cache saved while a pull request was open stays after it merges, and the repository's 10 GB is shared: on
+# 2026-11-07 it held 6 GB across 25 closed pull requests and had begun evicting the ones still in use. Closing a
+# pull request clears its own; the weekly run catches those a fork or a failed run left behind.
+on:
+  pull_request:
+    types: [closed]
+  schedule:
+    - cron: '17 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: cache-cleanup
+  cancel-in-progress: false
+
+jobs:
+  sweep:
+    # A pull request from a fork is given a read-only token whatever this file asks for, so it would only fail here.
+    # The weekly run clears those.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete the caches of closed pull requests
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          CLOSED: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          gh api --paginate "repos/$REPO/actions/caches?per_page=100" \
+            --jq '.actions_caches[] | [.id, .ref, .size_in_bytes] | @tsv' > caches.tsv
+
+          if [ -n "${CLOSED:-}" ]; then
+            echo "Clearing the caches of #$CLOSED."
+          else
+            open=" $(gh pr list --repo "$REPO" --state open --json number --jq '.[].number' | tr '\n' ' ')"
+            echo "Sweeping. Open pull requests:$open"
+          fi
+
+          deleted=0
+          freed=0
+          # The guard on $id reads a final line that carries no newline, which a plain read would drop.
+          while IFS=$'\t' read -r id ref size || [ -n "$id" ]; do
+            case "$ref" in refs/pull/*) ;; *) continue ;; esac
+            number=${ref#refs/pull/}
+            number=${number%%/*}
+            if [ -n "${CLOSED:-}" ]; then
+              [ "$number" = "$CLOSED" ] || continue
+            else
+              case "$open" in *" $number "*) continue ;; esac
+            fi
+            gh api -X DELETE "repos/$REPO/actions/caches/$id" >/dev/null
+            deleted=$((deleted + 1))
+            freed=$((freed + ${size:-0}))
+          done < caches.tsv
+
+          echo "Deleted $deleted caches, freeing $((freed / 1048576)) MB." | tee -a "$GITHUB_STEP_SUMMARY"

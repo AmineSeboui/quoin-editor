@@ -1,7 +1,7 @@
 import { act, fireEvent, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { bookmarkBlock, mountCanvas, paragraph } from '../blocks/void/test-canvas';
-import { textSelection, type Pos } from '../engine';
+import { createPluginKey, defineExtension, textSelection, type Pos, type Transaction } from '../engine';
 import type { UploadFn, UploadResult } from '../types';
 import { dragEvent, fakeTransfer } from '../view/clipboard/test-transfer';
 
@@ -48,6 +48,26 @@ describe('files dropped or pasted on the canvas', () => {
     expect(last()[2].data).toEqual({ storageKey: 'key/notes.pdf', filename: 'notes.pdf', size: 8, mime: 'application/pdf' });
     expect(last()[3]).toEqual(paragraph(last()[3].id, ''));
     expect(last()[4]).toEqual(paragraph('b', 'two'));
+  });
+
+  it('report a failure raised while they land, rather than leaving an unhandled rejection', async () => {
+    const onError = vi.fn();
+    const broken = defineExtension({
+      name: 'broken',
+      plugins: [
+        {
+          key: createPluginKey<null>('broken'),
+          init: () => null,
+          apply: (tr: Transaction, value: null) => {
+            if (tr.steps.length > 0) throw new Error('the host plugin broke');
+            return value;
+          },
+        },
+      ],
+    });
+    const { handle } = mountCanvas([paragraph('a', 'one')], { upload: stored, onError, extensions: [broken] });
+    act(() => handle().controller.onFiles?.([pdf], caretIn('a')));
+    await waitFor(() => expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: 'the host plugin broke' })));
   });
 
   it('leave the caret and the focus on an empty line after them, not on a block a key would replace', async () => {

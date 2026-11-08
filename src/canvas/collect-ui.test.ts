@@ -122,4 +122,17 @@ describe('collectUi', () => {
     expect(collected.overlays).toEqual([Drawn]);
     expect(collected.slashItems).toEqual([]);
   });
+
+  it('ignores a ui field that is not a list, which untyped host code can give it', () => {
+    const collected = collectUi(
+      [withUi('a', { slashItems: 'one', bubbleItems: 2, blockMenuItems: {}, overlays: true, renderers: 'ab', blockNames: 'cd' })],
+      [],
+    );
+    expect(collected.slashItems).toEqual([]);
+    expect(collected.bubbleItems).toEqual([]);
+    expect(collected.blockMenuItems).toEqual([]);
+    expect(collected.overlays).toEqual([]);
+    expect(collected.renderers).toEqual(collectUi([], []).renderers);
+    expect(collected.blockNames).toEqual({});
+  });
 });

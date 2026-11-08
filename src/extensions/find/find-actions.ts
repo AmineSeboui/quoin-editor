@@ -27,7 +27,9 @@ export function findActions(controller: ViewController): FindActions {
       write(setSearch(editor.state, { ...search, [option]: !search[option] }));
     },
     step: (by) => write(stepFind(editor.state, by)),
-    replace: (replacement) => void replaceCurrent(replacement)(editor.state, write),
+    replace(replacement) {
+      if (!replaceCurrent(replacement)(editor.state, write)) write(stepFind(editor.state, 1));
+    },
     replaceAll: (replacement) => void replaceAll(replacement)(editor.state, write),
     close() {
       const match = currentMatch(current());

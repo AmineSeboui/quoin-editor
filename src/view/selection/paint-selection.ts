@@ -1,6 +1,7 @@
 import { markRanges } from '../../engine/commands/selection-marks';
 import type { ViewController } from '../controller/view-controller';
 import { domMapOf } from '../dom/render-inline';
+import { installHighlightStyle } from './highlight-style';
 import { isCrossSelection, type PaintMode } from './selection-decorations';
 
 export type Painter = { paint(controller: ViewController): void; clear(): void; readonly mode: PaintMode };
@@ -67,5 +68,7 @@ function decorationPainter(): Painter {
 
 export function createPainter(win: Window): Painter {
   const { CSS: css, Highlight } = win as unknown as HighlightWindow;
-  return css?.highlights && Highlight ? highlightPainter(css.highlights, Highlight) : decorationPainter();
+  if (!css?.highlights || !Highlight) return decorationPainter();
+  installHighlightStyle(win.document);
+  return highlightPainter(css.highlights, Highlight);
 }

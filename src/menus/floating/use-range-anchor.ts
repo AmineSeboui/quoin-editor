@@ -32,7 +32,8 @@ export function useRangeAnchor(controller: ViewController, range: SuggestionRang
   });
   useIsomorphicLayoutEffect(() => {
     const rect = latest.current && rangeRect(controller, latest.current);
-    if (rect) setSide(sideFor(rect, window.innerHeight));
+    const height = controller.root?.ownerDocument.defaultView?.innerHeight;
+    if (rect && height !== undefined) setSide(sideFor(rect, height));
   }, [controller, start]);
 
   return { anchor, side };

@@ -112,6 +112,18 @@ describe('the find panel', () => {
     expect(last()?.map((block) => block.data.markdown)).toEqual(['A dog sat on a cat mat', 'The cat']);
   });
 
+  it('steps on when the replacement is the match itself, so the panel never stalls on it', () => {
+    const { fill, keyIn, last } = openOn();
+    fill('Find', 'cat');
+    fill('Replace with', 'cat');
+    expect(status()).toHaveTextContent('1 of 3');
+    keyIn('Replace with', 'Enter');
+    expect(last()).toBeUndefined();
+    expect(status()).toHaveTextContent('2 of 3');
+    keyIn('Replace with', 'Enter');
+    expect(status()).toHaveTextContent('3 of 3');
+  });
+
   it('undoes and redoes in the editor on the history keys pressed on its buttons, and leaves them to its fields', () => {
     const { fill, button, last, mod, field } = openOn();
     fill('Find', 'cat');

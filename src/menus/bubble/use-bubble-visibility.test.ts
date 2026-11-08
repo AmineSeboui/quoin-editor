@@ -1,13 +1,13 @@
 import { act, cleanup, fireEvent, renderHook } from '@testing-library/react';
 import { textSelection } from '../../engine';
-import { at, cleanUpAfterTest, mountController } from '../../view/controller/test-controller';
+import { at, cleanUpAfterTest, framedDocument, mountController } from '../../view/controller/test-controller';
 import { BUBBLE_PART, bubblePart } from './bubble-part';
 import { useBubbleVisibility } from './use-bubble-visibility';
 
 type Mounted = ReturnType<typeof setup>;
 
-function setup() {
-  const mounted = mountController('hello world');
+function setup(doc?: Document) {
+  const mounted = mountController('hello world', doc);
   const { controller, editor } = mounted;
   act(() => controller.focus('start'));
   const { result } = renderHook(() => useBubbleVisibility(controller));
@@ -74,6 +74,12 @@ describe('useBubbleVisibility', () => {
     const { select, visible } = setup();
     select(0, 5);
     expect(visible()).toBe(false);
+  });
+
+  it('shows for a range in a canvas the host renders into an iframe', () => {
+    const { select, visible } = setup(framedDocument());
+    select(0, 5);
+    expect(visible()).toBe(true);
   });
 
   it('shows on a fine pointer', () => {

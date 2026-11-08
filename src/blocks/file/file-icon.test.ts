@@ -9,6 +9,8 @@ describe('the icon of a file', () => {
     expect(fileIcon('video/ogg', 'clip.ogg')).toBe(FilePlay);
     expect(fileIcon('text/csv', 'a')).toBe(FileText);
     expect(fileIcon('image/png', 'scan.pdf')).toBe(FileImage);
+    expect(fileIcon('IMAGE/PNG', 'a')).toBe(FileImage);
+    expect(fileIcon('Application/Zip', 'a')).toBe(FileIcon);
   });
 
   it('falls back to the exact extension of its name, in any case, for any other type', () => {

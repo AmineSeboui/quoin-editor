@@ -5,11 +5,13 @@ const SMILEY = '\u{1F603}';
 const SMILE = '\u{1F604}';
 const PARTY_POPPER = '\u{1F389}';
 const THUMBS_UP = '\u{1F44D}';
+const CALL_ME_HAND = '\u{1F919}';
 
 const glyphs = (found: readonly Emoji[]) => found.map(({ emoji }) => emoji);
 
 // 0 for a shortcode that is the query, 1 for one that starts with it, 2 for a tag that does, 3 for a word holding it.
-function matchOf({ shortcodes, tags }: Emoji, query: string): number {
+function matchOf({ shortcodes, tags: spelt }: Emoji, query: string): number {
+  const tags = spelt.map((tag) => tag.toLowerCase());
   if (shortcodes.includes(query)) return 0;
   if (shortcodes.some((code) => code.startsWith(query))) return 1;
   if (tags.some((tag) => tag.startsWith(query))) return 2;
@@ -31,6 +33,11 @@ describe('searchEmoji', () => {
       expect(matches.includes(4)).toBe(false);
     }
     expect(glyphs(searchEmoji('smile', 1))).toEqual([SMILE]);
+  });
+
+  it('finds an emoji by a tag the dataset spells in capitals, which only that tag names', () => {
+    expect(glyphs(searchEmoji('shaka', 1))).toEqual([CALL_ME_HAND]);
+    expect(glyphs(searchEmoji('Shaka', 1))).toEqual([CALL_ME_HAND]);
   });
 
   it('puts the party popper first for tada, whatever the case and the spaces around the query', () => {

@@ -7,6 +7,8 @@ description: Real-time co-editing through a Yjs document and your own provider, 
 
 `quoin-editor/yjs` syncs a canvas through a [Yjs](https://yjs.dev) document, with an undo that takes back only your own changes. Install `yjs` beside the package (it is an optional peer dependency) and bring your own provider, such as `y-websocket`; Quoin never opens a connection itself.
 
+The server behind that provider is yours to choose: anything that speaks the `y-websocket` protocol will do, and running one yourself is a real option. [Quoin Cloud](https://quoin-cloud.vercel.app) is a hosted one if you would rather not operate it, and its documentation covers self-hosting the same server.
+
 ```tsx
 import { BlockCanvas, type QuoinBlock } from 'quoin-editor';
 import { collaborationExtension, yjsCollaboration } from 'quoin-editor/yjs';

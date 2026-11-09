@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
 import { firstLine, host } from '../../support/block';
 import { blocks, openEditor } from '../../support/editor';
@@ -8,6 +8,27 @@ const addBelow = (page: Page) => page.getByRole('button', { name: 'Add block bel
 const menu = (page: Page) => page.getByRole('menu');
 const ids = async (page: Page) => (await blocks(page)).map((block) => block.id);
 
+// Radix opens a context menu two pixels from the pointer, and one more is room for sub-pixel rounding.
+const MENU_GAP = 3;
+
+type Watched = Window & { taken?: boolean | null };
+
+/**
+ * Whether the editor took the right-click for its own menu, which it says by preventing the default. Asked rather than
+ * looking for the block menu afterwards: that check holds as soon as no menu is there, so it answers only for a menu
+ * quick enough to beat the first poll, and a slower one would leave it passing. The default is prevented while the
+ * event is being dispatched, so this says the same thing whatever the machine is doing.
+ */
+async function tookTheRightClick(page: Page, target: Locator): Promise<boolean | null> {
+  await page.evaluate(() => {
+    (window as Watched).taken = null;
+    document.addEventListener('contextmenu', (event) => void ((window as Watched).taken = event.defaultPrevented), {
+      once: true,
+    });
+  });
+  await target.click({ button: 'right' });
+  return page.evaluate(() => (window as Watched).taken ?? null);
+}
 
 async function expectBesideFirstLine(page: Page, id: string) {
   await host(page, id).hover();
@@ -115,8 +136,14 @@ test('the tone of a callout is set from the keyboard through its block menu', as
 test('a right-click on the handle opens the block menu at the pointer', async ({ page }) => {
   await openEditor(page, 'sample');
   await host(page, 'a').hover();
+  const grip = (await handle(page).boundingBox())!;
+  const pointer = { x: grip.x + grip.width / 2, y: grip.y + grip.height / 2 };
   await handle(page).click({ button: 'right' });
   await expect(menu(page)).toHaveAccessibleName('Heading 1 block menu');
+  const opened = (await menu(page).boundingBox())!;
+  expect(opened.x).toBeGreaterThanOrEqual(pointer.x - 1);
+  expect(opened.x).toBeLessThanOrEqual(pointer.x + MENU_GAP);
+  expect(Math.abs(opened.y - pointer.y)).toBeLessThanOrEqual(MENU_GAP);
   await page.getByRole('menuitem', { name: 'Delete' }).click();
   await expect.poll(() => ids(page)).toEqual(['b']);
   await expect(host(page, 'b')).toBeFocused();
@@ -126,9 +153,9 @@ test('a right-click on a block with no text opens the block menu, and one in tex
   page,
 }) => {
   await openEditor(page, 'custom');
-  await host(page, 'above').click({ button: 'right' });
+  expect(await tookTheRightClick(page, host(page, 'above'))).toBe(false);
   await expect(menu(page)).toHaveCount(0);
-  await page.getByText('https://quoin.dev', { exact: true }).click({ button: 'right' });
+  expect(await tookTheRightClick(page, page.getByText('https://quoin.dev', { exact: true }))).toBe(true);
   await expect(menu(page)).toHaveAccessibleName('Bookmark block menu');
   await page.keyboard.press('Escape');
   await expect(menu(page)).toHaveCount(0);

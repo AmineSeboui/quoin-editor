@@ -16,6 +16,21 @@ function caretAtEnd(host: HTMLElement): void {
   selection.collapseToEnd();
 }
 
+/**
+ * The caret inside the line rather than at its end. A document the host hands back replaces the one being typed in,
+ * and the caret with it; at the end of the line that is where the caret already was, so the characters still land in
+ * order and the test passes whatever the echo did. Only a caret with text after it shows the difference.
+ */
+function caretAfter(host: HTMLElement, prefix: string): void {
+  act(() => host.focus());
+  const range = document.createRange();
+  range.setStart(host.firstChild!, prefix.length);
+  range.collapse(true);
+  const selection = document.getSelection()!;
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
 function type(text: string): void {
   for (const data of text) {
     const event = new InputEvent('beforeinput', { inputType: 'insertText', data, bubbles: true, cancelable: true });
@@ -45,37 +60,46 @@ afterEach(() => vi.useRealTimers());
 
 describe('BlockCanvas as a controlled component', () => {
   it('keeps every character typed while the host echoes onChange synchronously', () => {
-    const { lastReported } = mountHost((next, setBlocks) => setBlocks(next));
-    caretAtEnd(paragraphs()[0]);
-    type('hello');
-    expect(lastReported()).toEqual(['hello']);
-    expect(paragraphs()[0]).toHaveTextContent(/^hello$/);
+    const { lastReported } = mountHost((next, setBlocks) => setBlocks(next), [md('a', 'hello world')]);
+    caretAfter(paragraphs()[0], 'hello ');
+    type('big ');
+    expect(lastReported()).toEqual(['hello big world']);
+    expect(paragraphs()[0]).toHaveTextContent(/^hello big world$/);
   });
 
+  // This one documents a supported host pattern rather than guarding a failure of its own: React flushes the
+  // transition before the next key is handled, so the document the host sets is never older than the one on screen
+  // and the canvas has nothing to reconcile. A stale document reaching the canvas is covered by the debounced host
+  // below, and at the engine's own layer by controlled-contract.lagging-copy.test.ts.
   it('keeps every character typed while the host applies onChange in a transition', () => {
-    const { lastReported } = mountHost((next, setBlocks) => startTransition(() => setBlocks(next)));
-    caretAtEnd(paragraphs()[0]);
-    type('hello');
-    expect(lastReported()).toEqual(['hello']);
-    expect(paragraphs()[0]).toHaveTextContent(/^hello$/);
+    const { lastReported } = mountHost(
+      (next, setBlocks) => startTransition(() => setBlocks(next)),
+      [md('a', 'hello world')],
+    );
+    caretAfter(paragraphs()[0], 'hello ');
+    type('big ');
+    expect(lastReported()).toEqual(['hello big world']);
+    expect(paragraphs()[0]).toHaveTextContent(/^hello big world$/);
   });
 
-  it('keeps every character typed while the host debounces its setter by 50 ms', () => {
+  // A host that lags rather than echoes: it applies the document it first saw, after more keys have landed. Echoing
+  // the current document cannot disturb the canvas whenever it arrives, so a test that does only that says nothing
+  // the synchronous one has not already said.
+  it('keeps the newer text when a host debounces by 50 ms and applies the document it first saw', () => {
     vi.useFakeTimers();
+    let stale: QuoinBlock[] | null = null;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const { lastReported } = mountHost((next, setBlocks) => {
-      clearTimeout(timer);
-      timer = setTimeout(() => setBlocks(next), 50);
-    });
-    caretAtEnd(paragraphs()[0]);
-    type('he');
+      stale ??= next;
+      if (timer === undefined) timer = setTimeout(() => setBlocks(stale!), 50);
+    }, [md('a', 'hello world')]);
+    caretAfter(paragraphs()[0], 'hello ');
+    type('bi');
     act(() => vi.advanceTimersByTime(50));
-    type('llo');
-    act(() => vi.advanceTimersByTime(20));
-    expect(paragraphs()[0]).toHaveTextContent(/^hello$/);
+    type('g ');
     act(() => vi.advanceTimersByTime(50));
-    expect(lastReported()).toEqual(['hello']);
-    expect(paragraphs()[0]).toHaveTextContent(/^hello$/);
+    expect(lastReported()).toEqual(['hello big world']);
+    expect(paragraphs()[0]).toHaveTextContent(/^hello big world$/);
   });
 
   it('ignores a structural copy of the array it was last handed', () => {

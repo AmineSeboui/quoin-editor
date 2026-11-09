@@ -1,7 +1,7 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
 import { host } from '../../support/block';
-import { openEditor } from '../../support/editor';
+import { blocks, openEditor } from '../../support/editor';
 import { allMarkdown } from '../../support/markdown';
 
 const toolbar = (page: Page) => page.getByRole('toolbar', { name: 'Text formatting' });
@@ -115,4 +115,33 @@ test.describe('on a touch screen', () => {
     await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     await expect(toolbar(page)).toHaveCount(0);
   });
+});
+
+const dataOf = async (page: Page, id: string) => (await blocks(page)).find((block) => block.id === id)?.data;
+
+// The toolbar's three menus, which the other tests only tab to. Each is opened from the toolbar and used, because a
+// control that opens is not the same as one that applies to the block the selection is in.
+test('Turn into, Color and Align open from the toolbar and change the block the selection is in', async ({ page }) => {
+  await openEditor(page, 'drag');
+
+  await doubleClickFirstWord(page, 'd');
+  await control(page, 'Turn into').click();
+  await page.getByRole('menuitem', { name: 'Heading 2' }).click();
+  await expect.poll(() => allMarkdown(page)).toContain('## Delta');
+
+  const red = () => page.getByRole('group', { name: 'Text color' }).getByRole('menuitemradio', { name: 'Red' });
+  await doubleClickFirstWord(page, 'd');
+  await control(page, 'Color').click();
+  await red().click();
+  await doubleClickFirstWord(page, 'd');
+  await control(page, 'Color').click();
+  await expect(red()).toHaveAttribute('aria-checked', 'true');
+  await page.keyboard.press('Escape');
+
+  // Centring goes last: the word is found by clicking near the left edge of the line, which is where it stops being
+  // once the line is centred.
+  await doubleClickFirstWord(page, 'd');
+  await control(page, 'Align').click();
+  await page.getByRole('menuitemradio', { name: 'Align center' }).click();
+  await expect.poll(async () => (await dataOf(page, 'd'))?.align).toBe('center');
 });

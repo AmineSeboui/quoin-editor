@@ -2,7 +2,7 @@
 
 Every release of `quoin-editor` is listed here, newest first, in the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). From 1.0.0 the package follows [semantic versioning](https://semver.org/): a breaking change waits for the next major version. Until then, Quoin was 0.x and a minor version could contain breaking changes; those known at release were marked "Breaking". The 0.x sections are kept as they were released, "Docs" headings included. Moving from 0.4 to 1.0, and from 1.x to 2.0, is covered step by step in [MIGRATION.md](MIGRATION.md). Review finding ids such as F-17 are those of the 0.4.0 review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73).
 
-## Unreleased
+## 2.0.2 (2026-11-09)
 
 ### Fixed
 - The packaged stylesheet no longer carries the `::highlight()` rule that paints a selection running across blocks, and the rule goes on the page at runtime instead, beside the registration of the highlight it styles. Lightning CSS, the parser Next.js and Turbopack use, does not know the Custom Highlight API and reported a parse failure for the rule on every consumer build. Nothing was lost, since the rule was passed through and the selection still painted, but the package's CSS is inlined into the consumer's own stylesheet, so the warning named their file and a byte offset in a minified line and read as a mistake of theirs. The rule now lands only in a browser that has the API, which is the only browser it ever applied in, and what is painted is unchanged.

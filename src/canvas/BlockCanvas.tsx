@@ -1,5 +1,6 @@
 'use client';
 
+import { DirectionProvider } from '@radix-ui/react-direction';
 import { forwardRef, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { coreBlocks } from '../blocks/core';
 import { VoidEditingContext } from '../blocks/void/use-void-editing';
@@ -19,6 +20,7 @@ import { MobileToolbar } from '../mobile/MobileToolbar';
 import { shortcutsExtension, shortcutsSlashItem } from '../shortcuts/shortcuts-extension';
 import { toError } from '../to-error';
 import { cn } from '../ui/cn';
+import { useRootDirection } from '../ui/use-root-direction';
 import { EditorView, useQuoinEditor, type BlockPlaceholder } from '../view';
 import { defaultBlockLink } from './block-link';
 import type { BlockCanvasProps, QuoinEditorHandle } from './canvas-props';
@@ -119,6 +121,8 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
     return (state, block) => placeholderFor(state, block, placeholderLabels);
   }, [labels, placeholder]);
 
+  const direction = useRootDirection(controller);
+
   useImperativeHandle(
     ref,
     () => ({
@@ -131,43 +135,45 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
   );
 
   return (
-    <QuoinProvider value={{ blockTypes, upload, resolveAssetUrl, onError, highlight, controller, labels }}>
-      <VoidEditingContext.Provider value={voidEditing}>
-        <SlashItemsProvider value={slashItems}>
-          <BubbleItemsProvider value={ui.bubbleItems}>
-            <CanvasUiProvider value={uiStore}>
-              <EditorView
-                controller={controller}
-                renderers={ui.renderers}
-                className={cn(GUTTER_ROOM, className)}
-                id={id}
-                aria-label={ariaLabel ?? labels.document}
-                hint={labels.editorHint}
-                paragraphLabel={labels.paragraph}
-                selectedContentLabel={labels.selectedContent}
-                blockLabel={blockLabel}
-                unsupportedBlockLabel={labels.unsupportedBlock}
-                blockErrorLabel={labels.blockError}
-                onBlockError={onError}
-                placeholder={placeholder ?? labels.placeholderEmpty}
-                blockPlaceholder={blockPlaceholder}
-                blocksSelectedLabel={labels.blocksSelected}
-              >
-                {!readOnly && (
-                  <ExtensionBlockNames.Provider value={ui.blockNames}>
-                    <Gutter controller={controller} store={uiStore} actions={actions} />
-                    <BlockContextMenu controller={controller} store={uiStore} actions={actions} />
-                    <MobileToolbar controller={controller} />
-                  </ExtensionBlockNames.Provider>
-                )}
-                {ui.overlays.map((Overlay, index) => (
-                  <Overlay key={index} controller={controller} />
-                ))}
-              </EditorView>
-            </CanvasUiProvider>
-          </BubbleItemsProvider>
-        </SlashItemsProvider>
-      </VoidEditingContext.Provider>
-    </QuoinProvider>
+    <DirectionProvider dir={direction}>
+      <QuoinProvider value={{ blockTypes, upload, resolveAssetUrl, onError, highlight, controller, labels }}>
+        <VoidEditingContext.Provider value={voidEditing}>
+          <SlashItemsProvider value={slashItems}>
+            <BubbleItemsProvider value={ui.bubbleItems}>
+              <CanvasUiProvider value={uiStore}>
+                <EditorView
+                  controller={controller}
+                  renderers={ui.renderers}
+                  className={cn(GUTTER_ROOM, className)}
+                  id={id}
+                  aria-label={ariaLabel ?? labels.document}
+                  hint={labels.editorHint}
+                  paragraphLabel={labels.paragraph}
+                  selectedContentLabel={labels.selectedContent}
+                  blockLabel={blockLabel}
+                  unsupportedBlockLabel={labels.unsupportedBlock}
+                  blockErrorLabel={labels.blockError}
+                  onBlockError={onError}
+                  placeholder={placeholder ?? labels.placeholderEmpty}
+                  blockPlaceholder={blockPlaceholder}
+                  blocksSelectedLabel={labels.blocksSelected}
+                >
+                  {!readOnly && (
+                    <ExtensionBlockNames.Provider value={ui.blockNames}>
+                      <Gutter controller={controller} store={uiStore} actions={actions} />
+                      <BlockContextMenu controller={controller} store={uiStore} actions={actions} />
+                      <MobileToolbar controller={controller} />
+                    </ExtensionBlockNames.Provider>
+                  )}
+                  {ui.overlays.map((Overlay, index) => (
+                    <Overlay key={index} controller={controller} />
+                  ))}
+                </EditorView>
+              </CanvasUiProvider>
+            </BubbleItemsProvider>
+          </SlashItemsProvider>
+        </VoidEditingContext.Provider>
+      </QuoinProvider>
+    </DirectionProvider>
   );
 });

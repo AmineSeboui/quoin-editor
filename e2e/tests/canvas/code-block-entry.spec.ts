@@ -1,3 +1,4 @@
+import { onlyHost } from '../../support/block';
 import { expect, test, type Page } from '@playwright/test';
 import { blocks, openEditor } from '../../support/editor';
 
@@ -7,7 +8,7 @@ const shapes = async (page: Page) => (await blocks(page)).map((block) => [block.
 
 test('the fence and Enter make a code block that takes what is typed next', async ({ page }) => {
   await openEditor(page, 'empty');
-  await page.locator('[data-quoin-host]').first().click();
+  await onlyHost(page).click();
   await page.keyboard.type('```ts');
   await page.keyboard.press('Enter');
   await expect(area(page)).toBeFocused();
@@ -17,7 +18,7 @@ test('the fence and Enter make a code block that takes what is typed next', asyn
 
 test('the fence and a space make a code block that takes what is typed next', async ({ page }) => {
   await openEditor(page, 'empty');
-  await page.locator('[data-quoin-host]').first().click();
+  await onlyHost(page).click();
   await page.keyboard.type('``` x');
   await expect.poll(() => shapes(page)).toEqual([['CODE', 'x']]);
 });

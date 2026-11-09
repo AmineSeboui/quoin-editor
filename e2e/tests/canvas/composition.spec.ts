@@ -1,9 +1,9 @@
+import { host } from '../../support/block';
 import { expect, test, type Page } from '@playwright/test';
-import { blocks, openEditor } from '../../support/editor';
+import { openEditor } from '../../support/editor';
+import { allMarkdown } from '../../support/markdown';
 
-const host = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
 const toolbar = (page: Page) => page.getByRole('toolbar', { name: 'Text formatting' });
-const markdown = async (page: Page) => (await blocks(page)).map((block) => String(block.data.markdown));
 
 async function composeOverSelection(page: Page, steps: readonly string[], committed: string) {
   await expect(toolbar(page)).toBeVisible();
@@ -25,11 +25,11 @@ test.describe('a composition over selected text', () => {
     await page.keyboard.press('Home');
     await page.keyboard.press('Shift+End');
     await composeOverSelection(page, ['\u306b', '\u306b\u307b\u3093'], '\u65e5\u672c');
-    await expect.poll(() => markdown(page)).toEqual(['# Title', '\u65e5\u672c']);
+    await expect.poll(() => allMarkdown(page)).toEqual(['# Title', '\u65e5\u672c']);
     await expect(page.getByRole('group', { name: 'Document' })).toBeVisible();
     await expect(toolbar(page)).toBeHidden();
     await page.keyboard.type('!');
-    await expect.poll(() => markdown(page)).toEqual(['# Title', '\u65e5\u672c!']);
+    await expect.poll(() => allMarkdown(page)).toEqual(['# Title', '\u65e5\u672c!']);
     expect(errors).toEqual([]);
   });
 
@@ -42,10 +42,10 @@ test.describe('a composition over selected text', () => {
     await page.keyboard.press('ArrowLeft');
     for (let i = 0; i < 'paragraph'.length; i++) await page.keyboard.press('Shift+ArrowLeft');
     await composeOverSelection(page, ['\u00b4'], '\u00e9');
-    await expect.poll(() => markdown(page)).toEqual(['# Title', 'First \u00e9.']);
+    await expect.poll(() => allMarkdown(page)).toEqual(['# Title', 'First \u00e9.']);
     await expect(host(page, 'b')).toBeFocused();
     await page.keyboard.type('t');
-    await expect.poll(() => markdown(page)).toEqual(['# Title', 'First \u00e9t.']);
+    await expect.poll(() => allMarkdown(page)).toEqual(['# Title', 'First \u00e9t.']);
     expect(errors).toEqual([]);
   });
 });

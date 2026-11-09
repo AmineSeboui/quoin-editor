@@ -1,12 +1,10 @@
+import { host, shell } from '../../support/block';
 import { expect, test, type Page } from '@playwright/test';
 import { blocks, openEditor } from '../../support/editor';
+import { markdownOrData } from '../../support/markdown';
 import { chooseCommand } from '../../support/slash';
 
-const shell = (page: Page, id: string) => page.locator(`[data-block-id="${id}"]`);
-const host = (page: Page, id: string) => shell(page, id).locator('[data-quoin-host]');
 const handle = (page: Page) => page.getByRole('button', { name: 'Drag to move, click for options' });
-const markdown = async (page: Page) =>
-  (await blocks(page)).map((block) => (block.type === 'MARKDOWN' ? block.data.markdown : block.data));
 
 async function dragBelow(page: Page, id: string, target: string) {
   await host(page, id).hover();
@@ -32,7 +30,7 @@ test('an author writes, formats, reorders, duplicates and undoes, and the docume
   for (let i = 0; i < 'bread'.length; i++) await page.keyboard.press('Shift+ArrowLeft');
   const toolbar = page.getByRole('toolbar', { name: 'Text formatting' });
   await toolbar.getByRole('button', { name: 'Bold', exact: true }).click();
-  await expect.poll(() => markdown(page)).toEqual(['# Groceries', 'Buy fresh **bread**']);
+  await expect.poll(() => markdownOrData(page)).toEqual(['# Groceries', 'Buy fresh **bread**']);
 
   await page.keyboard.press('ArrowRight');
   await page.keyboard.press('Enter');
@@ -44,7 +42,7 @@ test('an author writes, formats, reorders, duplicates and undoes, and the docume
   await page.keyboard.press('Enter');
   await chooseCommand(page, 'callout', 'Callout');
   await page.keyboard.type('Shops close at six');
-  await expect.poll(() => markdown(page)).toEqual([
+  await expect.poll(() => markdownOrData(page)).toEqual([
     '# Groceries',
     'Buy fresh **bread**',
     '- Milk',

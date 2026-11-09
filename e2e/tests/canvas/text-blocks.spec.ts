@@ -1,8 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
+import { shell } from '../../support/block';
 import { blocks, openEditor } from '../../support/editor';
 
-const shell = (page: Page, id: string) => page.locator(`[data-block-id="${id}"]`);
 const dataOf = async (page: Page, id: string) => (await blocks(page)).find((block) => block.id === id)?.data;
 
 // Every colour read back as the red, green and blue a canvas paints, so an oklch() token and the rgb() the browser

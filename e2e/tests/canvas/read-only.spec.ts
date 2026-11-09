@@ -1,9 +1,9 @@
+import { host } from '../../support/block';
 import { expect, test, type Page } from '@playwright/test';
 import { blocks, openEditor } from '../../support/editor';
 import { phoneTest } from '../../support/phone';
 import { copyEvent } from '../../support/synthetic-events';
 
-const host = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
 const handle = (page: Page) => page.getByRole('button', { name: 'Drag to move, click for options' });
 const openReadOnly = (page: Page) => openEditor(page, 'rich', 'readonly=1');
 const changes = (page: Page) => page.evaluate(() => window.__quoin.changes);

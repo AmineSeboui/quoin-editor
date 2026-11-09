@@ -1,13 +1,13 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
-import { blocks, caretSettled, openEditor } from '../../support/editor';
+import { host } from '../../support/block';
+import { caretSettled, openEditor } from '../../support/editor';
+import { allMarkdown } from '../../support/markdown';
 import { pasteEvent } from '../../support/synthetic-events';
 
 const footer = (page: Page) => page.locator('[data-quoin-stats]');
 const count = (page: Page) => footer(page).locator('span').nth(1);
-const host = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
-const markdownOf = async (page: Page) => (await blocks(page)).map((block) => String(block.data.markdown));
 
 async function openStats(page: Page, extra = '', doc = 'sample', block = 'b') {
   await openEditor(page, doc, `stats=1${extra}`);
@@ -30,18 +30,18 @@ test('refuses a paste that would overflow the limit, whole, and lets a deletion 
   await expect(count(page)).toHaveText('21 / 25 characters');
   await pasteEvent(page, { 'text/plain': ' extra' });
   await expect(page.getByRole('status')).toHaveText('Character limit of 25 reached');
-  expect(await markdownOf(page)).toEqual(['# Title', 'First paragraph.']);
+  expect(await allMarkdown(page)).toEqual(['# Title', 'First paragraph.']);
   await expect(host(page, 'b')).toHaveText('First paragraph.');
   await pasteEvent(page, { 'text/plain': ' ok' });
-  await expect.poll(() => markdownOf(page)).toEqual(['# Title', 'First paragraph. ok']);
+  await expect.poll(() => allMarkdown(page)).toEqual(['# Title', 'First paragraph. ok']);
   await page.keyboard.type('abc');
-  await expect.poll(() => markdownOf(page)).toEqual(['# Title', 'First paragraph. oka']);
+  await expect.poll(() => allMarkdown(page)).toEqual(['# Title', 'First paragraph. oka']);
   await expect(host(page, 'b')).toHaveText('First paragraph. oka');
   await expect(count(page)).toHaveText('25 / 25 characters');
   await page.keyboard.press('Backspace');
-  await expect.poll(() => markdownOf(page)).toEqual(['# Title', 'First paragraph. ok']);
+  await expect.poll(() => allMarkdown(page)).toEqual(['# Title', 'First paragraph. ok']);
   await page.keyboard.type('Z');
-  await expect.poll(() => markdownOf(page)).toEqual(['# Title', 'First paragraph. okZ']);
+  await expect.poll(() => allMarkdown(page)).toEqual(['# Title', 'First paragraph. okZ']);
 });
 
 test.describe('a composition past the limit', () => {
@@ -54,9 +54,9 @@ test.describe('a composition past the limit', () => {
     await cdp.send('Input.imeSetComposition', { text: '\u306b\u307b', selectionStart: 2, selectionEnd: 2 });
     await cdp.send('Input.insertText', { text: '\u65e5\u672c' });
     await expect(host(page, 'b')).toHaveText('First paragraph.');
-    expect(await markdownOf(page)).toEqual(['# Title', 'First paragraph.']);
+    expect(await allMarkdown(page)).toEqual(['# Title', 'First paragraph.']);
     await page.keyboard.type('!');
-    await expect.poll(() => markdownOf(page)).toEqual(['# Title', 'First paragraph.!']);
+    await expect.poll(() => allMarkdown(page)).toEqual(['# Title', 'First paragraph.!']);
     await expect(host(page, 'b')).toHaveText('First paragraph.!');
   });
 });
@@ -88,7 +88,7 @@ test('focus mode leaves a read-only canvas as it is', async ({ page }) => {
 test('turns typed forms into typographic ones when asked', async ({ page }) => {
   await openStats(page, '&typography=1');
   await page.keyboard.type(' ...');
-  await expect.poll(async () => (await markdownOf(page))[1]).toBe('First paragraph. \u2026');
+  await expect.poll(async () => (await allMarkdown(page))[1]).toBe('First paragraph. \u2026');
 });
 
 test('has no axe violations with and without a limit, near and at it, and in focus mode', async ({ page }) => {

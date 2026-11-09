@@ -1,10 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
+import { host, onlyHost } from '../../support/block';
 import { blocks, caretSettled, openEditor } from '../../support/editor';
+import { allMarkdown } from '../../support/markdown';
 
 const dialog = (page: Page) => page.getByRole('dialog', { name: 'Keyboard shortcuts' });
-const host = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
-const markdown = async (page: Page) => (await blocks(page)).map((block) => block.data.markdown);
 
 test('Mod+Shift+/ opens the shortcuts dialog, which lists the way out, and Escape gives the caret back', async ({ page }) => {
   await openEditor(page, 'sample');
@@ -19,20 +19,20 @@ test('Mod+Shift+/ opens the shortcuts dialog, which lists the way out, and Escap
   await expect(dialog(page)).toHaveCount(0);
   await expect(host(page, 'b')).toBeFocused();
   await page.keyboard.type('!');
-  await expect.poll(() => markdown(page)).toEqual(['# Title', 'First paragraph.!']);
+  await expect.poll(() => allMarkdown(page)).toEqual(['# Title', 'First paragraph.!']);
 });
 
 test('the slash menu opens the dialog once it has removed the slash and the query', async ({ page }) => {
   await openEditor(page, 'empty');
-  await page.locator('[data-quoin-host]').first().click();
+  await onlyHost(page).click();
   await page.keyboard.type('/keyb');
   await expect(page.getByRole('option', { selected: true })).toContainText('Keyboard shortcuts');
   await page.keyboard.press('Enter');
   await expect(dialog(page)).toBeVisible();
-  await expect.poll(() => markdown(page)).toEqual(['']);
+  await expect.poll(() => allMarkdown(page)).toEqual(['']);
   await dialog(page).getByRole('button', { name: 'Close' }).click();
   await expect(dialog(page)).toHaveCount(0);
-  await expect(page.locator('[data-quoin-host]').first()).toBeFocused();
+  await expect(onlyHost(page)).toBeFocused();
 });
 
 test('a block moved with the keyboard and a block deleted are announced', async ({ page }) => {
@@ -66,7 +66,7 @@ test('an empty heading shows its level and the empty paragraph holding the caret
   page,
 }) => {
   await openEditor(page, 'empty');
-  const first = page.locator('[data-quoin-host]').first();
+  const first = onlyHost(page);
   await first.click();
   await page.keyboard.type('# ');
   const heading = page.getByRole('textbox', { name: 'Heading 1' });

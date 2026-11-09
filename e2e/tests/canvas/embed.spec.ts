@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
+import { onlyHost } from '../../support/block';
 import { blocks, openEditor } from '../../support/editor';
 import { answerEveryRequest } from '../../support/network';
 import { pasteEvent } from '../../support/synthetic-events';
@@ -15,7 +16,7 @@ const youtube = (page: Page) => page.getByTitle('YouTube video');
 const types = async (page: Page) => (await blocks(page)).map((block) => block.type);
 
 // The click places the caret through the browser, so its selectionchange has to reach the editor before a key does.
-async function caretIn(page: Page, host = page.locator('[data-quoin-host]').first()) {
+async function caretIn(page: Page, host = onlyHost(page)) {
   await host.click();
   await expect(host).toBeFocused();
   await page.waitForFunction(() => document.activeElement?.contains(document.getSelection()?.focusNode ?? null));

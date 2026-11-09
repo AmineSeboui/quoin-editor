@@ -1,3 +1,4 @@
+import { shell } from '../../support/block';
 import { expect, test, type Page } from '@playwright/test';
 import { openEditor } from '../../support/editor';
 
@@ -16,7 +17,6 @@ const layouts = [
 ];
 
 const sink = (page: Page) => page.locator('[data-quoin-sink]');
-const shell = (page: Page, id: string) => page.locator(`[data-block-id="${id}"]`);
 const toolbar = (page: Page) => page.getByRole('toolbar', { name: 'Image tools' });
 
 test.use({ viewport: { width: 700, height: 600 } });

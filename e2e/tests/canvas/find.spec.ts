@@ -1,12 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
-import { blocks, caretSettled, openEditor } from '../../support/editor';
+import { host } from '../../support/block';
+import { caretSettled, openEditor } from '../../support/editor';
+import { allMarkdown } from '../../support/markdown';
 
 const panel = (page: Page) => page.getByRole('search', { name: 'Find and replace' });
 const query = (page: Page) => panel(page).getByRole('textbox', { name: 'Find' });
 const status = (page: Page) => panel(page).locator('[data-quoin-find-status]');
-const host = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
-const markdownOf = async (page: Page) => (await blocks(page)).map((block) => block.data.markdown);
 
 async function openFind(page: Page, doc = 'find', extra = '') {
   await openEditor(page, doc, `find=1${extra}`);
@@ -40,7 +40,7 @@ test('finds, steps through the matches and replaces them all in one undo step', 
   await panel(page).getByRole('textbox', { name: 'Replace with' }).fill('dog');
   await panel(page).getByRole('button', { name: 'Replace all' }).click();
   await expect(status(page)).toHaveText('No results');
-  const replaced = await markdownOf(page);
+  const replaced = await allMarkdown(page);
   expect([replaced[0], replaced[1], replaced.at(-1)]).toEqual([
     'A dog sat on the **dog** mat',
     'The dog came back',
@@ -50,8 +50,8 @@ test('finds, steps through the matches and replaces them all in one undo step', 
   await host(page, 'b').click();
   await caretSettled(page, host(page, 'b'));
   await page.keyboard.press('ControlOrMeta+z');
-  await expect.poll(async () => (await markdownOf(page))[0]).toBe('A cat sat on the **cat** mat');
-  const restored = await markdownOf(page);
+  await expect.poll(async () => (await allMarkdown(page))[0]).toBe('A cat sat on the **cat** mat');
+  const restored = await allMarkdown(page);
   expect([restored[1], restored.at(-1)]).toEqual(['The cat came back', 'The last cat']);
 });
 
@@ -63,9 +63,9 @@ test('undoes and redoes a Replace all from the panel, which keeps focus', async 
   await expect(status(page)).toHaveText('No results');
   await expect(panel(page).getByRole('button', { name: 'Replace all' })).toBeFocused();
   await page.keyboard.press('ControlOrMeta+z');
-  await expect.poll(async () => (await markdownOf(page))[0]).toBe('A cat sat on the **cat** mat');
+  await expect.poll(async () => (await allMarkdown(page))[0]).toBe('A cat sat on the **cat** mat');
   await page.keyboard.press('ControlOrMeta+Shift+z');
-  await expect.poll(async () => (await markdownOf(page))[0]).toBe('A dog sat on the **dog** mat');
+  await expect.poll(async () => (await allMarkdown(page))[0]).toBe('A dog sat on the **dog** mat');
   await expect(panel(page)).toBeVisible();
 });
 
@@ -75,7 +75,7 @@ test('replaces the current match on Enter in the replace field and moves to the 
   await panel(page).getByRole('textbox', { name: 'Replace with' }).fill('cow');
   await page.keyboard.press('Enter');
   await expect(status(page)).toHaveText('1 of 3');
-  await expect.poll(async () => (await markdownOf(page))[0]).toBe('A cow sat on the **cat** mat');
+  await expect.poll(async () => (await allMarkdown(page))[0]).toBe('A cow sat on the **cat** mat');
 });
 
 test('Escape closes the panel, clears the marks and selects the current match', async ({ page }) => {
@@ -88,7 +88,7 @@ test('Escape closes the panel, clears the marks and selects the current match', 
   await expect(page.locator('.quoin-find-match')).toHaveCount(0);
   await expect(host(page, 'b')).toBeFocused();
   await page.keyboard.type('dog');
-  await expect.poll(async () => (await markdownOf(page))[1]).toBe('The dog came back');
+  await expect.poll(async () => (await allMarkdown(page))[1]).toBe('The dog came back');
 });
 
 test('has no axe violations with matches, without, with an invalid pattern, and read-only', async ({ page }) => {

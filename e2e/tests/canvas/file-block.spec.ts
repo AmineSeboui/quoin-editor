@@ -1,10 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
+import { onlyHost, shell } from '../../support/block';
 import { blocks, openEditor } from '../../support/editor';
 import { dropEvent } from '../../support/synthetic-events';
 
 const fileData = async (page: Page, id: string) => (await blocks(page)).find((block) => block.id === id)?.data;
-const shell = (page: Page, id: string) => page.locator(`[data-block-id="${id}"]`);
 const sink = (page: Page) => page.locator('[data-quoin-sink]');
 const toolbar = (page: Page) => page.getByRole('toolbar', { name: 'File tools' });
 const types = async (page: Page) => (await blocks(page)).map((block) => block.type);
@@ -91,7 +91,7 @@ test('/file opens the upload button of a new file block, and a key typed next le
   page,
 }) => {
   await openEditor(page, 'empty', 'upload=50');
-  await page.locator('[data-quoin-host]').first().click();
+  await onlyHost(page).click();
   await page.keyboard.type('/file');
   await expect(page.getByRole('listbox', { name: 'Commands' })).toBeVisible();
   await page.keyboard.press('Enter');

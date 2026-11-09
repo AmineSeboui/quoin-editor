@@ -1,3 +1,4 @@
+import { onlyHost } from '../../support/block';
 import { expect, test, type Page } from '@playwright/test';
 import { blocks, openEditor } from '../../support/editor';
 
@@ -6,7 +7,7 @@ const shape = async (page: Page) =>
 
 async function chooseInEmptyDocument(page: Page, query: string) {
   await openEditor(page, 'empty');
-  await page.locator('[data-quoin-host]').first().click();
+  await onlyHost(page).click();
   await page.keyboard.type(query);
   await expect(page.getByRole('listbox', { name: 'Commands' })).toBeVisible();
   await page.keyboard.press('Enter');

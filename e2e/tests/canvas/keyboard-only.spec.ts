@@ -23,6 +23,17 @@ async function press(page: Page, key: string, times: number) {
   for (let i = 0; i < times; i++) await page.keyboard.press(key);
 }
 
+// Walks the menu with the arrow key, as a writer on the keyboard does, without pinning the test to the order of the
+// commands. Bounded by the number of options, so a name that is not there fails saying so rather than pressing for ever.
+async function arrowTo(page: Page, name: string) {
+  const options = page.getByRole('listbox', { name: 'Commands' }).getByRole('option');
+  for (let left = await options.count(); left > 0; left--) {
+    if (((await selectedOption(page).textContent()) ?? '').includes(name)) return;
+    await page.keyboard.press('ArrowDown');
+  }
+  throw new Error(`The commands menu has no ${name}`);
+}
+
 test('an author builds the same document with the keyboard alone, and leaves the editor with Escape then Tab', async ({
   page,
 }) => {
@@ -60,8 +71,7 @@ test('an author builds the same document with the keyboard alone, and leaves the
   await page.keyboard.press('Enter');
   await page.keyboard.type('/');
   await expect(selectedOption(page)).toContainText('Text');
-  await press(page, 'ArrowDown', 7);
-  await expect(selectedOption(page)).toContainText('Bulleted list');
+  await arrowTo(page, 'Bulleted list');
   await page.keyboard.press('Enter');
   await page.keyboard.type('Milk');
   await page.keyboard.press('Enter');
@@ -69,8 +79,7 @@ test('an author builds the same document with the keyboard alone, and leaves the
   await page.keyboard.press('Enter');
   await page.keyboard.press('Enter');
   await page.keyboard.type('/');
-  await press(page, 'ArrowDown', 6);
-  await expect(selectedOption(page)).toContainText('Callout');
+  await arrowTo(page, 'Callout');
   await page.keyboard.press('Enter');
   await page.keyboard.type('Shops close at six');
   await expect.poll(() => markdownOrData(page)).toEqual([
@@ -113,7 +122,7 @@ test('an author builds the same document with the keyboard alone, and leaves the
   await page.keyboard.press('Tab');
   await expect(fieldAfter(page)).toBeFocused();
   await page.keyboard.press('Shift+Tab');
-  expect(await focusInEditor(page)).toBe(true);
+  await expect.poll(() => focusInEditor(page)).toBe(true);
   await page.keyboard.press('Shift+Tab');
   await expect(fieldBefore(page)).toBeFocused();
 });

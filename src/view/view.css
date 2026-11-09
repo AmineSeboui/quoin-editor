@@ -174,6 +174,12 @@
   transition: transform 120ms;
 }
 
+/* A closed disclosure points the way the text runs on, so it turns round with the page. Naming the closed state
+   rather than leaning on source order keeps it out of the way of the open one, which points down either way. */
+.quoin:dir(rtl) .quoin-toggle-button[aria-expanded="false"] svg {
+  transform: rotate(180deg);
+}
+
 .quoin .quoin-toggle-button[aria-expanded="true"] svg {
   transform: rotate(90deg);
 }

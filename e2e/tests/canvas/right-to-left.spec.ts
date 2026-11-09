@@ -89,6 +89,18 @@ test('on a right-to-left page the slash menu opens from the inline start too', a
   expect(await alignedEdge(text, menu)).toBe('right');
 });
 
+test('on a right-to-left page a closed toggle points the way the text runs on', async ({ page }) => {
+  await openRightToLeft(page, 'rich');
+  const chevron = page.locator('.quoin-toggle-button').first();
+  await expect(chevron).toHaveAttribute('aria-expanded', 'true');
+  await chevron.click();
+  await expect(chevron).toHaveAttribute('aria-expanded', 'false');
+  // A half turn, matrix(-1, 0, 0, -1, ...), is what points a chevron drawn towards the right at the left of the page.
+  // Polled because the turn is animated, and read at once it is still the quarter turn the open state left behind.
+  const turn = () => chevron.locator('svg').evaluate((svg) => getComputedStyle(svg).transform);
+  await expect.poll(turn).toMatch(/^matrix\(-1,\s*0,\s*0,\s*-1/);
+});
+
 // Arabic rather than English, because the contrast and the layout of real Arabic text are what a reader meets, and
 // because the rest of the canvas specs cannot be run translated: they find almost everything by its English name.
 for (const scheme of ['light', 'dark'] as const) {

@@ -1,4 +1,5 @@
 import { useCallback, useRef, type FocusEvent, type KeyboardEvent, type RefCallback } from 'react';
+import { arrowAsWritten, inlineDirection } from '../../ui/direction';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
 
 type RovingFocus = {
@@ -57,9 +58,10 @@ export function useRovingFocus(): RovingFocus {
   const onKeyDown = (event: KeyboardEvent) => {
     const all = items();
     const index = all.indexOf(event.target as HTMLElement);
-    if (index === -1 || !Object.hasOwn(MOVES, event.key)) return;
+    const key = row.current === null ? event.key : arrowAsWritten(event.key, inlineDirection(row.current));
+    if (index === -1 || !Object.hasOwn(MOVES, key)) return;
     event.preventDefault();
-    all[MOVES[event.key](index, all.length)].focus();
+    all[MOVES[key](index, all.length)].focus();
   };
 
   return { ref, owns, focusCurrent, onFocus, onKeyDown };

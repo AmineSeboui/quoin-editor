@@ -49,10 +49,12 @@
 }
 
 .quoin .quoin-image-handle[data-side="-1"] {
+  /* physical: the handle is named for the side of the screen it is on, and its drag reads clientX */
   left: 0.5rem;
 }
 
 .quoin .quoin-image-handle[data-side="1"] {
+  /* physical: the other handle, for the same reason */
   right: 0.5rem;
 }
 

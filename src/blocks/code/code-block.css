@@ -26,6 +26,7 @@
 .quoin .quoin-code-caret {
   position: absolute;
   top: 0;
+  /* physical: code runs left to right whatever the page does, so its caret starts at the left of it */
   left: 0;
   width: 2px;
   height: 1.5rem;
@@ -48,6 +49,7 @@
   font-feature-settings: normal;
   text-transform: none;
   text-indent: 0;
+  /* physical: code runs left to right whatever the page does */
   text-align: left;
 }
 

@@ -15,8 +15,10 @@
 .quoin .quoin-presence-caret {
   position: absolute;
   top: 0;
+  /* physical: place-caret.ts moves this with a transform computed from client rects, which are physical */
   left: 0;
   width: 2px;
+  /* physical: half the width, to centre the caret on the boundary it marks, which is symmetric either way */
   margin-left: -1px;
   background: var(--quoin-presence, var(--quoin-ring));
 }
@@ -24,7 +26,7 @@
 .quoin .quoin-presence-name {
   position: absolute;
   bottom: 100%;
-  left: 0;
+  inset-inline-start: 0;
   max-width: 16em;
   overflow: hidden;
   padding: 0 4px;

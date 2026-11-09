@@ -1,10 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
+import { host } from '../../support/block';
 import { blocks, caretSettled, openEditor } from '../../support/editor';
+import { allMarkdown } from '../../support/markdown';
 import { caretOf, onCharacter } from '../../support/presence';
 
-const host = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
-const markdown = async (page: Page) => (await blocks(page)).map((block) => String(block.data.markdown));
 const offset = (page: Page) =>
   page.evaluate(() => {
     const selection = window.__quoin.controller!.editor.state.selection;
@@ -18,7 +18,7 @@ async function twoPages(page: Page, doc = 'sample', ada = '', both = '') {
   const other = await page.context().newPage();
   await other.setViewportSize({ width: 640, height: 720 });
   await openEditor(other, 'empty', `collab=presence&user=Bea&color=%231d4ed8&seed=0${both}`);
-  await expect.poll(() => markdown(other)).toEqual(await markdown(page));
+  await expect.poll(() => allMarkdown(other)).toEqual(await allMarkdown(page));
   return other;
 }
 
@@ -42,7 +42,7 @@ test.describe('presence between two pages', () => {
     const scroll = await bea.evaluate(() => scrollY);
     await caretAtEnd(page, 'b');
     await page.keyboard.type(' Hello');
-    await expect.poll(() => markdown(bea)).toEqual(['# Title', 'First paragraph. Hello']);
+    await expect.poll(() => allMarkdown(bea)).toEqual(['# Title', 'First paragraph. Hello']);
     await expect(caretOf(bea, 'Ada Lovelace')).toBeVisible();
     await expect(bea.getByRole('img', { name: 'Ada Lovelace is here' })).toBeVisible();
     await expect(caretOf(page, 'Bea')).toBeVisible();
@@ -85,8 +85,8 @@ test.describe('presence between two pages', () => {
       const typed = 'abcdefghijklmnopqrst';
       await Promise.all([page.keyboard.type(typed, { delay: 35 }), bea.keyboard.type('XYZXYZXYZ', { delay: 55 })]);
       const expected = ['# Title', `XYZXYZXYZFirst paragraph.${typed}`];
-      await expect.poll(() => markdown(page)).toEqual(expected);
-      await expect.poll(() => markdown(bea)).toEqual(expected);
+      await expect.poll(() => allMarkdown(page)).toEqual(expected);
+      await expect.poll(() => allMarkdown(bea)).toEqual(expected);
       expect(await page.evaluate(() => (window as unknown as { __misplaced: unknown[] }).__misplaced)).toEqual([]);
     });
   }
@@ -110,7 +110,7 @@ test.describe('presence between two pages', () => {
     expect(await moved('ArrowRight')).toEqual([4, 5, 6, 7]);
     expect(await moved('ArrowLeft')).toEqual([6, 5, 4, 3]);
     await page.keyboard.type('Q');
-    await expect.poll(() => markdown(bea)).toEqual(['# Title', 'FirQst paragraph.']);
+    await expect.poll(() => allMarkdown(bea)).toEqual(['# Title', 'FirQst paragraph.']);
   });
 
   test('keeps a caret in a far column of a wide table inside the table, and moves it with the table', async ({
@@ -256,12 +256,12 @@ test.describe('presence between two pages', () => {
     const cdp = await page.context().newCDPSession(page);
     await cdp.send('Input.imeSetComposition', { text: '\u304b', selectionStart: 1, selectionEnd: 1 });
     await bea.keyboard.type(' REMOTE');
-    await expect.poll(async () => (await markdown(page))[1]).toMatch(/ REMOTE$/);
+    await expect.poll(async () => (await allMarkdown(page))[1]).toMatch(/ REMOTE$/);
     await cdp.send('Input.imeSetComposition', { text: '\u304b\u3093', selectionStart: 2, selectionEnd: 2 });
     await cdp.send('Input.insertText', { text: '\u6f22\u5b57' });
     const expected = ['# Title', '\u6f22\u5b57First paragraph. REMOTE'];
-    await expect.poll(() => markdown(page)).toEqual(expected);
-    await expect.poll(() => markdown(bea)).toEqual(expected);
+    await expect.poll(() => allMarkdown(page)).toEqual(expected);
+    await expect.poll(() => allMarkdown(bea)).toEqual(expected);
   });
 
   test('passes an accessibility scan with a collaborator caret, selection and avatar shown', async ({ page }) => {

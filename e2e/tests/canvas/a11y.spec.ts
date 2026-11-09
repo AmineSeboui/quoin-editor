@@ -1,9 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
+import { host } from '../../support/block';
 import { openEditor } from '../../support/editor';
 import { phoneTest } from '../../support/phone';
 
-const host = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
 const serious = (page: Page) => axeViolations(page, 'serious', '.quoin');
 
 async function selectFirstWord(page: Page) {

@@ -1,13 +1,12 @@
+import { host } from '../../support/block';
 import { expect, test, type Page } from '@playwright/test';
 import { blocks, openEditor } from '../../support/editor';
+import { markdownOrData } from '../../support/markdown';
 
-const markdown = async (page: Page) =>
-  (await blocks(page)).map((block) => (block.type === 'MARKDOWN' ? block.data.markdown : block.data));
 const selectedOption = (page: Page) =>
   page.getByRole('listbox', { name: 'Commands' }).getByRole('option', { selected: true });
 const focusInEditor = (page: Page) =>
   page.evaluate(() => document.querySelector('.quoin-editor')!.contains(document.activeElement));
-const host = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
 const fieldBefore = (page: Page) => page.getByRole('textbox', { name: 'Before the editor' });
 const fieldAfter = (page: Page) => page.getByRole('textbox', { name: 'After the editor' });
 
@@ -45,7 +44,7 @@ test('an author builds the same document with the keyboard alone, and leaves the
   await page.keyboard.press('ArrowRight');
   await expect(toolbar.getByRole('button', { name: 'Bold', exact: true })).toBeFocused();
   await page.keyboard.press('Enter');
-  await expect.poll(() => markdown(page)).toEqual(['# Groceries', 'Buy **fresh** bread']);
+  await expect.poll(() => markdownOrData(page)).toEqual(['# Groceries', 'Buy **fresh** bread']);
   await page.keyboard.press('Escape');
 
   await press(page, 'ArrowRight', 2);
@@ -54,7 +53,7 @@ test('an author builds the same document with the keyboard alone, and leaves the
   await expect(page.getByRole('textbox', { name: 'Link address' })).toBeFocused();
   await page.keyboard.type('https://bread.example');
   await page.keyboard.press('Enter');
-  await expect.poll(() => markdown(page)).toEqual(['# Groceries', 'Buy **fresh** [bread](https://bread.example)']);
+  await expect.poll(() => markdownOrData(page)).toEqual(['# Groceries', 'Buy **fresh** [bread](https://bread.example)']);
   await expect(page.getByRole('textbox', { name: 'Paragraph' })).toBeFocused();
 
   await page.keyboard.press('ArrowRight');
@@ -74,7 +73,7 @@ test('an author builds the same document with the keyboard alone, and leaves the
   await expect(selectedOption(page)).toContainText('Callout');
   await page.keyboard.press('Enter');
   await page.keyboard.type('Shops close at six');
-  await expect.poll(() => markdown(page)).toEqual([
+  await expect.poll(() => markdownOrData(page)).toEqual([
     '# Groceries',
     'Buy **fresh** [bread](https://bread.example)',
     '- Milk',
@@ -95,7 +94,7 @@ test('an author builds the same document with the keyboard alone, and leaves the
   }
   await page.keyboard.press('Enter');
   await expect(page.getByRole('menu')).toHaveCount(0);
-  await expect.poll(async () => (await markdown(page)).length).toBe(6);
+  await expect.poll(async () => (await markdownOrData(page)).length).toBe(6);
   await expect(host(page, (await blocks(page))[3].id)).toBeFocused();
 
   await page.keyboard.press('ControlOrMeta+z');

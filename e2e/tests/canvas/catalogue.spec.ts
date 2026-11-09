@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
+import { host, onlyHost, shell } from '../../support/block';
 import { CATALOGUE_BLOCKS, type CatalogueBlock } from '../../support/catalogue-blocks';
 import { blocks, caretSettled, openEditor } from '../../support/editor';
 import { answerEveryRequest } from '../../support/network';
@@ -48,8 +49,10 @@ const GAPS: Record<Requirement, readonly string[]> = {
 
 const gaps = (requirement: Requirement) => CATALOGUE_BLOCKS.filter(({ id }) => GAPS[requirement].includes(id));
 
-const shell = (page: Page, id: string) => page.locator(`[data-block-id="${id}"]`);
-const host = (page: Page, id: string) => shell(page, id).locator('[data-quoin-host]').first();
+// This spec walks every block type, the table among them, and a table draws an editable region per cell. Each test
+// here wants the block's first region whatever the type, so the ambiguity `host` would raise is answered once.
+const firstHost = (page: Page, id: string) => host(page, id).first();
+
 const openEvery = (page: Page, extra = '') => openEditor(page, 'every', `catalogue=1${extra}`);
 
 const selectedBlock = (page: Page) =>
@@ -66,8 +69,8 @@ const lineBeside = (page: Page, id: string, side: 'previous' | 'next') =>
   );
 
 async function caretAtEnd(page: Page, id: string) {
-  await host(page, id).click();
-  await caretSettled(page, host(page, id));
+  await firstHost(page, id).click();
+  await caretSettled(page, firstHost(page, id));
   await page.keyboard.press('End');
 }
 
@@ -77,7 +80,7 @@ async function press(page: Page, key: string, times: number) {
 
 async function insert(page: Page, { option, query, link, inserted }: CatalogueBlock, extra = '') {
   await openEditor(page, 'empty', `catalogue=1${extra}`);
-  const line = page.locator('[data-quoin-host]').first();
+  const line = onlyHost(page);
   await line.click();
   await caretSettled(page, line);
   await chooseCommand(page, query, option);
@@ -122,7 +125,7 @@ for (const { id, option, rows = 1 } of gaps('arrows')) {
     await expect.poll(() => selectedBlock(page)).toBe(id);
     await press(page, 'ArrowUp', rows);
     await expect.poll(() => selectedBlock(page)).toBe(above);
-    await expect(host(page, above)).toBeFocused();
+    await expect(firstHost(page, above)).toBeFocused();
   });
 }
 

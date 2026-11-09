@@ -1,3 +1,4 @@
+import { host } from '../../support/block';
 import { expect, test, type Page } from '@playwright/test';
 import { openEditor } from '../../support/editor';
 
@@ -20,7 +21,6 @@ const layouts = [
   },
 ];
 
-const host = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
 
 for (const { name, css, canvas } of layouts) {
   test.describe(`a collaborator removing the block the writer has selected, out of view on ${name}`, () => {

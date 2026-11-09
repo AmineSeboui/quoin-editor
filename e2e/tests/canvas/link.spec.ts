@@ -1,15 +1,15 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
-import { blocks, openEditor } from '../../support/editor';
+import { host } from '../../support/block';
+import { openEditor } from '../../support/editor';
+import { allMarkdown } from '../../support/markdown';
 
 const LINKED = 'Read [the docs](https://quoin.dev/docs) today';
 const PLAIN = 'Plain words to link';
 
-const host = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
 const link = (page: Page) => host(page, 'p').locator('a[data-quoin-link]');
 const dialog = (page: Page) => page.getByRole('dialog', { name: 'Link' });
 const field = (page: Page) => page.getByRole('textbox', { name: 'Link address' });
-const markdown = async (page: Page) => (await blocks(page)).map((block) => String(block.data.markdown));
 const selectedText = (page: Page) => page.evaluate(() => getSelection()!.toString());
 
 async function caretAt(page: Page, id: string, offset: number) {
@@ -32,7 +32,7 @@ test('Mod+K on selected text opens the link popover, and Enter links the text', 
   expect(await axeViolations(page, 'all', '[role="dialog"]')).toEqual([]);
   await page.keyboard.type('https://example.com');
   await page.keyboard.press('Enter');
-  await expect.poll(() => markdown(page)).toEqual([LINKED, '[Plain](https://example.com) words to link']);
+  await expect.poll(() => allMarkdown(page)).toEqual([LINKED, '[Plain](https://example.com) words to link']);
   await expect(dialog(page)).toHaveCount(0);
   await expect(host(page, 'q')).toBeFocused();
   await expect.poll(() => selectedText(page)).toBe('Plain');
@@ -47,7 +47,7 @@ test('Escape closes the popover and gives the text back its selection, unchanged
   await expect(dialog(page)).toHaveCount(0);
   await expect(host(page, 'q')).toBeFocused();
   await expect.poll(() => selectedText(page)).toBe('Plain');
-  expect(await markdown(page)).toEqual([LINKED, PLAIN]);
+  expect(await allMarkdown(page)).toEqual([LINKED, PLAIN]);
 });
 
 test('an unsafe address keeps the popover open with its explanation', async ({ page }) => {
@@ -58,7 +58,7 @@ test('an unsafe address keeps the popover open with its explanation', async ({ p
   await page.keyboard.press('Enter');
   await expect(field(page)).toHaveAttribute('aria-invalid', 'true');
   await expect(field(page)).toHaveAccessibleDescription('Enter a valid link, such as https://example.com');
-  expect(await markdown(page)).toEqual([LINKED, PLAIN]);
+  expect(await allMarkdown(page)).toEqual([LINKED, PLAIN]);
 });
 
 test('a caret resting in a link shows its card without taking focus, and Unlink removes the link', async ({ page }) => {
@@ -72,7 +72,7 @@ test('a caret resting in a link shows its card without taking focus, and Unlink 
   await expect(open).toHaveAttribute('target', '_blank');
   await expect(open).toHaveAttribute('rel', 'noopener noreferrer');
   await card.getByRole('button', { name: 'Remove link' }).click();
-  await expect.poll(() => markdown(page)).toEqual(['Read the docs today', PLAIN]);
+  await expect.poll(() => allMarkdown(page)).toEqual(['Read the docs today', PLAIN]);
   await expect(card).toHaveCount(0);
   await expect(host(page, 'p')).toBeFocused();
 });
@@ -125,7 +125,7 @@ test.describe('on a Mac', () => {
     await openEditor(page, 'link');
     await caretAt(page, 'q', 6);
     await page.keyboard.press('Control+k');
-    await expect.poll(async () => (await markdown(page))[1]).toBe('Plain&#32;');
+    await expect.poll(async () => (await allMarkdown(page))[1]).toBe('Plain&#32;');
     await expect(dialog(page)).toHaveCount(0);
   });
 });

@@ -1,9 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
-import { blocks, openEditor } from '../../support/editor';
+import { openEditor } from '../../support/editor';
+import { allMarkdown } from '../../support/markdown';
 
 const listbox = (page: Page) => page.getByRole('listbox', { name: 'Commands' });
 const paragraph = (page: Page) => page.locator('[data-block-id="b"] [data-quoin-host]');
-const markdown = async (page: Page) => (await blocks(page)).map((block) => String(block.data.markdown));
 
 async function openSlashMenu(page: Page) {
   await openEditor(page, 'sample');
@@ -17,14 +17,14 @@ test.describe('an overlay opened by key while the slash menu is open', () => {
     page,
   }) => {
     await openSlashMenu(page);
-    const before = await markdown(page);
+    const before = await allMarkdown(page);
     await page.keyboard.press('ControlOrMeta+k');
     const address = page.getByRole('textbox', { name: 'Link address' });
     await expect(address).toBeFocused();
     await expect(listbox(page)).toHaveCount(0);
     await page.keyboard.type('example.com');
     await expect(address).toHaveValue('example.com');
-    expect(await markdown(page)).toEqual(before);
+    expect(await allMarkdown(page)).toEqual(before);
   });
 
   test('Mod+/ opens the block menu, which keeps focus, and the slash menu closes', async ({ page }) => {
@@ -63,5 +63,5 @@ test('the gutter + while the slash menu is open moves the menu to the new line',
   await page.getByRole('button', { name: 'Add block below' }).click();
   await expect(listbox(page)).toHaveCount(1);
   await expect(page.locator('[data-quoin-host][aria-expanded="true"]')).toHaveText('/');
-  await expect.poll(() => markdown(page)).toEqual(['# Title', 'First paragraph. /x', '/']);
+  await expect.poll(() => allMarkdown(page)).toEqual(['# Title', 'First paragraph. /x', '/']);
 });

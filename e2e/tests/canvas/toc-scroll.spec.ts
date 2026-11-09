@@ -1,3 +1,4 @@
+import { host } from '../../support/block';
 import { expect, test, type Page } from '@playwright/test';
 import { openEditor } from '../../support/editor';
 
@@ -8,7 +9,6 @@ type Scrolled = { start: number; handled: number; end: number };
 
 const toc = (page: Page) => page.getByRole('navigation', { name: 'Table of contents' });
 const entry = (page: Page, name: string) => toc(page).getByRole('link', { name });
-const host = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
 
 // Where the page had scrolled to before the action, once the click it makes on an entry was handled, and once a
 // smooth scroll is long over. The page listens after the canvas, so it reads the scroll the handler left.

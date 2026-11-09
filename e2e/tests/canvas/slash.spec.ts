@@ -1,28 +1,28 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
-import { blocks, openEditor } from '../../support/editor';
+import { onlyHost } from '../../support/block';
+import { openEditor } from '../../support/editor';
+import { allMarkdown } from '../../support/markdown';
 
 const listbox = (page: Page) => page.getByRole('listbox', { name: 'Commands' });
 const popup = (page: Page) => listbox(page).locator('..');
-const host = (page: Page) => page.locator('[data-quoin-host]').first();
-const markdown = async (page: Page) => (await blocks(page)).map((block) => block.data.markdown);
 
 const box = async (locator: Locator) => (await locator.boundingBox())!;
 
 async function typeInEmptyParagraph(page: Page, text: string) {
   await openEditor(page, 'empty');
-  await host(page).click();
+  await onlyHost(page).click();
   await page.keyboard.type(text);
 }
 
 test('a slash in an empty paragraph opens the menu under the line, without covering it', async ({ page }) => {
   await typeInEmptyParagraph(page, '/');
   await expect(listbox(page)).toBeVisible();
-  const line = await box(host(page));
+  const line = await box(onlyHost(page));
   const menu = await box(popup(page));
   expect(menu.y).toBeGreaterThanOrEqual(line.y + line.height);
-  await expect(host(page)).toBeFocused();
-  await expect(host(page)).toHaveAttribute('aria-expanded', 'true');
+  await expect(onlyHost(page)).toBeFocused();
+  await expect(onlyHost(page)).toHaveAttribute('aria-expanded', 'true');
 });
 
 test('the menu opens above a line near the bottom of the window', async ({ page }) => {
@@ -96,14 +96,14 @@ test('typing a query and Enter turns the paragraph into the chosen block', async
   await expect(listbox(page).getByRole('option', { selected: true })).toContainText('Bulleted list');
   await page.keyboard.press('Enter');
   await expect(listbox(page)).toHaveCount(0);
-  await expect.poll(() => markdown(page)).toEqual(['- ']);
+  await expect.poll(() => allMarkdown(page)).toEqual(['- ']);
   await page.keyboard.type('Milk');
-  await expect.poll(() => markdown(page)).toEqual(['- Milk']);
+  await expect.poll(() => allMarkdown(page)).toEqual(['- Milk']);
 });
 
 test('a slash inserted without key events, as a virtual keyboard does, opens the menu', async ({ page }) => {
   await openEditor(page, 'empty');
-  await host(page).click();
+  await onlyHost(page).click();
   await page.keyboard.insertText('/');
   await expect(listbox(page)).toBeVisible();
   await page.keyboard.insertText('h2');
@@ -115,19 +115,19 @@ test('Escape closes the menu and keeps the slash and the query as text', async (
   await expect(listbox(page)).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(listbox(page)).toHaveCount(0);
-  await expect(host(page)).toBeFocused();
-  await expect.poll(() => markdown(page)).toEqual(['/hea']);
-  await expect(host(page)).not.toHaveAttribute('aria-expanded');
+  await expect(onlyHost(page)).toBeFocused();
+  await expect.poll(() => allMarkdown(page)).toEqual(['/hea']);
+  await expect(onlyHost(page)).not.toHaveAttribute('aria-expanded');
 });
 
 test('clicking an option runs it and keeps the caret in the text', async ({ page }) => {
   await typeInEmptyParagraph(page, '/');
   await listbox(page).getByRole('option', { name: /Quote/ }).click();
   await expect(listbox(page)).toHaveCount(0);
-  await expect.poll(() => markdown(page)).toEqual(['> ']);
-  await expect(host(page)).toBeFocused();
+  await expect.poll(() => allMarkdown(page)).toEqual(['> ']);
+  await expect(onlyHost(page)).toBeFocused();
   await page.keyboard.type('Wise words');
-  await expect.poll(() => markdown(page)).toEqual(['> Wise words']);
+  await expect.poll(() => allMarkdown(page)).toEqual(['> Wise words']);
 });
 
 test('the open menu and the text that controls it have no accessibility violations', async ({ page }) => {

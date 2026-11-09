@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
+import { onlyHost } from '../../support/block';
 import { blocks, caretSettled, openEditor } from '../../support/editor';
 
 const PARTY_POPPER = '\u{1F389}';
@@ -16,7 +17,7 @@ const dataOf = async (page: Page, id: string) => (await blocks(page)).find((bloc
 
 async function typeIn(page: Page, doc = 'empty', extra = '') {
   await openEditor(page, doc, `emoji=1${extra}`);
-  const host = page.locator('[data-quoin-host]').first();
+  const host = onlyHost(page);
   await host.click();
   await caretSettled(page, host);
   return host;

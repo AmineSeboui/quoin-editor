@@ -1,11 +1,10 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
+import { host, shell } from '../../support/block';
 import { blocks, openEditor } from '../../support/editor';
 
 const handle = (page: Page) => page.getByRole('button', { name: 'Drag to move, click for options' });
 const addBelow = (page: Page) => page.getByRole('button', { name: 'Add block below' });
-const shell = (page: Page, id: string) => page.locator(`[data-block-id="${id}"]`);
-const host = (page: Page, id: string) => shell(page, id).locator('[data-quoin-host]');
 const dropLine = (page: Page) => page.locator('[data-quoin-drop-line]');
 const box = async (locator: Locator) => (await locator.boundingBox())!;
 

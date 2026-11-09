@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
+import { onlyHost } from '../../support/block';
 import { blocks, openEditor } from '../../support/editor';
 
 const area = (page: Page) => page.getByRole('textbox', { name: 'Code', exact: true });
@@ -105,7 +106,7 @@ test('ArrowLeft at the start and ArrowRight at the end leave the code, and a sec
 
 test('ArrowDown on the last line of a code block that ends the document goes on in a new line after it', async ({ page }) => {
   await openEditor(page, 'empty');
-  await page.locator('[data-quoin-host]').first().click();
+  await onlyHost(page).click();
   await page.keyboard.type('/code');
   await page.keyboard.press('Enter');
   await page.keyboard.type('x');
@@ -149,7 +150,7 @@ test('a drag inside the code selects its text and never the blocks around it', a
 
 test('Backspace in an empty code block turns it into a paragraph', async ({ page }) => {
   await openEditor(page, 'empty');
-  await page.locator('[data-quoin-host]').first().click();
+  await onlyHost(page).click();
   await page.keyboard.type('/code');
   await page.keyboard.press('Enter');
   await expect(area(page)).toBeFocused();

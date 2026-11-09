@@ -1,11 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
-import { blocks, caretSettled, openEditor } from '../../support/editor';
+import { caretSettled, openEditor } from '../../support/editor';
+import { markdownOf } from '../../support/markdown';
 import { caretOf, onCharacter } from '../../support/presence';
 
 const hostOf = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
-const markdown = async (page: Page, id: string) =>
-  String((await blocks(page)).find((block) => block.id === id)?.data.markdown);
 const toolbar = (page: Page) => page.getByRole('toolbar', { name: 'Text formatting' });
 const bar = (page: Page) => page.getByRole('group', { name: 'AI response' });
 const rail = (page: Page) => page.getByRole('list', { name: 'Comments' });
@@ -36,7 +35,7 @@ async function twoPages(page: Page) {
   await openEditor(page, 'ai', `${features}&user=Ada%20Lovelace&color=%23b91c1c`);
   const bea = await page.context().newPage();
   await openEditor(bea, 'empty', `${features}&user=Bea&color=%231d4ed8&seed=0`);
-  await expect.poll(() => markdown(bea, 'r')).toBe('Another paragraph after.');
+  await expect.poll(() => markdownOf(bea, 'r')).toBe('Another paragraph after.');
   return bea;
 }
 
@@ -88,7 +87,7 @@ test.describe('collaboration, presence, comments and AI together on two pages', 
 
     await commentOnFirstWord(page, 'p', 'Sharper?');
     const anchored = '<span data-comment="ada-t1">Make</span> this sentence better.';
-    await expect.poll(() => markdown(bea, 'p')).toBe(anchored);
+    await expect.poll(() => markdownOf(bea, 'p')).toBe(anchored);
     await expect(rail(bea).getByRole('button', { name: /^Make/ })).toContainText('1 comment');
     await expect(bea.locator('.quoin-ai-ghost')).toHaveText('One more');
     expect(await scan(bea)).toEqual([]);
@@ -101,10 +100,10 @@ test.describe('collaboration, presence, comments and AI together on two pages', 
     const before = await changes(page);
     await bea.keyboard.press('Enter');
     await expect(bar(bea)).toHaveCount(0);
-    await expect.poll(() => markdown(page, 'r')).toBe('One **more** paragraph after.');
+    await expect.poll(() => markdownOf(page, 'r')).toBe('One **more** paragraph after.');
     await expect.poll(() => changes(page)).toBe(before + 1);
-    expect(await markdown(page, 'p')).toBe(anchored);
-    expect(await markdown(bea, 'r')).toBe('One **more** paragraph after.');
+    expect(await markdownOf(page, 'p')).toBe(anchored);
+    expect(await markdownOf(bea, 'r')).toBe('One **more** paragraph after.');
 
     await expect(caretOf(page, 'Bea')).toBeVisible();
     await expect.poll(() => caretWhereItIs(page, 'Bea', bea)).toBe(true);
@@ -120,7 +119,7 @@ test.describe('collaboration, presence, comments and AI together on two pages', 
     const bea = await twoPages(page);
     await commentOnFirstWord(bea, 'r', 'Why another?');
     const anchored = '<span data-comment="bea-t1">Another</span> paragraph after.';
-    await expect.poll(() => markdown(page, 'r')).toBe(anchored);
+    await expect.poll(() => markdownOf(page, 'r')).toBe(anchored);
     await rail(page).getByRole('button', { name: /^Another/ }).click();
     await expect(rail(page).getByRole('group', { name: 'Comment on "Another"' })).toContainText('Why another?');
 
@@ -128,11 +127,11 @@ test.describe('collaboration, presence, comments and AI together on two pages', 
     await ai.push(page, 'Get');
     await ai.end(page);
     await page.keyboard.press('Enter');
-    await expect.poll(() => markdown(bea, 'p')).toBe('Get this sentence better.');
+    await expect.poll(() => markdownOf(bea, 'p')).toBe('Get this sentence better.');
     await expect(hostOf(page, 'p')).toBeFocused();
     await page.keyboard.press('ControlOrMeta+z');
-    await expect.poll(() => markdown(bea, 'p')).toBe('Make this sentence better.');
-    expect(await markdown(bea, 'r')).toBe(anchored);
+    await expect.poll(() => markdownOf(bea, 'p')).toBe('Make this sentence better.');
+    expect(await markdownOf(bea, 'r')).toBe(anchored);
     await expect(caretOf(bea, 'Ada Lovelace')).toBeVisible();
     await expect.poll(() => caretWhereItIs(bea, 'Ada Lovelace', page)).toBe(true);
   });

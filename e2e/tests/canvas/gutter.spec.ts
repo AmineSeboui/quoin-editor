@@ -1,18 +1,13 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
+import { firstLine, host } from '../../support/block';
 import { blocks, openEditor } from '../../support/editor';
 
 const handle = (page: Page) => page.getByRole('button', { name: 'Drag to move, click for options' });
 const addBelow = (page: Page) => page.getByRole('button', { name: 'Add block below' });
 const menu = (page: Page) => page.getByRole('menu');
-const host = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
 const ids = async (page: Page) => (await blocks(page)).map((block) => block.id);
 
-const firstLine = (page: Page, id: string) =>
-  host(page, id).evaluate((element) => {
-    const { top, left } = element.getBoundingClientRect();
-    return { top, left, height: parseFloat(getComputedStyle(element).lineHeight) };
-  });
 
 async function expectBesideFirstLine(page: Page, id: string) {
   await host(page, id).hover();

@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
+import { onlyHost } from '../../support/block';
 import { blocks, openEditor } from '../../support/editor';
 
 const cell = (page: Page, row: number, col: number) =>
@@ -24,7 +25,7 @@ async function caretIn(page: Page, row: number, col: number) {
 
 test('/table inserts a 3 by 3 table, and Tab types across its cells, adding a row from the last one', async ({ page }) => {
   await openEditor(page, 'empty', 'table=1');
-  await page.locator('[data-quoin-host]').first().click();
+  await onlyHost(page).click();
   await page.keyboard.type('/table');
   await expect(page.getByRole('option', { name: /^Table/ })).toBeVisible();
   await page.keyboard.press('Enter');

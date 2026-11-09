@@ -1,17 +1,16 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
+import { host, onlyHost } from '../../support/block';
 import { blocks, openEditor } from '../../support/editor';
+import { markdownOf } from '../../support/markdown';
 
 const toc = (page: Page) => page.getByRole('navigation', { name: 'Table of contents' });
 const entry = (page: Page, name: string) => toc(page).getByRole('link', { name });
-const host = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
 const sink = (page: Page) => page.locator('[data-quoin-sink]');
 const tocShell = (page: Page) => page.locator('[data-block-id="toc"]');
-const markdownOf = async (page: Page, id: string) =>
-  (await blocks(page)).find((block) => block.id === id)?.data.markdown;
 
 // The click places the caret through the browser, so its selectionchange has to reach the editor before a key does.
-async function caretIn(page: Page, target: Locator = page.locator('[data-quoin-host]').first()) {
+async function caretIn(page: Page, target: Locator = onlyHost(page)) {
   await target.click();
   await expect(target).toBeFocused();
   await page.waitForFunction(() => document.activeElement?.contains(document.getSelection()?.focusNode ?? null));

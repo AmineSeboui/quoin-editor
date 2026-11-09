@@ -1,11 +1,11 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
-import { blocks, openEditor } from '../../support/editor';
+import { host } from '../../support/block';
+import { openEditor } from '../../support/editor';
+import { allMarkdown } from '../../support/markdown';
 
 const toolbar = (page: Page) => page.getByRole('toolbar', { name: 'Text formatting' });
 const control = (page: Page, name: string) => toolbar(page).getByRole('button', { name, exact: true });
-const host = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
-const markdown = async (page: Page) => (await blocks(page)).map((block) => String(block.data.markdown));
 const box = async (locator: Locator) => (await locator.boundingBox())!;
 
 const selectionBox = (page: Page) =>
@@ -53,11 +53,11 @@ test('Bold toggles the selected word and shows whether it is on', async ({ page 
   await openEditor(page, 'drag');
   await doubleClickFirstWord(page, 'd');
   await control(page, 'Bold').click();
-  await expect.poll(() => markdown(page)).toContain('**Delta**');
+  await expect.poll(() => allMarkdown(page)).toContain('**Delta**');
   await expect(control(page, 'Bold')).toHaveAttribute('aria-pressed', 'true');
   await expect(host(page, 'd')).toBeFocused();
   await control(page, 'Bold').click();
-  await expect.poll(() => markdown(page)).toContain('Delta');
+  await expect.poll(() => allMarkdown(page)).toContain('Delta');
   await expect(control(page, 'Bold')).toHaveAttribute('aria-pressed', 'false');
 });
 
@@ -88,8 +88,8 @@ test('a drag across blocks shows the toolbar, and Italic applies to every block 
   await page.mouse.up();
   await expect(toolbar(page)).toBeVisible();
   await control(page, 'Italic').click();
-  await expect.poll(async () => (await markdown(page)).slice(0, 3).every((line) => /[*_]/.test(line))).toBe(true);
-  expect((await markdown(page))[1]).toBe('_Bravo_');
+  await expect.poll(async () => (await allMarkdown(page)).slice(0, 3).every((line) => /[*_]/.test(line))).toBe(true);
+  expect((await allMarkdown(page))[1]).toBe('_Bravo_');
 });
 
 test('the toolbar follows its selection when the editor scrolls inside a container', async ({ page }) => {

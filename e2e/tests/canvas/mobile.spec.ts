@@ -1,5 +1,6 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
+import { firstLine, host } from '../../support/block';
 import { blocks, openEditor } from '../../support/editor';
 import { phoneTest as test } from '../../support/phone';
 
@@ -10,7 +11,6 @@ const tool = (page: Page, name: string) => tools(page).getByRole('button', { nam
 const handle = (page: Page) => page.getByRole('button', { name: 'Drag to move, click for options' });
 const gutterAdd = (page: Page) =>
   page.locator('[data-quoin-gutter-block]').getByRole('button', { name: 'Add block below' });
-const host = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
 const box = async (locator: Locator) => (await locator.boundingBox())!;
 const tapStart = (page: Page, id: string) => host(page, id).tap({ position: { x: 1, y: 12 } });
 
@@ -20,11 +20,6 @@ const visualViewport = (page: Page) =>
     return { bottom: viewport.offsetTop + viewport.height, width: viewport.width };
   });
 
-const firstLine = (page: Page, id: string) =>
-  host(page, id).evaluate((element) => {
-    const { top, left } = element.getBoundingClientRect();
-    return { top, left, height: parseFloat(getComputedStyle(element).lineHeight) };
-  });
 
 test('a tap shows the editing tools on the bottom edge, and selected text no bubble toolbar', async ({ page }) => {
   await openEditor(page, 'drag');

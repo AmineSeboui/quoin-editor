@@ -1,13 +1,13 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
-import { blocks, caretSettled, openEditor } from '../../support/editor';
+import { onlyHost } from '../../support/block';
+import { caretSettled, openEditor } from '../../support/editor';
+import { markdownOf, onlyMarkdown } from '../../support/markdown';
 
 const menu = (page: Page) => page.getByRole('listbox', { name: 'Mentions' });
 const popup = (page: Page) => menu(page).locator('..');
 const chip = (page: Page) => page.locator('[data-quoin-atom="mention"]').first();
 const selectedChip = (page: Page) => page.locator('[data-quoin-selected-atom] > [data-quoin-atom="mention"]');
-const markdownOf = async (page: Page, id?: string) =>
-  (await blocks(page)).find((block, index) => (id === undefined ? index === 0 : block.id === id))?.data.markdown;
 const opened = (page: Page) => page.evaluate(() => window.__quoin.opened);
 const ada = { id: '1', label: 'Ada Lovelace', kind: 'user' };
 
@@ -19,7 +19,7 @@ async function caretAtEnd(page: Page, host: Locator) {
 
 test('type @ad, choose a result, and a chip of the mention appears', async ({ page }) => {
   await openEditor(page, 'empty', 'mention=1');
-  const host = page.locator('[data-quoin-host]').first();
+  const host = onlyHost(page);
   await host.click();
   await caretSettled(page, host);
   await page.keyboard.type('Ask @ad');
@@ -29,15 +29,15 @@ test('type @ad, choose a result, and a chip of the mention appears', async ({ pa
   await expect(chip(page)).toHaveText('@Ada Lovelace');
   await expect(chip(page)).toHaveAttribute('data-kind', 'user');
   await page.keyboard.type('hi');
-  await expect.poll(() => markdownOf(page)).toBe('Ask [@Ada Lovelace](mention:user:1) hi');
+  await expect.poll(() => onlyMarkdown(page)).toBe('Ask [@Ada Lovelace](mention:user:1) hi');
   await page.keyboard.press('ControlOrMeta+z');
   await page.keyboard.press('ControlOrMeta+z');
-  await expect.poll(() => markdownOf(page)).toBe('Ask @ad');
+  await expect.poll(() => onlyMarkdown(page)).toBe('Ask @ad');
 });
 
 test('the menu says it is searching, then that nothing matches, and Escape leaves the text', async ({ page }) => {
   await openEditor(page, 'empty', 'mention=1&mentiondelay=400');
-  const host = page.locator('[data-quoin-host]').first();
+  const host = onlyHost(page);
   await host.click();
   await caretSettled(page, host);
   await page.keyboard.type('@zz');
@@ -47,24 +47,24 @@ test('the menu says it is searching, then that nothing matches, and Escape leave
   await page.keyboard.press('Escape');
   await expect(menu(page)).toHaveCount(0);
   await expect(host).toBeFocused();
-  await expect.poll(() => markdownOf(page)).toBe('@zz');
+  await expect.poll(() => onlyMarkdown(page)).toBe('@zz');
 });
 
 test('a space closes the menu once nothing matches, and the words go on as text', async ({ page }) => {
   await openEditor(page, 'empty', 'mention=1');
-  const host = page.locator('[data-quoin-host]').first();
+  const host = onlyHost(page);
   await host.click();
   await caretSettled(page, host);
   await page.keyboard.type('@zz');
   await expect(popup(page).getByText('No matches')).toBeVisible();
   await page.keyboard.type(' and more');
   await expect(menu(page)).toHaveCount(0);
-  await expect.poll(() => markdownOf(page)).toBe('@zz and more');
+  await expect.poll(() => onlyMarkdown(page)).toBe('@zz and more');
 });
 
 test('@ and then / open one menu at a time, and the line is a text box again once both have closed', async ({ page }) => {
   await openEditor(page, 'empty', 'mention=1');
-  const host = page.locator('[data-quoin-host]').first();
+  const host = onlyHost(page);
   await host.click();
   await caretSettled(page, host);
   await page.keyboard.type('Ask @Ada');

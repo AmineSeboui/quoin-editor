@@ -1,7 +1,7 @@
+import { shell } from '../../support/block';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { openEditor } from '../../support/editor';
 
-const shell = (page: Page, id: string) => page.locator(`[data-block-id="${id}"]`);
 
 const outlineOf = (block: Locator) =>
   block.evaluate((element) => {

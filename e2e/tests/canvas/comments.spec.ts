@@ -1,10 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
-import { blocks, caretSettled, openEditor } from '../../support/editor';
+import { caretSettled, openEditor } from '../../support/editor';
+import { markdownOf } from '../../support/markdown';
 
 const hostOf = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
-const markdown = async (page: Page, id: string) =>
-  String((await blocks(page)).find((block) => block.id === id)?.data.markdown);
 const toolbar = (page: Page) => page.getByRole('toolbar', { name: 'Text formatting' });
 const rail = (page: Page) => page.getByRole('list', { name: 'Comments' });
 const thread = (page: Page, text: string) => page.getByRole('dialog', { name: `Comment on "${text}"` });
@@ -25,12 +24,12 @@ for (const host of ['held', 'instant'] as const) {
     await toolbar(page).getByRole('button', { name: 'Comment', exact: true }).click();
     if (held) {
       await expect(hostOf(page, 'p').locator('.quoin-comment-pending')).toHaveText('A');
-      expect(await markdown(page, 'p')).toBe('A first paragraph to comment on.');
+      expect(await markdownOf(page, 'p')).toBe('A first paragraph to comment on.');
       await answer();
     }
     const popover = thread(page, 'A');
     await expect(popover.getByRole('textbox', { name: 'Add a comment' })).toBeFocused();
-    expect(await markdown(page, 'p')).toBe('<span data-comment="t1">A</span> first paragraph to comment on.');
+    expect(await markdownOf(page, 'p')).toBe('<span data-comment="t1">A</span> first paragraph to comment on.');
 
     await page.keyboard.type('Why one letter?');
     await page.keyboard.press('ControlOrMeta+Enter');
@@ -48,13 +47,13 @@ for (const host of ['held', 'instant'] as const) {
     await popover.getByRole('button', { name: 'Resolve' }).click();
     await answer();
     await expect(popover).toBeHidden();
-    await expect.poll(() => markdown(page, 'p')).toBe('A first paragraph to comment on.');
+    await expect.poll(() => markdownOf(page, 'p')).toBe('A first paragraph to comment on.');
     await expect(hostOf(page, 'p')).toBeFocused();
     await expect(rail(page).getByRole('button', { name: /^A/ })).toHaveCount(0);
 
     await page.keyboard.press('ControlOrMeta+z');
     const anchored = '<span data-comment="t1">A</span> first paragraph to comment on.';
-    await expect.poll(() => markdown(page, 'p')).toBe(anchored);
+    await expect.poll(() => markdownOf(page, 'p')).toBe(anchored);
   });
 }
 

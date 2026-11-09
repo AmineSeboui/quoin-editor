@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { FIXTURE_PNG } from '../../app/fixture-png';
 import { axeViolations } from '../../support/axe';
+import { shell } from '../../support/block';
 import { blocks, openEditor } from '../../support/editor';
 import { dropEvent, pasteFilesEvent } from '../../support/synthetic-events';
 
@@ -8,7 +9,6 @@ const fixture = { name: 'cat.png', type: 'image/png', base64: FIXTURE_PNG.base64
 const measured = { storageKey: 'key-cat.png', alt: '', width: FIXTURE_PNG.width, height: FIXTURE_PNG.height };
 
 const imageData = async (page: Page, id = 'img') => (await blocks(page)).find((block) => block.id === id)?.data;
-const shell = (page: Page, id = 'img') => page.locator(`[data-block-id="${id}"]`);
 const sink = (page: Page) => page.locator('[data-quoin-sink]');
 const toolbar = (page: Page) => page.getByRole('toolbar', { name: 'Image tools' });
 const changes = (page: Page) => page.evaluate(() => window.__quoin.changes);
@@ -17,7 +17,7 @@ async function arriveFromAbove(page: Page) {
   await page.getByRole('textbox', { name: 'Paragraph' }).first().click();
   await page.keyboard.press('End');
   await page.keyboard.press('ArrowDown');
-  await expect(shell(page)).toHaveAttribute('data-selected', 'true');
+  await expect(shell(page, 'img')).toHaveAttribute('data-selected', 'true');
   await expect(sink(page)).toBeFocused();
 }
 
@@ -28,7 +28,7 @@ test('a PNG dropped on an empty image block is uploaded through the host and dra
   const area = (await page.locator('.quoin-image-upload').boundingBox())!;
   await dropEvent(page, { x: area.x + area.width - 8, y: area.y + area.height / 2 }, { files: [fixture] });
   await expect.poll(() => imageData(page)).toEqual(measured);
-  const picture = shell(page).getByRole('img', { name: 'Image, no alt text' });
+  const picture = shell(page, 'img').getByRole('img', { name: 'Image, no alt text' });
   await expect.poll(() => picture.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBe(FIXTURE_PNG.width);
   expect((await blocks(page)).map((block) => block.type)).toEqual(['MARKDOWN', 'IMAGE', 'MARKDOWN']);
 });
@@ -43,8 +43,8 @@ test('a PNG pasted into the text lands as an image block of its own, which gets 
 test('dragging a width handle shows the width as it goes and writes it once, when the drag ends', async ({ page }) => {
   await openEditor(page, 'image');
   await page.getByRole('img', { name: 'A red square' }).click();
-  const frame = shell(page).locator('.quoin-image-frame');
-  const handle = (await shell(page).getByRole('slider', { name: 'Resize from the right' }).boundingBox())!;
+  const frame = shell(page, 'img').locator('.quoin-image-frame');
+  const handle = (await shell(page, 'img').getByRole('slider', { name: 'Resize from the right' }).boundingBox())!;
   const before = await changes(page);
   await page.mouse.move(handle.x + handle.width / 2, handle.y + handle.height / 2);
   await page.mouse.down();
@@ -72,7 +72,7 @@ test('the toolbar of a selected image is reached with Alt+F10 and aligns it, and
   await expect.poll(() => imageData(page)).toMatchObject({ align: 'center' });
   await expect(toolbar(page).getByRole('button', { name: 'Align center' })).toHaveAttribute('aria-pressed', 'true');
   await page.keyboard.press('Tab');
-  const handle = shell(page).getByRole('slider', { name: 'Resize from the right' });
+  const handle = shell(page, 'img').getByRole('slider', { name: 'Resize from the right' });
   await expect(handle).toBeFocused();
   await page.keyboard.press('ArrowLeft');
   await expect.poll(() => imageData(page)).toMatchObject({ widthPercent: 45 });
@@ -91,7 +91,7 @@ test('the alt text of an image is asked for as required and stored on Enter', as
   await field.fill('A small red square');
   await page.keyboard.press('Enter');
   await expect.poll(() => imageData(page)).toMatchObject({ alt: 'A small red square' });
-  await expect(shell(page).getByRole('img', { name: 'A small red square' })).toBeVisible();
+  await expect(shell(page, 'img').getByRole('img', { name: 'A small red square' })).toBeVisible();
   await expect(sink(page)).toBeFocused();
 });
 
@@ -107,7 +107,7 @@ test('alt text typed in its popover is stored by Save, Tab or a click away, and 
   const backOnTheImage = async () => {
     await expect(page.getByRole('textbox', { name: 'Alt text' })).toHaveCount(0);
     await expect(sink(page)).toBeFocused();
-    await expect(shell(page)).toHaveAttribute('data-selected', 'true');
+    await expect(shell(page, 'img')).toHaveAttribute('data-selected', 'true');
   };
   await editAlt('By Tab');
   await page.keyboard.press('Tab');
@@ -158,12 +158,12 @@ test('Enter on a selected image takes the caret into its caption, and Left from 
   await openEditor(page, 'image');
   await arriveFromAbove(page);
   await page.keyboard.press('Enter');
-  const caption = shell(page).getByRole('textbox', { name: 'Image caption' });
+  const caption = shell(page, 'img').getByRole('textbox', { name: 'Image caption' });
   await expect(caption).toBeFocused();
   await page.keyboard.type('Sleepy');
   await expect.poll(() => imageData(page)).toMatchObject({ caption: 'Sleepy' });
   for (let n = 0; n <= 'Sleepy'.length; n++) await page.keyboard.press('ArrowLeft');
-  await expect(shell(page)).toHaveAttribute('data-selected', 'true');
+  await expect(shell(page, 'img')).toHaveAttribute('data-selected', 'true');
   await expect(sink(page)).toBeFocused();
   await page.keyboard.type('!');
   await expect.poll(() => imageData(page)).toMatchObject({ caption: 'Sleepy!' });

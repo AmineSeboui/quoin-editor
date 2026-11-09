@@ -1,10 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
 import { blocks, caretSettled, openEditor } from '../../support/editor';
+import { markdownOf } from '../../support/markdown';
 
 const hostOf = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
-const markdown = async (page: Page, id: string) =>
-  String((await blocks(page)).find((block) => block.id === id)?.data.markdown);
 const toolbar = (page: Page) => page.getByRole('toolbar', { name: 'Text formatting' });
 const field = (page: Page) => page.getByRole('combobox');
 const bar = (page: Page) => page.getByRole('group', { name: 'AI response' });
@@ -51,14 +50,14 @@ test('streams an answer about the selected text into the document, and Accept ap
   await ai.push(page, 'king**');
   await ai.end(page);
   await expect(bar(page).getByRole('button', { name: 'Accept' })).toBeFocused();
-  expect(await markdown(page, 'p')).toBe('Make this sentence better.');
+  expect(await markdownOf(page, 'p')).toBe('Make this sentence better.');
 
   await page.keyboard.press('Enter');
-  await expect.poll(() => markdown(page, 'p')).toBe('Get **making** this sentence better.');
+  await expect.poll(() => markdownOf(page, 'p')).toBe('Get **making** this sentence better.');
   await expect(ghost(page)).toHaveCount(0);
   await expect(hostOf(page, 'p')).toBeFocused();
   await page.keyboard.press('ControlOrMeta+z');
-  await expect.poll(() => markdown(page, 'p')).toBe('Make this sentence better.');
+  await expect.poll(() => markdownOf(page, 'p')).toBe('Make this sentence better.');
 });
 
 test('keeps what streamed on Stop, aborting the stream, and Discard leaves the document as it was', async ({
@@ -80,7 +79,7 @@ test('keeps what streamed on Stop, aborting the stream, and Discard leaves the d
   await expect(ghost(page)).toHaveText('More words');
   await bar(page).getByRole('button', { name: 'Discard' }).click();
   await expect(ghost(page)).toHaveCount(0);
-  expect(await markdown(page, 'r')).toBe('Another paragraph after.&#32;');
+  expect(await markdownOf(page, 'r')).toBe('Another paragraph after.&#32;');
 });
 
 test('applies the answer where edits made while it streamed moved its text, including those of a collaborator', async ({
@@ -99,8 +98,8 @@ test('applies the answer where edits made while it streamed moved its text, incl
   await page.keyboard.press('Escape');
   await expect(bar(page).getByRole('button', { name: 'Accept' })).toBeFocused();
   await page.keyboard.press('Enter');
-  await expect.poll(() => markdown(page, 'p')).toBe('Mke it this sentence better.');
-  expect(await markdown(page, 'r')).toBe('So, Another paragraph after.');
+  await expect.poll(() => markdownOf(page, 'p')).toBe('Mke it this sentence better.');
+  expect(await markdownOf(page, 'r')).toBe('So, Another paragraph after.');
 });
 
 test('shows a failed answer inline with Retry, which asks the same again', async ({ page }) => {
@@ -115,7 +114,7 @@ test('shows a failed answer inline with Retry, which asks the same again', async
   await ai.push(page, 'Do');
   await ai.end(page);
   await bar(page).getByRole('button', { name: 'Accept' }).click();
-  await expect.poll(() => markdown(page, 'p')).toBe('Do this sentence better.');
+  await expect.poll(() => markdownOf(page, 'p')).toBe('Do this sentence better.');
 });
 
 for (const second of ['Space', 'Escape'] as const) {
@@ -132,7 +131,7 @@ for (const second of ['Space', 'Escape'] as const) {
     await expect(field(page)).toHaveCount(0);
     await expect(hostOf(page, 'q')).toBeFocused();
     await page.keyboard.press('Space');
-    await expect.poll(() => markdown(page, 'q')).toBe('&#32;&#32;');
+    await expect.poll(() => markdownOf(page, 'q')).toBe('&#32;&#32;');
     await expect(field(page)).toHaveCount(0);
   });
 }
@@ -192,7 +191,7 @@ test('moves the caret one character a press at the end of a line an answer is wr
   await expect(ghost(page)).toHaveText('Ghost words here');
   await hostOf(page, 'p').click();
   await caretSettled(page, hostOf(page, 'p'));
-  const end = (await markdown(page, 'p')).replace('&#32;', ' ').length;
+  const end = (await markdownOf(page, 'p')).replace('&#32;', ' ').length;
   await page.evaluate((offset) => window.__quoin.controller!.focus({ block: 'p', region: 'text', offset }), end);
   expect(await walk(page, 'ArrowLeft', 2)).toEqual([end - 1, end - 2]);
   expect(await walk(page, 'ArrowRight', 2)).toEqual([end - 1, end]);
@@ -220,9 +219,9 @@ test('types a plain space on a line cleared in one step, or typed in, emptied, l
   await page.keyboard.press('ControlOrMeta+a');
   await expect.poll(() => page.evaluate(() => window.__quoin.controller!.editor.state.selection?.kind)).toBe('text');
   await page.keyboard.press('Backspace');
-  await expect.poll(() => markdown(page, 'r')).toBe('');
+  await expect.poll(() => markdownOf(page, 'r')).toBe('');
   await page.keyboard.press('Space');
-  await expect.poll(() => markdown(page, 'r')).toBe('&#32;');
+  await expect.poll(() => markdownOf(page, 'r')).toBe('&#32;');
   await expect(field(page)).toHaveCount(0);
 
   await hostOf(page, 'q').click();
@@ -233,7 +232,7 @@ test('types a plain space on a line cleared in one step, or typed in, emptied, l
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('ArrowUp');
   await page.keyboard.press('Space');
-  await expect.poll(() => markdown(page, 'q')).toBe('&#32;');
+  await expect.poll(() => markdownOf(page, 'q')).toBe('&#32;');
   await expect(field(page)).toHaveCount(0);
 });
 
@@ -334,7 +333,7 @@ test('types a plain space on an emptied line after a round trip through the bloc
   await page.keyboard.press('Escape');
   await expect(hostOf(page, 'q')).toBeFocused();
   await page.keyboard.press('Space');
-  await expect.poll(() => markdown(page, 'q')).toBe('&#32;');
+  await expect.poll(() => markdownOf(page, 'q')).toBe('&#32;');
   await expect(field(page)).toHaveCount(0);
 });
 

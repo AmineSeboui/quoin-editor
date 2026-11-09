@@ -1,16 +1,17 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
+import { onlyHost } from '../../support/block';
 import { blocks, openEditor } from '../../support/editor';
+import { markdownOf } from '../../support/markdown';
 
 const popover = (page: Page) => page.getByRole('dialog', { name: 'Edit equation' });
 const field = (page: Page) => page.getByRole('textbox', { name: 'LaTeX' });
 const formula = (page: Page) => page.locator('[data-quoin-atom="math"]').first();
 const equation = (page: Page) => page.getByRole('group', { name: 'Equation' });
-const markdownOf = async (page: Page, id: string) => (await blocks(page)).find((block) => block.id === id)?.data.markdown;
 const latexOf = async (page: Page) => (await blocks(page)).find((block) => block.type === 'MATH')?.data.latex;
 
 // The click places the caret through the browser, so its selectionchange has to reach the editor before a key does.
-async function caretIn(page: Page, host: Locator = page.locator('[data-quoin-host]').first()) {
+async function caretIn(page: Page, host: Locator = onlyHost(page)) {
   await host.click();
   await expect(host).toBeFocused();
   await page.waitForFunction(() => document.activeElement?.contains(document.getSelection()?.focusNode ?? null));

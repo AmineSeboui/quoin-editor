@@ -25,6 +25,7 @@
 }
 
 .quoin [data-quoin-block][data-align="left"] {
+  /* physical: the writer chose a side of the screen, and it keeps meaning the side they chose */
   text-align: left;
 }
 
@@ -33,6 +34,7 @@
 }
 
 .quoin [data-quoin-block][data-align="right"] {
+  /* physical: the other side, for the same reason */
   text-align: right;
 }
 
@@ -65,7 +67,7 @@
 .quoin [data-quoin-sink] {
   position: fixed;
   top: 0;
-  left: 0;
+  inset-inline-start: 0;
   width: 1px;
   height: 1px;
   overflow: hidden;

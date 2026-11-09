@@ -103,7 +103,7 @@
   content: "";
   position: absolute;
   inset-block: 0;
-  left: calc(50% - 1px);
+  inset-inline-start: calc(50% - 1px);
   width: 2px;
   background: var(--quoin-ring);
   opacity: 0;

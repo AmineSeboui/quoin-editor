@@ -361,7 +361,7 @@
     "build": "npm run clean && tsup && npm run build:css && node scripts/drop-cjs-maps.mjs",
     "build:css": "tailwindcss -i ./src/styles.css -o ./dist/styles.css --minify",
     "build:emoji": "node scripts/build-emoji-data.mjs",
-    "check:css": "node scripts/check-css-scope.mjs dist/styles.css",
+    "check:css": "node scripts/check-css-scope.mjs dist/styles.css && node scripts/check-css-logical.mjs",
     "check:size": "node scripts/check-size.mjs",
     "check:directives": "node scripts/check-directives.mjs",
     "check:consumer": "node scripts/check-consumer.mjs",

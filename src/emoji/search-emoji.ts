@@ -3,8 +3,12 @@ import type { Emoji } from './emoji-types';
 
 const MATCHES = 4;
 
+// The dataset spells a tag as the word reads, so `ZA` and `Virgo` keep their capitals. Folding them once here is what
+// lets a lower-case query reach them without folding every tag again on each keystroke.
+const FOLDED_TAGS: readonly (readonly string[])[] = ALL_EMOJI.map(({ tags }) => tags.map((tag) => tag.toLowerCase()));
+
 // The place of the emoji among the matches of the query, best first, or null when it is no match.
-function matchOf({ shortcodes, tags }: Emoji, query: string): number | null {
+function matchOf({ shortcodes }: Emoji, tags: readonly string[], query: string): number | null {
   if (shortcodes.includes(query)) return 0;
   if (shortcodes.some((code) => code.startsWith(query))) return 1;
   if (tags.some((tag) => tag.startsWith(query))) return 2;
@@ -21,8 +25,8 @@ export function searchEmoji(query: string, limit = Number.POSITIVE_INFINITY): re
   const most = Math.max(0, limit);
   if (wanted === '') return ALL_EMOJI.slice(0, most);
   const matches: Emoji[][] = Array.from({ length: MATCHES }, () => []);
-  for (const emoji of ALL_EMOJI) {
-    const at = matchOf(emoji, wanted);
+  for (const [i, emoji] of ALL_EMOJI.entries()) {
+    const at = matchOf(emoji, FOLDED_TAGS[i], wanted);
     if (at !== null) matches[at].push(emoji);
   }
   return matches.flat().slice(0, most);

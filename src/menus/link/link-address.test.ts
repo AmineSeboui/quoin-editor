@@ -10,6 +10,13 @@ describe('linkAddress', () => {
     expect(linkAddress(typed)).toBe(href);
   });
 
+  it.each([
+    ['ada@example.com', 'mailto:ada@example.com'],
+    ['  Ada.Lovelace+notes@mail.example.co.uk  ', 'mailto:Ada.Lovelace+notes@mail.example.co.uk'],
+  ])('sends the email address %j to mailto', (typed, href) => {
+    expect(linkAddress(typed)).toBe(href);
+  });
+
   it.each(['https://quoin.dev', 'mailto:ada@example.com', '/docs', '#top', '?page=2', './guide.html', 'readme'])(
     'keeps %j as it is',
     (typed) => {

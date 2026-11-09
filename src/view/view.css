@@ -55,10 +55,6 @@
   background: var(--quoin-selection);
 }
 
-.quoin ::highlight(quoin-selection) {
-  background: var(--quoin-selection);
-}
-
 .quoin[data-quoin-dragging] [data-quoin-host] {
   -webkit-user-select: none;
   user-select: none;

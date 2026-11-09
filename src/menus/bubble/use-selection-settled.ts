@@ -23,13 +23,14 @@ function createSettled(controller: ViewController): Settled {
   return {
     read: () => focusInEditor(controller) && !pressed && !composing && !viewComposing(),
     subscribe(notify) {
+      const doc = controller.root?.ownerDocument ?? document;
       const listeners = Object.entries(handlers).map(([type, handle]) => {
         const listener = (event: Event) => {
           handle(event);
           notify();
         };
-        document.addEventListener(type, listener, true);
-        return () => document.removeEventListener(type, listener, true);
+        doc.addEventListener(type, listener, true);
+        return () => doc.removeEventListener(type, listener, true);
       });
       const stopState = controller.editor.subscribe(() => notify());
       return () => {

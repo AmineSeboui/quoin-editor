@@ -17,6 +17,7 @@ import { linkExtension } from '../menus/link/link-extension';
 import { slashExtension, SlashItemsProvider } from '../menus/slash/slash-extension';
 import { MobileToolbar } from '../mobile/MobileToolbar';
 import { shortcutsExtension, shortcutsSlashItem } from '../shortcuts/shortcuts-extension';
+import { toError } from '../to-error';
 import { cn } from '../ui/cn';
 import { EditorView, useQuoinEditor, type BlockPlaceholder } from '../view';
 import { defaultBlockLink } from './block-link';
@@ -87,14 +88,16 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
     readOnly,
     extensions: allExtensions,
     render: ui.render,
-    onFiles: (files, at) =>
+    onFiles(files, at) {
+      const report = onError ?? console.error;
       void insertUploads(controller, files, at, {
         upload,
         resolveAssetUrl: resolveAssetUrl ?? String,
-        onError: onError ?? console.error,
+        onError: report,
         unavailable: labels.uploadsUnavailable,
         failed: labels.uploadFailed,
-      }),
+      }).catch((reason: unknown) => report(toError(reason)));
+    },
   });
   useDeleteReporter(controller, onDelete);
   useBlockLinkTarget(controller, focusOnMount);

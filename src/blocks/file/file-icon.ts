@@ -14,4 +14,4 @@ const kindOf = (value: string): KindIcon | undefined => KINDS.find(([, pattern])
 
 /** The icon of a file: by the top-level type it declares, else by the extension of its name, else a plain file. */
 export const fileIcon = (mime: string, filename: string): KindIcon =>
-  kindOf(mime) ?? kindOf(/\.([^.]+)$/.exec(filename)?.[1].toLowerCase() ?? '') ?? FileIcon;
+  kindOf(mime.toLowerCase()) ?? kindOf(/\.([^.]+)$/.exec(filename)?.[1].toLowerCase() ?? '') ?? FileIcon;

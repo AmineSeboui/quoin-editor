@@ -4,15 +4,39 @@ import { textSelection } from '../../engine/state/selection';
 import { ViewController } from '../controller/view-controller';
 import { createPainter } from './paint-selection';
 
+const page = (highlights: boolean) => {
+  const doc = document.implementation.createHTMLDocument('');
+  const CSS = highlights ? { highlights: new Map<string, unknown>() } : {};
+  return { doc, win: { CSS, Highlight: Set, document: doc } as unknown as Window };
+};
+
+const installed = (doc: Document) => [...doc.querySelectorAll('style[data-quoin-highlight]')];
+
+describe('the highlight rule', () => {
+  it('is added to the page the editor is on, once, since the stylesheet ships without it', () => {
+    const { doc, win } = page(true);
+    createPainter(win);
+    createPainter(win);
+    expect(installed(doc)).toHaveLength(1);
+    expect(installed(doc)[0].textContent).toContain('::highlight(quoin-selection)');
+  });
+
+  it('is left out where the browser has no highlight registry to paint into', () => {
+    const { doc, win } = page(false);
+    createPainter(win);
+    expect(installed(doc)).toEqual([]);
+  });
+});
+
 describe('createPainter', () => {
   it('uses the highlight registry when the browser has one', () => {
     const registry = new Map<string, unknown>();
-    const win = { CSS: { highlights: registry }, Highlight: class { constructor(...ranges: Range[]) { (this as unknown as { ranges: Range[] }).ranges = ranges; } } } as unknown as Window;
+    const win = { CSS: { highlights: registry }, Highlight: class { constructor(...ranges: Range[]) { (this as unknown as { ranges: Range[] }).ranges = ranges; } }, document } as unknown as Window;
     expect(createPainter(win).mode).toBe('highlight');
   });
 
   it('falls back to decorations without it', () => {
-    expect(createPainter({ CSS: {} } as unknown as Window).mode).toBe('decorations');
+    expect(createPainter({ CSS: {}, document } as unknown as Window).mode).toBe('decorations');
   });
 });
 
@@ -32,7 +56,7 @@ describe('the highlight painter', () => {
   }
 
   const registry = new Map<string, Set<Range>>();
-  const win = { CSS: { highlights: registry }, Highlight: Set } as unknown as Window;
+  const win = { CSS: { highlights: registry }, Highlight: Set, document } as unknown as Window;
   const painted = () => [...(registry.get('quoin-selection') ?? [])].map((range) => range.toString());
 
   it('highlights one range per covered host and nothing for a selection inside one host', () => {

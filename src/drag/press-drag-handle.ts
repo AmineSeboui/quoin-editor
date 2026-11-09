@@ -67,7 +67,7 @@ function followPress(press: HandlePress, root: HTMLElement, view: Window): () =>
     overlay.follow(dx, pointer.y - press.y);
     overlay.mark({ top: target.lineTop, ...spanBetween(target.lineStart, layout.end) });
     if (!sameTarget(active.target, target)) {
-      store.set({ drag: { blockIds: ids, targetIndex: target.index, targetIndent: target.indent } });
+      store.set({ drag: { blockIds: ids, targetIndent: target.indent } });
     }
     active.target = target;
   }

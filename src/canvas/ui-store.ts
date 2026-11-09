@@ -12,7 +12,7 @@ export type BlockMenuState = {
 export type CanvasUiState = {
   hoveredBlock: string | null;
   blockMenu: BlockMenuState | null;
-  drag: { blockIds: string[]; targetIndex: number; targetIndent: number } | null;
+  drag: { blockIds: string[]; targetIndent: number } | null;
   linkPopover: { open: boolean };
   shortcutsOpen: boolean;
 };

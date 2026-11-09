@@ -39,6 +39,11 @@ export function extensionUi(extension: Extension): ExtensionUI {
   return typeof ui === 'object' && ui !== null ? (ui as ExtensionUI) : {};
 }
 
+const list = <T>(value: readonly T[] | undefined): readonly T[] => (Array.isArray(value) ? value : []);
+
+const record = <T>(value: Readonly<Record<string, T>> | undefined): Readonly<Record<string, T>> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value) ? value : {};
+
 function mergeRender(uis: readonly ExtensionUI[]): RenderOptions | undefined {
   const given = uis.flatMap(({ render }) => (render === undefined ? [] : [render]));
   if (given.length === 0) return undefined;
@@ -61,14 +66,14 @@ export function collectUi(
 ): CollectedUi {
   const uis = extensions.map(extensionUi);
   return {
-    slashItems: [...uis.flatMap((ui) => ui.slashItems ?? []), ...blockTypeSlashItems(definitions, onError)],
-    bubbleItems: uis.flatMap((ui) => ui.bubbleItems ?? []),
-    blockMenuItems: uis.flatMap((ui) => ui.blockMenuItems ?? []),
-    renderers: Object.assign({}, canvasRenderers(definitions, readOnly), ...uis.map((ui) => ui.renderers)),
-    blockNames: Object.assign({}, ...uis.map((ui) => ui.blockNames)),
+    slashItems: [...uis.flatMap((ui) => list(ui.slashItems)), ...blockTypeSlashItems(definitions, onError)],
+    bubbleItems: uis.flatMap((ui) => list(ui.bubbleItems)),
+    blockMenuItems: uis.flatMap((ui) => list(ui.blockMenuItems)),
+    renderers: Object.assign({}, canvasRenderers(definitions, readOnly), ...uis.map((ui) => record(ui.renderers))),
+    blockNames: Object.assign({}, ...uis.map((ui) => record(ui.blockNames))),
     render: mergeRender(uis),
     overlays: [
-      ...uis.flatMap((ui) => ui.overlays ?? []),
+      ...uis.flatMap((ui) => list(ui.overlays)),
       ...Object.entries(inPlaceOverlays).flatMap(([type, overlay]) => (drawnInPlace(definitions, type) ? [overlay] : [])),
     ],
   };

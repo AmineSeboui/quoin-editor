@@ -26,6 +26,6 @@ export function isBubblePart(element: Element | null, controller: ViewController
 }
 
 export function focusInEditor(controller: ViewController): boolean {
-  const active = document.activeElement;
+  const active = controller.root?.ownerDocument.activeElement ?? null;
   return active !== null && (controller.isEditorElement(active) || isBubblePart(active, controller));
 }

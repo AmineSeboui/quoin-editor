@@ -13,14 +13,14 @@ export function cleanUpAfterTest(): void {
   document.body.replaceChildren();
 }
 
-export function mountController(markdown = 'hi') {
+export function mountController(markdown = 'hi', doc: Document = document) {
   const editor = createEditor({ blocks: [{ id: 'a', type: 'MARKDOWN', data: { markdown } }] });
   const controller = new ViewController({ editor });
-  const root = document.createElement('div');
-  const host = document.createElement('div');
+  const root = doc.createElement('div');
+  const host = doc.createElement('div');
   host.contentEditable = 'true';
   root.appendChild(host);
-  document.body.appendChild(root);
+  doc.body.appendChild(root);
   detachAfterTest(controller.attach(root));
   controller.registry.register('a', 'text', host);
   controller.renderHost('a', 'text');
@@ -30,3 +30,10 @@ export function mountController(markdown = 'hi') {
 export const at = (offset: number, block = 'a') => ({ block, region: 'text', offset });
 
 export const nextTask = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+/** A document of its own, as a canvas a host renders into an iframe sees it. */
+export function framedDocument(): Document {
+  const frame = document.createElement('iframe');
+  document.body.appendChild(frame);
+  return frame.contentDocument!;
+}

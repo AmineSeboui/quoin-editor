@@ -63,6 +63,18 @@ describe('the emoji picker', () => {
     expect(screen.getByRole('status')).toHaveTextContent('No emoji found');
   });
 
+  it('walks the grid the other way on a right to left page, where the next cell is to the left', async () => {
+    onTestFinished(() => document.documentElement.removeAttribute('dir'));
+    document.documentElement.setAttribute('dir', 'rtl');
+    const { user } = renderPicker();
+    await user.tab();
+    expect(focusedName()).toBe('grinning');
+    await user.keyboard('{ArrowLeft}');
+    expect(document.activeElement).toHaveTextContent(SMILEY);
+    await user.keyboard('{ArrowRight}');
+    expect(focusedName()).toBe('grinning');
+  });
+
   it('walks the grid with the arrows, Home and End, and picks the emoji of the cell with Enter', async () => {
     const { user, onPick } = renderPicker();
     await user.tab();

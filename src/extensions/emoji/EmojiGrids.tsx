@@ -7,6 +7,7 @@ import { FOCUS_RING } from '../../ui/focus';
 import { isComposing } from './composing-key';
 import { emojiName } from './emoji-name';
 import { gridMove, type GridCell } from './grid-moves';
+import { arrowAsWritten, inlineDirection } from '../../ui/direction';
 import type { PickerLayout } from './picker-layout';
 
 type Props = { layout: PickerLayout; onPick(emoji: string): void };
@@ -65,7 +66,8 @@ export const EmojiGrids = forwardRef<HTMLDivElement, Props>(function EmojiGrids(
       onPick(emoji);
       return;
     }
-    const next = gridMove(layout.rowLengths, current, event.key, event.ctrlKey);
+    const key = arrowAsWritten(event.key, inlineDirection(event.currentTarget));
+    const next = gridMove(layout.rowLengths, current, key, event.ctrlKey);
     if (next === null) return;
     event.preventDefault();
     setActive(layout.rows[next.row][next.col].emoji);

@@ -150,6 +150,22 @@ describe('the bubble toolbar', () => {
     expect(buttons.filter((button) => button.tabIndex === 0)).toEqual([buttons[0]]);
   });
 
+  it('walks the other way on a right to left page, where the next button along is to the left', () => {
+    onTestFinished(() => document.documentElement.removeAttribute('dir'));
+    document.documentElement.setAttribute('dir', 'rtl');
+    const canvas = openToolbar();
+    const host = canvas.shell('a').querySelector<HTMLElement>('[data-quoin-host]')!;
+    const buttons = within(toolbar()).getAllByRole('button');
+    fireEvent.keyDown(host, { key: 'F10', altKey: true });
+    expect(buttons[0]).toHaveFocus();
+    fireEvent.keyDown(buttons[0], { key: 'ArrowLeft' });
+    expect(control('Bold')).toHaveFocus();
+    fireEvent.keyDown(control('Bold'), { key: 'ArrowRight' });
+    expect(buttons[0]).toHaveFocus();
+    fireEvent.keyDown(buttons[0], { key: 'ArrowRight' });
+    expect(buttons.at(-1)).toHaveFocus();
+  });
+
   it('is one tab stop that Alt+F10 enters, the arrows walk and Escape leaves with the selection unchanged', () => {
     const canvas = openToolbar();
     const host = canvas.shell('a').querySelector<HTMLElement>('[data-quoin-host]')!;

@@ -411,7 +411,7 @@ Where a host takes a key before the editor does.
 type KeyInterceptor = (event: KeyboardEvent) => boolean;
 ```
 
-[KeyInterceptor on GitHub](src/view/input/keydown.ts#L9)
+[KeyInterceptor on GitHub](src/view/input/keydown.ts#L10)
 
 ## Caret placement
 

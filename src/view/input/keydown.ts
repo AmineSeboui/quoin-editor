@@ -1,4 +1,5 @@
 import type { TextSelection } from '../../engine';
+import { arrowAsWritten, inlineDirection } from '../../ui/direction';
 import type { ViewController } from '../controller/view-controller';
 import { moveHead } from '../navigation/cross-moves';
 import { moveHorizontally } from '../navigation/horizontal';
@@ -17,18 +18,28 @@ const ARROWS: Readonly<Record<string, readonly [Move, -1 | 1]>> = {
   ArrowRight: [moveHorizontally, 1],
 };
 
+// A horizontal arrow names a side of the screen, and only the page says what that side means for the text: where the
+// lines run right to left the left arrow walks forward through the document and the right arrow walks back. The key is
+// read as it would be written on a left to right page, once, so neither the moves below nor a keymap has to branch.
+const written = (controller: ViewController, key: string): string =>
+  controller.root === null ? key : arrowAsWritten(key, inlineDirection(controller.root));
+
 export function isComposingKey(controller: ViewController, event: KeyboardEvent): boolean {
   return event.isComposing || event.keyCode === 229 || controller.composingKey !== null;
 }
 
-const runKeymap = (controller: ViewController, event: KeyboardEvent): boolean =>
-  controller.edit(() => controller.editor.handleKey(event));
+const runKeymap = (controller: ViewController, event: KeyboardEvent): boolean => {
+  const name = written(controller, event.key);
+  const { altKey, ctrlKey, metaKey, shiftKey } = event;
+  const key = name === event.key ? event : { key: name, altKey, ctrlKey, metaKey, shiftKey };
+  return controller.edit(() => controller.editor.handleKey(key));
+};
 
 // Alt arrows cross blocks at an edge. Ctrl and Meta arrows are line and word moves the browser makes, so they go to the
 // keymap and then to the browser.
 function arrow(controller: ViewController, event: KeyboardEvent): boolean {
   if (!Object.hasOwn(ARROWS, event.key) || event.ctrlKey || event.metaKey) return false;
-  const [move, direction] = ARROWS[event.key];
+  const [move, direction] = ARROWS[written(controller, event.key)];
   return move(controller, direction, event.shiftKey);
 }
 

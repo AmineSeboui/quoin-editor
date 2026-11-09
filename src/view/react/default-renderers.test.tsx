@@ -106,6 +106,12 @@ describe('default renderers', () => {
     expect(screen.getByRole('textbox', { name: 'Callout, info' })).toHaveTextContent('plain');
     expect(container.querySelector('[data-block-id="c"] .quoin-callout')).toHaveAttribute('data-tone', 'warning');
   });
+
+  it('shows a tone it does not know as info, the tone the canvas falls back to', () => {
+    const { container } = mount([{ id: 'c', type: 'CALLOUT', data: { tone: 'purple', body: 'odd' } }]);
+    expect(screen.getByRole('textbox', { name: 'Callout, info' })).toHaveTextContent('odd');
+    expect(container.querySelector('[data-block-id="c"] .quoin-callout')).toHaveAttribute('data-tone', 'info');
+  });
 });
 
 describe('toggle blocks', () => {

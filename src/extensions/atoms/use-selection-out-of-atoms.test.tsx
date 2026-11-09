@@ -23,6 +23,16 @@ describe('the selection kept out of atoms', () => {
     expect(read()).toEqual({ inside: false, at: 6 });
   });
 
+  it('leaves a composition alone, which the browser reports on the key before the view knows of it', () => {
+    const canvas = mountMath([paragraph('p', 'Area $x^2$ here')]);
+    canvas.caret('p', 6);
+    const { host, read } = caretInFormula(canvas, 2);
+    fireEvent.keyDown(host, { key: 'Process', isComposing: true });
+    expect(read().inside).toBe(true);
+    fireEvent.keyDown(host, { key: 'Process', keyCode: 229 });
+    expect(read().inside).toBe(true);
+  });
+
   it('leaves the selection where it is on a read-only canvas', () => {
     const canvas = mountMath([paragraph('p', 'Area $x^2$ here')], {}, { readOnly: true });
     const { host, read } = caretInFormula(canvas, 2);

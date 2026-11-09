@@ -1,8 +1,9 @@
 import type { BlockRenderer } from './block-renderer-types';
+import { calloutTone } from './callout-tones';
 import { EditableRegion } from './EditableRegion';
 
 export const CalloutBlock: BlockRenderer = ({ block }) => {
-  const tone = typeof block.attrs.tone === 'string' && block.attrs.tone !== '' ? block.attrs.tone : 'info';
+  const tone = calloutTone(block.attrs.tone);
   return (
     <div className="quoin-callout" data-tone={tone}>
       <EditableRegion block={block.id} region="body" label={`Callout, ${tone}`} />

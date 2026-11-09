@@ -2,6 +2,15 @@
 
 Every release of `quoin-editor` is listed here, newest first, in the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). From 1.0.0 the package follows [semantic versioning](https://semver.org/): a breaking change waits for the next major version. Until then, Quoin was 0.x and a minor version could contain breaking changes; those known at release were marked "Breaking". The 0.x sections are kept as they were released, "Docs" headings included. Moving from 0.4 to 1.0, and from 1.x to 2.0, is covered step by step in [MIGRATION.md](MIGRATION.md). Review finding ids such as F-17 are those of the 0.4.0 review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73).
 
+## Unreleased
+
+### Fixed
+- A callout whose tone the editor does not know is drawn as `info` in the read-only view, which is the tone the canvas already falls back to. The two renderers disagreed: the canvas normalised anything outside the five tones, while the view passed the stored value straight into `data-tone` and into the region's accessible name, so a document carrying a tone from untyped host code, or from a version that knew another one, drew unstyled in the view and read its raw value aloud. Both now take the one list.
+- A host renaming one entry of a label that holds a record keeps the English wording of every other entry in it. `blockNames`, `groups`, `colors` and `calloutTones` are maps of names rather than single names, and an override replaced the whole map, so renaming one slash group left the others undefined and the menu drew their headings blank.
+- `englishLabels` is frozen, with the records inside it. Every canvas on the page shares that one object, so a host writing to it, by accident or to patch a string, changed the wording under every other canvas and under the locale packs that fall back to it.
+- A composition over a formula, a mention or another atom is left alone. The guard that keeps a selection out of an atom read only the view's own composing flag, which the view sets after the key, while the browser reports the composition on the key itself. A first keystroke of a Japanese or Pinyin input beside an atom could therefore move the selection out mid-composition and drop the text being composed.
+- A host predicate passed to `useAutosave` as `isRetryable` that throws ends the retries instead of escaping into the save loop. The throw replaced the save's own failure, so the document stayed unsaved and nothing was reported.
+
 ## 2.0.2 (2026-11-09)
 
 ### Fixed

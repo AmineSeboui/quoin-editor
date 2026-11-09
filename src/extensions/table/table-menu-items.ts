@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react';
+import type { InlineDirection } from '../../ui/direction';
 import type { Command } from '../../engine';
 import {
   addColumn,
@@ -58,14 +59,29 @@ export function rowMenuItems(labels: TableLabels, blockId: string, row: number, 
   ];
 }
 
-export function columnMenuItems(labels: TableLabels, blockId: string, col: number, { cols }: TableShape): TableMenuItem[] {
+/**
+ * The menu names sides of the screen, and the wording stays physical wherever the page runs. Where it runs right to
+ * left the columns are drawn the other way round, so the column on the left of this one is the one *after* it in the
+ * document: the indices turn round, and so do the edges a move stops at, while the labels and the icons do not.
+ */
+export function columnMenuItems(
+  labels: TableLabels,
+  blockId: string,
+  col: number,
+  { cols }: TableShape,
+  direction: InlineDirection = 'ltr',
+): TableMenuItem[] {
   const { columnInserted, columnMoved, columnDeleted } = labels;
+  const onTheRight = direction === 'rtl' ? col - 1 : col + 1;
+  const onTheLeft = direction === 'rtl' ? col + 1 : col - 1;
+  const first = col === 0;
   const last = col === cols - 1;
+  const [leftEdge, rightEdge] = direction === 'rtl' ? [last, first] : [first, last];
   return [
-    item('left', labels.insertColumnLeft, ArrowLeftToLine, addColumn(blockId, col), columnInserted),
-    item('right', labels.insertColumnRight, ArrowRightToLine, addColumn(blockId, col + 1), columnInserted),
-    item('move-left', labels.moveColumnLeft, ArrowLeft, moveColumn(blockId, col, col - 1), columnMoved, { disabled: col === 0 }),
-    item('move-right', labels.moveColumnRight, ArrowRight, moveColumn(blockId, col, col + 1), columnMoved, { disabled: last }),
+    item('left', labels.insertColumnLeft, ArrowLeftToLine, addColumn(blockId, direction === 'rtl' ? col + 1 : col), columnInserted),
+    item('right', labels.insertColumnRight, ArrowRightToLine, addColumn(blockId, direction === 'rtl' ? col : col + 1), columnInserted),
+    item('move-left', labels.moveColumnLeft, ArrowLeft, moveColumn(blockId, col, onTheLeft), columnMoved, { disabled: leftEdge }),
+    item('move-right', labels.moveColumnRight, ArrowRight, moveColumn(blockId, col, onTheRight), columnMoved, { disabled: rightEdge }),
     item('delete', labels.deleteColumn, Trash, removeColumn(blockId, col), columnDeleted, {
       disabled: cols === 1,
       destructive: true,

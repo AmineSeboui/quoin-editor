@@ -51,9 +51,9 @@ export const MarkdownBlock: BlockRenderer = (props) => {
       );
     case 'quote':
       return (
-        <div className="quoin-quote">
+        <blockquote className="quoin-quote">
           <TextRegion block={block} label="Quote" />
-        </div>
+        </blockquote>
       );
     default:
       return <TextRegion block={block} label="Paragraph" />;

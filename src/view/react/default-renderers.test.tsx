@@ -97,6 +97,13 @@ describe('default renderers', () => {
     expect(fireEvent.mouseDown(screen.getByRole('button', { name: 'Toggle' }))).toBe(false);
   });
 
+  it('gives a quote the semantics of one, as the HTML the engine renders does', () => {
+    const { container } = mount([md('q', '> cited')]);
+    const quote = container.querySelector('.quoin-quote');
+    expect(quote?.tagName).toBe('BLOCKQUOTE');
+    expect(within(quote as HTMLElement).getByRole('textbox', { name: 'Quote' })).toHaveTextContent('cited');
+  });
+
   it('labels a callout with its tone and defaults the tone to info', () => {
     const { container } = mount([
       { id: 'c', type: 'CALLOUT', data: { tone: 'warning', body: 'careful' } },

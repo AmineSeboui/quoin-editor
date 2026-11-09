@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { BlockCanvas, coreBlocks, type QuoinBlock, type QuoinEditorHandle, type UploadFn } from 'quoin-editor';
+import { arLabels } from 'quoin-editor/locale-ar';
 import { removeBlocksStep } from 'quoin-editor/headless';
 import { bookmarkDemo } from './bookmark-demo';
 import { fixtureDataUrl } from './fixture-png';
@@ -14,6 +15,12 @@ const blockTypes = EVERY_FEATURE ? coreBlocks : [...coreBlocks, bookmarkDemo, no
 const params = new URLSearchParams(location.search);
 const READ_ONLY = params.get('readonly') === '1';
 const UPLOAD_DELAY = params.get('upload');
+
+// Direction and language are separate switches on purpose. The canvas specs locate almost everything by its accessible
+// name, so they can only run against a page turned round, not against one that has also been translated. The Arabic
+// pack is for the specs that want real Arabic text, such as the contrast scan.
+const LABELS = params.get('locale') === 'ar' ? arLabels : undefined;
+if (params.get('dir') === 'rtl') document.documentElement.dir = 'rtl';
 
 // Each upload is kept as an object URL under its key, so the picture of an uploaded image loads.
 const uploads = new Map<string, string>([['fixture.png', fixtureDataUrl]]);
@@ -243,6 +250,7 @@ export function Harness({ doc }: { doc: string }) {
         blocks={blocks}
         blockTypes={blockTypes}
         readOnly={READ_ONLY}
+        labels={LABELS}
         extensions={extensions}
         upload={upload}
         resolveAssetUrl={resolveAssetUrl}

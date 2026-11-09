@@ -89,6 +89,19 @@ test('on a right-to-left page the slash menu opens from the inline start too', a
   expect(await alignedEdge(text, menu)).toBe('right');
 });
 
+test('on a right-to-left page Tab indents a block, and the room is taken from the right', async ({ page }) => {
+  await openRightToLeft(page, 'sample');
+  await host(page, 'b').click();
+  const before = await box(shell(page, 'b'));
+  await page.keyboard.press('Tab');
+  await expect.poll(async () => (await blocks(page)).find((block) => block.id === 'b')?.indent).toBe(1);
+  const after = await box(shell(page, 'b'));
+  // The indent is margin-inline-start, which on this page is the right. The block's right edge therefore comes in
+  // and its left edge stays where it was, which is what tells the logical property apart from a physical one.
+  expect(after.x + after.width).toBeLessThan(before.x + before.width - 8);
+  expect(Math.abs(after.x - before.x)).toBeLessThanOrEqual(1);
+});
+
 test('on a right-to-left page a closed toggle points the way the text runs on', async ({ page }) => {
   await openRightToLeft(page, 'rich');
   const chevron = page.locator('.quoin-toggle-button').first();

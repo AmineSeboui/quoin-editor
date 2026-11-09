@@ -21,6 +21,7 @@ import { HandleMenu } from './HandleMenu';
 import type { TableGeometry, Span } from './table-geometry';
 import type { TableLabels } from './table-labels';
 import { alignItems, columnMenuItems, rowMenuItems } from './table-menu-items';
+import { inlineDirection } from '../../ui/direction';
 import type { TableTarget } from './use-table-target';
 
 export type OpenMenu = 'row' | 'column' | null;
@@ -60,6 +61,8 @@ const isTab = (event: KeyboardEvent) => event.key === 'Tab' && !event.altKey && 
  */
 export function TableHandles(props: TableHandlesProps) {
   const { controller, labels, block, target, geometry, menu, onMenu, onHold, focusRequested, onFocused } = props;
+  // The columns are drawn the other way round on a right to left page, so the menu that names their sides needs it.
+  const direction = controller.root === null ? 'ltr' : inlineDirection(controller.root);
   const rowHandle = useRef<HTMLButtonElement>(null);
   const columnHandle = useRef<HTMLButtonElement>(null);
   const resizer = useRef<HTMLDivElement>(null);
@@ -138,7 +141,7 @@ export function TableHandles(props: TableHandlesProps) {
             axis="column"
             label={labels.columnOptions(col + 1)}
             style={place(middle(geometry.cols[col]), geometry.top)}
-            items={columnMenuItems(labels, block.id, col, shape)}
+            items={columnMenuItems(labels, block.id, col, shape, direction)}
             open={menu === 'column'}
             onOpenChange={opener('column')}
             buttonRef={columnHandle}

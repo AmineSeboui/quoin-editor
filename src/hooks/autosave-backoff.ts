@@ -38,12 +38,22 @@ export type RetryPolicy = {
   isRetryable: (error: unknown) => boolean;
 };
 
+// The predicate is the host's, so a throw from it ends the retries here rather than escaping into the save loop,
+// where it would replace the save's own failure and leave the document unsaved with nothing reported.
+function retryable(error: unknown, isRetryable: RetryPolicy['isRetryable']): boolean {
+  try {
+    return isRetryable(error);
+  } catch {
+    return false;
+  }
+}
+
 /** The wait before the next retry, or null when the failure is final. */
 export function nextRetryDelay(
   error: unknown,
   retriesSoFar: number,
   { debounceMs, maxBackoffMs, maxRetries, isRetryable }: RetryPolicy,
 ): number | null {
-  if (retriesSoFar >= maxRetries || !isRetryable(error)) return null;
+  if (retriesSoFar >= maxRetries || !retryable(error, isRetryable)) return null;
   return Math.min(debounceMs * 2 ** (retriesSoFar + 1), maxBackoffMs);
 }

@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import type { ViewController } from '../../view';
+import { isComposingKey } from '../../view/input/keydown';
 import { moveSelectionOutOfAtoms } from './selection-out-of-atoms';
 
 /**
@@ -20,14 +21,18 @@ export function useSelectionOutOfAtoms(controller: ViewController, types: readon
       if (selection === null || controller.composingKey !== null) return;
       if (root.contains(root.ownerDocument.activeElement)) moveSelectionOutOfAtoms(selection, hostOf, types);
     };
+    // The browser reports a composition on the key itself, before the view has a composingKey for moveOut to read.
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!isComposingKey(controller, event)) moveOut();
+    };
     // Both run before the view's own listeners read the selection: the window's capture of selectionchange before the
     // document's, and the root's capture of keydown before its bubble, for a key that comes ahead of the selectionchange
     // of the click before it, as it can in Chromium.
     view.addEventListener('selectionchange', moveOut, true);
-    root.addEventListener('keydown', moveOut, true);
+    root.addEventListener('keydown', onKeyDown, true);
     return () => {
       view.removeEventListener('selectionchange', moveOut, true);
-      root.removeEventListener('keydown', moveOut, true);
+      root.removeEventListener('keydown', onKeyDown, true);
     };
   }, [controller, types, editable]);
 }

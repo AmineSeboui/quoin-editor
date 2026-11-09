@@ -15,7 +15,9 @@ const FAMILIES: readonly (readonly [family: string, utility: RegExp])[] = [
   ['font weight', /^font-(thin|extralight|light|normal|medium|semibold|bold|extrabold|black)$/],
   ['text size', /^text-(xs|sm|base|lg|\d?xl)(\/.+)?$/],
   ['text align', /^text-(left|center|right|justify|start|end)$/],
-  ['text color', /^text-(?!(xs|sm|base|lg|\d?xl)(\/.+)?$|(left|center|right|justify|start|end)$|(wrap|nowrap|balance|pretty|ellipsis|clip)$|shadow-|opacity-)/],
+  // `text-[14px]` is a size and `text-[#fff]` a colour, and the name alone does not say which, which is how `cn`
+  // reads them too. Neither is given a family, so two of them never count as a clash.
+  ['text color', /^text-(?!(xs|sm|base|lg|\d?xl)(\/.+)?$|(left|center|right|justify|start|end)$|(wrap|nowrap|balance|pretty|ellipsis|clip)$|shadow-|opacity-|[[(])/],
   ['border width', /^border(-(0|2|4|8))?$/],
   ['border color', /^border-(?!(0|2|4|8)$|[xytrblse](-|$)|(solid|dashed|dotted|double|none|hidden|collapse|separate)$|spacing)/],
   ['outline width', /^outline(-(0|1|2|4|8))?$/],
@@ -58,6 +60,8 @@ describe('the guard over pinned class lists', () => {
     [['rounded-md', 'shadow-xs', 'rounded-lg'], ['rounded-md rounded-lg']],
     [['bg-popover', 'hover:bg-accent', 'bg-transparent'], ['bg-popover bg-transparent']],
     [['text-sm', 'text-muted-foreground', 'text-base/7', 'text-destructive'], ['text-sm text-base/7', 'text-muted-foreground text-destructive']],
+    [['text-[14px]', 'text-red-500'], []],
+    [['text-(length:--step)', 'text-foreground'], []],
     [['-mx-1', 'my-1', 'mx-2', 'p-4', 'py-1', 'ps-3', 'ps-12'], ['-mx-1 mx-2', 'ps-3 ps-12']],
     [['z-50', 'opacity-0', 'font-medium', 'leading-none', 'w-72', 'h-9', 'z-10', 'opacity-70', 'font-semibold', 'leading-tight', 'w-80', 'h-8'], [
       'z-50 z-10',

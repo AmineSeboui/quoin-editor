@@ -1,8 +1,15 @@
 import { formatSize } from '../blocks/file/format-size';
 import type { QuoinLabels } from './labels';
 
+// Frozen in the initializer rather than after it, because a module here runs no statement when it loads: a bundler
+// drops the whole declaration where a host never reads the labels.
+function frozen(labels: Required<QuoinLabels>): Required<QuoinLabels> {
+  for (const label of Object.values(labels)) if (typeof label === 'object') Object.freeze(label);
+  return Object.freeze(labels);
+}
+
 /** Every string the canvas shows or speaks, in English. Pass `labels` to the canvas to change any of them. */
-export const englishLabels: Required<QuoinLabels> = {
+export const englishLabels: Required<QuoinLabels> = frozen({
   document: 'Editor',
   editorHint: 'Press Escape, then Tab, to leave the editor.',
   paragraph: 'Paragraph',
@@ -204,4 +211,4 @@ export const englishLabels: Required<QuoinLabels> = {
   emptyFile: 'No file chosen',
   emptyMarkdown: 'Empty markdown block',
   emptyCallout: 'Empty callout',
-};
+});

@@ -21,6 +21,14 @@ function sampleText(key: keyof QuoinLabels): string[] {
 }
 
 describe('englishLabels', () => {
+  it('cannot be changed by a host, since every canvas on the page shares it', () => {
+    expect(Object.isFrozen(englishLabels)).toBe(true);
+    for (const key of KEYS) {
+      const label = englishLabels[key];
+      if (typeof label === 'object') expect(Object.isFrozen(label)).toBe(true);
+    }
+  });
+
   it('words the labels the editor already speaks', () => {
     expect(englishLabels.document).toBe('Editor');
     expect(englishLabels.editorHint).toBe('Press Escape, then Tab, to leave the editor.');

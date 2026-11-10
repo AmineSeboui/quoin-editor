@@ -88,6 +88,29 @@ describe('the canvas announces a block deletion with the way to undo it', () => 
     expect(status()).toHaveTextContent('2 blocks deleted. Press Ctrl+Z to undo');
   });
 
+  // A cut removes the blocks through the clipboard rather than through a delete command, so it reaches the live region
+  // by its own route and is worth driving as the writer does.
+  it('of the blocks a cut takes away', () => {
+    const blocks = [paragraph('a', 'one'), paragraph('b', 'two'), paragraph('c', 'three')];
+    const { handle } = setup(blocks);
+    act(() => {
+      const { controller } = handle();
+      controller.dispatch(controller.editor.createTransaction().setSelection(blockRangeSelection('a', 'b')));
+      handle().focus();
+    });
+    const written = new Map<string, string>();
+    const clipboardData = {
+      getData: (type: string) => written.get(type) ?? '',
+      setData: (type: string, value: string) => written.set(type, value),
+      files: [],
+      types: [],
+    };
+    act(() => void fireEvent.cut(document.activeElement!, { clipboardData }));
+    expect(handle().editor.getBlocks().map((block) => block.id)).toEqual(['c']);
+    expect(written.get('text/plain')).toBe('one\n\ntwo');
+    expect(status()).toHaveTextContent('2 blocks deleted. Press Ctrl+Z to undo');
+  });
+
   it('but says nothing when Backspace joins a line to the one above', () => {
     const { caret, key, handle } = setup([paragraph('a', 'one'), paragraph('b', 'two')]);
     caret('b');

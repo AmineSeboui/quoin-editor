@@ -2,21 +2,10 @@ import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
-import {
-  builtPage,
-  canonicalOf,
-  count,
-  dist,
-  expectedPages,
-  mainText,
-  metaOf,
-  pngSize,
-  readText,
-  SITE_URL,
-  titleOf,
-} from './built-site.mjs';
+import { SITE_URL, builtPage, canonicalOf, count, dist, expectedPages, mainText, metaOf, movedPages, ownPages, pngSize, readText, titleOf } from './built-site.mjs';
 
-const pages = expectedPages().map((path) => ({ path, html: builtPage(path) }));
+// The pages this site draws. A documentation address is a notice now, checked on its own below.
+const pages = ownPages().map((path) => ({ path, html: builtPage(path) }));
 
 describe('every page of the built site', () => {
   for (const { path, html } of pages) {
@@ -88,17 +77,29 @@ describe('the structured data of the home page', () => {
   });
 
   it('is left off the other pages', () => {
-    for (const path of expectedPages().filter((path) => path !== '')) {
+    for (const path of ownPages().filter((path) => path !== '')) {
       assert.doesNotMatch(builtPage(path), /application\/ld\+json/, `/${path}`);
     }
   });
 });
 
 describe('the files search engines and link previews read', () => {
-  it('lists every page in the sitemap', () => {
+  it('lists every page this site owns in the sitemap, and nothing it has given away', () => {
     const sitemap = existsSync(join(dist, 'sitemap.xml')) ? readText(join(dist, 'sitemap.xml')) : '';
     const listed = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(([, url]) => url);
-    assert.deepEqual(listed.sort(), expectedPages().map((path) => SITE_URL + path).sort());
+    assert.deepEqual(listed.sort(), ownPages().map((path) => SITE_URL + path).sort());
+  });
+
+  // Every one of these addresses has been linked to for a year. They stay, and they say where they went.
+  it('leaves each documentation address as a notice pointing at the page that now holds it', () => {
+    for (const path of movedPages()) {
+      const slug = path.slice('docs/'.length, -1);
+      const html = builtPage(path);
+      const to = `https://quoincloud.com/docs/editor/${slug}`;
+      assert.match(html, new RegExp(`<link rel="canonical" href="${to}">`), path);
+      assert.match(html, new RegExp(`http-equiv="refresh" content="0; url=${to}"`), path);
+      assert.match(html, /This page has moved/, path);
+    }
   });
 
   it('points robots.txt at the sitemap', () => {

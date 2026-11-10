@@ -38,15 +38,17 @@ const sources = [
   ...docSlugs().map((slug) => ({ name: `docs/${slug}.md`, path: join(demoRoot, 'docs', `${slug}.md`) })),
 ];
 
-describe('links into the docs site', () => {
-  const pattern = new RegExp(`${escapeRegExp(DOCS_URL)}([a-z0-9-]+)/(?:#([a-z0-9-]+))?`, 'g');
-  for (const { name, path } of sources) {
-    it(`from ${name} reach a built page and the heading they name`, () => {
-      const broken = [...readText(path).matchAll(pattern)].filter(([, slug, anchor]) => {
-        const html = builtPage(`docs/${slug}/`);
-        return html === '' || (anchor !== undefined && !idsOf(html).has(anchor));
-      });
-      assert.deepEqual(broken.map(([link]) => link), []);
+describe('links to the documentation', () => {
+  const old = DOCS_URL;
+  // This repository's own prose only. The pages under demo/docs are drawn by the site that serves them now,
+  // which rewrites a reference written for the old addresses and has its own test that none survives.
+  const ours = sources.filter(({ name }) => !name.startsWith('docs/'));
+  for (const { name, path } of ours) {
+    // The documentation is served from the one site now. A link written here should go there rather than to
+    // the notice left behind, which still works but costs the reader a redirect to read the next page.
+    it(`from ${name} go to the site that serves it`, () => {
+      const stale = [...readText(path).matchAll(new RegExp(`${escapeRegExp(old)}[a-z0-9-]+/`, 'g'))];
+      assert.deepEqual(stale.map(([link]) => link), []);
     });
   }
 });
@@ -88,7 +90,6 @@ describe('the addresses of the built site', () => {
 
 describe('the pages drawn from markdown', () => {
   const drawn = [
-    ...docSlugs().map((slug) => ({ page: `docs/${slug}/`, source: join(demoRoot, 'docs', `${slug}.md`) })),
     { page: 'migration/', source: join(repoRoot, 'MIGRATION.md') },
     { page: 'changelog/', source: join(repoRoot, 'CHANGELOG.md') },
   ];

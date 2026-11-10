@@ -6,7 +6,7 @@ Quoin is a rich markdown editor and block editor for React. Every text block sta
 
 [![npm](https://img.shields.io/npm/v/quoin-editor)](https://www.npmjs.com/package/quoin-editor) [![CI](https://github.com/AmineSeboui/quoin-editor/actions/workflows/ci.yml/badge.svg)](https://github.com/AmineSeboui/quoin-editor/actions/workflows/ci.yml) [![licence](https://img.shields.io/npm/l/quoin-editor)](LICENSE)
 
-[Live demo](https://amineseboui.github.io/quoin-editor/) | [Docs](https://amineseboui.github.io/quoin-editor/docs/getting-started/) | [Changelog](CHANGELOG.md)
+[Live demo](https://amineseboui.github.io/quoin-editor/) | [Docs](https://quoincloud.com/docs/editor/getting-started) | [Changelog](CHANGELOG.md)
 
 ![A heading typed with a hash and a space, a bulleted list, two words made bold from the toolbar, a callout inserted from the slash menu and dragged into place, while the panel beside shows the markdown onChange hands back](demo/public/quoin-demo.gif)
 
@@ -14,7 +14,7 @@ Quoin is a rich markdown editor and block editor for React. Every text block sta
 - **Typed blocks you control like an input.** A document is `QuoinBlock[]`, plain JSON, passed as `blocks` and returned through `onChange`, so saving, versioning and validation stay in your code.
 - **Notion-style UI included, MIT.** Slash menu, bubble toolbar, block menu, drag handles, a mobile toolbar and a shortcuts dialog, with no account and no paid tier.
 - **Custom blocks as plain React.** `defineBlock` takes an editor, a preview, or both, as React components; no schema language to learn.
-- **Accessible, with tested keyboard and screen reader support.** In CI, axe runs over the canvas and its menus in light and dark mode, a document is written with the keyboard alone, and moves and deletions are announced. [What is not checked yet](https://amineseboui.github.io/quoin-editor/docs/accessibility/#what-is-not-checked-yet).
+- **Accessible, with tested keyboard and screen reader support.** In CI, axe runs over the canvas and its menus in light and dark mode, a document is written with the keyboard alone, and moves and deletions are announced. [What is not checked yet](https://quoincloud.com/docs/editor/accessibility#what-is-not-checked-yet).
 
 ## Write together, with AI
 
@@ -124,14 +124,14 @@ Sources, checked on 2026-11-05: Tiptap [persistence][tt-store], [markdown][tt-md
 
 ## Learn more
 
-- [The controlled contract](https://amineseboui.github.io/quoin-editor/docs/contract/): loading, autosave, discarding, undoing a deletion
-- [Theming](https://amineseboui.github.io/quoin-editor/docs/theming/): `--quoin-` tokens, dark mode, cascade layers, Tailwind
-- [Custom blocks](https://amineseboui.github.io/quoin-editor/docs/custom-blocks/) and [uploads](https://amineseboui.github.io/quoin-editor/docs/uploads/)
-- [Extensions](https://amineseboui.github.io/quoin-editor/docs/extensions/): every opt-in feature, and writing your own
-- [Collaboration](https://amineseboui.github.io/quoin-editor/docs/collaboration/), [comments](https://amineseboui.github.io/quoin-editor/docs/comments/) and [AI](https://amineseboui.github.io/quoin-editor/docs/ai/)
-- [Server rendering](https://amineseboui.github.io/quoin-editor/docs/server-rendering/): read-only, `QuoinView`, `QuoinDiff`, `toDocx`
-- [Accessibility](https://amineseboui.github.io/quoin-editor/docs/accessibility/): what each test suite checks, and what it does not yet
-- [FAQ](https://amineseboui.github.io/quoin-editor/docs/faq/): the package name, stability, React versions, and [upgrading to 2.0](MIGRATION.md#migrating-from-1x-to-20)
+- [The controlled contract](https://quoincloud.com/docs/editor/contract): loading, autosave, discarding, undoing a deletion
+- [Theming](https://quoincloud.com/docs/editor/theming): `--quoin-` tokens, dark mode, cascade layers, Tailwind
+- [Custom blocks](https://quoincloud.com/docs/editor/custom-blocks) and [uploads](https://quoincloud.com/docs/editor/uploads)
+- [Extensions](https://quoincloud.com/docs/editor/extensions): every opt-in feature, and writing your own
+- [Collaboration](https://quoincloud.com/docs/editor/collaboration), [comments](https://quoincloud.com/docs/editor/comments) and [AI](https://quoincloud.com/docs/editor/ai)
+- [Server rendering](https://quoincloud.com/docs/editor/server-rendering): read-only, `QuoinView`, `QuoinDiff`, `toDocx`
+- [Accessibility](https://quoincloud.com/docs/editor/accessibility): what each test suite checks, and what it does not yet
+- [FAQ](https://quoincloud.com/docs/editor/faq): the package name, stability, React versions, and [upgrading to 2.0](MIGRATION.md#migrating-from-1x-to-20)
 
 ## Sponsors
 

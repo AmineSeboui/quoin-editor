@@ -5,5 +5,14 @@ export const NPM_URL = 'https://www.npmjs.com/package/quoin-editor';
 export const SITE_NAME = 'Quoin';
 export const TAGLINE = 'Blocks on screen. Markdown on disk.';
 
-/** The address of a page of the site, given its path under the base, such as `docs/theming/`. */
-export const pageHref = (path: string) => `${BASE}${path}`;
+/** Where the documentation went: the one site, with the editor, the server and the hosting all on it. */
+export const DOCS_HOME = 'https://quoincloud.com/docs/editor/';
+
+/**
+ * The address of a page of the site, given its path under the base, such as `playground/`.
+ *
+ * A documentation path answers with its address on the other site rather than the notice left behind here,
+ * so a link from this site goes straight there instead of through a page that only says where to go.
+ */
+export const pageHref = (path: string) =>
+  path.startsWith('docs/') ? `${DOCS_HOME}${path.slice(5).replace(/\/$/, '')}` : `${BASE}${path}`;

@@ -7,7 +7,7 @@ description: Every export of quoin-editor/engine with its signature: the documen
 
 `quoin-editor/engine` is the editing engine on its own, with no React and no DOM. Every name it exports is listed here with the signature the published types carry, read from the package’s own source each time the site is built.
 
-Nothing is held back. An entry of the package is a contract, so a name that should not be public should stop being exported rather than be left off this page. [Exports](https://amineseboui.github.io/quoin-editor/docs/api/) says in prose what each entry of the package is for, and [Headless reference](https://amineseboui.github.io/quoin-editor/docs/headless-reference/) lists what `quoin-editor/headless` adds on top of this one.
+Nothing is held back. An entry of the package is a contract, so a name that should not be public should stop being exported rather than be left off this page. [Exports](https://quoincloud.com/docs/editor/api) says in prose what each entry of the package is for, and [Headless reference](https://quoincloud.com/docs/editor/headless-reference) lists what `quoin-editor/headless` adds on top of this one.
 
 ## The document
 

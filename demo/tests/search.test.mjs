@@ -2,11 +2,11 @@ import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
-import { builtPage, canonicalOf, dist, expectedPages, idsOf, metaOf, readText, titleOf } from './built-site.mjs';
+import { builtPage, canonicalOf, dist, idsOf, metaOf, ownPages, readText, titleOf } from './built-site.mjs';
 
 const indexFile = join(dist, 'search-index.json');
 const records = existsSync(indexFile) ? JSON.parse(readText(indexFile)) : [];
-const pages = new Set(expectedPages());
+const pages = new Set(ownPages());
 
 describe('the search index', () => {
   it('is built', () => assert.ok(records.length > 0, `no ${indexFile}`));
@@ -28,9 +28,9 @@ describe('the search index', () => {
   it('gives every record text to match on', () =>
     assert.deepEqual(records.filter(({ text }) => !text?.trim()).map(({ path }) => path), []));
 
-  it('splits the guide into sections rather than whole pages', () => {
-    const theming = records.filter(({ path }) => path === 'docs/theming/');
-    assert.ok(theming.length > 3, `theming is ${theming.length} record(s), not its sections`);
+  it('splits a long page into sections rather than indexing it whole', () => {
+    const changelog = records.filter(({ path }) => path === 'changelog/');
+    assert.ok(changelog.length > 3, `the changelog is ${changelog.length} record(s), not its sections`);
   });
 });
 

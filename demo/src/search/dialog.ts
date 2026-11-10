@@ -57,8 +57,8 @@ export function wireSearch(open: HTMLButtonElement, dialog: HTMLDialogElement) {
     message.hidden = hits.length > 0;
     if (hits.length === 0) {
       message.textContent = query
-        ? `Nothing in the guide matches “${query}”. Try a shorter word, or the name of an export.`
-        : 'Type to search the guide, the comparison and the changelog.';
+        ? `Nothing on this site matches “${query}”. Try a shorter word, or the name of an export.`
+        : 'Type to search the demos, the comparison and the changelog.';
     }
     if (hits.length > 0) highlight(0);
   };
@@ -70,7 +70,7 @@ export function wireSearch(open: HTMLButtonElement, dialog: HTMLDialogElement) {
         records = loaded;
       })
       .catch((error: unknown) => {
-        message.textContent = 'The search index did not load. The guide is still in the left hand list.';
+        message.textContent = 'The search index did not load. Reload the page to try again.';
         console.error('The search index did not load.', error);
       });
     return loading;

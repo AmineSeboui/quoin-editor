@@ -26,7 +26,7 @@ export function PlaygroundCode({ source }: { source: string }) {
           {copied ? 'Copied' : 'Copy'}
         </button>
       </div>
-      <pre className="play-code">
+      <pre className="play-code" tabIndex={0}>
         <code>{source}</code>
       </pre>
     </section>

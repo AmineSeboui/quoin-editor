@@ -16,10 +16,26 @@ export const docSlugs = () =>
     .map((name) => name.slice(0, -'.md'.length))
     .sort();
 
-/** Every page the site must have, by its path under the base. */
+/** The documentation paths, which this site no longer serves: each is a notice saying where the page went. */
+export const movedPages = () => docSlugs().map((slug) => `docs/${slug}/`);
+
+/** The pages this site still owns, which are the ones its sitemap may offer. */
+export const ownPages = () => [
+  '',
+  'playground/',
+  'blocks/',
+  'collaboration/',
+  'ai/',
+  'comments/',
+  'server-rendering/',
+  'comparison/',
+  'migration/',
+  'changelog/',
+];
+
 export const expectedPages = () => [
   '',
-  ...docSlugs().map((slug) => `docs/${slug}/`),
+  ...movedPages(),
   'playground/',
   'blocks/',
   'collaboration/',

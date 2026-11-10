@@ -9,8 +9,8 @@ export function SearchDialog() {
         <input
           type="search"
           className="search-input"
-          placeholder="Search the guide"
-          aria-label="Search the guide"
+          placeholder="Search this site"
+          aria-label="Search this site"
           role="combobox"
           aria-expanded="false"
           aria-controls="search-results"
@@ -23,7 +23,7 @@ export function SearchDialog() {
       </div>
       <div className="search-results" role="listbox" id="search-results" aria-label="Results" data-search-results />
       <p className="search-message" data-search-message>
-        Type to search the guide, the comparison and the changelog.
+        Type to search the demos, the comparison and the changelog.
       </p>
     </dialog>
   );

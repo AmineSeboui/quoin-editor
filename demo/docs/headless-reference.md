@@ -5,9 +5,9 @@ description: Every export quoin-editor/headless adds to the engine: the hook, th
 
 # Headless reference
 
-`quoin-editor/headless` is the editing engine and its editable view, with none of the canvas UI. It exports everything in the [Engine reference](https://amineseboui.github.io/quoin-editor/docs/engine-reference/) and the names here on top of it: the React layer that draws a document, and the controller that binds an editor to the page.
+`quoin-editor/headless` is the editing engine and its editable view, with none of the canvas UI. It exports everything in the [Engine reference](https://quoincloud.com/docs/editor/engine-reference) and the names here on top of it: the React layer that draws a document, and the controller that binds an editor to the page.
 
-Each one carries the signature the published types carry, read from the package’s own source each time the site is built. [Headless](https://amineseboui.github.io/quoin-editor/docs/headless/) shows the layer working, in one page of code.
+Each one carries the signature the published types carry, read from the package’s own source each time the site is built. [Headless](https://quoincloud.com/docs/editor/headless) shows the layer working, in one page of code.
 
 ## Hooks and components
 

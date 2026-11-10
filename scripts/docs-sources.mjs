@@ -3,9 +3,9 @@ import { join, resolve } from 'node:path';
 
 export const root = resolve(import.meta.dirname, '..');
 export const docsDir = join(root, 'demo', 'docs');
-export const DOCS_URL = 'https://amineseboui.github.io/quoin-editor/docs/';
+export const DOCS_URL = 'https://quoincloud.com/docs/editor/';
 
-/** The docs pages' markdown sources, which the docs site lays out as pages at `DOCS_URL<slug>/`. */
+/** The docs pages' markdown sources, which the site lays out as pages at `DOCS_URL<slug>`. */
 export const docsSources = () =>
   readdirSync(docsDir)
     .filter((name) => name.endsWith('.md'))

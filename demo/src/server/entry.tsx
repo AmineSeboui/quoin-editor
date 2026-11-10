@@ -7,7 +7,7 @@ import { headTags } from './head';
 
 export { notFoundPage, pages };
 export { searchRecords } from './search-index';
-export { fillTemplate, robots, sitemap } from './site-files';
+export { fillTemplate, movedHtml, robots, sitemap } from './site-files';
 
 /** A page as the build writes it: the tags of its head and its body, its main content drawn on the server. */
 export function renderPage(page: Page): { head: string; body: string } {

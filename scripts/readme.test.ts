@@ -14,9 +14,9 @@ const packageMinor = packageVersion.split('.').slice(0, 2).join('.');
 
 const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const linkedSlugs = (markdown: string) =>
-  [...markdown.matchAll(new RegExp(`${escapeRegExp(DOCS_URL)}([a-z0-9-]+)/`, 'g'))].map(([, slug]) => slug);
+  [...markdown.matchAll(new RegExp(`${escapeRegExp(DOCS_URL)}([a-z0-9-]+)/?`, 'g'))].map(([, slug]) => slug);
 const linkedAnchors = (markdown: string) =>
-  [...markdown.matchAll(new RegExp(`${escapeRegExp(DOCS_URL)}([a-z0-9-]+)/#([a-z0-9-]+)`, 'g'))].map(
+  [...markdown.matchAll(new RegExp(`${escapeRegExp(DOCS_URL)}([a-z0-9-]+)/?#([a-z0-9-]+)`, 'g'))].map(
     ([, slug, anchor]) => ({ slug, anchor }),
   );
 

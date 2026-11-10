@@ -10,6 +10,8 @@ type Reel = {
   alt: string;
   demo: string;
   guide: string;
+  /** Somewhere off this site worth going next, such as a server to run the provider against. */
+  beyond?: { href: string; label: string };
 };
 
 const REELS: Reel[] = [
@@ -21,6 +23,7 @@ const REELS: Reel[] = [
     alt: 'Two editors side by side, Ada and Grace. Ada adds a task while her caret shows in Grace’s copy, Grace renames the heading and ticks a task, and Ada drags a block that moves in both.',
     demo: 'collaboration/',
     guide: 'docs/collaboration/',
+    beyond: { href: 'https://quoincloud.com', label: 'Or let someone host the server' },
   },
   {
     id: 'ai',
@@ -38,7 +41,7 @@ const REELS: Reel[] = [
 export function HomeShowcase() {
   return (
     <div className="showcase">
-      {REELS.map(({ id, title, text, note, clip, alt, demo, guide }) => (
+      {REELS.map(({ id, title, text, note, clip, alt, demo, guide, beyond }) => (
         <section key={id} className="reel" aria-labelledby={`${id}-heading`}>
           <div className="reel-copy">
             <h2 id={`${id}-heading`}>{title}</h2>
@@ -51,6 +54,11 @@ export function HomeShowcase() {
               <a className="text-link" href={pageHref(guide)}>
                 How it works
               </a>
+              {beyond && (
+                <a className="text-link" href={beyond.href}>
+                  {beyond.label}
+                </a>
+              )}
             </p>
           </div>
           <figure className="clip" data-clip-figure data-state="playing">

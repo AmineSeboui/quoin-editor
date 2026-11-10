@@ -28,4 +28,23 @@ describe('clicks on a link in the text', () => {
     expect(fireEvent.click(link, { metaKey: true })).toBe(false);
     expect(open).not.toHaveBeenCalled();
   });
+
+  describe('on a Mac, where Mod is Meta', () => {
+    const onAMac = () => {
+      vi.spyOn(navigator, 'platform', 'get').mockReturnValue('MacIntel');
+      return mount();
+    };
+
+    it('open the link in a new tab on Meta+click', () => {
+      const { link, open } = onAMac();
+      expect(fireEvent.click(link, { metaKey: true })).toBe(false);
+      expect(open).toHaveBeenCalledExactlyOnceWith('https://quoin.dev/docs', '_blank', 'noopener,noreferrer');
+    });
+
+    it('open nothing on Ctrl+click, which is the secondary click there', () => {
+      const { link, open } = onAMac();
+      expect(fireEvent.click(link, { ctrlKey: true })).toBe(false);
+      expect(open).not.toHaveBeenCalled();
+    });
+  });
 });

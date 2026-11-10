@@ -154,6 +154,15 @@ describe('the mobile toolbar', () => {
     expect(toolbar().style).toMatchObject({ top: '580px', width: '400px' });
   });
 
+  // Where there is no visual viewport to follow, the layout viewport is the whole page and its bottom edge is the
+  // best the bar can do. It has to sit there rather than nowhere, or a browser without one draws it over the text.
+  it('sits on the bottom edge of the page where the browser has no visual viewport', () => {
+    vi.stubGlobal('visualViewport', undefined);
+    editAt(pos('a', 0));
+    expect(toolbar().style).toMatchObject({ bottom: '0px' });
+    expect(toolbar().style.top).toBe('');
+  });
+
   it('does not draw the blocks again as the visual viewport moves', () => {
     let drawn = 0;
     const counted = defineBlock<{ n: number }>({

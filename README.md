@@ -20,7 +20,7 @@ Quoin is a rich markdown editor and block editor for React. Every text block sta
 
 ![Two editors side by side, Ada and Grace: Ada adds a task while her caret shows in Grace's copy, Grace renames the heading and ticks a task, and Ada drags a block that moves in both](demo/public/quoin-collaboration.gif)
 
-**Real-time collaboration.** Each person sees the other's typing, ticked tasks and moved blocks arrive as they happen, with a named caret showing where they are. Quoin syncs through your own Yjs provider, and comment threads stay anchored to the text they discuss. [Try it live](https://amineseboui.github.io/quoin-editor/collaboration/)
+**Real-time collaboration.** Each person sees the other's typing, ticked tasks and moved blocks arrive as they happen, with a named caret showing where they are. Quoin syncs through your own Yjs provider, and comment threads stay anchored to the text they discuss. [Try it live](https://amineseboui.github.io/quoin-editor/collaboration/), or let [Quoin Cloud](https://quoincloud.com) host the server the provider talks to.
 
 ![A draft line with spelling mistakes is selected, Ask AI is opened from the toolbar and Fix spelling and grammar streams a corrected line that is accepted, then Continue writing adds a sentence below](demo/public/quoin-ai.gif)
 

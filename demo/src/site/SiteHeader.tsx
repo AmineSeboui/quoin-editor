@@ -51,7 +51,7 @@ export function SiteHeader({ page }: { page: Page }) {
           </ul>
         </nav>
         <div className="site-actions">
-          <button type="button" className="site-search" aria-label="Search the guide" hidden data-search-open>
+          <button type="button" className="site-search" aria-label="Search this site" hidden data-search-open>
             <SearchIcon />
             <span>Search</span>
             <kbd>/</kbd>

@@ -128,5 +128,5 @@ export const notFoundPage: Page = {
   kind: 'not-found',
   path: '404.html',
   title: 'Page not found',
-  description: 'That address has no page on the Quoin site. The guide, the live demos and the changelog are listed here.',
+  description: 'That address has no page on the Quoin site. The documentation, the live demos and the changelog are listed here.',
 };

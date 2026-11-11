@@ -1,5 +1,5 @@
 import { PauseIcon, PlayIcon } from '../site/icons';
-import { BASE, pageHref } from '../site/site';
+import { BASE, CLOUD_URL, pageHref } from '../site/site';
 
 type Reel = {
   id: string;
@@ -23,7 +23,7 @@ const REELS: Reel[] = [
     alt: 'Two editors side by side, Ada and Grace. Ada adds a task while her caret shows in Grace’s copy, Grace renames the heading and ticks a task, and Ada drags a block that moves in both.',
     demo: 'collaboration/',
     guide: 'docs/collaboration/',
-    beyond: { href: 'https://quoincloud.com', label: 'Or let someone host the server' },
+    beyond: { href: CLOUD_URL, label: 'Or let someone host the server' },
   },
   {
     id: 'ai',

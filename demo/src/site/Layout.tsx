@@ -7,9 +7,10 @@ import { PageToc } from './PageToc';
 import { SearchDialog } from './SearchDialog';
 import { SiteFooter } from './SiteFooter';
 import { SiteHeader } from './SiteHeader';
+import { SiteNotice } from './SiteNotice';
 import { docSources } from './sources';
 
-/** The frame of every page: a skip link, the site's header, the page's one `main` and the footer. */
+/** The frame of every page: a skip link, the notice, the site's header, the page's one `main` and the footer. */
 export function Layout({ page, children }: { page: Page; children: ReactNode }) {
   const source = page.kind === 'doc' ? docSources.get(page.slug) : undefined;
   return (
@@ -17,6 +18,7 @@ export function Layout({ page, children }: { page: Page; children: ReactNode }) 
       <a className="skip-link" href="#content">
         Skip to content
       </a>
+      <SiteNotice />
       <SiteHeader page={page} />
       <div className={source ? 'page page-with-nav' : 'page'}>
         {page.kind === 'doc' && <GuideNav page={page} />}

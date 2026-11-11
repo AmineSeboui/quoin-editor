@@ -2,11 +2,12 @@ export const BASE = '/quoin-editor/';
 export const SITE_URL = `https://amineseboui.github.io${BASE}`;
 export const REPO_URL = 'https://github.com/AmineSeboui/quoin-editor';
 export const NPM_URL = 'https://www.npmjs.com/package/quoin-editor';
+export const CLOUD_URL = 'https://quoincloud.com';
 export const SITE_NAME = 'Quoin';
 export const TAGLINE = 'Blocks on screen. Markdown on disk.';
 
 /** Where the documentation went: the one site, with the editor, the server and the hosting all on it. */
-export const DOCS_HOME = 'https://quoincloud.com/docs/editor/';
+export const DOCS_HOME = `${CLOUD_URL}/docs/editor/`;
 
 /**
  * The address of a page of the site, given its path under the base, such as `playground/`.

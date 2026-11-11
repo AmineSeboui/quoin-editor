@@ -6,7 +6,7 @@ Quoin is a rich markdown editor and block editor for React. Every text block sta
 
 [![npm](https://img.shields.io/npm/v/quoin-editor)](https://www.npmjs.com/package/quoin-editor) [![CI](https://github.com/AmineSeboui/quoin-editor/actions/workflows/ci.yml/badge.svg)](https://github.com/AmineSeboui/quoin-editor/actions/workflows/ci.yml) [![licence](https://img.shields.io/npm/l/quoin-editor)](LICENSE)
 
-[Live demo](https://amineseboui.github.io/quoin-editor/) | [Docs](https://quoincloud.com/docs/editor/getting-started) | [Changelog](CHANGELOG.md)
+[Home](https://quoincloud.com) | [Docs](https://quoincloud.com/docs/editor/getting-started) | [Live demo](https://amineseboui.github.io/quoin-editor/playground/) | [Changelog](CHANGELOG.md)
 
 ![A heading typed with a hash and a space, a bulleted list, two words made bold from the toolbar, a callout inserted from the slash menu and dragged into place, while the panel beside shows the markdown onChange hands back](demo/public/quoin-demo.gif)
 

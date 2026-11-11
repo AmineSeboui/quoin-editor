@@ -85,6 +85,19 @@ a {
   top: 0.75rem;
 }
 
+.site-notice {
+  border-bottom: 1px solid var(--site-hairline);
+  background: var(--site-surface);
+  font-size: 0.875rem;
+}
+
+.site-notice p {
+  box-sizing: border-box;
+  max-width: var(--site-width);
+  margin: 0 auto;
+  padding: 0.625rem var(--site-gutter);
+}
+
 .site-header {
   position: sticky;
   top: 0;

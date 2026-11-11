@@ -1,7 +1,7 @@
 blank_issues_enabled: false
 contact_links:
   - name: Documentation
-    url: https://amineseboui.github.io/quoin-editor/docs/getting-started/
+    url: https://quoincloud.com/docs/editor/getting-started
     about: Guides, the API and the FAQ.
   - name: Ask a question
     url: https://github.com/AmineSeboui/quoin-editor/discussions

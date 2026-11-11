@@ -35,6 +35,7 @@ const headingsOf = (markdown) =>
 
 const sources = [
   { name: 'README.md', path: join(repoRoot, 'README.md') },
+  { name: 'MIGRATION.md', path: join(repoRoot, 'MIGRATION.md') },
   ...docSlugs().map((slug) => ({ name: `docs/${slug}.md`, path: join(demoRoot, 'docs', `${slug}.md`) })),
 ];
 

@@ -47,7 +47,7 @@ describe('the community files', () => {
     const config = read('.github/ISSUE_TEMPLATE/config.yml');
     expect(config).toContain('url: https://github.com/AmineSeboui/quoin-editor/discussions');
     expect(config).toMatch(/blank_issues_enabled: false/);
-    expect(config).toContain('https://amineseboui.github.io/quoin-editor/docs/getting-started/');
+    expect(config).toContain('https://quoincloud.com/docs/editor/getting-started');
     expect(config).toContain('https://github.com/AmineSeboui/quoin-editor/security/advisories/new');
     expect(read('CONTRIBUTING.md')).toContain('https://github.com/AmineSeboui/quoin-editor/discussions');
   });

@@ -238,7 +238,7 @@ The tarball ships ESM and CommonJS builds of every entry, with their sourcemaps.
 
 ## Migrating from 1.x to 2.0
 
-Quoin 2.0 keeps the document format, the props of every component and every command of 1.x. What changes is the published surface: seven names that only the view layer ever called itself stop being exported from `quoin-editor/view`, and so from `quoin-editor/headless` and `quoin-editor` with it. Five of them have carried a deprecation notice since 1.8.0, shown by an editor on hover and on the [headless reference](https://amineseboui.github.io/quoin-editor/docs/headless-reference/); the other two are the prop types of the two components, and go with them. Nothing else is removed and nothing behaves differently, so a host that imports none of the seven upgrades by changing the version.
+Quoin 2.0 keeps the document format, the props of every component and every command of 1.x. What changes is the published surface: seven names that only the view layer ever called itself stop being exported from `quoin-editor/view`, and so from `quoin-editor/headless` and `quoin-editor` with it. Five of them have carried a deprecation notice since 1.8.0, shown by an editor on hover and on the [headless reference](https://quoincloud.com/docs/editor/headless-reference); the other two are the prop types of the two components, and go with them. Nothing else is removed and nothing behaves differently, so a host that imports none of the seven upgrades by changing the version.
 
 ```bash
 npm install quoin-editor@^2

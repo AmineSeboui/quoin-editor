@@ -30,7 +30,7 @@ describe('the package manifest', () => {
 
   it('names its author, its docs site, its repository and its issues', () => {
     expect(manifest.author).toEqual({ name: 'Amine Sboui', url: 'https://github.com/AmineSeboui' });
-    expect(manifest.homepage).toBe('https://amineseboui.github.io/quoin-editor/');
+    expect(manifest.homepage).toBe('https://quoincloud.com');
     expect(manifest.repository).toEqual({ type: 'git', url: 'git+https://github.com/AmineSeboui/quoin-editor.git' });
     expect(manifest.bugs).toEqual({ url: 'https://github.com/AmineSeboui/quoin-editor/issues' });
   });

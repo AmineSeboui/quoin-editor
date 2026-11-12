@@ -122,7 +122,7 @@ Point the prefixed names at your own in one block on `.quoin`. The canvas root c
 
 `--quoin-input` is the border of the outline button, the only control that uses it, and `--quoin-warning` is the rule of a warning callout. A border or rule that carries meaning needs 3:1 against what it sits on, so give `--quoin-input` a value that reaches 3:1 against `--quoin-background` and `--quoin-popover`, and `--quoin-warning` one that reaches 3:1 against its own wash (the warning colour at 15% over the page). Quoin's defaults do, and a host that sets these tokens keeps its own values.
 
-`--quoin-ring` colours the keyboard focus outline, which is solid and drawn at full strength, so it should reach 3:1 against both `--quoin-background` and `--quoin-popover`. A pale value, such as the grey many shadcn themes keep for `--ring`, fails that, so give `--quoin-ring` a value of its own that does.
+`--quoin-ring` colours the keyboard focus outline, which is solid and drawn at full strength, so it should reach 3:1 against `--quoin-background`, `--quoin-popover` and each `--quoin-bg-*` a block can be coloured with. A pale value, such as the grey many shadcn themes keep for `--ring`, fails that, so give `--quoin-ring` a value of its own that does.
 
 That one block covers both modes: the tokens on the right already flip with your own dark class, and each mapping beats Quoin's `:root` and `.dark` defaults alike. Write it unlayered, or in a layer that sorts after `quoin`, so it outranks those defaults.
 

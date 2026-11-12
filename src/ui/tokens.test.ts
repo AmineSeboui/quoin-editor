@@ -70,6 +70,10 @@ describe.each<Theme>(['light', 'dark'])('%s theme', (theme) => {
     expect(contrast(theme, 'ring', 'muted')).toBeGreaterThanOrEqual(3);
   });
 
+  it.each(PALETTE)('draws the focus ring at 3:1 or more against the %s background a block can be coloured', (name) => {
+    expect(contrast(theme, 'ring', `bg-${name}`)).toBeGreaterThanOrEqual(3);
+  });
+
   it('keeps body text at 4.5:1 or more on the page and on a popover', () => {
     expect(contrast(theme, 'foreground', 'background')).toBeGreaterThanOrEqual(4.5);
     expect(contrast(theme, 'popover-foreground', 'popover')).toBeGreaterThanOrEqual(4.5);

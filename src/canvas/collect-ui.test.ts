@@ -1,4 +1,5 @@
 import { coreBlocks } from '../blocks/core';
+import { resetDevWarnings } from '../dev-warn';
 import { inPlaceOverlays, inPlaceRenderers } from '../blocks/in-place-renderers';
 import { textRenderers } from '../blocks/text/text-renderers';
 import { defineExtension } from '../engine';
@@ -23,6 +24,18 @@ describe('collectUi', () => {
       ['two', 'basic'],
       ['block:CHART', 'custom'],
     ]);
+  });
+
+  it('leaves out a slash command with neither a command nor work to run, and warns the developer once', () => {
+    resetDevWarnings();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const idle: SlashItem = { id: 'idle', title: 'Idle', group: 'basic' };
+    const extensions = [withUi('a', { slashItems: [idle, slashItem('one')] })];
+    expect(collectUi(extensions, coreBlocks).slashItems.map((item) => item.id)).toEqual(['one']);
+    collectUi(extensions, coreBlocks);
+    expect(warn).toHaveBeenCalledOnce();
+    expect(warn.mock.calls[0][0]).toContain('"idle"');
+    warn.mockRestore();
   });
 
   it('draws the canvas blocks itself unless an extension brings its own renderer for the type', () => {

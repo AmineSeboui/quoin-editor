@@ -8,6 +8,7 @@ export type { SlashGroup };
 
 export type SuggestionRange = { block: string; region: string; from: number; to: number };
 
+/** A command of the slash menu, which needs a `command`, a `run` or both: the menu leaves out one with neither. */
 export type SlashItem = {
   id: string;
   title: string;

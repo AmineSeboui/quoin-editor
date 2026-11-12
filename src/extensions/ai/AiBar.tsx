@@ -9,14 +9,14 @@ import type { AiEnv } from './ai-env';
 import { discard, followUp, retry, stop } from './ai-flow';
 import type { AiGhost } from './ai-plugin';
 
-/** The control of the bar that takes focus: Stop, Accept or Retry. */
+/** The control of the bar that takes focus: Stop, Accept, Retry, or Discard when there is no Retry. */
 export const PRIMARY = 'data-ai-primary';
 
 type AiBarProps = { env: AiEnv; ghost: AiGhost; gone: boolean; barId: string };
 
 /**
  * The bar under an answer: Writing and Stop while it streams, then Accept, Discard, Retry and a field for a follow-up,
- * or the error and Retry. Focus that was in it stays in it as its buttons change; Escape stops the stream, then
+ * or the error, with the reason the host gives, and Retry unless the host says asking again cannot help. Focus that was in it stays in it as its buttons change; Escape stops the stream, then
  * discards the answer and gives focus back to the text.
  */
 export function AiBar({ env, ghost, gone, barId }: AiBarProps) {
@@ -25,7 +25,8 @@ export function AiBar({ env, ghost, gone, barId }: AiBarProps) {
   const content = useRef<HTMLDivElement>(null);
   const inside = useRef(false);
   const [next, setNext] = useState('');
-  const { phase } = ghost;
+  const { phase, failure } = ghost;
+  const retryable = failure?.retryable !== false;
 
   const focusPrimary = () => content.current?.querySelector<HTMLElement>(`[${PRIMARY}]`)?.focus();
   // Opened from the menu, whose field is gone, focus has fallen to the body: it comes here, never from anywhere else.
@@ -91,13 +92,16 @@ export function AiBar({ env, ghost, gone, barId }: AiBarProps) {
       )}
       {phase === 'error' && (
         <>
-          <p role="alert" className="text-sm text-destructive">
-            {labels.failed}
-          </p>
-          <Button {...primary} size="sm" onClick={() => retry(editor, stream)}>
-            {labels.retry}
-          </Button>
-          <Button size="sm" variant="ghost" onClick={onDiscard}>
+          <div role="alert" className="text-sm">
+            <p className="text-destructive">{labels.failed}</p>
+            {failure?.reason !== undefined && <p className="text-xs text-muted-foreground">{failure.reason}</p>}
+          </div>
+          {retryable && (
+            <Button {...primary} size="sm" onClick={() => retry(editor, stream)}>
+              {labels.retry}
+            </Button>
+          )}
+          <Button {...(retryable ? {} : primary)} size="sm" variant="ghost" onClick={onDiscard}>
             {labels.discard}
           </Button>
         </>

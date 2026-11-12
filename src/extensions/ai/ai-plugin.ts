@@ -1,6 +1,7 @@
 import { createPluginKey, getPluginState, Transaction, type EditorState, type PluginSpec } from '../../engine';
 import { regionLength } from '../../engine/commands/block-helpers';
 import { blockById } from '../../engine/model/doc';
+import type { AiFailure } from './ai-failure';
 import { closeStreaming } from './streaming-markdown';
 import { mapTarget, type AiTarget } from './ai-target';
 
@@ -16,6 +17,8 @@ export type AiGhost = {
   readonly output: string;
   /** The same, closed so it can be drawn while it streams. */
   readonly shown: string;
+  /** Why it failed, once its phase is `error`. */
+  readonly failure?: AiFailure;
 };
 
 export type AiState = {
@@ -32,7 +35,13 @@ export type AiAct =
   | { readonly type: 'close' }
   | { readonly type: 'start'; readonly key: number; readonly replace: boolean }
   | { readonly type: 'stream'; readonly key: number; readonly output: string }
-  | { readonly type: 'end'; readonly key: number; readonly phase: AiPhase; readonly output: string }
+  | {
+      readonly type: 'end';
+      readonly key: number;
+      readonly phase: AiPhase;
+      readonly output: string;
+      readonly failure?: AiFailure;
+    }
   | { readonly type: 'discard' }
   | { readonly type: 'focus' };
 
@@ -48,8 +57,10 @@ export const aiState = (state: EditorState): AiState => getPluginState(state, ai
 export const aiTransaction = (state: EditorState, act: AiAct): Transaction =>
   new Transaction(state).setMeta(AI, act).setMeta('addToHistory', false);
 
-function written(ghost: AiGhost, key: number, phase: AiPhase, output: string): AiGhost {
-  return ghost.key !== key ? ghost : { ...ghost, phase, output, shown: closeStreaming(output) };
+function written(ghost: AiGhost, key: number, phase: AiPhase, output: string, failure?: AiFailure): AiGhost {
+  if (ghost.key !== key) return ghost;
+  const next = { ...ghost, phase, output, shown: closeStreaming(output) };
+  return failure === undefined ? next : { ...next, failure };
 }
 
 function act(value: AiState, action: AiAct): AiState {
@@ -66,8 +77,8 @@ function act(value: AiState, action: AiAct): AiState {
     case 'end': {
       const { ghost } = value;
       if (ghost === null || ghost.phase !== 'streaming') return value;
-      const phase = action.type === 'end' ? action.phase : 'streaming';
-      return { ...value, ghost: written(ghost, action.key, phase, action.output) };
+      if (action.type === 'stream') return { ...value, ghost: written(ghost, action.key, 'streaming', action.output) };
+      return { ...value, ghost: written(ghost, action.key, action.phase, action.output, action.failure) };
     }
     case 'discard':
       return { ...value, target: null, menu: null, ghost: null };

@@ -5,7 +5,14 @@ import { hasMark } from '../../engine/model/marks';
 import { isCollapsed } from '../../engine/state/selection';
 import type { SuggestionRange } from '../../extensions/ui-types';
 
-export type TriggerConfig = { char: string; allowSpaces?: boolean; startOfLine?: boolean; maxLength?: number };
+export type TriggerConfig = {
+  char: string;
+  allowSpaces?: boolean;
+  startOfLine?: boolean;
+  /** The fewest characters of query that open the menu; a shorter one leaves the other triggers as they are. */
+  minLength?: number;
+  maxLength?: number;
+};
 export type ActiveTrigger = SuggestionRange & { query: string };
 
 const DEFAULT_MAX_LENGTH = 40;

@@ -17,7 +17,6 @@ import { emojiSource } from './emoji-source';
 type Props = { controller: ViewController; labels: EmojiLabels };
 
 const SHOWN = 8;
-const SHORTEST_QUERY = 2;
 
 const queryAt = (state: EditorState) => getPluginState(state, emojiKey).active?.query ?? null;
 
@@ -36,7 +35,7 @@ const renderEmoji = (emoji: Emoji) => (
 export function EmojiMenu({ controller, labels }: Props) {
   const readOnly = useReadOnly(controller);
   const query = useEditorState(controller, queryAt);
-  if (readOnly || query === null || query.length < SHORTEST_QUERY) return null;
+  if (readOnly || query === null) return null;
   return <EmojiMatches controller={controller} labels={labels} />;
 }
 

@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 import base from './playwright.config';
-import { harnessServer } from './e2e/harness-server';
+import { harnessPort, harnessServer } from './e2e/harness-server';
 
 const smoke = [
   'smoke.spec.ts',
@@ -19,14 +19,14 @@ const smoke = [
 export default defineConfig({
   ...base,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never', outputFolder: 'playwright-report-dist' }]] : 'list',
-  use: { ...base.use, baseURL: 'http://localhost:5180' },
+  use: { ...base.use, baseURL: `http://localhost:${harnessPort('dist')}` },
   projects: [
     { name: 'smoke', testMatch: smoke.map((spec) => `**/${spec}`), use: { ...devices['Desktop Chrome'] } },
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
   ],
   webServer: {
     command: harnessServer('dist'),
-    url: 'http://localhost:5180',
+    url: `http://localhost:${harnessPort('dist')}`,
     reuseExistingServer: !process.env.CI,
   },
 });

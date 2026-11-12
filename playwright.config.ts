@@ -1,5 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
-import { harnessServer } from './e2e/harness-server';
+import { harnessPort, harnessServer } from './e2e/harness-server';
 
 // The right to left projects serve the harness turned round and run the specs written for that, which is
 // right-to-left.spec.ts. They do not run the rest of the canvas folder: those specs reach into the page by physical
@@ -15,7 +15,7 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {
-    baseURL: 'http://localhost:5179',
+    baseURL: `http://localhost:${harnessPort()}`,
     // A run that traces every test pays for it on the ones that pass, and a flake is caught by the retry anyway.
     trace: process.env.CI ? 'on-first-retry' : 'retain-on-failure',
   },
@@ -29,7 +29,7 @@ export default defineConfig({
   ],
   webServer: {
     command: `npm run build:css && ${harnessServer()}`,
-    url: 'http://localhost:5179',
+    url: `http://localhost:${harnessPort()}`,
     reuseExistingServer: !process.env.CI,
   },
 });

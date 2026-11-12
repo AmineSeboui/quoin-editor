@@ -98,6 +98,30 @@ describe('useBubbleVisibility', () => {
     expect(visible()).toBe(true);
   });
 
+  it.each<[string, (target: Element) => void]>([
+    ['the window loses focus', () => void window.dispatchEvent(new Event('blur'))],
+    ['a native drag of the selection ends', (target) => void fireEvent.dragEnd(target)],
+  ])('shows when %s while the pointer that made the range is still marked down', (_, release) => {
+    const { select, host, visible } = setup();
+    act(() => void fireEvent.pointerDown(host));
+    select(0, 5);
+    expect(visible()).toBe(false);
+    act(() => release(host));
+    expect(visible()).toBe(true);
+  });
+
+  it('shows once a composition that wrote the selected text over again has settled', async () => {
+    const { select, host, visible } = setup();
+    select(0, 5);
+    act(() => {
+      fireEvent.compositionStart(host);
+      fireEvent.compositionEnd(host, { data: 'hello' });
+    });
+    expect(visible()).toBe(false);
+    await act(() => new Promise((resolve) => setTimeout(resolve, 10)));
+    expect(visible()).toBe(true);
+  });
+
   it('ignores a press outside the editor, such as on the toolbar', () => {
     const { select, visible } = setup();
     select(0, 5);

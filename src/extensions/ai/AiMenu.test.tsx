@@ -1,4 +1,4 @@
-import { act, cleanup, screen, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, screen, within } from '@testing-library/react';
 import { axe } from 'vitest-axe';
 import { paragraph } from '../../blocks/test-support/test-canvas';
 import { nestedCanvas } from '../test-support/nested-canvas';
@@ -24,6 +24,8 @@ describe('the AI menu', () => {
     const list = screen.getByRole('listbox', { name: 'AI actions' });
     expect(within(list).getAllByRole('option').map((option) => option.textContent)).toEqual([
       'Continue writing',
+      'Summarize',
+      'Explain',
       'Improve writing',
       'Fix spelling and grammar',
       'Make shorter',
@@ -31,11 +33,52 @@ describe('the AI menu', () => {
       'Simplify language',
       'Change tone',
       'Translate',
-      'Summarize',
-      'Explain',
     ]);
     expect(canvas.field()).toHaveAttribute('aria-activedescendant', within(list).getAllByRole('option')[0].id);
     expect(await act(() => axe(screen.getByRole('dialog', { name: 'Ask AI' })))).toHaveNoViolations();
+  });
+
+  it('heads the actions that write and the ones that edit', () => {
+    const canvas = mountAi([paragraph('a', 'Say a word here')]);
+    canvas.select('a', 4, 10);
+    canvas.askAi();
+    const write = screen.getByRole('group', { name: 'Write' });
+    const edit = screen.getByRole('group', { name: 'Edit' });
+    expect(within(write).getAllByRole('option').map((option) => option.textContent)).toEqual([
+      'Continue writing',
+      'Summarize',
+      'Explain',
+    ]);
+    expect(within(edit).getAllByRole('option')).toHaveLength(7);
+  });
+
+  it('keeps Send unavailable until something is typed', () => {
+    const canvas = mountAi([paragraph('a', 'Say a word here')]);
+    canvas.select('a', 4, 10);
+    canvas.askAi();
+    expect(screen.getByRole('button', { name: 'Send' })).toBeDisabled();
+    canvas.typeInField('short');
+    expect(screen.getByRole('button', { name: 'Send' })).toBeEnabled();
+  });
+
+  it('sends the typed words themselves from Send, where Enter would run the highlighted action', () => {
+    const canvas = mountAi([paragraph('a', 'Say a word here')]);
+    canvas.select('a', 4, 10);
+    canvas.askAi();
+    canvas.typeInField('short');
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+    expect(canvas.last().request).toMatchObject({ action: 'custom', prompt: 'short', selection: 'a word' });
+  });
+
+  it('sends the tone typed after Change tone from Send', () => {
+    const canvas = mountAi([paragraph('a', 'Say a word here')]);
+    canvas.select('a', 4, 10);
+    canvas.askAi();
+    canvas.typeInField('tone');
+    canvas.press('Enter');
+    canvas.typeInField('friendly');
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+    expect(canvas.last().request).toMatchObject({ action: 'tone', prompt: 'friendly' });
   });
 
   it('filters the actions as the writer types, and Enter sends the one chosen', () => {

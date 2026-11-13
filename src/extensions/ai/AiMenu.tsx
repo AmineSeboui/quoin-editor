@@ -1,30 +1,20 @@
 'use client';
 
 import { useId, useRef, useState, type KeyboardEvent } from 'react';
-import { cn } from '../../ui/cn';
-import { Input } from '../../ui/input';
-import { MENU_ITEM } from '../../ui/menu-styles';
+import { ArrowUp, Sparkles } from '../../icons';
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '../../ui/input-group';
+import { LIST_GROUP_LABEL, LIST_OPTION } from '../../ui/menu-styles';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
-import { ASKS_FOR_PROMPT, EMPTY_LINE_ACTIONS, MENU_ACTIONS, type AiAction } from './ai-actions';
+import { ACTION_ICONS } from './ai-action-icons';
+import { ASKS_FOR_PROMPT, type AiAction } from './ai-actions';
 import { askFrom, type AiEnv } from './ai-env';
 import { closeMenu } from './ai-flow';
+import { englishAiLabels } from './ai-labels';
+import { menuSections, type Choice } from './ai-menu-sections';
 import type { AiTarget } from './ai-target';
 import { useTargetAnchor } from './use-target-anchor';
 
-type Choice = { readonly action: AiAction; readonly label: string };
-
 type AiMenuProps = { env: AiEnv; target: AiTarget; fromSpace: boolean };
-
-function choicesFor(env: AiEnv, target: AiTarget, query: string): Choice[] {
-  const { labels } = env;
-  const emptyLine = !target.selected && target.to.offset === 0;
-  const wanted = query.trim().toLowerCase();
-  const actions = (emptyLine ? EMPTY_LINE_ACTIONS : MENU_ACTIONS).filter((action) =>
-    labels.actions[action].toLowerCase().includes(wanted),
-  );
-  const listed = actions.map((action) => ({ action, label: labels.actions[action] }));
-  return wanted === '' ? listed : [...listed, { action: 'custom', label: labels.ask(query.trim()) }];
-}
 
 /**
  * The AI menu beside its target: a field to type a request in, over the actions that match it. Opened by the writer,
@@ -38,9 +28,11 @@ export function AiMenu({ env, target, fromSpace }: AiMenuProps) {
   const field = useRef<HTMLInputElement>(null);
   const anchor = useTargetAnchor(controller, target);
   const id = useId();
-  const choices = asking === null ? choicesFor(env, target, query) : [];
+  const sections = asking === null ? menuSections(env, target, query) : [];
+  const choices = sections.flatMap((section) => section.choices);
   const current = Math.min(active, choices.length - 1);
   const optionId = (index: number) => `${id}-${index}`;
+  const typed = query.trim();
 
   const close = (typeSpace: boolean) => {
     closeMenu(controller.editor);
@@ -68,6 +60,26 @@ export function AiMenu({ env, target, fromSpace }: AiMenuProps) {
     }
   };
   const fieldLabel = asking === 'tone' ? labels.tonePrompt : asking === 'translate' ? labels.translatePrompt : labels.prompt;
+  const option = (choice: Choice) => {
+    const index = choices.indexOf(choice);
+    const Icon = ACTION_ICONS[choice.action];
+    return (
+      <div
+        key={choice.action}
+        id={optionId(index)}
+        role="option"
+        aria-selected={index === current}
+        data-highlighted={index === current ? '' : undefined}
+        className={LIST_OPTION}
+        onMouseDown={(event) => event.preventDefault()}
+        onPointerMove={() => setActive(index)}
+        onClick={() => choose(choice)}
+      >
+        <Icon aria-hidden="true" className="text-muted-foreground" />
+        {choice.label}
+      </div>
+    );
+  };
 
   return (
     <Popover
@@ -82,7 +94,7 @@ export function AiMenu({ env, target, fromSpace }: AiMenuProps) {
         aria-label={labels.askAi}
         side="bottom"
         align="start"
-        className="w-80 p-1"
+        className="w-80 gap-0 rounded-xl p-1"
         onOpenAutoFocus={(event) => {
           event.preventDefault();
           field.current?.focus();
@@ -93,38 +105,53 @@ export function AiMenu({ env, target, fromSpace }: AiMenuProps) {
           close(fromSpace);
         }}
       >
-        <Input
-          ref={field}
-          role="combobox"
-          aria-label={fieldLabel}
-          placeholder={fieldLabel}
-          aria-expanded={choices.length > 0}
-          aria-controls={choices.length > 0 ? `${id}-list` : undefined}
-          aria-autocomplete="list"
-          aria-activedescendant={choices.length > 0 ? optionId(current) : undefined}
-          value={query}
-          onChange={(event) => {
-            setQuery(event.target.value);
-            setActive(0);
-          }}
-          onKeyDown={onKeyDown}
-        />
+        <InputGroup className="h-8 border-input/30 bg-input/30 shadow-none">
+          <InputGroupAddon>
+            <Sparkles />
+          </InputGroupAddon>
+          <InputGroupInput
+            ref={field}
+            role="combobox"
+            aria-label={fieldLabel}
+            placeholder={fieldLabel}
+            aria-expanded={choices.length > 0}
+            aria-controls={choices.length > 0 ? `${id}-list` : undefined}
+            aria-autocomplete="list"
+            aria-activedescendant={choices.length > 0 ? optionId(current) : undefined}
+            value={query}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setActive(0);
+            }}
+            onKeyDown={onKeyDown}
+          />
+          <InputGroupAddon align="inline-end">
+            <InputGroupButton
+              variant="default"
+              size="icon-xs"
+              aria-label={labels.send ?? englishAiLabels.send}
+              disabled={typed === ''}
+              onClick={() => askFrom(env, asking ?? 'custom', typed)}
+            >
+              <ArrowUp />
+            </InputGroupButton>
+          </InputGroupAddon>
+        </InputGroup>
         {choices.length > 0 && (
-          <ul id={`${id}-list`} role="listbox" aria-label={labels.menu} className="mt-1 max-h-72 list-none overflow-y-auto">
-            {choices.map((choice, index) => (
-              <li
-                key={choice.action}
-                id={optionId(index)}
-                role="option"
-                aria-selected={index === current}
-                className={cn(MENU_ITEM, index === current && 'bg-accent text-accent-foreground')}
-                onMouseDown={(event) => event.preventDefault()}
-                onClick={() => choose(choice)}
-              >
-                {choice.label}
-              </li>
-            ))}
-          </ul>
+          <div id={`${id}-list`} role="listbox" aria-label={labels.menu} className="mt-1 max-h-72 overflow-y-auto">
+            {sections.map((section) =>
+              section.label === undefined ? (
+                section.choices.map(option)
+              ) : (
+                <div key={section.id} role="group" aria-labelledby={`${id}-${section.id}`}>
+                  <div id={`${id}-${section.id}`} role="presentation" className={LIST_GROUP_LABEL}>
+                    {section.label}
+                  </div>
+                  {section.choices.map(option)}
+                </div>
+              ),
+            )}
+          </div>
         )}
       </PopoverContent>
     </Popover>

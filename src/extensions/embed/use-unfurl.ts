@@ -26,7 +26,8 @@ function asksOf(controller: ViewController): Asks {
 const keyOf = (blockId: string, url: string) => JSON.stringify([blockId, url]);
 
 // Once per block and address, so a remount, StrictMode or a result that was refused never asks again. A result that
-// lands where nothing can take it forgets the address, which is asked again once the block is drawn with it.
+// lands where nothing can take it, and an unfurl that fails, forget the address, which is asked again once the block
+// is drawn with it.
 function askFirstTime(controller: ViewController, blockId: string, url: string): boolean {
   const { asked } = asksOf(controller);
   const key = keyOf(blockId, url);
@@ -52,6 +53,7 @@ async function unfurlInto(
   try {
     found = await unfurl(url);
   } catch (cause) {
+    asked.delete(keyOf(blockId, url));
     if (bookmarkAt(controller, blockId, url) && drawn.get(blockId)) onError(toError(cause));
     return;
   }
@@ -72,7 +74,8 @@ async function unfurlInto(
 /**
  * Asks the host's unfurl about a bookmark's address once, while it is given, and writes what it found out of the undo
  * history, as long as the block is drawn, still untitled at that address, and the canvas editable. An unfurl that
- * throws or rejects is reported to `onError` while the bookmark is still drawn at that address.
+ * throws or rejects is reported to `onError` while the bookmark is still drawn at that address, and asked again the
+ * next time the bookmark is drawn.
  */
 export function useUnfurl(controller: ViewController, blockId: string, url: string, unfurl: Unfurl | undefined): void {
   const { onError } = useQuoin();

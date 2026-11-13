@@ -51,6 +51,13 @@ describe('nearestPaletteColor', () => {
     }
   });
 
+  it('reads a grey text as gray or as no colour, never as a tinted one', () => {
+    expect(nearestPaletteColor('#595959', 'text')).toBe('gray');
+    for (let level = 0; level < 256; level++) {
+      expect([null, 'gray'], String(level)).toContain(nearestPaletteColor(rgb([level, level, level]), 'text'));
+    }
+  });
+
   it('ignores colours that are not near any palette entry', () => {
     expect(nearestPaletteColor('rgb(0, 0, 128)', 'background')).toBeNull();
     expect(nearestPaletteColor('rgb(128, 0, 0)', 'background')).toBeNull();

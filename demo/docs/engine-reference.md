@@ -359,6 +359,16 @@ type BlockCodec = {
 
 [BlockCodec on GitHub](src/engine/blocks/codec.ts#L13)
 
+### CalloutTone
+
+One of the tones a callout is drawn in, which the names of the tones in the labels are keyed by.
+
+```ts
+type CalloutTone = 'info' | 'tip' | 'success' | 'warning' | 'danger';
+```
+
+[CalloutTone on GitHub](src/engine/blocks/callout-tones.ts#L2)
+
 ### coreBlockSpecs
 
 ```ts

@@ -17,6 +17,7 @@ export type {
 export type { QuoinBlock } from './model/quoin-block';
 export { atom, normalizeInline, text } from './model/inline';
 export type { Align } from './blocks/data-fields';
+export type { CalloutTone } from './blocks/callout-tones';
 
 export type {
   AtomSpec,

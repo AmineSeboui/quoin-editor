@@ -1,7 +1,7 @@
 import type { AiLabels } from '../../extensions/ai/ai-labels';
 
 /** Every string AI actions show or speak, in Simplified Chinese. */
-export const zhAiLabels: AiLabels = {
+export const zhAiLabels: Required<AiLabels> = {
   askAi: '询问 AI',
   askAiDescription: '用 AI 撰写或修改',
   actions: {
@@ -18,6 +18,7 @@ export const zhAiLabels: AiLabels = {
     custom: '询问 AI',
   },
   menu: 'AI 操作',
+  moreActions: '更多操作',
   prompt: '让 AI 撰写或修改',
   tonePrompt: '想要的语气，例如友好',
   translatePrompt: '要翻译成的语言',

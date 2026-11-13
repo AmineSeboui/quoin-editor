@@ -1,5 +1,6 @@
 import { coreExtensions, type EditorState, type Selection } from '../../engine';
 import { caret, md, range, startEditor } from '../../engine/test-support/editor-fixtures';
+import type { AiRequest } from './ai-actions';
 import { aroundSelection, buildRequest, CONTEXT_LIMIT } from './ai-request';
 import { targetOfSelection } from './ai-target';
 
@@ -70,6 +71,35 @@ describe('the request sent to the host', () => {
     const { context } = request(stateOf(blocks, range('p1', 0, 4)));
     expect(context.startsWith('Paragraph 0 ')).toBe(true);
     expect(context.length).toBeLessThanOrEqual(8_000);
+  });
+});
+
+describe('the request a host action sends', () => {
+  it('is a custom request carrying the action’s prompt and its id', () => {
+    const state = stateOf([md('a', 'Shipped the new menu')], range('a', 0, 7));
+    const input = { action: 'custom' as const, actionId: 'release-note', prompt: 'Rewrite as a release note.' };
+    expect(buildRequest(state, targetOfSelection(state)!, input)).toEqual({
+      action: 'custom',
+      actionId: 'release-note',
+      prompt: 'Rewrite as a release note.',
+      selection: 'Shipped',
+      context: 'Shipped the new menu\n',
+    });
+  });
+
+  it('builds its prompt from the rest of the request when the action gives a function', () => {
+    const state = stateOf([md('a', 'Shipped the new menu')], range('a', 0, 7));
+    const prompt = vi.fn((asked: Omit<AiRequest, 'prompt'>) => `In ${asked.language}: ${asked.selection}`);
+    const input = { action: 'custom' as const, actionId: 'release-note', prompt, language: 'fr' };
+    const sent = buildRequest(state, targetOfSelection(state)!, input);
+    expect(prompt).toHaveBeenCalledExactlyOnceWith({
+      action: 'custom',
+      actionId: 'release-note',
+      selection: 'Shipped',
+      context: 'Shipped the new menu\n',
+      language: 'fr',
+    });
+    expect(sent.prompt).toBe('In fr: Shipped');
   });
 });
 

@@ -1,9 +1,10 @@
-import type { AiAction, AiStream } from './ai-actions';
+import { toError } from '../../to-error';
+import type { AiRequest, AiStream } from './ai-actions';
 import { replacesTarget } from './ai-actions';
 import type { AiEditor } from './ai-link';
 import { linkOf } from './ai-link';
 import { aiState, aiTransaction } from './ai-plugin';
-import { buildRequest } from './ai-request';
+import { buildRequest, type RequestInput } from './ai-request';
 import { startStream, stopStream } from './ai-session';
 import type { AiTarget } from './ai-target';
 
@@ -16,16 +17,19 @@ export function closeMenu(editor: AiEditor): void {
   editor.dispatch(aiTransaction(editor.state, { type: 'close' }));
 }
 
-/** Asks the host about the target of the open menu. */
-export function ask(
-  editor: AiEditor,
-  stream: AiStream,
-  input: { action: AiAction; prompt?: string; language?: string },
-): void {
+/** Asks the host about the target of the open menu. A host's prompt function that throws asks nothing. */
+export function ask(editor: AiEditor, stream: AiStream, input: RequestInput): void {
   const { target } = aiState(editor.state);
   if (target === null) return;
-  const request = buildRequest(editor.state, target, input);
-  startStream(editor, linkOf(editor), stream, request, replacesTarget(input.action, target.selected));
+  const link = linkOf(editor);
+  let request: AiRequest;
+  try {
+    request = buildRequest(editor.state, target, input);
+  } catch (error) {
+    link.report(toError(error));
+    return;
+  }
+  startStream(editor, link, stream, request, replacesTarget(input.action, target.selected));
 }
 
 /** Asks again what was last asked, for the same target. */

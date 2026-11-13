@@ -10,6 +10,7 @@ import { useReadOnly } from '../../view/react/use-read-only';
 import { watchCanvasFocus } from '../canvas-focus';
 import type { AiStream } from './ai-actions';
 import type { AiEnv } from './ai-env';
+import type { AiActionDefinition } from './ai-host-actions';
 import type { AiLabels } from './ai-labels';
 import { linkOf } from './ai-link';
 import { aiState } from './ai-plugin';
@@ -27,10 +28,15 @@ const goneOf = (state: EditorState) => {
 
 const plainText = (markdown: string) => toPlainText(fromMarkdown(markdown));
 
-type AiOverlayProps = { controller: ViewController; stream: AiStream; labels: AiLabels };
+type AiOverlayProps = {
+  controller: ViewController;
+  stream: AiStream;
+  labels: AiLabels;
+  actions: readonly AiActionDefinition[];
+};
 
 /** The AI menu while it is open, and the bar under an answer while one is shown. Nothing on a read-only canvas. */
-export function AiOverlay({ controller, stream, labels }: AiOverlayProps) {
+export function AiOverlay({ controller, stream, labels, actions }: AiOverlayProps) {
   const { onError } = useQuoin();
   const link = linkOf(controller.editor);
   useIsomorphicLayoutEffect(() => {
@@ -41,7 +47,7 @@ export function AiOverlay({ controller, stream, labels }: AiOverlayProps) {
   const value = useEditorState(controller, aiState);
   const gone = useEditorState(controller, goneOf);
   const readOnly = useReadOnly(controller);
-  const env = useMemo<AiEnv>(() => ({ controller, stream, labels }), [controller, stream, labels]);
+  const env = useMemo<AiEnv>(() => ({ controller, stream, labels, actions }), [controller, stream, labels, actions]);
   const barId = useId();
   const showing = value.ghost !== null;
 

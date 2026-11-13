@@ -1,30 +1,18 @@
 'use client';
 
 import { useId, useRef, useState, type KeyboardEvent } from 'react';
-import { cn } from '../../ui/cn';
 import { Input } from '../../ui/input';
-import { MENU_ITEM } from '../../ui/menu-styles';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
-import { ASKS_FOR_PROMPT, EMPTY_LINE_ACTIONS, MENU_ACTIONS, type AiAction } from './ai-actions';
-import { askFrom, type AiEnv } from './ai-env';
+import { ASKS_FOR_PROMPT, type AiAction } from './ai-actions';
+import { choicesFor, type AiChoice } from './ai-choices';
+import { askFrom, askHost, type AiEnv } from './ai-env';
 import { closeMenu } from './ai-flow';
+import { englishAiLabels } from './ai-labels';
 import type { AiTarget } from './ai-target';
+import { AiChoiceList, choiceId } from './AiChoiceList';
 import { useTargetAnchor } from './use-target-anchor';
 
-type Choice = { readonly action: AiAction; readonly label: string };
-
 type AiMenuProps = { env: AiEnv; target: AiTarget; fromSpace: boolean };
-
-function choicesFor(env: AiEnv, target: AiTarget, query: string): Choice[] {
-  const { labels } = env;
-  const emptyLine = !target.selected && target.to.offset === 0;
-  const wanted = query.trim().toLowerCase();
-  const actions = (emptyLine ? EMPTY_LINE_ACTIONS : MENU_ACTIONS).filter((action) =>
-    labels.actions[action].toLowerCase().includes(wanted),
-  );
-  const listed = actions.map((action) => ({ action, label: labels.actions[action] }));
-  return wanted === '' ? listed : [...listed, { action: 'custom', label: labels.ask(query.trim()) }];
-}
 
 /**
  * The AI menu beside its target: a field to type a request in, over the actions that match it. Opened by the writer,
@@ -40,14 +28,16 @@ export function AiMenu({ env, target, fromSpace }: AiMenuProps) {
   const id = useId();
   const choices = asking === null ? choicesFor(env, target, query) : [];
   const current = Math.min(active, choices.length - 1);
-  const optionId = (index: number) => `${id}-${index}`;
+  const listId = `${id}-list`;
 
   const close = (typeSpace: boolean) => {
     closeMenu(controller.editor);
     controller.focus();
     if (typeSpace) controller.edit(() => controller.editor.insertText(' '));
   };
-  const choose = ({ action }: Choice) => {
+  const choose = (choice: AiChoice) => {
+    if (choice.host !== undefined) return askHost(env, choice.host);
+    const { action } = choice;
     if (!ASKS_FOR_PROMPT.has(action)) return askFrom(env, action, action === 'custom' ? query.trim() : undefined);
     setAsking(action);
     setQuery('');
@@ -99,9 +89,9 @@ export function AiMenu({ env, target, fromSpace }: AiMenuProps) {
           aria-label={fieldLabel}
           placeholder={fieldLabel}
           aria-expanded={choices.length > 0}
-          aria-controls={choices.length > 0 ? `${id}-list` : undefined}
+          aria-controls={choices.length > 0 ? listId : undefined}
           aria-autocomplete="list"
-          aria-activedescendant={choices.length > 0 ? optionId(current) : undefined}
+          aria-activedescendant={choices.length > 0 ? choiceId(listId, current) : undefined}
           value={query}
           onChange={(event) => {
             setQuery(event.target.value);
@@ -110,21 +100,14 @@ export function AiMenu({ env, target, fromSpace }: AiMenuProps) {
           onKeyDown={onKeyDown}
         />
         {choices.length > 0 && (
-          <ul id={`${id}-list`} role="listbox" aria-label={labels.menu} className="mt-1 max-h-72 list-none overflow-y-auto">
-            {choices.map((choice, index) => (
-              <li
-                key={choice.action}
-                id={optionId(index)}
-                role="option"
-                aria-selected={index === current}
-                className={cn(MENU_ITEM, index === current && 'bg-accent text-accent-foreground')}
-                onMouseDown={(event) => event.preventDefault()}
-                onClick={() => choose(choice)}
-              >
-                {choice.label}
-              </li>
-            ))}
-          </ul>
+          <AiChoiceList
+            id={listId}
+            label={labels.menu}
+            hostLabel={labels.moreActions ?? englishAiLabels.moreActions}
+            choices={choices}
+            current={current}
+            onChoose={choose}
+          />
         )}
       </PopoverContent>
     </Popover>

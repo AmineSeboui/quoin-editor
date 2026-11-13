@@ -135,13 +135,14 @@ function walkNodes(nodes: Iterable<Node>, ctx: Context, sink: Sink): void {
   flush();
 }
 
-export function blocksFromBody(body: Element, newId: () => string): EngineBlock[] {
+export function blocksFromBody(body: Element, newId: () => string, pictures?: string[]): EngineBlock[] {
   const classes = inlineClassRules(body);
   const sink: Sink = {
     out: [],
     newId,
     sizedHeading: sizedHeading(body),
     classStyle: (element) => parseStyle(classes.get(element) ?? null),
+    pictures,
     walk: (nodes, ctx) => walkNodes(nodes, ctx, sink),
   };
   sink.walk(body.childNodes, { indent: 0, marks: [], run: PARAGRAPH, preformatted: false, depth: 0 });

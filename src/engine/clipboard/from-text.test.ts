@@ -25,6 +25,7 @@ describe('text paste', () => {
       openStart: true,
       openEnd: true,
       fromHTML: true,
+      pictures: [],
     });
     expect(sliceFromClipboard({ json: '{"bad":1}', text: '- t' }, { newId: () => 'n' })!.blocks[0].data.markdown).toBe('- t');
     expect(sliceFromClipboard({})).toBeNull();

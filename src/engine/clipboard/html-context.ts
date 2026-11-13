@@ -17,6 +17,8 @@ export type Sink = {
   readonly sizedHeading: SizedHeading;
   /** What the classes of an element set in the style sheets pasted with it, which name the paragraph styles of Word. */
   readonly classStyle: (element: Element) => StyleMap;
+  /** Where a paste that can hold pictures out of the document keeps the data addresses of the ones it carries inline. */
+  readonly pictures?: string[];
   walk(nodes: Iterable<Node>, ctx: Context): void;
 };
 

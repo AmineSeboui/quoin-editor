@@ -4,10 +4,11 @@ import { parseLine } from '../markdown/line-kind';
 import { text as textNode } from '../model/inline';
 import { newId } from '../model/new-id';
 import type { QuoinBlock } from '../model/quoin-block';
-import { availableParser, fromHTML, type DOMParserLike } from './from-html';
+import { availableParser, readHTML, type DOMParserLike } from './from-html';
 import { looksLikeMarkdown, plainTextToBlocks } from './from-text';
 import { parseSliceJSON } from './parse-slice-json';
 import { pastedLink } from './paste-url';
+import { setPicturesAside } from './pasted-pictures';
 import type { Transaction } from '../state/transaction';
 import { PASTED_HTML, type PastedSlice, type Slice } from './slice';
 
@@ -41,8 +42,9 @@ function textBlocks(text: string, makeId: () => string): QuoinBlock[] {
 function htmlSlice(html: string | undefined, options: SliceFromClipboardOptions): PastedSlice | null {
   if (html === undefined) return null;
   const parser = availableParser(options.parser);
-  const slice = parser === null ? null : openSlice(fromHTML(html, { ...options, parser }));
-  return slice && { ...slice, fromHTML: true };
+  const pictures: string[] = [];
+  const slice = parser === null ? null : openSlice(readHTML(html, { ...options, parser }, pictures));
+  return slice && { ...slice, fromHTML: true, pictures };
 }
 
 export function sliceFromClipboard(data: ClipboardData, options: SliceFromClipboardOptions = {}): PastedSlice | null {
@@ -53,8 +55,8 @@ export function sliceFromClipboard(data: ClipboardData, options: SliceFromClipbo
   return data.text === undefined ? null : openSlice(textBlocks(data.text, options.newId ?? newId), true);
 }
 
-/** Dispatches the transaction that inserts a slice, marked when the slice was read from HTML. */
+/** Dispatches the transaction that inserts a slice, marked when the slice was read from HTML, its inline pictures aside. */
 export const dispatchPaste =
   (slice: PastedSlice, dispatch: (tr: Transaction) => void) =>
   (tr: Transaction): void =>
-    dispatch(slice.fromHTML ? tr.setMeta(PASTED_HTML, true) : tr);
+    dispatch(slice.fromHTML ? setPicturesAside(tr, slice).setMeta(PASTED_HTML, true) : tr);

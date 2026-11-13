@@ -130,8 +130,8 @@ test('has no axe violations with matches, without, with an invalid pattern, and 
 });
 
 // The same measure as the typing budget of the headless suite: on a shared runner a 1,000 block document is judged
-// against a 40 block one, here with the panel open on a query every block matches, and a round over the limit is
-// measured again, since noise only adds time.
+// against a 40 block one, here with the panel open on a query every block matches five times, so the large one holds
+// five times the matches the panel draws, and a round over the limit is measured again, since noise only adds time.
 const SLOWDOWN_LIMIT = 4;
 const ROUNDS = 6;
 const SENTENCE = 'The quick brown fox jumps over the lazy dog again and again.';
@@ -139,8 +139,8 @@ const p95 = (timings: number[]) => [...timings].sort((a, b) => a - b)[Math.floor
 
 async function typingWithPanelOpen(page: Page, doc: string, block: string): Promise<number> {
   await openFind(page, doc);
-  await page.keyboard.type('words');
-  await expect(status(page)).toHaveText(/^1 of \d/);
+  await page.keyboard.type('a');
+  await expect(status(page)).toHaveText(/^1 of [\d,]+$/);
   await host(page, block).click();
   await caretSettled(page, host(page, block));
   await page.evaluate(() => (window.__quoin.timings = []));
@@ -156,6 +156,8 @@ test('typing in a 1,000 block document with the panel open keeps the typing budg
   test.setTimeout(120_000);
   const large = await typingWithPanelOpen(page, 'large', 'p500');
   test.info().annotations.push({ type: 'p95 of 1,000 blocks', description: `${large.toFixed(1)} ms` });
+  await expect(status(page)).toHaveText(/ of 5,0\d\d$/);
+  await expect(page.locator('.quoin-find-match')).toHaveCount(1000);
   if (!process.env.CI) {
     expect(large).toBeLessThan(16);
     return;

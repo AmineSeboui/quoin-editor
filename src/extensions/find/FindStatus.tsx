@@ -11,7 +11,7 @@ export function statusText(labels: FindLabels, value: FindState): string {
   if (value.error !== null) return labels.invalidPattern;
   if (value.search.query === '') return '';
   if (value.matches.length === 0) return labels.noResults;
-  return labels.matchCount(value.current + 1, value.matches.length, value.capped);
+  return labels.matchCount(value.current + 1, value.matches.length, false);
 }
 
 /** Which match is current of how many, or why there is none, and the same said once typing rests. */

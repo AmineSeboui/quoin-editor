@@ -447,10 +447,6 @@ main:focus {
   .guide-nav a[aria-current] {
     box-shadow: none;
   }
-
-  .page-toc {
-    display: none;
-  }
 }
 
 @media (max-width: 40rem) {

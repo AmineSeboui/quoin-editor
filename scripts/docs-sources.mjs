@@ -5,7 +5,10 @@ export const root = resolve(import.meta.dirname, '..');
 export const docsDir = join(root, 'demo', 'docs');
 export const DOCS_URL = 'https://quoincloud.com/docs/editor/';
 
-/** The docs pages' markdown sources, which the site lays out as pages at `DOCS_URL<slug>`. */
+/**
+ * The reference pages generated from the source, which quoincloud.com copies in when it upgrades the editor and serves
+ * at `DOCS_URL<slug>`. The guide's other pages are written there and nowhere else.
+ */
 export const docsSources = () =>
   readdirSync(docsDir)
     .filter((name) => name.endsWith('.md'))
@@ -21,11 +24,10 @@ export const readText = (path) => readFileSync(path, 'utf8');
 /** The docs pages the API reference is generated into, whose code is declarations rather than code to run. */
 export const REFERENCE_SLUGS = ['engine-reference', 'headless-reference'];
 
-/** The pages whose samples a consumer copies from: the README, the migration guide and the docs pages. */
+/** The pages whose samples a consumer copies from here: the README and the migration guide. */
 export const samplePages = () => [
   { slug: 'readme', path: join(root, 'README.md') },
   { slug: 'migration', path: join(root, 'MIGRATION.md') },
-  ...docsSources().filter(({ slug }) => !REFERENCE_SLUGS.includes(slug)),
 ];
 
 /**

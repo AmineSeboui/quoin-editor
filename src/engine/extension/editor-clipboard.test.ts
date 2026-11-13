@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { coreExtensions } from './core-extensions';
+import { defineExtension } from './define-extension';
 import { createEditor, createInternalEditor } from './editor';
 import { caret, md, range, startEditor } from '../test-support/editor-fixtures';
 
@@ -91,6 +93,17 @@ describe('clipboard through the editor', () => {
     expect(editor.getBlocks().map((block) => block.data.markdown)).toEqual(['one', 'twoone']);
     expect(editor.commands.undo()).toBe(true);
     expect(editor.getBlocks().map((block) => block.data.markdown)).toEqual(['one', 'two']);
+  });
+
+  it('hands a paste rule the whole of what was pasted', () => {
+    const match = vi.fn(() => null);
+    const rules = defineExtension({ name: 'rules', pasteRules: [{ name: 'seen', match }] });
+    const { editor } = startEditor([md('a', 'x')], { extensions: [...coreExtensions(), rules] });
+    editor.commands.setSelection(caret('a', 1));
+    const pasted = { text: 'y', html: '<b>y</b>', json: '{}' };
+    const before = editor.state;
+    editor.paste(pasted);
+    expect(match).toHaveBeenCalledWith('y', before, pasted);
   });
 });
 

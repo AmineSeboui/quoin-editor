@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { defineExtension } from '../engine';
+import { englishLabels } from '../i18n/english-labels';
 import type { QuoinLabels } from '../i18n/labels';
 import { useLabels } from '../i18n/use-labels';
 import type { QuoinBlock } from '../types';
@@ -45,7 +46,7 @@ describe('the labels a BlockCanvas speaks', () => {
         blocks={blocks}
         onChange={noop}
         extensions={extensions}
-        labels={{ document, blockNames: { paragraph: 'Paragraphe' } }}
+        labels={{ document, blockNames: { ...englishLabels.blockNames, text: 'Texte' } }}
       />
     );
     const { rerender } = render(draw('Document'));

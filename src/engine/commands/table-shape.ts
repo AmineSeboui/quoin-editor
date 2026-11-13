@@ -1,5 +1,5 @@
 import { cellOf, type Cell } from '../blocks/table-cell';
-import { cellKey } from '../blocks/table-spec';
+import { cellKey, validWidths } from '../blocks/table-spec';
 import { blockById } from '../model/doc';
 import { countOf } from '../model/count';
 import type { BlockAttrs, EngineBlock, EngineDoc, Inline, Pos, Selection } from '../model/types';
@@ -25,10 +25,7 @@ export const columnAligns = (block: EngineBlock, cols: number): (ColumnAlign | n
     return ALIGNS.includes(align) ? (align as ColumnAlign) : null;
   });
 
-export const validWidths = (value: unknown, cols: number): number[] | null =>
-  Array.isArray(value) && value.length === cols && value.every((width) => typeof width === 'number' && width > 0)
-    ? value
-    : null;
+export { validWidths };
 
 /** The width in pixels the block keeps for each of its columns, or `null` when it keeps none for one of them. */
 export const storedWidths = (block: EngineBlock, cols: number): number[] | null => validWidths(block.attrs.widths, cols);

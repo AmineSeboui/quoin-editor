@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { expect, it } from 'vitest';
-import { describeBuilt } from '../test/support/built-dist';
+import { describeBuilt, importsFrom } from '../test/support/built-dist';
 import { entryBundle } from './measure-size.mjs';
 
 const root = resolve(__dirname, '..');
@@ -23,6 +23,14 @@ function importGraph(file: string, seen = new Set<string>()): string[] {
     from.startsWith('./') ? importGraph(from.slice(2), seen) : [from],
   );
 }
+
+describeBuilt('the built comments entry', ['comments.js', 'comments.d.ts'], () => {
+  it('imports no Yjs and names none of its types, taking the document its threads are kept in by its shape', async () => {
+    const code = await entryBundle(root, 'comments');
+    for (const pattern of YJS) expect(code).not.toMatch(pattern);
+    expect(importsFrom(readFileSync(resolve(root, 'dist', 'comments.d.ts'), 'utf8'), 'yjs')).toBe(false);
+  });
+});
 
 describeBuilt('the built core entries', ['index.js', 'headless.js', 'engine.js', 'yjs.js', 'presence.js'], () => {
   it('leave the Yjs adapter free of React and of the canvas, which presence brings', () => {

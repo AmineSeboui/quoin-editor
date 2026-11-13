@@ -51,4 +51,30 @@ On a canvas 800 px wide or more the open threads are listed beside the text, eac
 
 The canvas is measured once it is in the page. Until then, on the server and in the first render in the browser, comments draw the narrow layout, so a server-rendered canvas that turns out wide moves its text by 236 px when it hydrates. A host that knows its layout passes `initialLayout: 'wide'` (or `'narrow'`, the default) to `commentsExtension`, and the server draws that layout from the start; the canvas still takes the layout its measured width calls for when the two disagree.
 
-Resolve and Delete call `onResolve` or `onDelete`, then take the thread's marks off in one undo step. Undo puts the marks back, and the thread stays as your host left it: a resolved thread's anchor comes back as a plain tint. A thread resolved or deleted here leaves the lists at once, before your store says so, and stays out while your store holds it as it was, open, even as copies your store rebuilds; once your store has resolved or removed it, the canvas follows your store again, so reopening it brings it back. A failed call goes to `onError` and leaves the document unchanged. A read-only canvas shows threads and takes replies but has no Resolve or Delete, since those change the document. Bodies are drawn as plain text with their line breaks, never as markdown or HTML; Mod+Enter or Send sends a reply. With `quoin-editor/yjs`, anchors reach collaborators like any other mark, and their threads come from each client's own store. Strings come from `CommentsLabels` (English in `englishCommentsLabels`), overridden through `commentsExtension({ labels })`.
+Resolve and Delete call `onResolve` or `onDelete`, then take the thread's marks off in one undo step. Undo puts the marks back, and the thread stays as your host left it: a resolved thread's anchor comes back as a plain tint. A thread resolved or deleted here leaves the lists at once, before your store says so, and stays out while your store holds it as it was, open, even as copies your store rebuilds; once your store has resolved or removed it, the canvas follows your store again, so reopening it brings it back. A failed call goes to `onError` and leaves the document unchanged. A read-only canvas shows threads and takes replies but has no Resolve or Delete, since those change the document. Bodies are drawn as plain text with their line breaks, never as markdown or HTML; Mod+Enter or Send sends a reply. With `quoin-editor/yjs`, anchors reach collaborators like any other mark, and their threads come from each client's own store unless you share them, as the next section shows. Strings come from `CommentsLabels` (English in `englishCommentsLabels`), overridden through `commentsExtension({ labels })`.
+
+## Threads shared through Yjs
+
+To show collaborators each other's threads, keep them in the `Y.Doc` the canvas already syncs through. `yjsCommentThreads(doc, { currentUser })` returns a store and the four callbacks `commentsExtension` takes. Each thread goes into one shared map, `comment-threads`, and each comment into another, `comment-replies`, under its own id, so replies two people send at the same moment both stay, and deleting a thread takes its comments out of the document with it. A thread created on one client opens on the others, and a reply or a resolve from any of them shows on all.
+
+```tsx
+import { BlockCanvas, type QuoinBlock } from 'quoin-editor';
+import { commentsExtension, yjsCommentThreads, type CommentUser } from 'quoin-editor/comments';
+import { collaborationExtension, yjsCollaboration } from 'quoin-editor/yjs';
+import { useEffect, useState } from 'react';
+import type * as Y from 'yjs';
+
+type Props = { doc: Y.Doc; user: CommentUser; blocks: QuoinBlock[]; onChange: (next: QuoinBlock[]) => void };
+
+export function SharedReview({ doc, user, blocks, onChange }: Props) {
+  const [shared] = useState(() => yjsCommentThreads(doc, { currentUser: user }));
+  useEffect(() => shared.listen(), [shared]);
+  const [extensions] = useState(() => [
+    collaborationExtension(yjsCollaboration({ doc, user })),
+    commentsExtension({ ...shared, currentUser: user }),
+  ]);
+  return <BlockCanvas blocks={blocks} onChange={onChange} extensions={extensions} />;
+}
+```
+
+`listen()` reads the shared maps into the store, so a change that landed before it is not missed, then follows them until the function it returns is called, which makes it fit an effect's cleanup as above. Comments are listed in the order they were written, the same on every client, and each carries `currentUser` as its author. A reply or a resolve for a thread the document no longer holds, such as one a collaborator deleted a moment before, is refused, and the canvas's `onError` hears why. Pass `field` to keep the threads of a second document in the same `Y.Doc` apart: `field: 'draft'` uses `draft-threads` and `draft-replies`. The entry imports nothing from `yjs`, not even its types: `doc` is anything shaped like a `Y.Doc`, described by `YjsCommentsDoc`, so a canvas with comments and no collaboration needs no `yjs` installed.

@@ -41,7 +41,7 @@ From `quoin-editor/yjs`: `yjsCollaboration` with its `YjsCollaborationOptions`, 
 
 From `quoin-editor/presence`: `presenceExtension` with its `PresenceOptions` and `PresenceLabels` types, and `englishPresenceLabels`.
 
-From `quoin-editor/comments`: `commentsExtension` with its `CommentsOptions` and `CommentsLabels` types, `englishCommentsLabels`, and `createCommentThreads` with the `CommentThreads`, `CommentThread`, `ThreadComment`, `CommentAuthor` and `CommentUser` types.
+From `quoin-editor/comments`: `commentsExtension` with its `CommentsOptions` and `CommentsLabels` types, `englishCommentsLabels`, `createCommentThreads` with the `CommentThreads`, `CommentThread`, `ThreadComment`, `CommentAuthor` and `CommentUser` types, and `yjsCommentThreads` with its `YjsCommentThreads`, `YjsCommentThreadsOptions`, `YjsCommentsDoc` and `YjsCommentsMap` types, which keep the threads in a Yjs document without the entry importing `yjs`.
 
 From `quoin-editor/ai`: `aiExtension` with its `AiOptions` and `AiLabels` types, `englishAiLabels`, and the `AiAction`, `AiRequest` and `AiStream` types.
 

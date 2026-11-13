@@ -1,6 +1,6 @@
 import { useRef } from 'react';
-import type { ViewController } from '../../view';
-import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
+import type { ViewController } from '../view';
+import { useIsomorphicLayoutEffect } from '../view/react/use-isomorphic-layout-effect';
 import { isBubblePart } from './bubble-part';
 
 type Holds = (focused: Element | null, controller: ViewController) => boolean;

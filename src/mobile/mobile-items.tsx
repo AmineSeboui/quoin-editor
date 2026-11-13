@@ -15,7 +15,8 @@ import {
   Strikethrough,
   Undo2,
 } from '../icons';
-import { linkItem, markItem, type KitItem } from '../menus/bubble/bubble-items';
+import type { KitItem } from '../toolbar/toolbar-button';
+import { linkItem, markItem } from '../toolbar/toolbar-items';
 import type { ViewController } from '../view';
 
 export type MobileItems = { addBlock: ToolbarItem; editing: readonly KitItem[] };

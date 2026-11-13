@@ -1,5 +1,5 @@
 import { useCallback, useSyncExternalStore } from 'react';
-import { focusInEditor } from '../menus/bubble/bubble-part';
+import { focusInEditor } from '../toolbar/bubble-part';
 import type { ViewController } from '../view';
 
 const FOCUS_EVENTS = ['focusin', 'focusout'] as const;

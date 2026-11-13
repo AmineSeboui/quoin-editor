@@ -1,7 +1,7 @@
 import { useMemo, useSyncExternalStore } from 'react';
 import type { ViewController } from '../../view';
 import { listen } from '../../view/dom/listen';
-import { focusInEditor } from './bubble-part';
+import { focusInEditor } from '../../toolbar/bubble-part';
 
 type Settled = { read(): boolean; subscribe(notify: () => void): () => void };
 

@@ -9,7 +9,7 @@ import { useLabels } from '../../i18n/use-labels';
 import { Baseline } from '../../icons';
 import { Button } from '../../ui/button';
 import type { ViewController } from '../../view';
-import { ToolbarMenu } from './ToolbarMenu';
+import { ToolbarMenu } from '../../toolbar/ToolbarMenu';
 
 const MARKS: Readonly<Record<ColorKey, string>> = { color: 'color', background: 'highlight' };
 

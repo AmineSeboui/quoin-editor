@@ -10,7 +10,7 @@ import { Input } from '../../ui/input';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
 import { preventDefault } from '../../ui/prevent-default';
 import type { ViewController } from '../../view';
-import { useFocusBackToText } from '../bubble/use-focus-back-to-text';
+import { useFocusBackToText } from '../../toolbar/use-focus-back-to-text';
 import { rangeRect } from '../floating/range-rect';
 import { selectionRect } from '../floating/selection-rect';
 import { virtualAnchor, type VirtualAnchor } from '../floating/virtual-anchor';

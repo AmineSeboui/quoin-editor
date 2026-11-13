@@ -2,9 +2,9 @@
 
 import type { KeyboardEvent, ReactNode, Ref, RefObject } from 'react';
 import type { ToolbarItem } from '../../extensions/ui-types';
-import { ToolbarButton } from '../../menus/bubble/bubble-items';
-import { bubblePart } from '../../menus/bubble/bubble-part';
-import { useRovingFocus } from '../../menus/bubble/use-roving-focus';
+import { ToolbarButton } from '../../toolbar/toolbar-button';
+import { bubblePart } from '../../toolbar/bubble-part';
+import { useRovingFocus } from '../../toolbar/use-roving-focus';
 import { keepFocus } from '../../menus/floating/keep-focus';
 import { useFocusKey } from '../../menus/floating/use-focus-key';
 import type { VirtualAnchor } from '../../menus/floating/virtual-anchor';

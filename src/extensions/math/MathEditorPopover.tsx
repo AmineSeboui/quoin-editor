@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent, type RefObject } from 'react';
 import { useOutsidePress } from '../../blocks/image/use-outside-press';
-import { bubblePart } from '../../menus/bubble/bubble-part';
+import { bubblePart } from '../../toolbar/bubble-part';
 import type { MenuSide, VirtualAnchor } from '../../menus/floating/virtual-anchor';
 import { Button } from '../../ui/button';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';

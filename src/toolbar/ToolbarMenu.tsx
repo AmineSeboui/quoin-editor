@@ -1,9 +1,9 @@
 'use client';
 
 import { useRef, type ReactElement, type ReactNode } from 'react';
-import { returnFocusToText } from '../../blocks/text/return-focus-to-text';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '../../ui/dropdown-menu';
-import type { ViewController } from '../../view';
+import { returnFocusToText } from '../blocks/text/return-focus-to-text';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '../ui/dropdown-menu';
+import type { ViewController } from '../view';
 import { bubblePart, isBubblePart } from './bubble-part';
 
 type ToolbarMenuProps = { controller: ViewController; trigger: ReactElement; children: ReactNode };

@@ -6,7 +6,7 @@ import { usePartAnchor } from '../../blocks/void/block-part';
 import type { EditorState } from '../../engine';
 import { setAttrs } from '../../engine/commands/block-style';
 import { noChange, runOnBlocks } from '../../gutter/run-on-blocks';
-import { bubblePart } from '../../menus/bubble/bubble-part';
+import { bubblePart } from '../../toolbar/bubble-part';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
 import { preventDefault } from '../../ui/prevent-default';
 import type { ViewController } from '../../view';

@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import { useQuoin } from '../../context';
 import { optionalNumber } from '../../engine/blocks/data-fields';
 import { Download } from '../../icons';
-import { bubblePart } from '../../menus/bubble/bubble-part';
+import { bubblePart } from '../../toolbar/bubble-part';
 import type { BlockRenderProps } from '../../view';
 import { str } from '../../engine/blocks/data-fields';
 import { assetHref } from '../upload/resolved-asset';

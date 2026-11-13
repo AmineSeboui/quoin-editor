@@ -1,7 +1,7 @@
 import { act, cleanup, fireEvent, renderHook } from '@testing-library/react';
 import { textSelection } from '../../engine';
 import { at, cleanUpAfterTest, framedDocument, mountController } from '../../view/controller/test-controller';
-import { BUBBLE_PART, bubblePart } from './bubble-part';
+import { BUBBLE_PART, bubblePart } from '../../toolbar/bubble-part';
 import { useBubbleVisibility } from './use-bubble-visibility';
 
 type Mounted = ReturnType<typeof setup>;

@@ -1,13 +1,13 @@
 'use client';
 
-import type { EditorState } from '../../engine';
-import { selectedBlockIds } from '../../engine/state/selection';
-import { DROPDOWN_KIT } from '../../gutter/menu-kit';
-import { TurnIntoItems } from '../../gutter/TurnIntoMenu';
-import { useLabels } from '../../i18n/use-labels';
-import { ChevronDown } from '../../icons';
-import { Button } from '../../ui/button';
-import type { ViewController } from '../../view';
+import type { EditorState } from '../engine';
+import { selectedBlockIds } from '../engine/state/selection';
+import { DROPDOWN_KIT } from '../gutter/menu-kit';
+import { TurnIntoItems } from '../gutter/TurnIntoMenu';
+import { useLabels } from '../i18n/use-labels';
+import { ChevronDown } from '../icons';
+import { Button } from '../ui/button';
+import type { ViewController } from '../view';
 import { ToolbarMenu } from './ToolbarMenu';
 
 type TurnIntoDropdownProps = { controller: ViewController; state: EditorState };

@@ -7,6 +7,7 @@ import {
   fontWeight,
   hasDecoration,
   isItalicStyle,
+  isMonospace,
   nearestPaletteColor,
   parseStyle,
   verticalAlign,
@@ -24,9 +25,16 @@ function highlightMark(element: Element): Mark {
   return isPaletteColor(color) ? { type: 'highlight', attrs: { color } } : { type: 'highlight' };
 }
 
+const CODE_TAGS = new Set(['code', 'kbd', 'tt', 'samp']);
+
+// LibreOffice still writes a colour or a typeface as the attributes of a font element.
+function fontAttributes(element: Element): string {
+  return `color:${element.getAttribute('color') ?? ''};font-family:${element.getAttribute('face') ?? ''};`;
+}
+
 export function elementMarks(element: Element, inherited: readonly Mark[]): readonly Mark[] {
   const tag = tagName(element);
-  const styles = parseStyle(element.getAttribute('style'));
+  const styles = parseStyle((tag === 'font' ? fontAttributes(element) : '') + (element.getAttribute('style') ?? ''));
   let marks = inherited;
   const add = (mark: Mark) => {
     marks = addMark(marks, mark);
@@ -48,7 +56,7 @@ export function elementMarks(element: Element, inherited: readonly Mark[]): read
   if (tag === 's' || tag === 'del' || tag === 'strike' || hasDecoration(styles, 'line-through')) {
     add({ type: 'strike' });
   }
-  if (tag === 'code' || tag === 'kbd') add({ type: 'code' });
+  if (CODE_TAGS.has(tag) || isMonospace(styles)) add({ type: 'code' });
   const align = verticalAlign(styles);
   if (tag === 'sub' || align === 'sub') add({ type: 'sub' });
   if (tag === 'sup' || align === 'super') add({ type: 'sup' });
@@ -57,7 +65,8 @@ export function elementMarks(element: Element, inherited: readonly Mark[]): read
   const pageColors = isFragmentRoot(element);
   const color = linked || pageColors ? null : nearestPaletteColor(styles.get('color') ?? '', 'text');
   if (color !== null) add({ type: 'color', attrs: { color } });
-  const background = pageColors ? null : nearestPaletteColor(styles.get('background-color') ?? '', 'background');
+  const fill = styles.get('background-color') ?? styles.get('background') ?? '';
+  const background = pageColors ? null : nearestPaletteColor(fill, 'background');
   if (background !== null) add({ type: 'background', attrs: { color: background } });
   return marks;
 }

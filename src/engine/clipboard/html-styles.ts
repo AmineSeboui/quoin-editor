@@ -37,7 +37,7 @@ export function isItalicStyle(styles: StyleMap): boolean | null {
 
 const PRESERVING = new Set(['pre', 'pre-wrap', 'break-spaces']);
 const COLLAPSING = new Set(['normal', 'nowrap', 'pre-line']);
-const MONOSPACE = /\b(?:monospace|menlo|monaco|consolas|courier)\b/;
+const MONOSPACE = /mono|menlo|monaco|consolas|courier/;
 
 export function keepsWhitespace(styles: StyleMap): boolean | null {
   const value = styles.get('white-space');
@@ -46,7 +46,8 @@ export function keepsWhitespace(styles: StyleMap): boolean | null {
   return COLLAPSING.has(value) ? false : null;
 }
 
-export const isMonospace = (styles: StyleMap): boolean => MONOSPACE.test(styles.get('font-family') ?? '');
+export const isMonospace = (styles: StyleMap): boolean =>
+  MONOSPACE.test(styles.get('font-family') ?? styles.get('font') ?? '');
 
 export function hasDecoration(styles: StyleMap, line: 'underline' | 'line-through'): boolean {
   return (styles.get('text-decoration') ?? '').includes(line) || (styles.get('text-decoration-line') ?? '').includes(line);
@@ -76,8 +77,30 @@ function fromFunction(args: string): { rgb: Rgb; alpha: number } | null {
   return { rgb: [r, g, b], alpha };
 }
 
+// The colours Word names, among them the sixteen of its highlighter.
+const NAMED = new Map(
+  Object.entries({
+    black: '#000',
+    white: '#fff',
+    red: '#f00',
+    lime: '#0f0',
+    blue: '#00f',
+    yellow: '#ff0',
+    aqua: '#0ff',
+    fuchsia: '#f0f',
+    maroon: '#800000',
+    green: '#008000',
+    navy: '#000080',
+    olive: '#808000',
+    purple: '#800080',
+    teal: '#008080',
+    gray: '#808080',
+    silver: '#c0c0c0',
+  }),
+);
+
 function parseColor(css: string): Rgb | null {
-  const value = css.trim();
+  const value = NAMED.get(css.trim()) ?? css.trim();
   const hex = HEX.exec(value);
   const functional = FUNCTION.exec(value);
   const parsed = hex ? fromHex(hex[1]) : functional ? fromFunction(functional[1]) : null;

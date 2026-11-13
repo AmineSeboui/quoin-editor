@@ -10,8 +10,7 @@ import { interceptKeys } from '../../view/input/intercept-keys';
 
 const printable = (event: KeyboardEvent): boolean => [...event.key].length === 1 && !event.ctrlKey && !event.metaKey;
 
-// A cell range is held by the selection sink, so a key typed over it reaches the editor only as keydown, where the
-// text would otherwise replace the cells in reading order rather than as a rectangle.
+// A key typed over a cell range replaces it as typed text, with no input rule run on the cell it lands in.
 function typeOver(controller: ViewController, event: KeyboardEvent): boolean {
   if (cellSelection(controller.editor.state) === null || !printable(event)) return false;
   return controller.run(typeOverCells(event.key));

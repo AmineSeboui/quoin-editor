@@ -1,14 +1,13 @@
+import { cellOf, type Cell } from '../blocks/table-cell';
 import { cellKey } from '../blocks/table-spec';
 import { blockById } from '../model/doc';
 import { countOf } from '../model/count';
 import type { BlockAttrs, EngineBlock, EngineDoc, Inline, Pos, Selection } from '../model/types';
 import { textSelection } from '../state/selection';
 
-export type Cell = readonly [row: number, col: number];
+export type { Cell };
 
 export type TableShape = { readonly rows: number; readonly cols: number };
-
-const CELL = /^cell:(\d+):(\d+)$/;
 
 export const tableShape = (block: EngineBlock): TableShape => ({
   rows: countOf(block.attrs.rows),
@@ -33,11 +32,6 @@ export const validWidths = (value: unknown, cols: number): number[] | null =>
 
 /** The width in pixels the block keeps for each of its columns, or `null` when it keeps none for one of them. */
 export const storedWidths = (block: EngineBlock, cols: number): number[] | null => validWidths(block.attrs.widths, cols);
-
-export function cellOf(region: string): Cell | null {
-  const match = CELL.exec(region);
-  return match === null ? null : [Number(match[1]), Number(match[2])];
-}
 
 export function tableBlock(doc: EngineDoc, id: string): EngineBlock | null {
   const block = blockById(doc, id);

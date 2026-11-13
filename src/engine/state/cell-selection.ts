@@ -1,6 +1,7 @@
+import { cellOf, cellsBetween, type Cell } from '../blocks/table-cell';
 import { cellKey } from '../blocks/table-spec';
 import type { Command } from '../commands/command';
-import { cellOf, isIndex, tableBlock, tableShape, type Cell } from '../commands/table-shape';
+import { isIndex, tableBlock, tableShape } from '../commands/table-shape';
 import { inlineLength } from '../model/inline';
 import type { EditorState } from './editor-state';
 import { createPluginKey, type PluginSpec } from './plugin';
@@ -47,13 +48,7 @@ export const rangeHasCell = ({ anchor, head }: CellRange, [row, col]: Cell): boo
   between(row, anchor[0], head[0]) && between(col, anchor[1], head[1]);
 
 /** The cells of the range, row by row. */
-export function cellsInRange({ anchor, head }: CellRange): Cell[] {
-  const cells: Cell[] = [];
-  for (let row = Math.min(anchor[0], head[0]); row <= Math.max(anchor[0], head[0]); row++) {
-    for (let col = Math.min(anchor[1], head[1]); col <= Math.max(anchor[1], head[1]); col++) cells.push([row, col]);
-  }
-  return cells;
-}
+export const cellsInRange = ({ anchor, head }: CellRange): Cell[] => cellsBetween(anchor, head);
 
 /** Selects the cells from `anchor` to `head`: from the start of the first one to the end of the last. */
 export function selectCells(blockId: string, anchor: Cell, head: Cell): Command {

@@ -119,8 +119,8 @@ test('dragging the border of a column resizes it, written once when the drag end
   expect(Math.abs((await box(page, 2, 1)).width - widths[0])).toBeLessThanOrEqual(2);
 });
 
-test('a drag across cells selects them as a range, and Backspace empties it', async ({ page }) => {
-  await openEditor(page, 'table', 'table=1');
+// Rows 2 and 3, columns 1 and 2 of the table document, selected by a drag across them.
+async function dragRange(page: Page) {
   const from = await box(page, 2, 1);
   const to = await box(page, 3, 2);
   await page.mouse.move(from.x + 8, from.y + from.height / 2);
@@ -128,13 +128,38 @@ test('a drag across cells selects them as a range, and Backspace empties it', as
   await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 8 });
   await page.mouse.up();
   await expect(page.locator('[data-in-range]')).toHaveCount(4);
+}
+
+const EMPTIED = [
+  ['r0c0', 'r0c1', 'r0c2'],
+  ['', '', 'r1c2'],
+  ['', '', 'r2c2'],
+];
+
+test('a drag across cells selects them as a range, and Backspace empties it', async ({ page }) => {
+  await openEditor(page, 'table', 'table=1');
+  await dragRange(page);
   await page.keyboard.press('Backspace');
-  await expect.poll(() => rowsOf(page)).toEqual([
-    ['r0c0', 'r0c1', 'r0c2'],
-    ['', '', 'r1c2'],
-    ['', '', 'r2c2'],
-  ]);
+  await expect.poll(() => rowsOf(page)).toEqual(EMPTIED);
   await expect(cell(page, 2, 1)).toBeFocused();
+});
+
+test('text that reaches a cell range with no key, as dictation does, replaces the range from its first cell', async ({ page }) => {
+  await openEditor(page, 'table', 'table=1');
+  await dragRange(page);
+  await page.keyboard.insertText('x');
+  await expect.poll(() => rowsOf(page)).toEqual([['r0c0', 'r0c1', 'r0c2'], ['x', '', 'r1c2'], ['', '', 'r2c2']]);
+});
+
+test('a composition over a cell range replaces the range from its first cell', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'CDP IME input is Chromium only');
+  await openEditor(page, 'table', 'table=1');
+  await dragRange(page);
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Input.imeSetComposition', { text: '\u306b', selectionStart: 1, selectionEnd: 1 });
+  await cdp.send('Input.imeSetComposition', { text: '\u306b\u307b', selectionStart: 2, selectionEnd: 2 });
+  await cdp.send('Input.insertText', { text: '\u65e5\u672c' });
+  await expect.poll(() => rowsOf(page)).toEqual([['r0c0', 'r0c1', 'r0c2'], ['\u65e5\u672c', '', 'r1c2'], ['', '', 'r2c2']]);
 });
 
 test('Alt+F10 reaches the handles, whose menus work from the keyboard and give focus back to the caret', async ({ page }) => {

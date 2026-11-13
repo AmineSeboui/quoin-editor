@@ -1,12 +1,13 @@
 import { defineConfig, devices } from '@playwright/test';
 import { harnessPort, harnessServer } from './e2e/harness-server';
 
-// The right to left projects serve the harness turned round and run the specs written for that, which is
-// right-to-left.spec.ts. They do not run the rest of the canvas folder: those specs reach into the page by physical
-// coordinate, tapping at x: 1 for the start of a line and pressing ArrowRight to move forward, and on a turned round
-// page both mean the opposite. 195 of them fail that way, and none of the failures was the canvas being wrong.
-// Growing the coverage means writing a spec in this file, not widening the match. See #151.
-const RIGHT_TO_LEFT = /canvas[\\/]right-to-left\.spec\.ts$/;
+// The right to left projects serve the harness turned round and run the whole canvas folder, so a regression anywhere
+// in the canvas is caught both ways. The canvas specs say what they mean, the start of a line or the arrow that moves
+// on, through the helpers in e2e/support rather than by a coordinate or a key. Code blocks read left to right whatever
+// the page does, so their specs press and type as on a left to right page. The spec written for a page turned round
+// alone runs only there, and the ordinary projects leave it out.
+const RIGHT_TO_LEFT_ONLY = /canvas[\\/]right-to-left\.spec\.ts$/;
+const CANVAS = /canvas[\\/].*\.spec\.ts$/;
 
 export default defineConfig({
   testDir: 'e2e/tests',
@@ -20,12 +21,12 @@ export default defineConfig({
     trace: process.env.CI ? 'on-first-retry' : 'retain-on-failure',
   },
   projects: [
-    { name: 'chromium', testIgnore: RIGHT_TO_LEFT, use: { ...devices['Desktop Chrome'] } },
-    { name: 'firefox', testIgnore: RIGHT_TO_LEFT, use: { ...devices['Desktop Firefox'] } },
-    { name: 'webkit', testIgnore: RIGHT_TO_LEFT, use: { ...devices['Desktop Safari'] } },
-    { name: 'chromium-rtl', testMatch: RIGHT_TO_LEFT, use: { ...devices['Desktop Chrome'] } },
-    { name: 'firefox-rtl', testMatch: RIGHT_TO_LEFT, use: { ...devices['Desktop Firefox'] } },
-    { name: 'webkit-rtl', testMatch: RIGHT_TO_LEFT, use: { ...devices['Desktop Safari'] } },
+    { name: 'chromium', testIgnore: RIGHT_TO_LEFT_ONLY, use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox', testIgnore: RIGHT_TO_LEFT_ONLY, use: { ...devices['Desktop Firefox'] } },
+    { name: 'webkit', testIgnore: RIGHT_TO_LEFT_ONLY, use: { ...devices['Desktop Safari'] } },
+    { name: 'chromium-rtl', testMatch: CANVAS, use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox-rtl', testMatch: CANVAS, use: { ...devices['Desktop Firefox'] } },
+    { name: 'webkit-rtl', testMatch: CANVAS, use: { ...devices['Desktop Safari'] } },
   ],
   webServer: {
     command: `npm run build:css && ${harnessServer()}`,

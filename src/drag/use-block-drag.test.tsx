@@ -18,6 +18,18 @@ function layOutRows(): void {
   });
 }
 
+// The page's stylesheet, as far as the drag reads it: a margin at the start of each line per level of indent, which
+// jsdom computes from a rule matched on the shell's inline style, since it resolves no var().
+const stylesheet = document.createElement('style');
+
+function indentBy(step: number): void {
+  const levels = [1, 2, 3].map(
+    (level) => `[data-quoin-block][style*="--quoin-indent: ${level};"] { margin-left: ${level * step}px; margin-right: ${level * step}px; }`,
+  );
+  stylesheet.textContent = levels.join('\n');
+  document.head.append(stylesheet);
+}
+
 const hostOf = (shell: HTMLElement) => shell.querySelector<HTMLElement>('[data-quoin-host]')!;
 const handleButton = () => screen.getByRole('button', { name: 'Drag to move, click for options' });
 const ghost = () => document.querySelector<HTMLElement>('[data-quoin-drag-ghost]')!;
@@ -44,9 +56,15 @@ function mountRows(...args: Parameters<typeof mountCanvas>) {
   return { ...mounted, hover, ids };
 }
 
-beforeEach(layOutRows);
+beforeEach(() => {
+  layOutRows();
+  indentBy(24);
+});
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  stylesheet.remove();
+});
 
 describe('dragging a block by its handle', () => {
   it('moves it to the gap nearest the pointer, says where it went once and opens no menu', () => {
@@ -93,6 +111,17 @@ describe('dragging a block by its handle', () => {
     expect([dropLine().style.left, dropLine().style.width]).toEqual(['48px', '528px']);
     release(532, 70);
     expect(last()).toEqual([paragraph('a', 'one'), paragraph('l', '- item'), { ...paragraph('d', 'Delta'), indent: 1 }]);
+  });
+
+  it('nests by the step the page indents a level by', () => {
+    indentBy(32);
+    const { hover, last } = mountRows([paragraph('a', 'one'), paragraph('l', '- item'), paragraph('d', 'Delta')]);
+    hover('d');
+    press(20, 70);
+    moveTo(36, 70);
+    expect(dropLine().style.left).toBe(`${LEFT + 32}px`);
+    release(36, 70);
+    expect(last()[2]).toEqual({ ...paragraph('d', 'Delta'), indent: 1 });
   });
 
   it('takes the nested blocks along', () => {

@@ -7,13 +7,16 @@ import { md } from '../view/react/test-harness';
 
 const ROW = 30;
 const LEFT = 48;
+let scrolled = 0;
 
-// jsdom lays nothing out, so every block shell is given a row of its own, 24 px tall, in document order.
+// jsdom lays nothing out, so every block shell is given a row of its own, 24 px tall, in document order, and the page
+// is scrolled down by `scrolled`.
 function layOutRows(): void {
+  scrolled = 0;
   vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
     const shells = [...document.querySelectorAll<HTMLElement>('[data-block-id]')];
     const row = shells.indexOf(this);
-    const [top, left, width, height] = row < 0 ? [0, 0, 600, 600] : [row * ROW, LEFT, 552, ROW - 6];
+    const [top, left, width, height] = row < 0 ? [-scrolled, 0, 600, 600] : [row * ROW - scrolled, LEFT, 552, ROW - 6];
     return { top, left, width, height, x: left, y: top, right: left + width, bottom: top + height } as DOMRect;
   });
 }
@@ -246,6 +249,19 @@ describe('dragging a block by its handle', () => {
     expect(dropLine()).not.toBeVisible();
   });
 
+  it('moves the drop line as the page scrolls under a pointer held still', () => {
+    const { hover, ids } = mountRows([paragraph('a', 'one'), paragraph('b', 'two'), paragraph('c', 'three')]);
+    hover('a');
+    press(20, 10);
+    moveTo(20, 50);
+    expect(dropLine().style.top).toBe('56px');
+    scrolled = 30;
+    act(() => void document.dispatchEvent(new Event('scroll')));
+    expect(dropLine().style.top).toBe('83px');
+    release(20, 50);
+    expect(ids()).toEqual(['b', 'c', 'a']);
+  });
+
   it('scrolls the window while the pointer is near its bottom edge, and stops on release', async () => {
     const scrollBy = vi.spyOn(window, 'scrollBy').mockImplementation(() => {});
     const { hover } = mountRows([paragraph('a', 'one'), paragraph('b', 'two')]);
@@ -270,7 +286,7 @@ describe('dragging a block by its handle', () => {
     press(20, 10);
     moveTo(20, 60);
     cleanup();
-    const watched = ['pointermove', 'pointerup', 'pointercancel', 'keydown', 'blur'];
+    const watched = ['pointermove', 'pointerup', 'pointercancel', 'scroll', 'keydown', 'blur'];
     const capture = (options?: boolean | EventListenerOptions) => (typeof options === 'boolean' ? options : !!options?.capture);
     const kept = spies.flatMap(({ added, removed }) =>
       added.mock.calls.filter(
@@ -281,7 +297,7 @@ describe('dragging a block by its handle', () => {
           ),
       ),
     );
-    expect(spies[0].added.mock.calls.map(([type]) => type)).toContain('pointermove');
+    expect(spies[0].added.mock.calls.map(([type]) => type)).toEqual(expect.arrayContaining(['pointermove', 'scroll']));
     expect(kept.map(([type]) => type)).toEqual([]);
   });
 });

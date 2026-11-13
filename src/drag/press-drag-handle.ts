@@ -77,6 +77,7 @@ function followPress(press: HandlePress, root: HTMLElement, view: Window): () =>
     if (done) return;
     done = true;
     unlistenDocument();
+    unlistenScroll();
     unlistenBlur();
     unlistenKeys();
     scroll.stop();
@@ -121,6 +122,8 @@ function followPress(press: HandlePress, root: HTMLElement, view: Window): () =>
   }
 
   const unlistenDocument = listen(doc, { pointermove: onPointerMove, pointerup: onPointerUp, pointercancel: finish });
+  // Captured, since a scroll inside an element does not bubble: the wheel moves the blocks under a pointer held still.
+  const unlistenScroll = listen(doc, { scroll: follow }, true);
   const unlistenBlur = listen(view, { blur: finish });
   const unlistenKeys = listen(view, { keydown: onKeyDown }, true);
   return finish;

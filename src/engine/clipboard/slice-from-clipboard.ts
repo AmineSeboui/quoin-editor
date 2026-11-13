@@ -8,7 +8,8 @@ import { availableParser, fromHTML, type DOMParserLike } from './from-html';
 import { looksLikeMarkdown, plainTextToBlocks } from './from-text';
 import { parseSliceJSON } from './parse-slice-json';
 import { pastedLink } from './paste-url';
-import type { PastedSlice, Slice } from './slice';
+import type { Transaction } from '../state/transaction';
+import { PASTED_HTML, type PastedSlice, type Slice } from './slice';
 
 export type ClipboardData = { json?: string; html?: string; text?: string };
 export type SliceFromClipboardOptions = { parser?: DOMParserLike; newId?: () => string };
@@ -51,3 +52,9 @@ export function sliceFromClipboard(data: ClipboardData, options: SliceFromClipbo
   if (fromHtml !== null) return fromHtml;
   return data.text === undefined ? null : openSlice(textBlocks(data.text, options.newId ?? newId), true);
 }
+
+/** Dispatches the transaction that inserts a slice, marked when the slice was read from HTML. */
+export const dispatchPaste =
+  (slice: PastedSlice, dispatch: (tr: Transaction) => void) =>
+  (tr: Transaction): void =>
+    dispatch(slice.fromHTML ? tr.setMeta(PASTED_HTML, true) : tr);

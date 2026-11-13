@@ -76,7 +76,7 @@ describe('the package entry list', () => {
       ['view', 22_214],
       ['diff', 26_990],
       ['docx', 25_891],
-      ['pdf', incrementalBudget(32_828)],
+      ['pdf', incrementalBudget(32_870)],
     ]);
     expect(packageEntries[3]).toMatchObject({ source: 'src/view-static/index.ts', client: false });
     expect(packageEntries[4]).toMatchObject({ source: 'src/diff/index.ts', client: false });

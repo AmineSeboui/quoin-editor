@@ -1,5 +1,5 @@
 import type { Mark } from '../engine/model/types';
-import { backgroundHex, textHex } from './palette-hex';
+import { backgroundHex, textHex } from '../export/palette-hex';
 import { CODE_CHAR_STYLE } from './style-ids';
 import { xmlElement } from './xml';
 

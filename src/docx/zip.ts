@@ -1,5 +1,5 @@
 import { crc32 } from './crc32';
-import { deflateRaw } from './deflate';
+import { deflateRaw } from '../export/deflate';
 
 export type ZipFile = { readonly path: string; readonly data: Uint8Array };
 

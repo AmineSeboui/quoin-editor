@@ -5,7 +5,7 @@ import type { EngineBlock } from '../engine/model/types';
 import { tableCells } from '../engine/render/table-cells';
 import type { DocxContext } from './docx-context';
 import { PAGE_TEXT_WIDTH } from './drawing-xml';
-import { backgroundHex } from './palette-hex';
+import { backgroundHex } from '../export/palette-hex';
 import { indentOf, paragraphXml } from './paragraph-xml';
 import { runsXml, runXml } from './runs-xml';
 import { xmlElement } from './xml';

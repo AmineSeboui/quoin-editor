@@ -2,7 +2,7 @@ import type { Inline, InlineNode, Mark } from '../engine/model/types';
 import type { DocxContext } from './docx-context';
 import { propsOf, runPropertiesXml, type RunProps } from './run-properties';
 import { CODE_CHAR_STYLE } from './style-ids';
-import { wordLink } from './word-link';
+import { linkTarget } from '../export/link-target';
 import { escapeXml, xmlElement } from './xml';
 
 const pieceXml = (piece: string) => (piece === '' ? '' : xmlElement('w:t', { 'xml:space': 'preserve' }, escapeXml(piece)));
@@ -17,7 +17,7 @@ export const runXml = (text: string, props: RunProps = {}): string =>
 
 function linkOf(marks: readonly Mark[], baseUrl: string | undefined): string | null {
   const link = marks.find((mark) => mark.type === 'link');
-  return link ? wordLink(link.attrs?.href ?? '', baseUrl) : null;
+  return link ? linkTarget(link.attrs?.href ?? '', baseUrl) : null;
 }
 
 function nodeRun(node: InlineNode, ctx: DocxContext, base: RunProps, linked: boolean): string {

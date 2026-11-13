@@ -32,9 +32,9 @@ async function tookTheRightClick(page: Page, target: Locator): Promise<boolean |
 }
 
 // The handle sits on the page in the room before the start of the line, which a right to left page has on the right.
-async function expectBeforeLine(page: Page, id: string) {
+async function expectBeforeLine(page: Page, id: string, measured = handle(page)) {
   const line = await firstLine(page, id);
-  const box = (await handle(page).boundingBox())!;
+  const box = (await measured.boundingBox())!;
   const pageWidth = await page.evaluate(() => document.documentElement.clientWidth);
   const at = inlineX(box, pageWidth);
   expect(at).toBeGreaterThanOrEqual(0);
@@ -246,7 +246,7 @@ test.describe('on a touch screen', () => {
     await expect(handle(page)).toBeVisible();
     const gutter = page.locator('[data-quoin-gutter-block]');
     await expect(gutter.getByRole('button', { name: 'Add block below' })).toBeHidden();
-    const { box } = await expectBeforeLine(page, 'b');
+    const { box } = await expectBeforeLine(page, 'b', handle(page));
     expect(box.width).toBeGreaterThanOrEqual(44);
     expect(box.height).toBeGreaterThanOrEqual(44);
     await handle(page).tap();

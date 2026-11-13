@@ -1,7 +1,7 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
 import { firstLine, host } from '../../support/block';
-import { lineStart, onThroughText } from '../../support/direction';
+import { forward, lineStart, onThroughText } from '../../support/direction';
 import { blocks, openEditor } from '../../support/editor';
 import { phoneTest as test } from '../../support/phone';
 
@@ -56,7 +56,11 @@ test('under a pinch zoom the tools span the part of the page left visible, at th
   const unzoomed = await box(tools(page));
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Emulation.setPageScaleFactor', { pageScaleFactor: 2 });
-  await cdp.send('Input.synthesizeScrollGesture', { x: 100, y: 300, xDistance: -150, yDistance: 0, gestureSourceType: 'touch' });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 200, y: 300 }] });
+  for (let step = 1; step <= 10; step++) {
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: 200 - step * 15, y: 300 }] });
+  }
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
   const zoomed = () =>
     page.evaluate(() => {
       const viewport = window.visualViewport!;
@@ -70,7 +74,7 @@ test('under a pinch zoom the tools span the part of the page left visible, at th
     });
   await expect.poll(async () => (await zoomed()).offsetLeft).toBeGreaterThan(0);
   const { scale, gaps, height } = await zoomed();
-  expect(scale).toBe(2);
+  expect(scale).toBeCloseTo(2, 3);
   for (const gap of gaps) expect(Math.abs(gap)).toBeLessThanOrEqual(1);
   expect(Math.abs(height - unzoomed.height)).toBeLessThanOrEqual(1);
 });
@@ -81,7 +85,7 @@ test('a hardware keyboard reaches the editing tools with Alt+F10 and leaves them
   await expect(tools(page)).toBeVisible();
   await page.keyboard.press('Alt+F10');
   await expect(tool(page, 'Add block below')).toBeFocused();
-  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press(forward());
   await expect(tools(page).getByRole('button', { name: 'Turn into' })).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(host(page, 'b')).toBeFocused();

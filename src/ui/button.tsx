@@ -5,24 +5,23 @@ import { FOCUS_RING } from "./focus";
 import { SQUARE_TAP_TARGET_FLOOR, TAP_TARGET_FLOOR } from "./touch-target";
 
 const BASE = [
-  "inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-[color,background-color,border-color,box-shadow,opacity] disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 shrink-0",
+  "inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-lg border border-transparent bg-clip-padding text-sm font-medium transition-all select-none active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   FOCUS_RING,
 ];
 
 const VARIANTS = {
-  default:
-    "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+  default: "bg-primary text-primary-foreground hover:bg-primary/80",
   outline:
-    "border bg-transparent shadow-xs hover:bg-accent hover:text-accent-foreground",
-  ghost: "hover:bg-accent hover:text-accent-foreground",
+    "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+  ghost: "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
 };
 
 const SIZES = {
-  default: `h-9 px-4 py-2 has-[>svg]:px-3 ${TAP_TARGET_FLOOR}`,
-  xs: `h-6 gap-1 rounded-md px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3 ${TAP_TARGET_FLOOR}`,
-  sm: `h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5 ${TAP_TARGET_FLOOR}`,
-  "icon-xs": `size-6 rounded-md [&_svg:not([class*='size-'])]:size-3 ${SQUARE_TAP_TARGET_FLOOR}`,
-  "icon-sm": `size-8 ${SQUARE_TAP_TARGET_FLOOR}`,
+  default: `h-8 gap-1.5 px-2.5 ${TAP_TARGET_FLOOR}`,
+  xs: `h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs [&_svg:not([class*='size-'])]:size-3 ${TAP_TARGET_FLOOR}`,
+  sm: `h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] [&_svg:not([class*='size-'])]:size-3.5 ${TAP_TARGET_FLOOR}`,
+  "icon-xs": `size-6 rounded-[min(var(--radius-md),10px)] [&_svg:not([class*='size-'])]:size-3 ${SQUARE_TAP_TARGET_FLOOR}`,
+  "icon-sm": `size-7 rounded-[min(var(--radius-md),12px)] ${SQUARE_TAP_TARGET_FLOOR}`,
 };
 
 type ButtonVariants = { variant?: keyof typeof VARIANTS | null; size?: keyof typeof SIZES | null };

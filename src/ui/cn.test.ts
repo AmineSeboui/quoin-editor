@@ -91,4 +91,8 @@ describe('cn', () => {
   it('keeps an arbitrary colour beside a font size', () => {
     expect(cn('text-sm', 'text-[#fff]')).toBe('text-sm text-[#fff]');
   });
+
+  it('lets a later border colour replace an earlier one and keeps the width', () => {
+    expect(cn('border border-transparent', 'border-border')).toBe('border border-border');
+  });
 });

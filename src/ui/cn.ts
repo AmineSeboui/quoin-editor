@@ -9,6 +9,10 @@ const FAMILIES: readonly (readonly [group: string, utility: RegExp])[] = [
   ['shadow', /^shadow(-(none|2xs|xs|sm|md|lg|xl|2xl|\[.+\]))?$/],
   ['flex-direction', /^flex-(row|col)(-reverse)?$/],
   [
+    'border-color',
+    /^border-(?!(0|2|4|8)$|[xytrblse](-|$)|(solid|dashed|dotted|double|none|hidden|collapse|separate)$|spacing)/,
+  ],
+  [
     'background',
     /^bg-(?!clip-|origin-|repeat|no-repeat|cover|contain|auto$|fixed$|local$|scroll$|blend-|linear-|radial-|conic-|none$|center$|top|bottom|left|right)/,
   ],
@@ -32,9 +36,9 @@ function groupOf(utility: string): string {
 
 /** Joins class names, a later utility dropping an earlier one that sets the same thing under the same variants. The
  *  groups it knows are the ones Quoin's own class lists override: display, font size, text color, radius, ring width,
- *  ring color, shadow, flex direction, background color, padding, width, height, size, gap, cursor and overflow, a
- *  padding shorthand also dropping the sides it sets. Any other two
- *  utilities are both kept, for the stylesheet to order. */
+ *  ring color, shadow, flex direction, border color, background color, padding, width, height, size, gap, cursor and
+ *  overflow, a padding shorthand also dropping the sides it sets. Any other two utilities are both kept, for the
+ *  stylesheet to order. */
 export function cn(...inputs: ClassValue[]): string {
   const taken = new Set<string>();
   const kept: string[] = [];

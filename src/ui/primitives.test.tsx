@@ -222,3 +222,16 @@ describe('the dialog close button', () => {
     expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument();
   });
 });
+
+describe("a dense control's tap target", () => {
+  it('still grows an icon button to a finger on a coarse pointer', () => {
+    render(<Button size="icon-sm" aria-label="Bold" />);
+    const classes = screen.getByRole('button', { name: 'Bold' }).className.split(' ');
+    expect(classes).toEqual(expect.arrayContaining(['pointer-coarse:min-h-11', 'pointer-coarse:min-w-11']));
+  });
+
+  it('still grows a small button to a finger on a coarse pointer', () => {
+    render(<Button size="sm">Accept</Button>);
+    expect(screen.getByRole('button', { name: 'Accept' }).className.split(' ')).toContain('pointer-coarse:min-h-11');
+  });
+});

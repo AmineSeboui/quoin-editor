@@ -1,4 +1,5 @@
 import type { EditorState, EngineBlock, Schema, Selection } from '../../engine';
+import { headBlockId } from '../../engine/commands/block-helpers';
 import { markRanges, rangeContent } from '../../engine/commands/selection-marks';
 import { blockById } from '../../engine/model/doc';
 import { inlinePlainText } from '../../engine/render/block-plain-text';
@@ -38,11 +39,22 @@ let focusing: ViewController | null = null;
  */
 export const focusingSink = (controller: ViewController): boolean => focusing === controller;
 
+// Focus the browser gives the sink itself, by Tab for one, scrolls to it with no scroll to put back afterwards. The sink
+// is moved over the block the selection ends in as it takes focus, so the browser scrolls only to bring that into view.
+function placeSink(controller: ViewController, sink: HTMLElement): void {
+  const id = headBlockId(controller.editor.state.selection);
+  const block = id === null ? undefined : controller.blockElement(id);
+  if (block === undefined) return;
+  const offset = block.getBoundingClientRect().top - sink.getBoundingClientRect().top;
+  if (offset !== 0) sink.style.top = `${(parseFloat(sink.style.top) || 0) + offset}px`;
+}
+
 // The sink's own text stays selected, so a composition replaces it and leaves only what was composed, and a screen
 // reader reads it as the selection.
 export function focusSink(controller: ViewController): void {
   const { sink } = controller;
   if (sink === null) return;
+  placeSink(controller, sink);
   const text = selectionText(controller.editor.state);
   if (sink.textContent !== text) sink.textContent = text;
   if (sink.ownerDocument.activeElement !== sink) {

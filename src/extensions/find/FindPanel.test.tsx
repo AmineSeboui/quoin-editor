@@ -1,6 +1,6 @@
 import { act, fireEvent, screen } from '@testing-library/react';
 import { axe } from 'vitest-axe';
-import { paragraph } from '../../blocks/void/test-canvas';
+import { paragraph } from '../../blocks/test-support/test-canvas';
 import { textSelection } from '../../engine';
 import { mountFind } from './find-test-canvas';
 

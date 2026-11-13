@@ -4,7 +4,7 @@ import { nodeSelection, textSelection } from '../../engine';
 import type { QuoinBlock, UploadFn, UploadResult } from '../../types';
 import { clipboardEvent, dragEvent, fakeTransfer } from '../../view/clipboard/test-transfer';
 import { intrinsicSize } from '../intrinsic-size';
-import { mountCanvas, paragraph } from '../void/test-canvas';
+import { mountCanvas, paragraph } from '../test-support/test-canvas';
 
 vi.mock('../intrinsic-size');
 

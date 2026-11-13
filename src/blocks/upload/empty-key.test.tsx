@@ -2,7 +2,7 @@ import { act } from '@testing-library/react';
 import type { QuoinBlock, UploadFn } from '../../types';
 import { uploadImage } from '../image/image-upload';
 import { intrinsicSize } from '../intrinsic-size';
-import { mountCanvas, paragraph } from '../void/test-canvas';
+import { mountCanvas, paragraph } from '../test-support/test-canvas';
 
 vi.mock('../intrinsic-size');
 

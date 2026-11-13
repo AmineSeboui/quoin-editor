@@ -1,6 +1,6 @@
 import { act, fireEvent, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { mountCanvas, paragraph } from '../blocks/void/test-canvas';
+import { mountCanvas, paragraph } from '../blocks/test-support/test-canvas';
 import { textSelection, type Pos } from '../engine';
 import type { QuoinBlock } from '../types';
 import { classLists } from '../ui/test-class-lists';

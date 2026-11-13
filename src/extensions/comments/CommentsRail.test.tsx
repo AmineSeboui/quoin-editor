@@ -1,6 +1,6 @@
 import { act, fireEvent, screen, within } from '@testing-library/react';
 import { axe } from 'vitest-axe';
-import { paragraph } from '../../blocks/void/test-canvas';
+import { paragraph } from '../../blocks/test-support/test-canvas';
 import { mountComments, span, thread } from './comments-test-canvas';
 import { WIDE_CANVAS } from './use-canvas-wide';
 

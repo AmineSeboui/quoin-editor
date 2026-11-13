@@ -1,7 +1,7 @@
 import type { BlockAttrs } from '../../engine/model/types';
-import type { CalloutTone } from '../../i18n/labels';
+import type { CalloutTone } from '../../engine/blocks/callout-tones';
 
-export { CALLOUT_TONES, calloutTone } from '../../view/react/callout-tones';
+export { CALLOUT_TONES, calloutTone } from '../../engine/blocks/callout-tones';
 
 export const CALLOUT_ICONS = ['\u{1F4A1}', '\u26A0\uFE0F', '\u2705', '\u2757', '\u2139\uFE0F', '\u{1F4CC}'] as const;
 
@@ -15,4 +15,9 @@ const TONE_ICONS: Readonly<Record<CalloutTone, string>> = {
 
 export function calloutIcon(attrs: BlockAttrs, tone: CalloutTone): string {
   return typeof attrs.icon === 'string' && attrs.icon !== '' ? attrs.icon : TONE_ICONS[tone];
+}
+
+/** Whether a callout shows its tone's own icon, which tells the tone without its colour. */
+export function iconTellsTone(attrs: BlockAttrs, tone: CalloutTone): boolean {
+  return calloutIcon(attrs, tone) === TONE_ICONS[tone];
 }

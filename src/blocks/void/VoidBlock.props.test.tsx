@@ -4,7 +4,7 @@ import { splitBlock } from '../../engine/commands/split-block';
 import { ListTodo } from '../../icons';
 import { defineBlock } from '../../registry';
 import type { BlockPreviewProps, QuoinBlock } from '../../types';
-import { mountCanvas, paragraph, testBlockTypes } from './test-canvas';
+import { mountCanvas, paragraph, testBlockTypes } from '../test-support/test-canvas';
 
 type ChecklistData = { done: boolean };
 

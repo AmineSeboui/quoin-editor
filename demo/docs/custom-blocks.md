@@ -5,7 +5,7 @@ description: Add block types of your own with defineBlock, whose editor and prev
 
 # Custom blocks
 
-A block type is a definition built with `defineBlock`. `blockTypes` defaults to `coreBlocks`, so extend it by spreading them and adding your own. When two definitions share a `type`, the last one wins, which is also how you override a core block. Your own definition of `DIVIDER` or `CODE` draws as a block of yours everywhere. Your own definition of `MARKDOWN`, `CALLOUT` or `TOGGLE` draws only on a read-only canvas: an editable canvas keeps those blocks its own, since they are typed into in place, and warns about it in development.
+A block type is a definition built with `defineBlock`. `blockTypes` defaults to `coreBlocks`, so extend it by spreading them and adding your own. When two definitions share a `type`, the last one wins, which is also how you override a core block. Your own definition of `DIVIDER`, `CODE`, `IMAGE` or `FILE` draws as a block of yours everywhere, and goes by its own `label` in the block's name, the block menu, the slash menu and Turn into, where Quoin's block goes by the name your labels give it. Your own definition of `MARKDOWN`, `CALLOUT` or `TOGGLE` draws only on a read-only canvas: an editable canvas keeps those blocks its own, since they are typed into in place, and warns about it in development.
 
 ```tsx
 import { Bookmark } from 'lucide-react';
@@ -177,7 +177,7 @@ Each core block keeps its content under its own keys. A host that persists block
 
 Two of these are worth saying out loud, because both have been guessed wrong:
 
-- **The callout's prose is `body`, not `text`.** It is typed in place, as inline markdown, like a paragraph. `tone` is one of `info`, `tip`, `warning`, `success` or `danger`, each drawn in its own colour; anything else falls back to the neutral border and fill.
+- **The callout's prose is `body`, not `text`.** It is typed in place, as inline markdown, like a paragraph. `tone` is one of `info`, `tip`, `warning`, `success` or `danger`, the tones of the type `CalloutTone`, each drawn in its own colour; anything else is drawn, named and exported to Word as `info`.
 - **Markdown blocks store markdown source, not rendered HTML.** Each holds one line: a paragraph, a heading, a list item, a task or a quote. The canvas draws it formatted and writes the source back only for the blocks the author edited. Once the author sets them, a text block also keeps `align`, `color` and `background`.
 
 The optional fields are written after a block's first save, and only once set: an image's `caption` when the author types one, its `width` and `height` once the uploaded bytes have been measured, its `url`, `align` and `widthPercent` when the author links, aligns or resizes it, a file's `size` when the upload reports it and its `mime` when the file declares a type. Tests hold the table above to the declared types and to the keys a file upload writes, and check the exact data each control of the image and file blocks writes.

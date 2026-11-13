@@ -1,7 +1,7 @@
 import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'vitest-axe';
-import { mountCanvas, paragraph } from '../blocks/void/test-canvas';
+import { mountCanvas, paragraph } from '../blocks/test-support/test-canvas';
 import { defineExtension, textSelection } from '../engine';
 import type { ExtensionUI } from '../extensions/ui-types';
 import { Sparkles } from '../icons';
@@ -101,6 +101,16 @@ describe('the block menu', () => {
     expect(checked).toHaveAttribute('aria-checked', 'true');
   });
 
+  it('draws the sample letter of each text colour from the labels', async () => {
+    const user = userEvent.setup();
+    const canvas = mountCanvas([paragraph('a', 'para')], { labels: { textColorSample: '\u3042' } });
+    act(() => canvas.handle().focus({ block: 'a', region: 'text', offset: 0 }));
+    fireEvent.keyDown(document.activeElement!, { key: '/', ctrlKey: true });
+    await user.click(item('Color'));
+    const red = within(screen.getByRole('group', { name: 'Text color' })).getByRole('menuitemradio', { name: 'Red' });
+    expect(red.querySelector('[data-color="red"]')).toHaveTextContent('\u3042');
+  });
+
   it('deletes the block and reports it', async () => {
     const user = userEvent.setup();
     const { last, onDelete, openMenuFromText } = setup();
@@ -193,6 +203,13 @@ describe('the block menu of a callout', () => {
     await user.click(item('Icon'));
     choose(screen.getByRole('menuitem', { name: '\u{1F4CC}' }));
     expect(last()[0].data).toMatchObject({ tone: 'warning', icon: '\u{1F4CC}' });
+  });
+
+  it('offers no Color submenu and paints no background its data carries, so its wash never sits on a colour', () => {
+    const { openMenuFromText, shell } = setup([callout('c', { tone: 'tip', body: 'Note', background: 'red' })]);
+    expect(shell('c')).not.toHaveAttribute('data-bg');
+    openMenuFromText('c');
+    expect(within(menu()).queryByRole('menuitem', { name: 'Color' })).toBeNull();
   });
 
   it('offers no Tone or Icon submenu once a target is not a callout', () => {

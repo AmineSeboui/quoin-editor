@@ -110,7 +110,7 @@ export function AiMenu({ env, target, fromSpace }: AiMenuProps) {
           onKeyDown={onKeyDown}
         />
         {choices.length > 0 && (
-          <ul id={`${id}-list`} role="listbox" aria-label={labels.menu} className="mt-1 max-h-72 overflow-y-auto">
+          <ul id={`${id}-list`} role="listbox" aria-label={labels.menu} className="mt-1 max-h-72 list-none overflow-y-auto">
             {choices.map((choice, index) => (
               <li
                 key={choice.action}

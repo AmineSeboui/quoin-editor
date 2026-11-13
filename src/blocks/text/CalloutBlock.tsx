@@ -5,7 +5,7 @@ import { cn } from '../../ui/cn';
 import { EditableRegion, type BlockRenderer } from '../../view';
 import { useReadOnly } from '../../view/react/use-read-only';
 import { TONE } from '../previews';
-import { calloutIcon, calloutTone } from './callout-tone';
+import { calloutIcon, calloutTone, iconTellsTone } from './callout-tone';
 import { CalloutIconMenu } from './CalloutIconMenu';
 import { CalloutToneMenu } from './CalloutToneMenu';
 
@@ -14,6 +14,7 @@ export const CalloutBlock: BlockRenderer = ({ block, controller }) => {
   const readOnly = useReadOnly(controller);
   const tone = calloutTone(block.attrs.tone);
   const icon = calloutIcon(block.attrs, tone);
+  const toneInWords = !iconTellsTone(block.attrs, tone);
   return (
     <div className={cn('quoin-callout group/callout flex items-start gap-2', TONE[tone])} data-tone={tone}>
       {readOnly ? (
@@ -29,7 +30,15 @@ export const CalloutBlock: BlockRenderer = ({ block, controller }) => {
         label={labels.callout(labels.calloutTones[tone])}
         className="min-w-0 flex-1"
       />
-      {!readOnly && <CalloutToneMenu blockId={block.id} controller={controller} tone={tone} />}
+      {readOnly ? (
+        toneInWords && (
+          <span aria-hidden="true" className="flex h-6 items-center px-2 text-xs">
+            {labels.calloutTones[tone]}
+          </span>
+        )
+      ) : (
+        <CalloutToneMenu blockId={block.id} controller={controller} tone={tone} alwaysShown={toneInWords} />
+      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { act } from '@testing-library/react';
-import { paragraph } from '../../blocks/void/test-canvas';
+import { paragraph } from '../../blocks/test-support/test-canvas';
 import { nodeSelection } from '../../engine';
 import { heading, mountToc, outline } from './toc-test-canvas';
 

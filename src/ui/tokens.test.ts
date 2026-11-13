@@ -32,6 +32,9 @@ const WASHES = Object.values(TONE).map((classes) => {
 
 const SURFACES = ['background', 'accent', ...PALETTE.map((name) => `bg-${name}`)];
 
+/** What a callout's wash is laid over: the page, or a selected block. Never a background colour, which only text takes. */
+const CALLOUT_SURFACES = ['background', 'accent'];
+
 /** The token behind the border colour a field's classes give it with no state or variant in front. */
 function fieldBorder(source: string): string {
   const [, colour] = /["\s]border-([a-z][\w-]*)[\s"]/.exec(source) ?? [];
@@ -68,6 +71,10 @@ describe.each<Theme>(['light', 'dark'])('%s theme', (theme) => {
   it('draws the focus ring at 3:1 or more against a selected block and a callout, the colours it sits next to', () => {
     expect(contrast(theme, 'ring', 'accent')).toBeGreaterThanOrEqual(3);
     expect(contrast(theme, 'ring', 'muted')).toBeGreaterThanOrEqual(3);
+  });
+
+  it.each(PALETTE)('draws the focus ring at 3:1 or more against the %s background a block can be coloured', (name) => {
+    expect(contrast(theme, 'ring', `bg-${name}`)).toBeGreaterThanOrEqual(3);
   });
 
   it('keeps body text at 4.5:1 or more on the page and on a popover', () => {
@@ -119,9 +126,11 @@ describe.each<Theme>(['light', 'dark'])('%s theme', (theme) => {
     for (const surface of SURFACES) expect(contrast(theme, PLACEHOLDER, surface)).toBeGreaterThanOrEqual(4.5);
   });
 
-  it.each(WASHES)('writes a placeholder at 4.5:1 or more on the $name wash of a callout', ({ name, alpha }) => {
-    const ratio = contrastOnWash(token(theme, PLACEHOLDER), token(theme, name), alpha, token(theme, 'background'));
-    expect(ratio).toBeGreaterThanOrEqual(4.5);
+  it.each(WASHES)('writes a placeholder at 4.5:1 or more on the $name wash of a callout, selected or not', ({ name, alpha }) => {
+    for (const under of CALLOUT_SURFACES) {
+      const ratio = contrastOnWash(token(theme, PLACEHOLDER), token(theme, name), alpha, token(theme, under));
+      expect(ratio).toBeGreaterThanOrEqual(4.5);
+    }
   });
 
   it('keeps body text at 4.5:1 or more on a comment anchor, on two stacked, and on the active one', () => {

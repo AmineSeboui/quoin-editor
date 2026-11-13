@@ -29,7 +29,7 @@ export default defineConfig({
         'src/engine/test-support/**',
         'src/engine/**/*-arbitrary.ts',
         'src/**/*.test.{ts,tsx}',
-        'src/blocks/void/test-canvas.tsx',
+        'src/blocks/test-support/test-canvas.tsx',
         'src/hooks/test-autosave.tsx',
         'src/ui/test-class-lists.ts',
         'src/view/clipboard/test-transfer.ts',

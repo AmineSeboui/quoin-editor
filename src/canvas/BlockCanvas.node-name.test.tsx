@@ -1,5 +1,5 @@
 import { act, fireEvent, screen } from '@testing-library/react';
-import { bookmarkBlock, mountCanvas, paragraph } from '../blocks/void/test-canvas';
+import { bookmarkBlock, mountCanvas, paragraph } from '../blocks/test-support/test-canvas';
 import { defineExtension } from '../engine';
 import type { ExtensionUI } from '../extensions/ui-types';
 import type { QuoinBlock } from '../types';

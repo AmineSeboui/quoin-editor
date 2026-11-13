@@ -1,5 +1,5 @@
 import { act, fireEvent, screen, within } from '@testing-library/react';
-import { mountCanvas, paragraph } from '../../blocks/void/test-canvas';
+import { mountCanvas, paragraph } from '../../blocks/test-support/test-canvas';
 
 function type(text: string): void {
   for (const data of text) {

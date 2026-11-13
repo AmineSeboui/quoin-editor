@@ -1,7 +1,7 @@
 import { act } from '@testing-library/react';
 import { textSelection, type QuoinBlock } from '../../engine';
 import { cellKey } from '../../engine/blocks/table-spec';
-import { mountCanvas, paragraph } from '../../blocks/void/test-canvas';
+import { mountCanvas, paragraph } from '../../blocks/test-support/test-canvas';
 import { QUOIN_SLICE_TYPE } from '../../view/clipboard/slice-marker';
 import { clipboardEvent, fakeTransfer } from '../../view/clipboard/test-transfer';
 import { tableExtension } from './table-extension';

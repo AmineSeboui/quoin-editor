@@ -1,5 +1,5 @@
 import { act, screen, within } from '@testing-library/react';
-import { paragraph, type mountCanvas } from '../../blocks/void/test-canvas';
+import { paragraph, type mountCanvas } from '../../blocks/test-support/test-canvas';
 import type { QuoinBlock } from '../../engine';
 import { mountTypingCanvas } from '../typing-test-canvas';
 import { mentionExtension, type MentionOptions } from './mention-extension';

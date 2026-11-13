@@ -1,7 +1,7 @@
 import { act, fireEvent, screen, within } from '@testing-library/react';
 import { axe } from 'vitest-axe';
 import type { QuoinBlock } from '../../types';
-import { mountCanvas } from '../void/test-canvas';
+import { mountCanvas } from '../test-support/test-canvas';
 
 const code = (language: string): QuoinBlock => ({ id: 'k', type: 'CODE', data: { language, code: 'x' } });
 const field = () => screen.getByRole<HTMLInputElement>('combobox', { name: 'Language' });

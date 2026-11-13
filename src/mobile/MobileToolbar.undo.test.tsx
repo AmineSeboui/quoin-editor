@@ -1,7 +1,7 @@
 import { act, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import * as Y from 'yjs';
-import { mountCanvas, paragraph } from '../blocks/void/test-canvas';
+import { mountCanvas, paragraph } from '../blocks/test-support/test-canvas';
 import { collaborationExtension } from '../engine/collab/collaboration-extension';
 import { yjsCollaboration } from '../yjs/index';
 

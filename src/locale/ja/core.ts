@@ -39,6 +39,7 @@ export const jaLabels: Required<QuoinLabels> = {
   color: '色',
   textColor: '文字の色',
   backgroundColor: '背景の色',
+  textColorSample: '\u3042',
   tone: '種類',
   icon: 'アイコン',
   duplicate: '複製',

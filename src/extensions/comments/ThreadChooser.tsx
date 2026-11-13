@@ -11,7 +11,7 @@ type ThreadChooserProps = {
 /** The threads anchored to the text clicked, when there are several, to open one. */
 export function ThreadChooser({ env, choices, onChoose }: ThreadChooserProps) {
   return (
-    <ul aria-label={env.labels.threadsHere} className="flex flex-col gap-1">
+    <ul aria-label={env.labels.threadsHere} className="flex list-none flex-col gap-1">
       {choices.map(({ id, anchorText, preview }) => (
         <li key={id}>
           <button

@@ -39,6 +39,7 @@ export const zhLabels: Required<QuoinLabels> = {
   color: '颜色',
   textColor: '文字颜色',
   backgroundColor: '背景颜色',
+  textColorSample: '\u6587',
   tone: '类型',
   icon: '图标',
   duplicate: '创建副本',

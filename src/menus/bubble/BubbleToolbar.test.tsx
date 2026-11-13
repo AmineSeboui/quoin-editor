@@ -2,7 +2,7 @@ import { createRef, useState } from 'react';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'vitest-axe';
-import { mountCanvas, paragraph } from '../../blocks/void/test-canvas';
+import { mountCanvas, paragraph } from '../../blocks/test-support/test-canvas';
 import { BlockCanvas } from '../../canvas/BlockCanvas';
 import type { QuoinEditorHandle } from '../../canvas/canvas-props';
 import type * as UiStoreModule from '../../canvas/ui-store';

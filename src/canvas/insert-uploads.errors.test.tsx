@@ -1,6 +1,6 @@
 import { act, waitFor } from '@testing-library/react';
 import { intrinsicSize } from '../blocks/intrinsic-size';
-import { mountCanvas, paragraph } from '../blocks/void/test-canvas';
+import { mountCanvas, paragraph } from '../blocks/test-support/test-canvas';
 import type { UploadFn } from '../types';
 
 vi.mock('../blocks/intrinsic-size');

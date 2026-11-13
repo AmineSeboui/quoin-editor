@@ -1,6 +1,6 @@
 import { act, fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { mountCanvas, paragraph } from '../blocks/void/test-canvas';
+import { mountCanvas, paragraph } from '../blocks/test-support/test-canvas';
 
 const hostOf = (shell: HTMLElement) => shell.querySelector<HTMLElement>('[data-quoin-host]')!;
 

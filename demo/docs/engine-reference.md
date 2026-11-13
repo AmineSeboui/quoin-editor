@@ -359,6 +359,16 @@ type BlockCodec = {
 
 [BlockCodec on GitHub](src/engine/blocks/codec.ts#L13)
 
+### CalloutTone
+
+One of the tones a callout is drawn in, which the names of the tones in the labels are keyed by.
+
+```ts
+type CalloutTone = 'info' | 'tip' | 'success' | 'warning' | 'danger';
+```
+
+[CalloutTone on GitHub](src/engine/blocks/callout-tones.ts#L2)
+
 ### coreBlockSpecs
 
 ```ts
@@ -965,6 +975,16 @@ const PALETTE: readonly ["default", "gray", "brown", "orange", "yellow", "green"
 ```
 
 [PALETTE on GitHub](src/engine/markdown/palette.ts#L2)
+
+### PaletteName
+
+One of the names in `PALETTE`, which the labels of the colour menu are keyed by.
+
+```ts
+type PaletteName = (typeof PALETTE)[number];
+```
+
+[PaletteName on GitHub](src/engine/markdown/palette.ts#L16)
 
 ### parseInline
 

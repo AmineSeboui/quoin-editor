@@ -1,5 +1,5 @@
 import { act, screen } from '@testing-library/react';
-import { mountCanvas, paragraph } from '../../blocks/void/test-canvas';
+import { mountCanvas, paragraph } from '../../blocks/test-support/test-canvas';
 import type * as VirtualAnchorModule from '../floating/virtual-anchor';
 import { virtualAnchor } from '../floating/virtual-anchor';
 

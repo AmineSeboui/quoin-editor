@@ -17,6 +17,7 @@ export type {
 export type { QuoinBlock } from './model/quoin-block';
 export { atom, normalizeInline, text } from './model/inline';
 export type { Align } from './blocks/data-fields';
+export type { CalloutTone } from './blocks/callout-tones';
 
 export type {
   AtomSpec,
@@ -81,7 +82,7 @@ export type { ToMarkdownOptions } from './markdown/document/to-markdown';
 export { toMarkdown } from './markdown/document/to-markdown';
 export { parseInline } from './markdown/inline/parse-inline';
 export { serializeInline } from './markdown/inline/serialize-inline';
-export { PALETTE } from './markdown/palette';
+export { PALETTE, type PaletteName } from './markdown/palette';
 export { sanitizeHref } from './markdown/urls';
 
 export type { EmbedProvider, EmbedUrl } from './render/embed-provider';

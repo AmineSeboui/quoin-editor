@@ -1,7 +1,7 @@
 import { act, fireEvent, screen } from '@testing-library/react';
 import { coreBlocks } from '../blocks/core';
 import { atom, fromMarkdown, nodeSelection, text, textSelection, type QuoinBlock } from '../engine';
-import { mountCanvas, paragraph } from '../blocks/void/test-canvas';
+import { mountCanvas, paragraph } from '../blocks/test-support/test-canvas';
 
 type OptInCase = {
   block: QuoinBlock;

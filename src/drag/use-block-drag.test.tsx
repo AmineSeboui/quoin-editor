@@ -1,6 +1,6 @@
 import { act, cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { mountCanvas, paragraph, testBlockTypes } from '../blocks/void/test-canvas';
+import { mountCanvas, paragraph, testBlockTypes } from '../blocks/test-support/test-canvas';
 import { blockRangeSelection, textSelection } from '../engine';
 import { defineBlock } from '../registry';
 import { md } from '../view/react/test-harness';

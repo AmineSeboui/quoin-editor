@@ -2,7 +2,7 @@ import { act, fireEvent, screen } from '@testing-library/react';
 import { ListTodo } from '../../icons';
 import { defineBlock } from '../../registry';
 import type { QuoinBlock } from '../../types';
-import { mountCanvas, paragraph, testBlockTypes } from './test-canvas';
+import { mountCanvas, paragraph, testBlockTypes } from '../test-support/test-canvas';
 
 type TodoData = { done: boolean; note: string };
 

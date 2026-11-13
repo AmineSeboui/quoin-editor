@@ -1,6 +1,6 @@
 import { act, fireEvent } from '@testing-library/react';
 import { coreBlocks } from '../blocks/core';
-import { mountCanvas } from '../blocks/void/test-canvas';
+import { mountCanvas } from '../blocks/test-support/test-canvas';
 import type { QuoinBlock } from '../engine';
 
 /** A canvas with the core block types, and the means to place the caret, type and press keys as a writer would. */

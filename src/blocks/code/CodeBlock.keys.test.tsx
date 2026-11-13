@@ -4,7 +4,7 @@ import { blockRangeSelection, nodeSelection, textSelection } from '../../engine'
 import { collaborationExtension } from '../../engine/collab/collaboration-extension';
 import type { QuoinBlock } from '../../types';
 import { yjsCollaboration } from '../../yjs/index';
-import { mountCanvas, paragraph } from '../void/test-canvas';
+import { mountCanvas, paragraph } from '../test-support/test-canvas';
 
 const code = (id: string, value: string): QuoinBlock => ({ id, type: 'CODE', data: { language: 'ts', code: value } });
 const area = () => screen.getByRole<HTMLTextAreaElement>('textbox', { name: 'Code' });

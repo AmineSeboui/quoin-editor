@@ -1,6 +1,6 @@
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { bookmarkBlock, mountCanvas, paragraph } from '../blocks/void/test-canvas';
+import { bookmarkBlock, mountCanvas, paragraph } from '../blocks/test-support/test-canvas';
 import { nodeSelection, textSelection } from '../engine';
 import { md } from '../view/react/test-harness';
 

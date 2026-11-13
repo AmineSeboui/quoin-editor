@@ -1,6 +1,6 @@
 import { act, fireEvent, screen, within } from '@testing-library/react';
 import { coreBlocks } from '../../blocks/core';
-import { mountCanvas, paragraph } from '../../blocks/void/test-canvas';
+import { mountCanvas, paragraph } from '../../blocks/test-support/test-canvas';
 import type { QuoinBlock } from '../../engine';
 import { tocExtension, type TocOptions } from './toc-extension';
 

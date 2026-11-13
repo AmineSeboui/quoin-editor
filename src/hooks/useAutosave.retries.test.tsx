@@ -56,6 +56,21 @@ describe('useAutosave', () => {
       expect(save).toHaveBeenCalledTimes(3);
     });
 
+    it('retries a failing save 8 times by default before giving up', async () => {
+      const save = vi.fn(() => Promise.reject(new Error('offline')));
+      render(<Harness save={save} />);
+      await edit();
+      await settle(2000);
+      for (let retry = 1; retry <= 8; retry += 1) {
+        expect(status()).toBe('retrying');
+        await settle(30_000);
+      }
+      expect(save).toHaveBeenCalledTimes(9);
+      expect(status()).toBe('failed');
+      await settle(120_000);
+      expect(save).toHaveBeenCalledTimes(9);
+    });
+
     it('clears the error and the pending backoff on success', async () => {
       const save = vi.fn().mockRejectedValueOnce(new Error('offline'));
       render(<Harness save={save} />);

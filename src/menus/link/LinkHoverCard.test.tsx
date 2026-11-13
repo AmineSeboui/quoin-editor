@@ -1,6 +1,6 @@
 import { act, fireEvent, screen, within } from '@testing-library/react';
 import { axe } from 'vitest-axe';
-import { mountCanvas, paragraph } from '../../blocks/void/test-canvas';
+import { mountCanvas, paragraph } from '../../blocks/test-support/test-canvas';
 import { textSelection, type Pos } from '../../engine';
 
 type Canvas = ReturnType<typeof mountCanvas>;

@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { nodeSelection } from '../../engine';
 import type { QuoinBlock, UploadFn, UploadResult } from '../../types';
 import { clipboardEvent, dragEvent, fakeTransfer } from '../../view/clipboard/test-transfer';
-import { mountCanvas, paragraph } from '../void/test-canvas';
+import { mountCanvas, paragraph } from '../test-support/test-canvas';
 
 const pdf = new File(['%PDF'], 'notes.pdf', { type: 'application/pdf' });
 const png = new File(['png'], 'cat.png', { type: 'image/png' });

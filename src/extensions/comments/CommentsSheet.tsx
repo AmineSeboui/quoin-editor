@@ -66,7 +66,7 @@ export function CommentsSheet({ env, entries, value, onToggle, onClose, returnFo
               </Button>
             </DialogPrimitive.Close>
           </div>
-          <ul aria-label={labels.comments} className="flex flex-col gap-2">
+          <ul aria-label={labels.comments} className="flex list-none flex-col gap-2">
             {entries.map((entry) => (
               <li key={entry.thread.id}>
                 <ThreadCard

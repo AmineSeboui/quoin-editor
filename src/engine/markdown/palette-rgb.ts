@@ -1,7 +1,6 @@
-import type { PALETTE } from './palette';
+import type { PaletteName } from './palette';
 
 export type Rgb = readonly [number, number, number];
-export type PaletteName = (typeof PALETTE)[number];
 export type PaletteKind = 'text' | 'background';
 
 // Each name lists the current and the earlier Notion value, which pasted content from other tools sits between.

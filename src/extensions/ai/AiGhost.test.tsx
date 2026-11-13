@@ -1,6 +1,6 @@
 import { act, cleanup, fireEvent, screen } from '@testing-library/react';
 import { axe } from 'vitest-axe';
-import { paragraph } from '../../blocks/void/test-canvas';
+import { paragraph } from '../../blocks/test-support/test-canvas';
 import { mountAi } from './ai-test-canvas';
 
 function improving() {

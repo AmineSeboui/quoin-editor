@@ -6,7 +6,7 @@ import { defineBlock } from '../../registry';
 import type { QuoinBlock, UploadResult } from '../../types';
 import { UploadField } from '../../upload/UploadField';
 import type * as UploadFieldModule from '../../upload/UploadField';
-import { bookmarkBlock, mountCanvas, paragraph, testBlockTypes } from './test-canvas';
+import { bookmarkBlock, mountCanvas, paragraph, testBlockTypes } from '../test-support/test-canvas';
 
 const picker = vi.hoisted(() => ({
   onUploaded: undefined as ((result: UploadResult) => void | Promise<void>) | undefined,

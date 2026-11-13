@@ -68,7 +68,7 @@ export function Editor({ blocks, onChange }: { blocks: QuoinBlock[]; onChange: (
 }
 ```
 
-A key left out, or passed as `undefined`, keeps the English default. That is how a language the package does not ship is written: a `Partial<QuoinLabels>` of your own, with English standing in for anything you have not translated yet.
+A key left out, or passed as `undefined`, keeps the English default. That is how a language the package does not ship is written: a `Partial<QuoinLabels>` of your own, with English standing in for anything you have not translated yet. `colors`, the names of the text and background colours, is keyed by `PaletteName`, which `quoin-editor` and `quoin-editor/engine` export with `PALETTE`, the list of those names. `textColorSample` is the letter the colour menus draw in each text colour beside its name, `A` in English and a letter of its own script in the Arabic, Japanese and Chinese packs; it is optional in `QuoinLabels`, so a translation written before it still compiles.
 
 ## Counts, dates and sizes
 

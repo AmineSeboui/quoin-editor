@@ -1,6 +1,6 @@
 import { act, fireEvent } from '@testing-library/react';
 import { coreBlocks } from '../../blocks/core';
-import { mountCanvas, paragraph } from '../../blocks/void/test-canvas';
+import { mountCanvas, paragraph } from '../../blocks/test-support/test-canvas';
 import type { QuoinBlock } from '../../engine';
 import { clipboardEvent, fakeTransfer } from '../../view/clipboard/test-transfer';
 import { embedExtension, type EmbedOptions } from './embed-extension';

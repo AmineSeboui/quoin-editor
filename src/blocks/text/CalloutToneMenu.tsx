@@ -20,9 +20,15 @@ const SHOWN_WITH_THE_BLOCK = [
   'in-data-[selected=true]:opacity-100 pointer-coarse:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100',
 ].join(' ');
 
-type CalloutToneMenuProps = { blockId: string; controller: ViewController; tone: CalloutTone };
+type CalloutToneMenuProps = {
+  blockId: string;
+  controller: ViewController;
+  tone: CalloutTone;
+  /** Shown at rest too, rather than only with the block, for a callout whose icon does not tell its tone. */
+  alwaysShown: boolean;
+};
 
-export function CalloutToneMenu({ blockId, controller, tone }: CalloutToneMenuProps) {
+export function CalloutToneMenu({ blockId, controller, tone, alwaysShown }: CalloutToneMenuProps) {
   const labels = useLabels();
   const name = labels.calloutTones[tone];
   return (
@@ -34,7 +40,7 @@ export function CalloutToneMenu({ blockId, controller, tone }: CalloutToneMenuPr
           size="xs"
           tabIndex={-1}
           aria-label={labels.calloutToneMenu(name)}
-          className={SHOWN_WITH_THE_BLOCK}
+          className={alwaysShown ? undefined : SHOWN_WITH_THE_BLOCK}
         >
           {name}
         </Button>

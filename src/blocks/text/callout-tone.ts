@@ -16,3 +16,8 @@ const TONE_ICONS: Readonly<Record<CalloutTone, string>> = {
 export function calloutIcon(attrs: BlockAttrs, tone: CalloutTone): string {
   return typeof attrs.icon === 'string' && attrs.icon !== '' ? attrs.icon : TONE_ICONS[tone];
 }
+
+/** Whether a callout shows its tone's own icon, which tells the tone without its colour. */
+export function iconTellsTone(attrs: BlockAttrs, tone: CalloutTone): boolean {
+  return calloutIcon(attrs, tone) === TONE_ICONS[tone];
+}

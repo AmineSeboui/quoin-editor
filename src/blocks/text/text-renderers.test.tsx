@@ -133,6 +133,22 @@ describe('a callout in the canvas', () => {
     expect(shell('c')).toHaveTextContent('\u2705');
   });
 
+  it('keeps its tone chip in view once its icon is not the one of its tone, as colour alone would tell it', () => {
+    const pin = '\u{1F4CC}';
+    mountCanvas([callout('own', { tone: 'warning', body: 'a' }), callout('pin', { tone: 'warning', body: 'b', icon: pin })]);
+    const [own, pinned] = screen.getAllByRole('button', { name: 'Callout tone: warning' });
+    expect(own).toHaveClass('opacity-0');
+    expect(pinned).not.toHaveClass('opacity-0');
+  });
+
+  it('writes its tone beside an icon that is not the one of its tone while read-only', () => {
+    const pin = '\u{1F4CC}';
+    const blocks = [callout('own', { tone: 'tip', body: 'a' }), callout('pin', { tone: 'tip', body: 'b', icon: pin })];
+    const { shell } = mountCanvas(blocks, { readOnly: true });
+    expect(shell('own')).not.toHaveTextContent('tip');
+    expect(shell('pin')).toHaveTextContent('tip');
+  });
+
   it('names its host with the tone name a host gives, written as given', () => {
     const calloutTones = { info: 'Hinweis', tip: 'Tipp', success: 'Erfolg', warning: 'Warnung', danger: 'Gefahr' };
     mountCanvas([callout('c', { tone: 'warning', body: 'x' })], { labels: { calloutTones } });

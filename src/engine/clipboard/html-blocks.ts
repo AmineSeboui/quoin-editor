@@ -1,5 +1,6 @@
 import { inlineLength, removeMarkRange } from '../model/inline';
 import type { BlockAttrs, EngineBlock, Inline } from '../model/types';
+import { inlineClassRules } from './html-class-rules';
 import { codeBlock } from './html-code';
 import { child, emit, emitText, PARAGRAPH, type Context, type Sink } from './html-context';
 import {
@@ -11,6 +12,7 @@ import {
   tagName,
   TEXT_NODE,
 } from './html-dom';
+import { sizedHeading } from './html-font-size';
 import { inlineFromNodes } from './html-inline';
 import { list, listItem, wordListItem } from './html-lists';
 import { elementMarks } from './html-marks';
@@ -44,12 +46,23 @@ function styledContext(element: Element, outer: Context): { ctx: Context; code: 
   return { ctx, code: keeps === true && isMonospace(styles) };
 }
 
+function headingLevel(element: Element, tag: string, ctx: Context, sink: Sink): number | null {
+  const named = HEADING.exec(tag);
+  if (named) return Number(named[1]);
+  if (element.getAttribute('role') === 'heading') {
+    return Math.min(6, Math.max(1, Math.trunc(Number(element.getAttribute('aria-level'))) || 2));
+  }
+  const paragraph = (tag === 'p' || tag === 'div') && ctx.run.kind === 'paragraph' && !hasBlockDescendant(element);
+  return paragraph ? sink.sizedHeading(element) : null;
+}
+
 function handleBlock(element: Element, outer: Context, sink: Sink): void {
   const { ctx, code } = styledContext(element, outer);
   const tag = tagName(element);
   if (code && tag === 'div') return codeBlock(element, ctx, sink);
-  const heading = HEADING.exec(tag);
-  if (heading) return sink.walk(element.childNodes, child(ctx, { run: { kind: 'heading', level: Number(heading[1]) } }));
+  if (tag === 'p' && wordListItem(element, ctx, sink)) return;
+  const level = headingLevel(element, tag, ctx, sink);
+  if (level !== null) return sink.walk(element.childNodes, child(ctx, { run: { kind: 'heading', level } }));
   switch (tag) {
     case 'ul':
     case 'ol':
@@ -72,8 +85,6 @@ function handleBlock(element: Element, outer: Context, sink: Sink): void {
       return figure(element, ctx, sink);
     case 'details':
       return details(element, ctx, sink);
-    case 'p':
-      if (wordListItem(element, ctx, sink)) return;
   }
   sink.walk(element.childNodes, child(ctx));
 }
@@ -101,7 +112,13 @@ function walkNodes(nodes: Iterable<Node>, ctx: Context, sink: Sink): void {
 }
 
 export function blocksFromBody(body: Element, newId: () => string): EngineBlock[] {
-  const sink: Sink = { out: [], newId, walk: (nodes, ctx) => walkNodes(nodes, ctx, sink) };
+  inlineClassRules(body);
+  const sink: Sink = {
+    out: [],
+    newId,
+    sizedHeading: sizedHeading(body),
+    walk: (nodes, ctx) => walkNodes(nodes, ctx, sink),
+  };
   sink.walk(body.childNodes, { indent: 0, marks: [], run: PARAGRAPH, preformatted: false, depth: 0 });
   return sink.out;
 }

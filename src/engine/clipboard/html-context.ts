@@ -1,4 +1,5 @@
 import type { BlockAttrs, EngineBlock, Inline, Mark } from '../model/types';
+import type { SizedHeading } from './html-font-size';
 
 export type Context = {
   readonly indent: number;
@@ -11,6 +12,7 @@ export type Context = {
 export type Sink = {
   readonly out: EngineBlock[];
   readonly newId: () => string;
+  readonly sizedHeading: SizedHeading;
   walk(nodes: Iterable<Node>, ctx: Context): void;
 };
 

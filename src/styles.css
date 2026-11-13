@@ -36,6 +36,7 @@
 @import "./view-static/static-links.css" layer(quoin.components);
 @import "./diff/diff.css" layer(quoin.components);
 @import "./ui/palette.css" layer(quoin.components);
+@import "./ui/shimmer.css" layer(quoin.components);
 
 /* Tailwind's default dark: variant keys on prefers-color-scheme, while the --quoin- variables
    switch on a .dark class; without this line the two disagree for a consumer whose OS theme

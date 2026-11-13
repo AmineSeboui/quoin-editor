@@ -1,0 +1,53 @@
+/* shadcn's shimmer: a band of lighter colour sweeping through text as it is being written. */
+.quoin .quoin-shimmer {
+  --quoin-shimmer-spread: calc(3ch + 40px);
+  --quoin-shimmer-highlight: oklch(from currentColor l c h / calc(alpha * 0.2));
+  background-image: linear-gradient(
+    110deg,
+    currentColor calc(50% - var(--quoin-shimmer-spread)),
+    color-mix(in oklch, var(--quoin-shimmer-highlight), currentColor 50%) calc(50% - var(--quoin-shimmer-spread) * 0.5),
+    var(--quoin-shimmer-highlight) 50%,
+    color-mix(in oklch, var(--quoin-shimmer-highlight), currentColor 50%) calc(50% + var(--quoin-shimmer-spread) * 0.5),
+    currentColor calc(50% + var(--quoin-shimmer-spread))
+  );
+  background-repeat: no-repeat;
+  background-size: calc(200% + var(--quoin-shimmer-spread) * 2) 100%;
+  background-position: 0 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: quoin-shimmer 2s linear infinite;
+}
+
+.dark .quoin .quoin-shimmer,
+.quoin.dark .quoin-shimmer {
+  --quoin-shimmer-highlight: oklch(from currentColor max(0.8, calc(l + 0.4)) c h / calc(alpha + 0.4));
+}
+
+.quoin .quoin-shimmer:dir(rtl) {
+  animation-direction: reverse;
+}
+
+@keyframes quoin-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quoin .quoin-shimmer {
+    animation: none;
+    background-image: none;
+    -webkit-text-fill-color: currentColor;
+  }
+}
+
+@media (forced-colors: active) {
+  .quoin .quoin-shimmer {
+    background-image: none;
+    -webkit-text-fill-color: currentColor;
+  }
+}

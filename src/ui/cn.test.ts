@@ -95,4 +95,8 @@ describe('cn', () => {
   it('lets a later border colour replace an earlier one and keeps the width', () => {
     expect(cn('border border-transparent', 'border-border')).toBe('border border-border');
   });
+
+  it('lets a later border width replace an earlier one and keeps the colour', () => {
+    expect(cn('border border-input', 'border-0')).toBe('border-input border-0');
+  });
 });

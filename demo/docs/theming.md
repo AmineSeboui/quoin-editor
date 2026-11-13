@@ -12,7 +12,7 @@ description: Every colour and radius comes from a --quoin- token, the stylesheet
   --quoin-background: oklch(1 0 0);
   --quoin-foreground: oklch(0.24 0.024 267);
   --quoin-muted: oklch(0.975 0.005 258);
-  --quoin-muted-foreground: oklch(0.48 0.029 263);
+  --quoin-muted-foreground: oklch(0.47 0.029 263);
   --quoin-secondary: oklch(0.965 0.007 262);
   --quoin-secondary-foreground: oklch(0.24 0.024 267);
   --quoin-popover: oklch(1 0 0);
@@ -37,7 +37,7 @@ description: Every colour and radius comes from a --quoin- token, the stylesheet
   --quoin-background: oklch(0.19 0.015 267);
   --quoin-foreground: oklch(0.965 0.005 260);
   --quoin-muted: oklch(0.245 0.02 266);
-  --quoin-muted-foreground: oklch(0.72 0.02 262);
+  --quoin-muted-foreground: oklch(0.73 0.02 262);
   --quoin-secondary: oklch(0.28 0.025 266);
   --quoin-secondary-foreground: oklch(0.965 0.005 260);
   --quoin-popover: oklch(0.225 0.019 266);

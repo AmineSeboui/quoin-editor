@@ -195,6 +195,13 @@ describe('the block menu of a callout', () => {
     expect(last()[0].data).toMatchObject({ tone: 'warning', icon: '\u{1F4CC}' });
   });
 
+  it('offers no Color submenu and paints no background its data carries, so its wash never sits on a colour', () => {
+    const { openMenuFromText, shell } = setup([callout('c', { tone: 'tip', body: 'Note', background: 'red' })]);
+    expect(shell('c')).not.toHaveAttribute('data-bg');
+    openMenuFromText('c');
+    expect(within(menu()).queryByRole('menuitem', { name: 'Color' })).toBeNull();
+  });
+
   it('offers no Tone or Icon submenu once a target is not a callout', () => {
     const { openMenuFromText } = setup();
     openMenuFromText('a');

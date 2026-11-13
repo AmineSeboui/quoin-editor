@@ -1,5 +1,6 @@
 'use client';
 
+import { useDirection } from '@radix-ui/react-direction';
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react';
 import { keyName, normalizeKey, redo, undo, type Command } from '../../engine';
 import { ChevronDown, ChevronUp, X } from '../../icons';
@@ -43,6 +44,7 @@ export function FindPanel({ controller, labels, value, readOnly }: Props) {
   const actions = useMemo(() => findActions(controller), [controller]);
   const [replacement, setReplacement] = useState('');
   const panel = useRef<HTMLDivElement>(null);
+  const dir = useDirection();
   const query = useRef<HTMLInputElement>(null);
   useEffect(() => focusAll(query.current), [value.opened]);
   useScrollToCurrent(controller, panel, currentMatch(value));
@@ -82,9 +84,10 @@ export function FindPanel({ controller, labels, value, readOnly }: Props) {
   return (
     <div
       ref={panel}
+      dir={dir}
       role="search"
       aria-label={labels.findAndReplace}
-      className="quoin quoin-find-panel bg-popover fixed top-4 right-4 z-50 max-w-[calc(100vw-2rem)] text-popover-foreground flex flex-col gap-1.5 rounded-lg border p-2 shadow-md"
+      className="quoin quoin-find-panel bg-popover fixed top-4 end-4 z-50 max-w-[calc(100vw-2rem)] text-popover-foreground flex flex-col gap-1.5 rounded-lg border p-2 shadow-md"
       onKeyDown={onPanelKeyDown}
       onClick={onPanelClick}
     >

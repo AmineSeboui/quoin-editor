@@ -1,12 +1,11 @@
 import type { ComponentType } from 'react';
 import { blockRangeSelection, toMarkdown, type Command, type Editor, type EditorState } from '../engine';
-import { descendantsEnd, selectedBlockRange } from '../engine/commands/block-helpers';
+import { selectedBlockRange } from '../engine/commands/block-helpers';
 import { deleteBlocks, duplicateBlocks, moveBlocksDown, moveBlocksUp } from '../engine/commands/block-structure';
 import { runCommands } from '../engine/commands/run-commands';
 import { setSelection } from '../engine/commands/selection-commands';
 import type { InternalEditor } from '../engine/extension/editor';
-import { createDoc, requireBlockIndex } from '../engine/model/doc';
-import { selectedBlockIds } from '../engine/state/selection';
+import { createDoc } from '../engine/model/doc';
 import type { QuoinLabels } from '../i18n/labels';
 import { ArrowDown, ArrowUp, Copy, CopyPlus, Link, Trash } from '../icons';
 import type { ViewController } from '../view';
@@ -31,27 +30,6 @@ export type CoreBlockMenuOptions = {
 };
 
 const rangeOf = (blockIds: readonly string[]) => blockRangeSelection(blockIds[0], blockIds[blockIds.length - 1]);
-
-function selectedWith(state: EditorState, blockId: string): string[] | null {
-  const { doc, selection } = state;
-  const selected = selectedBlockIds(doc, selection);
-  const ofBlocks = selection?.kind === 'blocks' || (selection?.kind === 'text' && selected.length > 1);
-  return ofBlocks && selected.includes(blockId) ? selected : null;
-}
-
-export function menuTargets(state: EditorState, blockId: string): string[] {
-  const selected = selectedWith(state, blockId);
-  if (selected !== null) return selected;
-  const { doc } = state;
-  const index = requireBlockIndex(doc, blockId);
-  return doc.blocks.slice(index, descendantsEnd(doc, index)).map((block) => block.id);
-}
-
-// A block moved, copied or deleted takes its nested blocks along, but Turn into, Color, Tone and Icon restyle only the
-// block itself: applied to the nested blocks they would rewrite their types and colours.
-export function styleTargets(state: EditorState, blockId: string): string[] {
-  return selectedWith(state, blockId) ?? [blockId];
-}
 
 export function menuActions(core: readonly BlockMenuAction[], extra: readonly BlockMenuAction[] = []): BlockMenuAction[] {
   return [...core.filter((action) => !action.destructive), ...extra, ...core.filter((action) => action.destructive)];

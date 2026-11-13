@@ -10,17 +10,21 @@ function element(parent: HTMLElement = document.body): HTMLElement {
   return child;
 }
 
-function pane(top: number, clientHeight: number) {
-  const container = element();
+// A pane scrolled to the middle of its content, which moves by what it is asked to scroll by until it reaches an end.
+function pane(top: number, clientHeight: number, parent?: HTMLElement) {
+  const container = element(parent);
   container.style.overflowY = 'auto';
   Object.defineProperties(container, {
     scrollHeight: { value: clientHeight * 3 },
     clientHeight: { value: clientHeight },
     clientTop: { value: 2 },
   });
+  container.scrollTop = clientHeight;
   container.getBoundingClientRect = () => ({ top: top - 2 }) as DOMRect;
-  const scrollBy = vi.fn();
-  container.scrollBy = scrollBy;
+  const scrollBy = vi.fn((_x: number, y: number) => {
+    container.scrollTop = Math.min(Math.max(container.scrollTop + y, 0), clientHeight * 2);
+  });
+  container.scrollBy = scrollBy as unknown as HTMLElement['scrollBy'];
   return { container, scrollBy };
 }
 
@@ -85,6 +89,32 @@ describe('createAutoScroll', () => {
     nextFrame();
     expect(scrollBy.mock.calls).toEqual([[0, 15], [0, -15]]);
     expect(windowScroll).not.toHaveBeenCalled();
+  });
+
+  it('hands the scrolling on to the container around once the nearest one reaches its end', () => {
+    const windowScroll = vi.spyOn(window, 'scrollBy').mockImplementation(() => {});
+    const outer = pane(0, window.innerHeight);
+    const inner = pane(0, window.innerHeight, outer.container);
+    inner.container.scrollTop = window.innerHeight * 2 - 15;
+    const scroll = createAutoScroll(element(inner.container), () => {});
+    scroll.update(window.innerHeight - 10);
+    nextFrame();
+    nextFrame();
+    nextFrame();
+    expect(inner.scrollBy.mock.calls).toEqual([[0, 15]]);
+    expect(outer.scrollBy.mock.calls).toEqual([[0, 15], [0, 15]]);
+    expect(windowScroll).not.toHaveBeenCalled();
+  });
+
+  it('hands the scrolling on to the window once every container has reached its end', () => {
+    const windowScroll = vi.spyOn(window, 'scrollBy').mockImplementation(() => {});
+    const { container, scrollBy } = pane(0, window.innerHeight);
+    container.scrollTop = 0;
+    const scroll = createAutoScroll(element(container), () => {});
+    scroll.update(10);
+    nextFrame();
+    expect(scrollBy).not.toHaveBeenCalled();
+    expect(windowScroll).toHaveBeenCalledWith(0, -15);
   });
 
   it('measures a container taller than the window from the edges of the window', () => {

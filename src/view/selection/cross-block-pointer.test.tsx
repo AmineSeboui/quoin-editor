@@ -29,6 +29,13 @@ function mount() {
 const fire = (target: EventTarget, type: string, init: MouseEventInit) =>
   act(() => void target.dispatchEvent(new MouseEvent(type, { bubbles: true, ...init })));
 
+// jsdom has no PointerEvent, so a touch is a mouse event that says it came from a finger.
+function touch(target: EventTarget, type: string): void {
+  const event = new MouseEvent(type, { bubbles: true, button: 0, buttons: type === 'pointerdown' ? 1 : 0 });
+  Object.defineProperties(event, { pointerType: { value: 'touch' }, pointerId: { value: 7 } });
+  act(() => void target.dispatchEvent(event));
+}
+
 function drag(controller: ViewController, from: Element) {
   act(() => controller.dispatch(controller.editor.createTransaction().setSelection(nodeSelection('plain'))));
   document.elementFromPoint = () => from;
@@ -79,6 +86,26 @@ describe('a press on a block that holds no caret', () => {
     expect(controller.editor.state.selection).toEqual(nodeSelection('d'));
     expect(shell('d')).toHaveAttribute('data-selected', 'true');
     expect(sink).toHaveFocus();
+  });
+
+  it('node-selects it when a tap on it lifts, as Firefox leaves no native selection after a touch either', () => {
+    const { controller, shell } = mountDivider();
+    touch(screen.getByRole('separator'), 'pointerdown');
+    expect(controller.editor.state.selection).not.toEqual(nodeSelection('d'));
+    touch(document, 'pointerup');
+    expect(controller.editor.state.selection).toEqual(nodeSelection('d'));
+    expect(shell('d')).toHaveAttribute('data-selected', 'true');
+  });
+
+  it('leaves a touch the browser takes for a scroll, and a tap on a block that holds a caret, as they are', () => {
+    const { controller, shell } = mountDivider();
+    const caret = controller.editor.state.selection;
+    touch(screen.getByRole('separator'), 'pointerdown');
+    touch(document, 'pointercancel');
+    touch(document, 'pointerup');
+    touch(shell('b'), 'pointerdown');
+    touch(document, 'pointerup');
+    expect(controller.editor.state.selection).toEqual(caret);
   });
 
   it('leaves the page where it is, where a block selected by keyboard is scrolled into view', () => {

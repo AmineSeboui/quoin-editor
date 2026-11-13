@@ -1,5 +1,6 @@
 import type { RefObject } from 'react';
 import { inlineDirection } from '../ui/direction';
+import { watchDirection } from '../ui/watch-direction';
 import type { ViewController } from '../view';
 import { useIsomorphicLayoutEffect } from '../view/react/use-isomorphic-layout-effect';
 
@@ -34,7 +35,8 @@ function place(controller: ViewController, root: HTMLElement, gutter: HTMLElemen
 }
 
 // The gutter is moved in place rather than through React state, so the pointer crossing blocks and every edit that
-// shifts the layout draw nothing but the gutter. Positions are read once the frame's edits have reached the hosts.
+// shifts the layout draw nothing but the gutter. Positions are read once the frame's edits have reached the hosts, and
+// again when the page turns round under it.
 export function useGutterPosition(
   controller: ViewController,
   gutter: RefObject<HTMLElement | null>,
@@ -53,12 +55,14 @@ export function useGutterPosition(
       frame = view.requestAnimationFrame(update);
     };
     const unsubscribe = controller.editor.subscribe(later);
+    const unwatch = watchDirection(root, later);
     const observer = new ResizeObserver(later);
     observer.observe(root);
     view.addEventListener('resize', later);
     return () => {
       view.cancelAnimationFrame(frame);
       unsubscribe();
+      unwatch();
       observer.disconnect();
       view.removeEventListener('resize', later);
     };

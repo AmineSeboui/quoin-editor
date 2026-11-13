@@ -1,9 +1,9 @@
+import { handleTargets, styleTargets } from '../canvas/block-targets';
 import type { CanvasUiStore } from '../canvas/ui-store';
 import type { EditorState } from '../engine';
-import { menuTargets, styleTargets } from './block-menu-items';
 
 const targetsOf = (state: EditorState, blockId: string) => ({
-  blockIds: menuTargets(state, blockId),
+  blockIds: handleTargets(state, blockId),
   styleIds: styleTargets(state, blockId),
 });
 

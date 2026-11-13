@@ -128,18 +128,31 @@ export function createCrossBlockPointer(controller: ViewController): CrossBlockP
         select(nodeSelection(block));
       }
 
+      // A touch is left to the browser, which scrolls with it, but a block with no text is node-selected once the tap
+      // lifts, since Firefox leaves no native selection to read it from after a touch either.
+      function followTap(event: PointerEvent, block: string | undefined): void {
+        if (block === undefined || event.shiftKey) return;
+        const lift = (up: PointerEvent) => {
+          if (up.pointerId !== event.pointerId) return;
+          end();
+          pressWhole(block);
+        };
+        unfollow = listen(doc, { pointerup: lift, pointercancel: end });
+      }
+
       function onPointerDown(event: PointerEvent): void {
         end();
         preventMouseDown = false;
-        if (event.button !== 0 || event.pointerType === 'touch') return;
+        if (event.button !== 0) return;
         const target = event.target as Element;
         const host = controller.registry.locate(target);
-        const block = host === null ? controller.blockAt(target) : undefined;
         const control = target.closest(CONTROLS);
+        const block = host === null && !(control && root.contains(control)) ? controller.blockAt(target) : undefined;
+        if (event.pointerType === 'touch') return followTap(event, block);
         if (host !== null) {
           press = { kind: 'text', host, anchor: null };
           if (event.shiftKey) extendFrom(host, event.clientX, event.clientY);
-        } else if (block !== undefined && !(control && root.contains(control))) {
+        } else if (block !== undefined) {
           press = { kind: 'blocks', start: block, x: event.clientX, y: event.clientY };
           // A node selection is otherwise read from the native one, and Firefox leaves none after a press on a block
           // with no text, such as a divider.

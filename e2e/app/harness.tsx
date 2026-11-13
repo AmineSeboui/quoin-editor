@@ -21,6 +21,9 @@ const UPLOAD_DELAY = params.get('upload');
 // pack is for the specs that want real Arabic text, such as the contrast scan.
 const LABELS = params.get('locale') === 'ar' ? arLabels : undefined;
 if (params.get('dir') === 'rtl') document.documentElement.dir = 'rtl';
+// A host can turn round only the part of the page that holds the canvas, which leaves the body, where the menus and
+// toolbars are drawn over the page, running left to right.
+if (params.get('canvas-dir') === 'rtl') document.getElementById('root')!.dir = 'rtl';
 
 // Each upload is kept as an object URL under its key, so the picture of an uploaded image loads.
 const uploads = new Map<string, string>([['fixture.png', fixtureDataUrl]]);

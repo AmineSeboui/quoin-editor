@@ -84,7 +84,10 @@ describe('insertText', () => {
     editor.insertText('a');
     editor.insertText('b');
     insertText('X')(editor.state, (tr) => editor.dispatch(tr));
-    insertText('c', { origin: 'input' })(editor.state, (tr) => editor.dispatch(tr));
+    editor.insertText('c');
+    insertText('d', { origin: 'input' })(editor.state, (tr) => editor.dispatch(tr));
+    editor.insertText('e');
+    expect(editor.getBlocks()).toEqual([md('a', 'abXcde')]);
     editor.commands.undo();
     expect(editor.getBlocks()).toEqual([md('a', 'abX')]);
     editor.commands.undo();

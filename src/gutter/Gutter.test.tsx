@@ -44,6 +44,18 @@ describe('the gutter', () => {
     expect(screen.getByRole('menu')).toHaveAccessibleName('Text block menu');
   });
 
+  it('moves to the other side of its block as soon as the page around the canvas turns round', async () => {
+    const { handle, shell } = mountCanvas([paragraph('a', 'intro')]);
+    const line = { top: 0, bottom: 24, left: 48, right: 600, width: 552, height: 24, x: 48, y: 0 } as DOMRect;
+    vi.spyOn(shell('a'), 'getBoundingClientRect').mockReturnValue(line);
+    fireEvent.pointerMove(hostOf(shell('a')));
+    const gutter = handleButton().closest<HTMLElement>('[data-quoin-gutter-block]')!;
+    const x = () => /translate\((-?[\d.]+)px/.exec(gutter.style.transform)?.[1];
+    expect(x()).toBe('44');
+    act(() => void handle().controller.root!.parentElement!.style.setProperty('direction', 'rtl'));
+    await waitFor(() => expect(x()).toBe('604'));
+  });
+
   it('keeps its controls out of the tab order', () => {
     const { shell } = mountCanvas([paragraph('a', 'intro')]);
     fireEvent.pointerMove(hostOf(shell('a')));

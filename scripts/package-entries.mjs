@@ -63,7 +63,7 @@ export const localeEntries = [
 /** @type {PackageEntry[]} */
 export const packageEntries = [
   { name: MAIN_ENTRY, source: 'src/index.ts', client: true, total: 157_000 },
-  { name: 'headless', source: 'src/headless.ts', client: true, total: 73_200 },
+  { name: 'headless', source: 'src/headless.ts', client: true, total: 73_300 },
   { name: 'engine', source: 'src/engine/index.ts', client: false, total: 52_800 },
   // Read-only React for a server, which loads it alone: the markdown parser it shares with the engine is most of it.
   { name: 'view', source: 'src/view-static/index.ts', client: false, total: 22_214 },

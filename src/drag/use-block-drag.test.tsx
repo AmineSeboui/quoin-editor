@@ -7,15 +7,30 @@ import { md } from '../view/react/test-harness';
 
 const ROW = 30;
 const LEFT = 48;
+let scrolled = 0;
 
-// jsdom lays nothing out, so every block shell is given a row of its own, 24 px tall, in document order.
+// jsdom lays nothing out, so every block shell is given a row of its own, 24 px tall, in document order, and the page
+// is scrolled down by `scrolled`.
 function layOutRows(): void {
+  scrolled = 0;
   vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
     const shells = [...document.querySelectorAll<HTMLElement>('[data-block-id]')];
     const row = shells.indexOf(this);
-    const [top, left, width, height] = row < 0 ? [0, 0, 600, 600] : [row * ROW, LEFT, 552, ROW - 6];
+    const [top, left, width, height] = row < 0 ? [-scrolled, 0, 600, 600] : [row * ROW - scrolled, LEFT, 552, ROW - 6];
     return { top, left, width, height, x: left, y: top, right: left + width, bottom: top + height } as DOMRect;
   });
+}
+
+// The page's stylesheet, as far as the drag reads it: a margin at the start of each line per level of indent, which
+// jsdom computes from a rule matched on the shell's inline style, since it resolves no var().
+const stylesheet = document.createElement('style');
+
+function indentBy(step: number): void {
+  const levels = [1, 2, 3].map(
+    (level) => `[data-quoin-block][style*="--quoin-indent: ${level};"] { margin-left: ${level * step}px; margin-right: ${level * step}px; }`,
+  );
+  stylesheet.textContent = levels.join('\n');
+  document.head.append(stylesheet);
 }
 
 const hostOf = (shell: HTMLElement) => shell.querySelector<HTMLElement>('[data-quoin-host]')!;
@@ -44,9 +59,15 @@ function mountRows(...args: Parameters<typeof mountCanvas>) {
   return { ...mounted, hover, ids };
 }
 
-beforeEach(layOutRows);
+beforeEach(() => {
+  layOutRows();
+  indentBy(24);
+});
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  stylesheet.remove();
+});
 
 describe('dragging a block by its handle', () => {
   it('moves it to the gap nearest the pointer, says where it went once and opens no menu', () => {
@@ -95,6 +116,17 @@ describe('dragging a block by its handle', () => {
     expect(last()).toEqual([paragraph('a', 'one'), paragraph('l', '- item'), { ...paragraph('d', 'Delta'), indent: 1 }]);
   });
 
+  it('nests by the step the page indents a level by', () => {
+    indentBy(32);
+    const { hover, last } = mountRows([paragraph('a', 'one'), paragraph('l', '- item'), paragraph('d', 'Delta')]);
+    hover('d');
+    press(20, 70);
+    moveTo(36, 70);
+    expect(dropLine().style.left).toBe(`${LEFT + 32}px`);
+    release(36, 70);
+    expect(last()[2]).toEqual({ ...paragraph('d', 'Delta'), indent: 1 });
+  });
+
   it('takes the nested blocks along', () => {
     const { hover, ids } = mountRows([md('a', '- parent'), md('c', '- child', 1), md('z', 'after')]);
     hover('a');
@@ -124,6 +156,19 @@ describe('dragging a block by its handle', () => {
     release(20, 27);
     expect(ids()).toEqual(['t', 'h', 'y', 'x']);
     expect(screen.getByRole('status')).toHaveTextContent('Block moved to position 2 of 3');
+  });
+
+  it('drops a nested block carried straight down below a closed toggle beside the toggle, where it stays drawn', () => {
+    const toggle = { id: 't', type: 'TOGGLE', data: { markdown: 'Details', open: false } };
+    const doc = [paragraph('p', 'one'), md('n', 'nested', 1), toggle, md('h', 'hidden', 1), paragraph('z', 'z')];
+    const { hover, last } = mountRows(doc);
+    hover('n');
+    press(20, 40);
+    moveTo(20, 87);
+    expect(dropLine().style.left).toBe(`${LEFT}px`);
+    release(20, 87);
+    expect(last().map(({ id, indent }) => [id, indent ?? 0])).toEqual([['p', 0], ['t', 0], ['h', 1], ['n', 0], ['z', 0]]);
+    expect(screen.getByRole('status')).toHaveTextContent('Block moved to position 3 of 4');
   });
 
   it('keeps the gutter beside the dragged block while the pointer crosses others', () => {
@@ -204,6 +249,19 @@ describe('dragging a block by its handle', () => {
     expect(dropLine()).not.toBeVisible();
   });
 
+  it('moves the drop line as the page scrolls under a pointer held still', () => {
+    const { hover, ids } = mountRows([paragraph('a', 'one'), paragraph('b', 'two'), paragraph('c', 'three')]);
+    hover('a');
+    press(20, 10);
+    moveTo(20, 50);
+    expect(dropLine().style.top).toBe('56px');
+    scrolled = 30;
+    act(() => void document.dispatchEvent(new Event('scroll')));
+    expect(dropLine().style.top).toBe('83px');
+    release(20, 50);
+    expect(ids()).toEqual(['b', 'c', 'a']);
+  });
+
   it('scrolls the window while the pointer is near its bottom edge, and stops on release', async () => {
     const scrollBy = vi.spyOn(window, 'scrollBy').mockImplementation(() => {});
     const { hover } = mountRows([paragraph('a', 'one'), paragraph('b', 'two')]);
@@ -228,7 +286,7 @@ describe('dragging a block by its handle', () => {
     press(20, 10);
     moveTo(20, 60);
     cleanup();
-    const watched = ['pointermove', 'pointerup', 'pointercancel', 'keydown', 'blur'];
+    const watched = ['pointermove', 'pointerup', 'pointercancel', 'scroll', 'keydown', 'blur'];
     const capture = (options?: boolean | EventListenerOptions) => (typeof options === 'boolean' ? options : !!options?.capture);
     const kept = spies.flatMap(({ added, removed }) =>
       added.mock.calls.filter(
@@ -239,7 +297,7 @@ describe('dragging a block by its handle', () => {
           ),
       ),
     );
-    expect(spies[0].added.mock.calls.map(([type]) => type)).toContain('pointermove');
+    expect(spies[0].added.mock.calls.map(([type]) => type)).toEqual(expect.arrayContaining(['pointermove', 'scroll']));
     expect(kept.map(([type]) => type)).toEqual([]);
   });
 });

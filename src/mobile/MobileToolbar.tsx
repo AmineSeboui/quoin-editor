@@ -1,5 +1,6 @@
 'use client';
 
+import { useDirection } from '@radix-ui/react-direction';
 import { useMemo, type CSSProperties, type KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useCanvasUiStore } from '../canvas/ui-store';
@@ -37,6 +38,7 @@ function EditingTools({ controller }: MobileToolbarProps) {
   const state = useEditorState(controller, wholeState);
   const viewport = useVisualViewport();
   const roving = useRovingFocus();
+  const dir = useDirection();
   const items = useMemo(() => mobileItems(labels, () => store.set({ linkPopover: { open: true } })), [labels, store]);
 
   const onKeyDown = (event: KeyboardEvent) => {
@@ -52,6 +54,7 @@ function EditingTools({ controller }: MobileToolbarProps) {
   return createPortal(
     <div
       ref={roving.ref}
+      dir={dir}
       role="toolbar"
       aria-label={labels.mobileToolbar}
       className={TOOLBAR}

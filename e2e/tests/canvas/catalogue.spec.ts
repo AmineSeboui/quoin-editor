@@ -1,53 +1,11 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
 import { host, onlyHost, shell } from '../../support/block';
-import { CATALOGUE_BLOCKS, type CatalogueBlock } from '../../support/catalogue-blocks';
+import type { CatalogueBlock } from '../../support/catalogue-blocks';
+import { brokenCitations, gaps } from '../../support/catalogue-coverage';
 import { blocks, caretSettled, openEditor } from '../../support/editor';
 import { answerEveryRequest } from '../../support/network';
 import { chooseCommand } from '../../support/slash';
-
-type Requirement = 'insert' | 'edit' | 'arrows' | 'undo' | 'readOnly' | 'axeWhole' | 'axeEditing';
-
-// The blocks no other spec covers for a requirement, so each runs here only where it would otherwise go untested.
-const GAPS: Record<Requirement, readonly string[]> = {
-  insert: ['text', 'heading1', 'heading2', 'heading3', 'numberedList', 'todoList', 'toggle'],
-  edit: ['heading1', 'heading2', 'heading3', 'numberedList', 'todoList', 'toggle'],
-  arrows: [
-    'text',
-    'heading1',
-    'heading2',
-    'heading3',
-    'quote',
-    'callout',
-    'bulletedList',
-    'numberedList',
-    'todoList',
-    'toggle',
-    'file',
-    'table',
-    'embed',
-    'bookmark',
-    'blockEquation',
-    'tableOfContents',
-  ],
-  undo: CATALOGUE_BLOCKS.map(({ id }) => id),
-  readOnly: ['heading2', 'heading3', 'quote', 'bulletedList', 'numberedList', 'image'],
-  axeWhole: CATALOGUE_BLOCKS.map(({ id }) => id).filter((id) => id !== 'image' && id !== 'file'),
-  axeEditing: [
-    'text',
-    'heading1',
-    'heading2',
-    'heading3',
-    'quote',
-    'callout',
-    'bulletedList',
-    'numberedList',
-    'todoList',
-    'toggle',
-  ],
-};
-
-const gaps = (requirement: Requirement) => CATALOGUE_BLOCKS.filter(({ id }) => GAPS[requirement].includes(id));
 
 // This spec walks every block type, the table among them, and a table draws an editable region per cell. Each test
 // here wants the block's first region whatever the type, so the ambiguity `host` would raise is answered once.
@@ -93,6 +51,10 @@ async function insert(page: Page, { option, query, link, inserted }: CatalogueBl
 }
 
 test.beforeEach(({ page }) => answerEveryRequest(page));
+
+test('every block this spec leaves out of a requirement is covered by a test the other specs still hold', () => {
+  expect(brokenCitations()).toEqual([]);
+});
 
 for (const block of gaps('insert')) {
   test(`${block.option} from the slash menu takes the place of the query, with the caret in it`, async ({ page }) => {

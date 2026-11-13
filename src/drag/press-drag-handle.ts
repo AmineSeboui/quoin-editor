@@ -1,6 +1,6 @@
+import { handleTargets } from '../canvas/block-targets';
 import type { CanvasUiStore } from '../canvas/ui-store';
 import { moveBlocksTo } from '../engine/commands/move-blocks-to';
-import { menuTargets } from '../gutter/block-menu-items';
 import type { ViewController } from '../view';
 import { listen } from '../view/dom/listen';
 import { createAutoScroll } from '../view/selection/auto-scroll';
@@ -30,7 +30,7 @@ const sameTarget = (a: DropTarget | null, b: DropTarget) => a?.index === b.index
 
 function draggedBlocks(controller: ViewController, blockId: string): string[] {
   const { state } = controller.editor;
-  return state.doc.index.has(blockId) ? menuTargets(state, blockId) : [];
+  return state.doc.index.has(blockId) ? handleTargets(state, blockId) : [];
 }
 
 function followPress(press: HandlePress, root: HTMLElement, view: Window): () => void {
@@ -65,6 +65,7 @@ function followPress(press: HandlePress, root: HTMLElement, view: Window): () =>
     const { indentStep, blocks, direction } = layout;
     const target = computeDropTarget({ pointerX: layout.draggedStart + dx, pointerY, blocks, indentStep, direction });
     overlay.follow(dx, pointer.y - press.y);
+    if (target === null) return;
     overlay.mark({ top: target.lineTop, ...spanBetween(target.lineStart, layout.end) });
     if (!sameTarget(active.target, target)) {
       store.set({ drag: { blockIds: ids, targetIndent: target.indent } });
@@ -76,6 +77,7 @@ function followPress(press: HandlePress, root: HTMLElement, view: Window): () =>
     if (done) return;
     done = true;
     unlistenDocument();
+    unlistenScroll();
     unlistenBlur();
     unlistenKeys();
     scroll.stop();
@@ -120,6 +122,8 @@ function followPress(press: HandlePress, root: HTMLElement, view: Window): () =>
   }
 
   const unlistenDocument = listen(doc, { pointermove: onPointerMove, pointerup: onPointerUp, pointercancel: finish });
+  // Captured, since a scroll inside an element does not bubble: the wheel moves the blocks under a pointer held still.
+  const unlistenScroll = listen(doc, { scroll: follow }, true);
   const unlistenBlur = listen(view, { blur: finish });
   const unlistenKeys = listen(view, { keydown: onKeyDown }, true);
   return finish;

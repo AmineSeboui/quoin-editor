@@ -56,3 +56,9 @@ export function edgeNear(spans: readonly Span[], at: number, reach: number): num
   const index = edges.findIndex((edge) => Math.abs(edge - at) <= reach);
   return index === -1 ? null : index;
 }
+
+/** Where the edge before the span at `edge` is drawn, the edge after the last one at their count, if the table has it. */
+export function edgeAt(spans: readonly Span[], edge: number | null): number | null {
+  if (edge === null || !Number.isInteger(edge) || edge < 0 || edge > spans.length || spans.length === 0) return null;
+  return edge === spans.length ? spans[edge - 1].start + spans[edge - 1].size : spans[edge].start;
+}

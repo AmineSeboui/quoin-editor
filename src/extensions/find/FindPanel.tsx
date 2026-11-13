@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react';
 import { keyName, normalizeKey, redo, undo, type Command } from '../../engine';
 import { ChevronDown, ChevronUp, X } from '../../icons';
 import { Button } from '../../ui/button';
@@ -44,6 +44,7 @@ export function FindPanel({ controller, labels, value, readOnly }: Props) {
   const [replacement, setReplacement] = useState('');
   const panel = useRef<HTMLDivElement>(null);
   const query = useRef<HTMLInputElement>(null);
+  const statusId = useId();
   useEffect(() => focusAll(query.current), [value.opened]);
   useScrollToCurrent(controller, panel, currentMatch(value));
 
@@ -95,11 +96,12 @@ export function FindPanel({ controller, labels, value, readOnly }: Props) {
           placeholder={labels.find}
           value={value.search.query}
           aria-invalid={value.error !== null}
+          aria-describedby={value.error === null ? undefined : statusId}
           onChange={(event) => actions.search(event.target.value)}
           onKeyDown={onQueryKeyDown}
           className="h-8 w-48"
         />
-        <FindStatus labels={labels} value={value} />
+        <FindStatus id={statusId} labels={labels} value={value} />
         <FindToggles labels={labels} options={value.search} onToggle={actions.toggle} />
         <Button
           type="button"

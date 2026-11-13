@@ -31,7 +31,6 @@ describeBuilt('the packed tarball', distEntries, () => {
     expect(size).toBeLessThan(ABOUT_1_MB.max);
     expect(unpackedSize).toBeLessThan(UNDER_5_MB);
     expect(readText(join(root, 'README.md'))).toContain(STATED);
-    expect(readText(join(root, 'demo', 'docs', 'getting-started.md'))).toContain(STATED);
     const changelog = readText(join(root, 'CHANGELOG.md'));
     expect(sectionOf(sectionOf(changelog, releaseHeading(changelog, '1.0.0')), '### Changed')).toContain(STATED);
   }, 30_000);

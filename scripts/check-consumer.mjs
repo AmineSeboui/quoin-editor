@@ -35,8 +35,8 @@ writeFileSync(
   packageEntries.map((entry, i) => `export * as entry${i} from '${specifier(entry)}';\n`).join(''),
 );
 
-// The README, the migration guide and the docs pages are what a consumer copies from, so their samples are typechecked
-// against the packed build too.
+// The README and the migration guide are what a consumer copies from, so their samples are typechecked against the
+// packed build too. The guide pages' samples are typechecked by quoincloud.com, which serves them.
 for (const { slug, path } of samplePages()) {
   codeSamples(readText(path)).forEach(({ lang, code }, i) => {
     writeFileSync(join(samples, `${slug}-${i + 1}.${lang}`), code);
@@ -84,4 +84,4 @@ if (react === '18') {
   run(process.execPath, ['server-render.mjs'], work);
 }
 
-console.log(`The packed package typechecks for a consumer on React ${react} and TypeScript 5.4, with every entry and every sample of the README, the migration guide and the docs, against yjs with lib0 held and as installed today.`);
+console.log(`The packed package typechecks for a consumer on React ${react} and TypeScript 5.4, with every entry and every sample of the README and the migration guide, against yjs with lib0 held and as installed today.`);

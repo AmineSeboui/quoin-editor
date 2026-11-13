@@ -1,5 +1,6 @@
 import type { BlockAttrs, EngineBlock, Inline, Mark } from '../model/types';
 import type { SizedHeading } from './html-font-size';
+import { boxedTask } from './html-task-box';
 
 export type Context = {
   readonly indent: number;
@@ -34,5 +35,7 @@ export function emit(
   sink.out.push({ id: sink.newId(), type, indent, attrs, regions });
 }
 
-export const emitText = (sink: Sink, indent: number, attrs: BlockAttrs, content: Inline): void =>
-  emit(sink, 'MARKDOWN', indent, attrs, { text: content });
+export function emitText(sink: Sink, indent: number, attrs: BlockAttrs, content: Inline): void {
+  const task = boxedTask(attrs, content);
+  emit(sink, 'MARKDOWN', indent, task.attrs, { text: task.content });
+}

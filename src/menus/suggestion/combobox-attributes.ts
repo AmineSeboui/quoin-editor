@@ -17,16 +17,33 @@ function restore(host: HTMLElement, name: string, value: string | null): void {
   else host.setAttribute(name, value);
 }
 
-function openCombobox(host: HTMLElement, listboxId: string): () => void {
-  const saved = SWAPPED.map((name) => [name, host.getAttribute(name)] as const);
+type Held = { readonly saved: readonly (readonly [string, string | null])[]; readonly listboxes: string[] };
+
+// One menu can open on a host in the same commit another closes on it, in either order, so the host's own attributes
+// are saved by the first menu to hold it and given back by the last to let go.
+const held = new WeakMap<HTMLElement, Held>();
+
+function makeCombobox(host: HTMLElement, listboxId: string): void {
   host.setAttribute('role', 'combobox');
   host.removeAttribute('aria-multiline');
   host.setAttribute('aria-expanded', 'true');
   host.setAttribute('aria-controls', listboxId);
   host.setAttribute('aria-autocomplete', 'list');
+}
+
+function openCombobox(host: HTMLElement, listboxId: string): () => void {
+  const saved = (): Held['saved'] => SWAPPED.map((name) => [name, host.getAttribute(name)] as const);
+  const entry = held.get(host) ?? { saved: saved(), listboxes: [] };
+  held.set(host, entry);
+  entry.listboxes.push(listboxId);
+  makeCombobox(host, listboxId);
   return () => {
+    entry.listboxes.splice(entry.listboxes.lastIndexOf(listboxId), 1);
+    const remaining = entry.listboxes.at(-1);
+    if (remaining !== undefined) return makeCombobox(host, remaining);
+    held.delete(host);
     for (const name of ADDED) host.removeAttribute(name);
-    for (const [name, value] of saved) restore(host, name, value);
+    for (const [name, value] of entry.saved) restore(host, name, value);
   };
 }
 

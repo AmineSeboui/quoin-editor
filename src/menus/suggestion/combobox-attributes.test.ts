@@ -63,4 +63,26 @@ describe('the host a menu makes its combobox', () => {
     expect(first).toHaveAttribute('role', 'textbox');
     expect(first).not.toHaveAttribute('aria-activedescendant');
   });
+
+  it('gives the host its own attributes back when a second menu opened on it as the first closed', () => {
+    const { controller, first } = twoHosts();
+    const { rerender } = renderHook(
+      ({ slash, mention }) => {
+        useComboboxHost(controller, slash, 'text', 'slash-menu', null);
+        useComboboxHost(controller, mention, 'text', 'mention-menu', null);
+      },
+      { initialProps: { slash: null as string | null, mention: 'a' as string | null } },
+    );
+    expect(first).toHaveAttribute('aria-controls', 'mention-menu');
+
+    rerender({ slash: 'a', mention: null });
+    expect(first).toHaveAttribute('role', 'combobox');
+    expect(first).toHaveAttribute('aria-controls', 'slash-menu');
+
+    rerender({ slash: null, mention: null });
+    expect(first).toHaveAttribute('role', 'textbox');
+    expect(first).toHaveAttribute('aria-multiline', 'true');
+    expect(first).not.toHaveAttribute('aria-expanded');
+    expect(first).not.toHaveAttribute('aria-controls');
+  });
 });

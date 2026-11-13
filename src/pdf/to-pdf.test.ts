@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { FIXTURE_PNG } from '../../e2e/app/fixture-png';
 import { everyBlockDocument } from '../view-static/test-support/every-block-document';
 import { exportPdf } from './test-support/export-pdf';
@@ -14,6 +14,8 @@ const paragraphs = (count: number, words = 60) =>
     type: 'MARKDOWN',
     data: { markdown: `Paragraph ${at}: ${Array.from({ length: words }, (_, word) => `word${word}`).join(' ')}` },
   }));
+
+afterEach(() => vi.unstubAllGlobals());
 
 describe('toPdf', () => {
   it('runs in a process with no DOM', () => {
@@ -34,6 +36,14 @@ describe('toPdf', () => {
     const streams = [...pdf.file.objects.values()].filter(({ data }) => data !== undefined);
     expect(streams.length).toBeGreaterThan(3);
     for (const { value } of streams) expect((value as { Filter?: PdfName }).Filter).toEqual(new PdfName('FlateDecode'));
+  });
+
+  it('stores its streams as they are where the runtime cannot deflate, and the file still reads', async () => {
+    vi.stubGlobal('CompressionStream', undefined);
+    const pdf = await exportPdf(everyBlockDocument, options);
+    const streams = [...pdf.file.objects.values()].filter(({ data }) => data !== undefined);
+    expect(streams.every(({ value }) => (value as { Filter?: PdfName }).Filter === undefined)).toBe(true);
+    expect(pdf.text).toContain('Every block');
   });
 
   it('writes the title into the document properties and asks a reader to show it', async () => {

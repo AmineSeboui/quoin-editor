@@ -1,4 +1,4 @@
-import { englishAiLabels, resolveAiLabels } from './ai-labels';
+import { englishAiLabels, resolveAiLabels, type AiLabels } from './ai-labels';
 
 describe('the AI labels', () => {
   it('are English by default', () => {
@@ -20,6 +20,7 @@ describe('the AI labels', () => {
       custom: 'Ask AI',
     });
     expect(labels.menu).toBe('AI actions');
+    expect(labels.moreActions).toBe('More actions');
     expect(labels.prompt).toBe('Ask AI to write or edit');
     expect(labels.tonePrompt).toBe('Tone to take, such as friendly');
     expect(labels.translatePrompt).toBe('Language to translate to');
@@ -36,6 +37,13 @@ describe('the AI labels', () => {
     expect(labels.written('Hello there')).toBe('AI response ready: Hello there');
     expect(labels.halted('Hello')).toBe('Stopped. AI response so far: Hello');
     expect(labels.targetGone).toBe('The text this was for was removed, so Accept inserts it where that text was');
+  });
+
+  it('still take a complete translation written before the optional labels were added', () => {
+    const { moreActions, ...translation } = englishAiLabels;
+    const labels: AiLabels = translation;
+    expect(moreActions).toBe('More actions');
+    expect(resolveAiLabels(labels).moreActions).toBe('More actions');
   });
 
   it('take the host overrides, and keep English for a key left out or undefined', () => {

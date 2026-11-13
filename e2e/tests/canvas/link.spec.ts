@@ -9,6 +9,7 @@ const PLAIN = 'Plain words to link';
 
 const link = (page: Page) => host(page, 'p').locator('a[data-quoin-link]');
 const dialog = (page: Page) => page.getByRole('dialog', { name: 'Link' });
+const linkCard = (page: Page) => page.getByRole('group', { name: 'Link' });
 const field = (page: Page) => page.getByRole('textbox', { name: 'Link address' });
 const selectedText = (page: Page) => page.evaluate(() => getSelection()!.toString());
 
@@ -64,8 +65,9 @@ test('an unsafe address keeps the popover open with its explanation', async ({ p
 test('a caret resting in a link shows its card without taking focus, and Unlink removes the link', async ({ page }) => {
   await openEditor(page, 'link');
   await caretAt(page, 'p', 8);
-  const card = dialog(page);
+  const card = linkCard(page);
   await expect(card).toBeVisible();
+  await expect(card.getByRole('button', { name: 'Edit link' })).toHaveAttribute('aria-keyshortcuts', /^(Meta|Control)\+K$/);
   await expect(card).toContainText('https://quoin.dev/docs');
   await expect(host(page, 'p')).toBeFocused();
   const open = card.getByRole('link', { name: 'Open link' });
@@ -82,12 +84,12 @@ test('a pointer resting on a link shows its card, which stays on the card and go
 }) => {
   await openEditor(page, 'link');
   await link(page).hover();
-  await expect(dialog(page)).toBeVisible();
-  await dialog(page).hover();
+  await expect(linkCard(page)).toBeVisible();
+  await linkCard(page).hover();
   await page.waitForTimeout(600);
-  await expect(dialog(page)).toBeVisible();
+  await expect(linkCard(page)).toBeVisible();
   await host(page, 'q').hover();
-  await expect(dialog(page)).toHaveCount(0);
+  await expect(linkCard(page)).toHaveCount(0);
 });
 
 test('Mod+click on a link opens it in a new page', async ({ page }) => {
@@ -110,7 +112,7 @@ test('a plain click on a link places the caret in it and never navigates', async
     return { collapsed: selection.isCollapsed, inLink: selection.anchorNode?.parentElement?.closest('a') != null };
   });
   expect(caret).toEqual({ collapsed: true, inLink: true });
-  await expect(dialog(page)).toBeVisible();
+  await expect(linkCard(page)).toBeVisible();
   expect(page.url()).toBe(before);
   expect(context.pages()).toHaveLength(pages);
 });

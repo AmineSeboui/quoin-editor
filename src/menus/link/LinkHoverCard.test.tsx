@@ -10,7 +10,7 @@ const pos = (offset: number): Pos => ({ block: 'a', region: 'text', offset });
 const host = (canvas: Canvas) => canvas.shell('a').querySelector<HTMLElement>('[data-quoin-host]')!;
 const anchor = (canvas: Canvas) => host(canvas).querySelector<HTMLAnchorElement>('a[data-quoin-link]')!;
 const markdown = (canvas: Canvas) => canvas.last()?.map((block) => block.data.markdown);
-const card = () => screen.queryByRole('dialog', { name: 'Link' });
+const card = () => screen.queryByRole('group', { name: 'Link' });
 const control = (name: string) => within(card()!).getByRole('button', { name });
 const wait = (ms: number) => act(() => void vi.advanceTimersByTime(ms));
 
@@ -46,6 +46,15 @@ describe('the link hover card at the caret', () => {
     expect(control('Edit link')).toBeInTheDocument();
     expect(control('Remove link')).toBeInTheDocument();
     expect(host(canvas)).toHaveFocus();
+  });
+
+  it('is a group rather than a dialog, since it never takes focus, and names Mod+K as the key to edit the link', () => {
+    const canvas = mount();
+    placeCaret(canvas, 6);
+    wait(300);
+    expect(screen.queryByRole('dialog')).toBeNull();
+    const modifier = canvas.handle().controller.isMac ? 'Meta' : 'Control';
+    expect(control('Edit link')).toHaveAttribute('aria-keyshortcuts', `${modifier}+K`);
   });
 
   it('hides as soon as the caret leaves the link', () => {

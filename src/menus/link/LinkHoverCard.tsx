@@ -3,6 +3,7 @@
 import { useMemo, useRef, type RefObject } from 'react';
 import type { CanvasUiStore } from '../../canvas/ui-store';
 import { sanitizeHref, textSelection } from '../../engine';
+import { shortcutHint } from '../../gutter/shortcut-hint';
 import type { QuoinLabels } from '../../i18n/labels';
 import { ExternalLink, Pencil, Unlink } from '../../icons';
 import { Button } from '../../ui/button';
@@ -22,6 +23,7 @@ import { usePointerLink } from './use-pointer-link';
 import { dispatchSelection } from '../../view/controller/dispatch-selection';
 
 const REST_MS = 300;
+const OPEN_POPOVER = 'Mod-k';
 const URL_LENGTH = 48;
 const CARD = 'flex w-auto items-center gap-0.5 py-1 ps-3 pe-1 shadow-md';
 const ADDRESS = 'me-1 whitespace-nowrap text-sm text-muted-foreground';
@@ -68,6 +70,7 @@ function LinkCard({ controller, labels, store, cardRef, element, onUnlinked }: L
       <PopoverAnchor virtualRef={anchor} />
       <PopoverContent
         ref={cardRef}
+        role="group"
         aria-label={labels.link}
         side="bottom"
         align="start"
@@ -87,7 +90,14 @@ function LinkCard({ controller, labels, store, cardRef, element, onUnlinked }: L
             </a>
           </Button>
         )}
-        <Button type="button" variant="ghost" size="icon-sm" aria-label={labels.linkEdit} onClick={edit}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label={labels.linkEdit}
+          aria-keyshortcuts={shortcutHint(OPEN_POPOVER, controller.isMac, labels).aria}
+          onClick={edit}
+        >
           <Pencil />
         </Button>
         <Button type="button" variant="ghost" size="icon-sm" aria-label={labels.linkRemove} onClick={unlink}>
@@ -100,7 +110,8 @@ function LinkCard({ controller, labels, store, cardRef, element, onUnlinked }: L
 
 /**
  * A card with a link's address and Open, Edit and Unlink, for the link the caret has rested in or the pointer has
- * rested on for 300 ms. It never takes focus, and pressing it leaves focus and the selection in the text.
+ * rested on for 300 ms. It never takes focus, and pressing it leaves focus and the selection in the text, so it is a
+ * group rather than a dialog, whose Edit names Mod+K, the key that reaches the same popover from the text.
  */
 export function LinkHoverCard(props: LinkHoverCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);

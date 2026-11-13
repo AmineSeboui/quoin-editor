@@ -53,7 +53,7 @@ describe('the classes Quoin gives its floating menus', () => {
     try {
       select(mount('see [docs](https://quoin.dev/docs) here'), 6);
       act(() => void vi.advanceTimersByTime(300));
-      expect(classLists(screen.getByRole('dialog', { name: 'Link' }))).toMatchSnapshot();
+      expect(classLists(screen.getByRole('group', { name: 'Link' }))).toMatchSnapshot();
     } finally {
       vi.useRealTimers();
     }

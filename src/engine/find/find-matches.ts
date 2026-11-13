@@ -1,16 +1,23 @@
 import { compareRegionNames } from '../model/compare';
+import { inlineLength } from '../model/inline';
 import type { EngineBlock, EngineDoc } from '../model/types';
 import { findPattern } from './find-pattern';
 import type { FindMatch, SearchOptions, FindResult } from './find-types';
+import { runPattern } from './run-pattern';
 import { textRuns } from './text-runs';
 
 /** Finds the matches of one search block by block, keeping those of each block object for as long as it lives. */
 export type BlockMatcher = (block: EngineBlock) => readonly FindMatch[];
 
-function regionMatches(pattern: RegExp, block: EngineBlock, region: string): FindMatch[] {
+type RunPattern = ReturnType<typeof runPattern>;
+
+function regionMatches(patternOf: RunPattern, block: EngineBlock, region: string): FindMatch[] {
   const matches: FindMatch[] = [];
-  for (const { start, text } of textRuns(block.regions[region])) {
-    for (const found of text.matchAll(pattern)) {
+  const inline = block.regions[region];
+  const length = inlineLength(inline);
+  for (const run of textRuns(inline)) {
+    const { start, text } = run;
+    for (const found of text.matchAll(patternOf(run, length))) {
       if (found[0] === '') continue;
       const from = start + found.index;
       matches.push({ block: block.id, region, from, to: from + found[0].length });
@@ -24,12 +31,13 @@ export function blockMatcher(query: string, options: SearchOptions): BlockMatche
   if (query === '') return () => [];
   const pattern = findPattern({ ...options, query });
   if (!(pattern instanceof RegExp)) return pattern;
+  const patternOf = runPattern(pattern);
   const found = new WeakMap<EngineBlock, readonly FindMatch[]>();
   return (block) => {
     let matches = found.get(block);
     if (matches === undefined) {
       const regions = Object.keys(block.regions).sort(compareRegionNames);
-      matches = regions.flatMap((region) => regionMatches(pattern, block, region));
+      matches = regions.flatMap((region) => regionMatches(patternOf, block, region));
       found.set(block, matches);
     }
     return matches;

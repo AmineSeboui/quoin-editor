@@ -9,7 +9,10 @@ import { Bold, Code, Italic, Link, Strikethrough, Subscript, Superscript, Underl
 import { Button } from '../../ui/button';
 import type { ViewController } from '../../view';
 
-export type BubbleItems = { inline: readonly ToolbarItem[]; scripts: readonly ToolbarItem[] };
+/** A toolbar button, which may say that it opens a dialog, as Link opens the link popover. */
+export type KitItem = ToolbarItem & { readonly opensDialog?: boolean };
+
+export type BubbleItems = { inline: readonly KitItem[]; scripts: readonly KitItem[] };
 
 const PRESSED = 'aria-pressed:bg-accent aria-pressed:text-accent-foreground';
 
@@ -23,10 +26,11 @@ export function markItem(mark: string, title: string, icon: ToolbarItem['icon'])
   };
 }
 
-export const linkItem = (labels: QuoinLabels, openLink: () => void): ToolbarItem => ({
+export const linkItem = (labels: QuoinLabels, openLink: () => void): KitItem => ({
   id: 'link',
   title: labels.link,
   icon: Link,
+  opensDialog: true,
   run: openLink,
 });
 
@@ -46,7 +50,7 @@ export function bubbleItems(labels: QuoinLabels, openLink: () => void): BubbleIt
 }
 
 type ToolbarButtonProps = {
-  item: ToolbarItem;
+  item: KitItem;
   state: EditorState;
   controller: ViewController;
   buttonRef?: Ref<HTMLButtonElement>;
@@ -63,6 +67,7 @@ export function ToolbarButton({ item, state, controller, buttonRef }: ToolbarBut
       size="icon-sm"
       aria-label={item.title}
       aria-pressed={item.isActive?.(state)}
+      aria-haspopup={item.opensDialog ? 'dialog' : undefined}
       className={PRESSED}
       onClick={() => item.run(controller)}
     >

@@ -139,6 +139,7 @@ describe('the bubble toolbar', () => {
     stores.length = 0;
     openToolbar();
     const [store] = stores;
+    expect(control('Link')).toHaveAttribute('aria-haspopup', 'dialog');
     fireEvent.click(control('Link'));
     expect(store.get().linkPopover).toEqual({ open: true });
   });

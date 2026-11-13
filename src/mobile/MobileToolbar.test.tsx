@@ -137,6 +137,7 @@ describe('the mobile toolbar', () => {
   it('opens the link popover from Link', async () => {
     const user = userEvent.setup();
     editAt(pos('a', 3));
+    expect(control('Link')).toHaveAttribute('aria-haspopup', 'dialog');
     await user.click(control('Link'));
     expect(screen.getByRole('textbox', { name: 'Link address' })).toBeInTheDocument();
   });

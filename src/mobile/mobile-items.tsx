@@ -15,10 +15,10 @@ import {
   Strikethrough,
   Undo2,
 } from '../icons';
-import { linkItem, markItem } from '../menus/bubble/bubble-items';
+import { linkItem, markItem, type KitItem } from '../menus/bubble/bubble-items';
 import type { ViewController } from '../view';
 
-export type MobileItems = { addBlock: ToolbarItem; editing: readonly ToolbarItem[] };
+export type MobileItems = { addBlock: ToolbarItem; editing: readonly KitItem[] };
 
 function commandItem(id: string, title: string, icon: ToolbarItem['icon'], command: Command): ToolbarItem {
   return { id, title, icon, run: (controller) => void controller.run(command) };

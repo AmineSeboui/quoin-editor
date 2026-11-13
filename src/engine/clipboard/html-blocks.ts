@@ -1,4 +1,4 @@
-import { inlineLength, rangeHasMark, removeMarkRange } from '../model/inline';
+import { inlineLength, rangeHasMark } from '../model/inline';
 import type { BlockAttrs, EngineBlock, Inline } from '../model/types';
 import { inlineClassRules } from './html-class-rules';
 import { codeBlock } from './html-code';
@@ -19,6 +19,7 @@ import { elementMarks } from './html-marks';
 import { figure, imageBlock } from './html-media';
 import { isMonospace, keepsWhitespace, parseStyle } from './html-styles';
 import { tableBlock } from './html-table';
+import { withoutBold } from './without-bold';
 
 const QUOTE: BlockAttrs = { kind: 'quote' };
 const HEADING = /^h([1-6])$/;
@@ -26,8 +27,7 @@ const HEADING = /^h([1-6])$/;
 function emitRun(run: readonly Node[], ctx: Context, sink: Sink): void {
   const inline = inlineFromNodes(run, ctx);
   if (inline.length === 0) return;
-  const plain = ctx.run.kind === 'heading' ? removeMarkRange(inline, 0, inlineLength(inline), 'bold') : inline;
-  emitText(sink, ctx.indent, ctx.run, plain);
+  emitText(sink, ctx.indent, ctx.run, ctx.run.kind === 'heading' ? withoutBold(inline) : inline);
 }
 
 function details(element: Element, ctx: Context, sink: Sink): void {

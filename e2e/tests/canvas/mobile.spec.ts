@@ -8,7 +8,7 @@ test.skip(({ browserName }) => browserName === 'firefox', 'Firefox cannot emulat
 
 const tools = (page: Page) => page.getByRole('toolbar', { name: 'Editing tools' });
 const tool = (page: Page, name: string) => tools(page).getByRole('button', { name, exact: true });
-const handle = (page: Page) => page.getByRole('button', { name: 'Drag to move, click for options' });
+const handle = (page: Page) => page.getByRole('button', { name: 'Block options' });
 const gutterAdd = (page: Page) =>
   page.locator('[data-quoin-gutter-block]').getByRole('button', { name: 'Add block below' });
 const box = async (locator: Locator) => (await locator.boundingBox())!;

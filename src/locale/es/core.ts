@@ -55,6 +55,7 @@ export const esLabels: Required<QuoinLabels> = {
   askAi: 'Preguntar a la IA',
   addBelow: 'Añadir un bloque debajo',
   dragHandle: 'Arrastra para mover, haz clic para ver opciones',
+  blockOptions: 'Opciones del bloque',
   slashMenu: 'Comandos',
   noResults: 'Sin resultados',
   resultCount: (n) => `${number(n)} ${plural(n, { one: 'resultado', other: 'resultados' })}`,

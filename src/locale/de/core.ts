@@ -55,6 +55,7 @@ export const deLabels: Required<QuoinLabels> = {
   askAi: 'KI fragen',
   addBelow: 'Block darunter einfügen',
   dragHandle: 'Ziehen zum Verschieben, klicken für Optionen',
+  blockOptions: 'Blockoptionen',
   slashMenu: 'Befehle',
   noResults: 'Keine Ergebnisse',
   resultCount: (n) => `${number(n)} ${plural(n, { one: 'Ergebnis', other: 'Ergebnisse' })}`,

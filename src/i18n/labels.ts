@@ -93,6 +93,8 @@ export type QuoinLabels = {
   askAi: string;
   addBelow: string;
   dragHandle: string;
+  /** The drag handle's name on a touch screen, where a tap opens the block menu and a touch does not drag. */
+  blockOptions: string;
   slashMenu: string;
   noResults: string;
   /** What the open slash menu says once its list settles, given how many commands match. */

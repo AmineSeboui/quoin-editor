@@ -66,7 +66,7 @@ phoneTest.describe('on a phone', () => {
     await openEditor(page, 'rich');
     await host(page, 'p').tap({ position: { x: 1, y: 12 } });
     await expect(page.getByRole('toolbar', { name: 'Editing tools' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Drag to move, click for options' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Block options' })).toBeVisible();
     expect(await serious(page)).toEqual([]);
   });
 });

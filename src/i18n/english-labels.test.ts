@@ -166,6 +166,7 @@ describe('englishLabels', () => {
   it('names the gutter controls by what they do, the handle by both its drag and its click', () => {
     expect(englishLabels.addBelow).toBe('Add block below');
     expect(englishLabels.dragHandle).toBe('Drag to move, click for options');
+    expect(englishLabels.blockOptions).toBe('Block options');
     expect(englishLabels.blockMenu('Heading 2')).toBe('Heading 2 block menu');
   });
 

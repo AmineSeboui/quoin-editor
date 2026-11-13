@@ -62,6 +62,7 @@ export const englishLabels: Required<QuoinLabels> = frozen({
   askAi: 'Ask AI',
   addBelow: 'Add block below',
   dragHandle: 'Drag to move, click for options',
+  blockOptions: 'Block options',
   slashMenu: 'Commands',
   noResults: 'No results',
   resultCount: (n) => `${n} ${n === 1 ? 'result' : 'results'}`,

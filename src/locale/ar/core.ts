@@ -62,6 +62,7 @@ export const arLabels: Required<QuoinLabels> = {
   askAi: 'اسأل الذكاء الاصطناعي',
   addBelow: 'إضافة كتلة بالأسفل',
   dragHandle: 'اسحب للتحريك، وانقر للخيارات',
+  blockOptions: 'خيارات الكتلة',
   slashMenu: 'الأوامر',
   noResults: 'لا نتائج',
   resultCount: (n) =>

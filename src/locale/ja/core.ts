@@ -52,6 +52,7 @@ export const jaLabels: Required<QuoinLabels> = {
   askAi: 'AI に依頼',
   addBelow: '下にブロックを追加',
   dragHandle: 'ドラッグで移動、クリックでオプション',
+  blockOptions: 'ブロックのオプション',
   slashMenu: 'コマンド',
   noResults: '結果がありません',
   resultCount: (n) => `${number(n)} 件の結果`,

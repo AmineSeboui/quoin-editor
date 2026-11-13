@@ -44,6 +44,25 @@ describe('the gutter', () => {
     expect(screen.getByRole('menu')).toHaveAccessibleName('Text block menu');
   });
 
+  it('names its handle for what a tap does on a touch screen, where a touch does not drag', async () => {
+    vi.stubGlobal('matchMedia', (media: string) => ({
+      media,
+      matches: media === '(pointer: coarse)',
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }));
+    try {
+      const user = userEvent.setup();
+      const { handle } = mountCanvas([paragraph('a', 'intro')]);
+      act(() => handle().focus({ block: 'a', region: 'text', offset: 0 }));
+      expect(screen.queryByRole('button', { name: 'Drag to move, click for options' })).toBeNull();
+      await user.click(screen.getByRole('button', { name: 'Block options' }));
+      expect(screen.getByRole('menu')).toHaveAccessibleName('Text block menu');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it('keeps its controls out of the tab order', () => {
     const { shell } = mountCanvas([paragraph('a', 'intro')]);
     fireEvent.pointerMove(hostOf(shell('a')));

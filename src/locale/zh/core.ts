@@ -52,6 +52,7 @@ export const zhLabels: Required<QuoinLabels> = {
   askAi: '询问 AI',
   addBelow: '在下方添加块',
   dragHandle: '拖动以移动，点击查看选项',
+  blockOptions: '块选项',
   slashMenu: '命令',
   noResults: '没有结果',
   resultCount: (n) => `${number(n)} 个结果`,

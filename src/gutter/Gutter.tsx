@@ -7,6 +7,7 @@ import { useBlockDrag } from '../drag/use-block-drag';
 import { useLabels } from '../i18n/use-labels';
 import { GripVertical, Plus } from '../icons';
 import { keepFocus } from '../menus/floating/keep-focus';
+import { useCoarsePointer } from '../mobile/use-coarse-pointer';
 import { Button } from '../ui/button';
 import { cn } from '../ui/cn';
 import { SQUARE_TAP_TARGET_FLOOR } from '../ui/touch-target';
@@ -29,6 +30,7 @@ type GutterProps = { controller: ViewController; store: CanvasUiStore; actions: 
 
 export function Gutter({ controller, store, actions }: GutterProps) {
   const labels = useLabels();
+  const coarse = useCoarsePointer();
   const element = useRef<HTMLDivElement>(null);
   const overlay = useRef<DragOverlayHandle>(null);
   const menuOpenAtPress = useRef(false);
@@ -73,7 +75,7 @@ export function Gutter({ controller, store, actions }: GutterProps) {
             variant="ghost"
             size={null}
             tabIndex={-1}
-            aria-label={labels.dragHandle}
+            aria-label={coarse ? labels.blockOptions : labels.dragHandle}
             className={cn('text-muted-foreground h-6 w-4 cursor-grab rounded-md', SQUARE_TAP_TARGET_FLOOR)}
             onPointerDown={(event) => {
               // The press closes an open menu as a press outside it, before its click arrives, so that click must not

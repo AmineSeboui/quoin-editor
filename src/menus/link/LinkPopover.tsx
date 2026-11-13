@@ -40,7 +40,8 @@ type LinkPopoverProps = { controller: ViewController; labels: QuoinLabels; onClo
 /**
  * The link address of the selection, to apply on Enter: it links selected text, edits the link a caret is in, or
  * inserts the address as linked text at any other caret. An address the engine would not keep as a link is refused
- * with a message. Escape, Apply and Remove give focus back to the text with its selection.
+ * with a message the field names as its description and the canvas says once. Escape, Apply and Remove give focus back
+ * to the text with its selection.
  */
 export function LinkPopover({ controller, labels, onClose }: LinkPopoverProps) {
   const [link] = useState(() => linkAtSelection(controller.editor.state));
@@ -60,7 +61,11 @@ export function LinkPopover({ controller, labels, onClose }: LinkPopoverProps) {
   const apply = (event: FormEvent) => {
     event.preventDefault();
     const href = linkAddress(address);
-    if (href === null) return setInvalid(true);
+    if (href === null) {
+      setInvalid(true);
+      controller.announce(labels.invalidLink);
+      return;
+    }
     controller.run(applyLink(href, address.trim()));
     backToText();
   };
@@ -110,7 +115,7 @@ export function LinkPopover({ controller, labels, onClose }: LinkPopoverProps) {
           )}
         </form>
         {invalid && (
-          <p id={messageId} role="alert" className={MESSAGE}>
+          <p id={messageId} className={MESSAGE}>
             {labels.invalidLink}
           </p>
         )}

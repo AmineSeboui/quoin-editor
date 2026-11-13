@@ -110,6 +110,8 @@ describe('the link popover', () => {
       expect(popover()).not.toBeNull();
       expect(field()).toHaveAttribute('aria-invalid', 'true');
       expect(field()).toHaveAccessibleDescription('Enter a valid link, such as https://example.com');
+      expect(screen.queryByRole('alert')).toBeNull();
+      expect(screen.getByRole('status')).toHaveTextContent('Enter a valid link, such as https://example.com');
       expect(canvas.changes).toHaveLength(0);
     },
   );

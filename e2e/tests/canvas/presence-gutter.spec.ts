@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { rightToLeft } from '../../support/direction';
 import { blocks, openEditor } from '../../support/editor';
 import { caretOf } from '../../support/presence';
 
@@ -34,14 +35,16 @@ test("cuts a long name off before the avatars' gutter", async ({ page }) => {
   await page.evaluate((offset) => window.__quoin.controller!.focus({ block: 'b', region: 'text', offset }), end);
   await expect(caretOf(bea, NAME)).toBeVisible();
   await expect(bea.getByRole('img', { name: `${NAME} is here` })).toBeVisible();
+  // Measured along the line, from the side where it starts: on a right to left page the gutter is on the left.
   const seen = () =>
-    bea.evaluate(() => {
+    bea.evaluate((rtl) => {
+      const along = (box: DOMRect) => (rtl ? { start: -box.right, end: -box.left } : { start: box.left, end: box.right });
       const layer = document.querySelector<HTMLElement>('.quoin-presence-carets')!;
       const inset = getComputedStyle(layer).clipPath.match(/-?[\d.]+/g)?.map(Number);
-      const cut = inset === undefined ? Infinity : layer.getBoundingClientRect().right - inset[1];
-      const name = document.querySelector('.quoin-presence-name')!.getBoundingClientRect().right;
-      const gutter = document.querySelector('.quoin-presence-group')!.getBoundingClientRect().left;
+      const cut = inset === undefined ? Infinity : along(layer.getBoundingClientRect()).end - inset[rtl ? 3 : 1];
+      const name = along(document.querySelector('.quoin-presence-name')!.getBoundingClientRect()).end;
+      const gutter = along(document.querySelector('.quoin-presence-group')!.getBoundingClientRect()).start;
       return { reaches: name > gutter, shown: Math.min(name, cut) <= gutter };
-    });
+    }, rightToLeft());
   await expect.poll(seen).toEqual({ reaches: true, shown: true });
 });

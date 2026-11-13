@@ -1,8 +1,10 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
 import { onlyHost } from '../../support/block';
+import { backward, fromLineStart } from '../../support/direction';
 import { caretSettled, openEditor } from '../../support/editor';
 import { markdownOf, onlyMarkdown } from '../../support/markdown';
+import { caretBefore } from '../../support/text-point';
 
 const menu = (page: Page) => page.getByRole('listbox', { name: 'Mentions' });
 const popup = (page: Page) => menu(page).locator('..');
@@ -13,7 +15,7 @@ const ada = { id: '1', label: 'Ada Lovelace', kind: 'user' };
 
 async function caretAtEnd(page: Page, host: Locator) {
   const box = (await host.boundingBox())!;
-  await page.mouse.click(box.x + box.width - 2, box.y + box.height / 2);
+  await page.mouse.click(fromLineStart(box, box.width - 2), box.y + box.height / 2);
   await caretSettled(page, host);
 }
 
@@ -125,8 +127,8 @@ test('Backspace selects a chip with a highlight, Enter then opens it, and a seco
 }) => {
   await openEditor(page, 'mention', 'mention=1');
   const host = page.locator('[data-block-id="p"] [data-quoin-host]');
-  await caretAtEnd(page, host);
-  for (let step = 0; step < ' today'.length; step++) await page.keyboard.press('ArrowLeft');
+  await host.click({ position: await caretBefore(host, ' today') });
+  await caretSettled(page, host);
   await page.keyboard.press('Backspace');
   await expect(selectedChip(page)).toHaveCount(1);
   expect(await selectedChip(page).evaluate((element) => getComputedStyle(element).outlineStyle)).toBe('solid');
@@ -136,13 +138,13 @@ test('Backspace selects a chip with a highlight, Enter then opens it, and a seco
   await expect.poll(() => markdownOf(page, 'p')).toBe('Ask  today');
 });
 
-test('Shift+ArrowLeft right after a chip at the end of a line selects the chip alone', async ({ page }) => {
+test('a Shift selection back from right after a chip at the end of a line is the chip alone', async ({ page }) => {
   await openEditor(page, 'mention', 'mention=1');
   const host = page.locator('[data-block-id="p"] [data-quoin-host]');
   await caretAtEnd(page, host);
   for (let step = 0; step < ' today'.length; step++) await page.keyboard.press('Backspace');
   await expect.poll(() => markdownOf(page, 'p')).toBe('Ask [@Ada Lovelace](mention:user:1)');
-  await page.keyboard.press('Shift+ArrowLeft');
+  await page.keyboard.press(`Shift+${backward()}`);
   await expect(selectedChip(page)).toHaveCount(1);
   await page.keyboard.press('Backspace');
   await expect(host.locator('[data-quoin-atom]')).toHaveCount(0);

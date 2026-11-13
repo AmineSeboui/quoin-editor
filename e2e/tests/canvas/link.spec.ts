@@ -3,6 +3,7 @@ import { axeViolations } from '../../support/axe';
 import { host } from '../../support/block';
 import { openEditor } from '../../support/editor';
 import { allMarkdown } from '../../support/markdown';
+import { caretPoint, textPoint } from '../../support/text-point';
 
 const LINKED = 'Read [the docs](https://quoin.dev/docs) today';
 const PLAIN = 'Plain words to link';
@@ -12,10 +13,8 @@ const dialog = (page: Page) => page.getByRole('dialog', { name: 'Link' });
 const field = (page: Page) => page.getByRole('textbox', { name: 'Link address' });
 const selectedText = (page: Page) => page.evaluate(() => getSelection()!.toString());
 
-async function caretAt(page: Page, id: string, offset: number) {
-  await host(page, id).click({ position: { x: 1, y: 12 } });
-  for (let i = 0; i < offset; i++) await page.keyboard.press('ArrowRight');
-}
+const caretAt = async (page: Page, id: string, offset: number) =>
+  host(page, id).click({ position: await caretPoint(host(page, id), offset) });
 
 test.beforeEach(async ({ context }) => {
   await context.route('https://quoin.dev/**', (route) =>
@@ -25,7 +24,7 @@ test.beforeEach(async ({ context }) => {
 
 test('Mod+K on selected text opens the link popover, and Enter links the text', async ({ page }) => {
   await openEditor(page, 'link');
-  await host(page, 'q').dblclick({ position: { x: 12, y: 12 } });
+  await host(page, 'q').dblclick({ position: await textPoint(host(page, 'q'), 'Plain') });
   await expect.poll(() => selectedText(page)).toBe('Plain');
   await page.keyboard.press('ControlOrMeta+k');
   await expect(field(page)).toBeFocused();
@@ -40,7 +39,7 @@ test('Mod+K on selected text opens the link popover, and Enter links the text', 
 
 test('Escape closes the popover and gives the text back its selection, unchanged', async ({ page }) => {
   await openEditor(page, 'link');
-  await host(page, 'q').dblclick({ position: { x: 12, y: 12 } });
+  await host(page, 'q').dblclick({ position: await textPoint(host(page, 'q'), 'Plain') });
   await page.keyboard.press('ControlOrMeta+k');
   await page.keyboard.type('https://example.com');
   await page.keyboard.press('Escape');
@@ -52,7 +51,7 @@ test('Escape closes the popover and gives the text back its selection, unchanged
 
 test('an unsafe address keeps the popover open with its explanation', async ({ page }) => {
   await openEditor(page, 'link');
-  await host(page, 'q').dblclick({ position: { x: 12, y: 12 } });
+  await host(page, 'q').dblclick({ position: await textPoint(host(page, 'q'), 'Plain') });
   await page.keyboard.press('ControlOrMeta+k');
   await page.keyboard.type('javascript:alert(1)');
   await page.keyboard.press('Enter');
@@ -92,11 +91,12 @@ test('a pointer resting on a link shows its card, which stays on the card and go
 
 test('Mod+click on a link opens it in a new page', async ({ page }) => {
   await openEditor(page, 'link');
+  const before = page.url();
   const popup = page.waitForEvent('popup');
   await link(page).click({ modifiers: ['ControlOrMeta'] });
   const opened = await popup;
   await expect.poll(() => opened.url()).toBe('https://quoin.dev/docs');
-  expect(new URL(page.url()).search).toBe('?doc=link');
+  expect(page.url()).toBe(before);
 });
 
 test('a plain click on a link places the caret in it and never navigates', async ({ page, context }) => {

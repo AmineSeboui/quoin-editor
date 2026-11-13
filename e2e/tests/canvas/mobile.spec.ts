@@ -1,6 +1,7 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
 import { firstLine, host } from '../../support/block';
+import { lineStart, onThroughText } from '../../support/direction';
 import { blocks, openEditor } from '../../support/editor';
 import { phoneTest as test } from '../../support/phone';
 
@@ -12,7 +13,7 @@ const handle = (page: Page) => page.getByRole('button', { name: 'Drag to move, c
 const gutterAdd = (page: Page) =>
   page.locator('[data-quoin-gutter-block]').getByRole('button', { name: 'Add block below' });
 const box = async (locator: Locator) => (await locator.boundingBox())!;
-const tapStart = (page: Page, id: string) => host(page, id).tap({ position: { x: 1, y: 12 } });
+const tapStart = async (page: Page, id: string) => host(page, id).tap({ position: await lineStart(host(page, id), 12) });
 
 const visualViewport = (page: Page) =>
   page.evaluate(() => {
@@ -37,7 +38,7 @@ test('a tap shows the editing tools on the bottom edge, and selected text no bub
   }
   const overflow = await tools(page).evaluate((element) => element.scrollWidth - element.clientWidth);
   expect(overflow).toBeGreaterThan(0);
-  for (let i = 0; i < 3; i++) await page.keyboard.press('Shift+ArrowRight');
+  for (let i = 0; i < 3; i++) await page.keyboard.press(`Shift+${onThroughText(true)}`);
   await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   await expect(page.getByRole('toolbar', { name: 'Text formatting' })).toHaveCount(0);
   await expect(tools(page)).toBeVisible();

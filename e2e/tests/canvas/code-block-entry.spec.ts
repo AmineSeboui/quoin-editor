@@ -1,5 +1,6 @@
 import { onlyHost } from '../../support/block';
 import { expect, test, type Page } from '@playwright/test';
+import { forward } from '../../support/direction';
 import { blocks, openEditor } from '../../support/editor';
 
 const area = (page: Page) => page.getByRole('textbox', { name: 'Code', exact: true });
@@ -28,7 +29,7 @@ test('Turn into Code keeps the text and the caret at its end', async ({ page }) 
   await paragraphs(page).click();
   await page.keyboard.press('ControlOrMeta+/');
   // A click can land while the submenu is still being placed, and on Firefox hit the menu under it.
-  await page.getByRole('menuitem', { name: 'Turn into' }).press('ArrowRight');
+  await page.getByRole('menuitem', { name: 'Turn into' }).press(forward());
   await page.getByRole('menuitem', { name: 'Code' }).press('Enter');
   await expect(area(page)).toBeFocused();
   await page.keyboard.type('x');

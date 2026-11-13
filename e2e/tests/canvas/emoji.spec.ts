@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
 import { onlyHost } from '../../support/block';
+import { forward } from '../../support/direction';
 import { blocks, caretSettled, openEditor } from '../../support/editor';
 
 const PARTY_POPPER = '\u{1F389}';
@@ -127,10 +128,10 @@ test('the picker grid walks with the arrows, Home and End, and Escape hands focu
   const focused = () => page.evaluate(() => document.activeElement?.getAttribute('aria-label'));
   await page.keyboard.press('Tab');
   await expect.poll(focused).toBe('grinning');
-  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press(forward());
   await expect.poll(focused).toBe('smiley');
   await page.keyboard.press('End');
-  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press(forward());
   await page.keyboard.press('Home');
   await page.keyboard.press('ArrowUp');
   await expect.poll(focused).toBe('grinning');

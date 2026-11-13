@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { FIXTURE_PNG } from '../../app/fixture-png';
 import { axeViolations } from '../../support/axe';
 import { shell } from '../../support/block';
+import { backward, forward, lineStart } from '../../support/direction';
 import { blocks, openEditor } from '../../support/editor';
 import { dropEvent, pasteFilesEvent } from '../../support/synthetic-events';
 
@@ -67,7 +68,7 @@ test('the toolbar of a selected image is reached with Alt+F10 and aligns it, and
   await expect(toolbar(page)).toBeVisible();
   await page.keyboard.press('Alt+F10');
   await expect(toolbar(page).getByRole('button', { name: 'Align left' })).toBeFocused();
-  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press(forward());
   await page.keyboard.press('Enter');
   await expect.poll(() => imageData(page)).toMatchObject({ align: 'center' });
   await expect(toolbar(page).getByRole('button', { name: 'Align center' })).toHaveAttribute('aria-pressed', 'true');
@@ -162,7 +163,9 @@ test('Enter on a selected image takes the caret into its caption, and Left from 
   await expect(caption).toBeFocused();
   await page.keyboard.type('Sleepy');
   await expect.poll(() => imageData(page)).toMatchObject({ caption: 'Sleepy' });
-  for (let n = 0; n <= 'Sleepy'.length; n++) await page.keyboard.press('ArrowLeft');
+  await caption.click({ position: await lineStart(caption, 8) });
+  await expect.poll(() => page.evaluate(() => getSelection()!.focusOffset)).toBe(0);
+  await page.keyboard.press(backward());
   await expect(shell(page, 'img')).toHaveAttribute('data-selected', 'true');
   await expect(sink(page)).toBeFocused();
   await page.keyboard.type('!');

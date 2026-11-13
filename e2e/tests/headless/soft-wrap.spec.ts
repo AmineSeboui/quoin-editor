@@ -120,6 +120,39 @@ test.describe('a soft wrap', () => {
     expect(tried).toBeGreaterThanOrEqual(20);
   });
 
+  test('a caret at the end of a wrapped line is drawn there again once a relayout puts the wrap back', async ({
+    page,
+  }) => {
+    const settled = () => page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
+    let tried = 0;
+    for (const doc of ['middle', 'hyphens']) {
+      for (const width of [320, 400, 480]) {
+        await openHeadless(page, doc);
+        await page.setViewportSize({ width, height: 800 });
+        const rows = await lines(page);
+        const left = (await host(page, 0).boundingBox())!.x + 2;
+        await page.mouse.click(left, (rows[1].top + rows[1].bottom) / 2);
+        await page.keyboard.press(LINE_END);
+        await expect.poll(() => modelSelection(page)).toMatchObject({ head: { offset: rows[1].end }, assoc: -1 });
+        for (const other of [width + 40, width - 40, width + 80]) {
+          await page.setViewportSize({ width: other, height: 800 });
+          if ((await lines(page)).some(({ end }) => end === rows[1].end)) continue;
+          // Focus leaving and coming back writes the caret while no wrap falls where it is. A size the page never
+          // draws is no relayout, so a frame is drawn at each.
+          await settled();
+          await page.evaluate(() => (document.activeElement as HTMLElement).blur());
+          await page.evaluate(() => window.__quoin.controller!.focus());
+          await page.setViewportSize({ width, height: 800 });
+          await settled();
+          expect.soft(await caretLineEnd(page), `${doc} at width ${width}, then ${other}`).toBe(rows[1].end);
+          tried++;
+          break;
+        }
+      }
+    }
+    expect(tried).toBeGreaterThanOrEqual(4);
+  });
+
   test('a goal past the end of a line that wraps after a hyphen draws the caret after the hyphen', async ({
     page,
     browserName,

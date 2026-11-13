@@ -2,6 +2,7 @@ import type { EditorState, Transaction } from '../../engine';
 import { attachInput, type AttachedInput } from '../input/attach-input';
 import type { CrossMode } from '../selection/cross-mode';
 import { watchFocusReturn } from './focus-return';
+import { redrawOnRelayout } from './redraw-on-relayout';
 import { createSelectionSync, type SelectionSync } from './selection-sync';
 import type { ViewController } from './view-controller';
 
@@ -22,6 +23,7 @@ export function bindRoot(
   const input = attachInput(controller, root);
   const unsubscribe = controller.editor.subscribe(committed);
   const detachCross = cross.attach(root);
+  const stopRedrawing = redrawOnRelayout(controller, root);
   const stopFocusReturn = watchFocusReturn(root, {
     pressed: () => (controller.nativeVerticalMove = false),
     returned: (target) => {
@@ -38,6 +40,7 @@ export function bindRoot(
       input.detach();
       unsubscribe();
       detachCross();
+      stopRedrawing();
       stopFocusReturn();
     },
   };

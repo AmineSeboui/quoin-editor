@@ -30,6 +30,13 @@ export function drawnAsText(definitions: readonly AnyBlockDefinition[], type: st
 export const definedTypedInPlace = (definitions: readonly AnyBlockDefinition[]): string[] =>
   TYPED_IN_PLACE.filter((type) => hostDefines(definitions, type));
 
+/**
+ * The label of the host's own definition of a type the canvas would otherwise draw itself whether editable or not,
+ * which names the block in place of the name the labels give Quoin's block. Undefined for any other type.
+ */
+export const hostLabel = (definitions: readonly AnyBlockDefinition[], type: string): string | undefined =>
+  !TYPED_IN_PLACE.includes(type) && hostDefines(definitions, type) ? blockByType(definitions, type)?.label : undefined;
+
 /** Whether the canvas draws the type with its own block edited in place: while Quoin's definition of it is registered. */
 export function drawnInPlace(definitions: readonly AnyBlockDefinition[], type: string): boolean {
   return Object.hasOwn(inPlaceRenderers, type) && blockByType(definitions, type) !== undefined && !hostDefines(definitions, type);

@@ -1,6 +1,6 @@
 'use client';
 
-import { drawsType } from '../blocks/block-drawing';
+import { drawsType, hostLabel } from '../blocks/block-drawing';
 import { useQuoin } from '../context';
 import { setBlockType } from '../engine';
 import { useLabels } from '../i18n/use-labels';
@@ -19,7 +19,7 @@ export function TurnIntoItems({ kit, controller, blockIds }: TurnIntoMenuProps) 
   return targets.map((target) => (
     <kit.Item key={target.id} onSelect={() => runOnBlocks(controller, blockIds, setBlockType(target.type, target.attrs))}>
       <MenuIcon icon={target.icon} />
-      {target.label}
+      {hostLabel(blockTypes, target.type) ?? target.label}
     </kit.Item>
   ));
 }

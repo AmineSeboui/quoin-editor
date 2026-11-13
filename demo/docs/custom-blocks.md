@@ -5,7 +5,7 @@ description: Add block types of your own with defineBlock, whose editor and prev
 
 # Custom blocks
 
-A block type is a definition built with `defineBlock`. `blockTypes` defaults to `coreBlocks`, so extend it by spreading them and adding your own. When two definitions share a `type`, the last one wins, which is also how you override a core block. Your own definition of `DIVIDER` or `CODE` draws as a block of yours everywhere. Your own definition of `MARKDOWN`, `CALLOUT` or `TOGGLE` draws only on a read-only canvas: an editable canvas keeps those blocks its own, since they are typed into in place, and warns about it in development.
+A block type is a definition built with `defineBlock`. `blockTypes` defaults to `coreBlocks`, so extend it by spreading them and adding your own. When two definitions share a `type`, the last one wins, which is also how you override a core block. Your own definition of `DIVIDER`, `CODE`, `IMAGE` or `FILE` draws as a block of yours everywhere, and goes by its own `label` in the block's name, the block menu, the slash menu and Turn into, where Quoin's block goes by the name your labels give it. Your own definition of `MARKDOWN`, `CALLOUT` or `TOGGLE` draws only on a read-only canvas: an editable canvas keeps those blocks its own, since they are typed into in place, and warns about it in development.
 
 ```tsx
 import { Bookmark } from 'lucide-react';

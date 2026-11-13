@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import { drawsType, opensEditor } from '../../blocks/block-drawing';
+import { drawsType, hostLabel, opensEditor } from '../../blocks/block-drawing';
 import { insertBlockToWrite, type NewBlock } from '../../blocks/insert-blocks';
 import { createBlockCodec, type BlockAttrs, type EditorState } from '../../engine';
 import { specFor } from '../../engine/blocks/unknown-spec';
@@ -43,7 +43,7 @@ function insertionItem(
   const { label, icon, type, attrs } = insertion;
   return {
     id,
-    title: label,
+    title: hostLabel(definitions, type) ?? label,
     description: labels.slashDescriptions[id],
     icon,
     ...DETAILS[id],

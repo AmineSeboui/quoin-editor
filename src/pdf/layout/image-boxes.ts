@@ -8,15 +8,14 @@ import type { Box, Frame } from './box';
 import { indented, type LayoutContext } from './layout-context';
 import { textBoxes } from './text-boxes';
 
-// A CSS pixel, in points.
-const PIXEL = 0.75;
+const POINTS_PER_PIXEL = 0.75;
 const CAPTION = { ...BODY, size: 9, italic: true, color: MUTED };
 
 // A width percent sizes the picture to that share of the text width; otherwise it keeps its own size, down to fit.
 function sizeOf(image: PdfImage, block: EngineBlock, width: number, room: number): { width: number; height: number } {
   const percent = optionalNumber(block.attrs.widthPercent);
   const share = percent && percent > 0 && percent <= 100 ? (width * percent) / 100 : undefined;
-  const drawn = share ?? Math.min(image.width * PIXEL, width);
+  const drawn = share ?? Math.min(image.width * POINTS_PER_PIXEL, width);
   const height = (drawn * image.height) / image.width;
   return height > room ? { width: (drawn * room) / height, height: room } : { width: drawn, height };
 }

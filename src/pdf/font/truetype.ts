@@ -37,6 +37,15 @@ function tablesOf(view: DataView): Map<string, number> | null {
   return REQUIRED.every((tag) => tables.has(tag)) ? tables : null;
 }
 
+// A table read at layout time may point past the end of a malformed file: what it cannot read counts as no glyph.
+const orZero = (read: () => number) => {
+  try {
+    return read();
+  } catch {
+    return 0;
+  }
+};
+
 const NAME_CHARACTER = /[!-~]/;
 const DELIMITER = /[()<>[\]{}/%]/;
 
@@ -83,9 +92,9 @@ function parse(bytes: Uint8Array): TrueType | TrueTypeRefusal {
     bbox: [36, 38, 40, 42].map((field) => view.getInt16(head! + field)) as [number, number, number, number],
     italicAngle: post === undefined ? 0 : view.getInt32(post + 4) / 65536,
     fixedPitch: post !== undefined && view.getUint32(post + 12) !== 0,
-    advance: (glyph) => (glyph < glyphs ? view.getUint16(hmtx! + Math.min(glyph, metrics - 1) * 4) : 0),
+    advance: (glyph) => (glyph < glyphs ? orZero(() => view.getUint16(hmtx! + Math.min(glyph, metrics - 1) * 4)) : 0),
     glyphOf: (codePoint) => {
-      const glyph = glyphOf(codePoint);
+      const glyph = orZero(() => glyphOf(codePoint));
       return glyph < glyphs ? glyph : 0;
     },
   };

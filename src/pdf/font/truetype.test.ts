@@ -68,4 +68,18 @@ describe('readTrueType', () => {
     expect(readTrueType(new TextEncoder().encode('not a font at all'))).toBe('format');
     expect(readTrueType(tinyFont({ glyphs: [['A', 600]] }).subarray(0, 40))).toBe('format');
   });
+
+  it('finds no glyph rather than throwing where a character map points past the end of the file', () => {
+    const bytes = Uint8Array.from(tinyFont({ glyphs: glyphs.slice(0, 2) }));
+    const view = new DataView(bytes.buffer);
+    const record = Array.from({ length: view.getUint16(4) }, (_, at) => 12 + at * 16).find(
+      (at) => String.fromCharCode(...bytes.subarray(at, at + 4)) === 'cmap',
+    )!;
+    const subtable = view.getUint32(record + 8) + 12;
+    view.setUint16(subtable + 6, 0xfffe);
+    const font = read(bytes);
+    expect(() => font.glyphOf(0x41)).not.toThrow();
+    expect(font.glyphOf(0x41)).toBe(0);
+    expect(font.advance(60_000)).toBe(0);
+  });
 });

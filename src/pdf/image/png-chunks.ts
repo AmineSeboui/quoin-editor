@@ -14,8 +14,7 @@ export type PngHeader = {
 
 const SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 
-// The bit depths each colour type allows.
-const DEPTHS: Readonly<Record<number, readonly number[]>> = { 0: [1, 2, 4, 8, 16], 2: [8, 16], 3: [1, 2, 4, 8], 4: [8, 16], 6: [8, 16] };
+const DEPTHS_OF_COLOR_TYPE: Readonly<Record<number, readonly number[]>> = { 0: [1, 2, 4, 8, 16], 2: [8, 16], 3: [1, 2, 4, 8], 4: [8, 16], 6: [8, 16] };
 
 export const CHANNELS: Readonly<Record<number, number>> = { 0: 1, 2: 3, 3: 1, 4: 2, 6: 4 };
 
@@ -37,7 +36,7 @@ export function pngChunks(bytes: Uint8Array): PngHeader | null {
   if (!header || header.length < 13 || !data) return null;
   const head = new DataView(header.buffer, header.byteOffset, header.byteLength);
   const [width, height, depth, color] = [head.getUint32(0), head.getUint32(4), header[8], header[9]];
-  if (width === 0 || height === 0 || !DEPTHS[color]?.includes(depth) || header[10] !== 0 || header[11] !== 0 || header[12] > 1) return null;
+  if (width === 0 || height === 0 || !DEPTHS_OF_COLOR_TYPE[color]?.includes(depth) || header[10] !== 0 || header[11] !== 0 || header[12] > 1) return null;
   const palette = chunks.get('PLTE')?.[0];
   if (color === 3 && !palette) return null;
   return { width, height, depth, color, interlaced: header[12] === 1, palette, transparency: chunks.get('tRNS')?.[0], data: concatBytes(data) };

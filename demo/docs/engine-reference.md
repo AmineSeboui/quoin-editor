@@ -1334,7 +1334,7 @@ type Extension = {
 };
 ```
 
-[Extension on GitHub](src/engine/extension/types.ts#L36)
+[Extension on GitHub](src/engine/extension/types.ts#L40)
 
 ### KeyLike
 
@@ -1382,8 +1382,13 @@ function normalizeKey(name: string, isMac: boolean): string
 
 ### PasteRule
 
+Takes a paste before the editor does, given its plain text and everything else that was pasted with it.
+
 ```ts
-type PasteRule = { readonly name: string; match(text: string, state: EditorState): Command | null };
+type PasteRule = {
+  readonly name: string;
+  match(text: string, state: EditorState, data?: { json?: string; html?: string; text?: string }): Command | null;
+};
 ```
 
-[PasteRule on GitHub](src/engine/extension/types.ts#L34)
+[PasteRule on GitHub](src/engine/extension/types.ts#L35)

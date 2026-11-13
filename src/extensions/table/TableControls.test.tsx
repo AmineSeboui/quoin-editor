@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { addColumn, removeColumn, removeRow } from '../../engine/commands/table-commands';
-import { paragraph } from '../../blocks/void/test-canvas';
+import { mountCanvas, paragraph } from '../../blocks/void/test-canvas';
 import { BlockCanvas } from '../../canvas/BlockCanvas';
 import type { QuoinEditorHandle } from '../../canvas/canvas-props';
 import { tableExtension } from './table-extension';
@@ -37,6 +37,21 @@ describe('the controls of a table', () => {
       'Column 2 options',
     ]);
     expect(screen.getAllByRole('separator', { name: /^Resize column/ })).toHaveLength(2);
+  });
+
+  it('are drawn into the table the caret moves to, never into the one it left', () => {
+    const tables = ['a', 'b'].map((id) => ({ ...table(), id }));
+    const { handle, shell } = mountCanvas([paragraph('p', 'Above'), ...tables], { extensions: [tableExtension()] });
+    const caretIn = (block: string) => act(() => handle().focus({ block, region: 'cell:1:1', offset: 0 }));
+    caretIn('a');
+    const left = shell('a').querySelector<HTMLElement>('[data-quoin-table-controls]')!;
+    expect(within(left).getByRole('toolbar', { name: 'Table controls' })).toBeInTheDocument();
+    const measured = vi.spyOn(left, 'getBoundingClientRect');
+    const drawnInto = vi.spyOn(left, 'appendChild');
+    caretIn('b');
+    expect(within(shell('b')).getByRole('toolbar', { name: 'Table controls' })).toBeInTheDocument();
+    expect(measured).not.toHaveBeenCalled();
+    expect(drawnInto).not.toHaveBeenCalled();
   });
 
   it('come back as soon as a read-only canvas turns editable again', () => {

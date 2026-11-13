@@ -4,9 +4,14 @@ import { sanitizeHref } from '../markdown/urls';
 import { atom, equalInline, normalizeInline, text } from '../model/inline';
 import type { Attrs, Inline, Mark } from '../model/types';
 
-// A mark or atom is storable when the markdown written for it reads back as the very same inline content.
+// A mark or atom is storable when the markdown written for it reads back as the very same inline content. Attributes
+// from code without types may not be the strings markdown is written from, and cannot be written at all.
 function readsBack(inline: Inline): boolean {
-  return equalInline(parseInline(serializeInline(inline)), normalizeInline(inline));
+  try {
+    return equalInline(parseInline(serializeInline(inline)), normalizeInline(inline));
+  } catch {
+    return false;
+  }
 }
 
 function safeLink(mark: Mark): Mark | null {

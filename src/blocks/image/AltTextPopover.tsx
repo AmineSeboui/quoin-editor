@@ -15,6 +15,7 @@ import type { ViewController } from '../../view';
 import { isComposingKey } from '../../view/input/keydown';
 import { onBlock } from '../../view/react/block-command';
 import { str } from '../../engine/blocks/data-fields';
+import { useClosing } from './use-closing';
 import { useOutsidePress } from './use-outside-press';
 
 type Opened = { alt: string; decorative: boolean };
@@ -58,34 +59,18 @@ export function AltTextPopover({ blockId, controller, anchor, opener, alt, decor
   const [marked, setMarked] = useState(decorative);
   const fieldId = useId();
   const hintId = `${fieldId}-hint`;
-  const closed = useRef(false);
-
-  // Handing focus back to the image is focus leaving the popover, which would close it a second time.
-  const finish = (store: boolean) => {
-    if (closed.current) return false;
-    closed.current = true;
-    if (store && (draft !== alt || marked !== decorative))
-      storeAlt(controller, blockId, opened, { alt: draft, decorative: marked || undefined });
-    return true;
-  };
-  const latestFinish = useRef(finish);
-  latestFinish.current = finish;
-  useEffect(() => {
-    closed.current = false;
-    return () => void latestFinish.current(true);
-  }, []);
+  const { finish, close } = useClosing(controller, {
+    store() {
+      if (draft !== alt || marked !== decorative) {
+        storeAlt(controller, blockId, opened, { alt: draft, decorative: marked || undefined });
+      }
+    },
+    onClose,
+    onReturn: () => controller.focus(),
+  });
   useEffect(() => {
     if ((alt !== opened.alt || decorative !== opened.decorative) && finish(false)) onClose();
   });
-
-  // A tap gives the text focus and the caret before its click closes the popover, and the editor reads the caret only on
-  // the next selection change. It is read first, or storing the text would hand focus back to the image.
-  const close = (store: boolean, refocus = true) => {
-    if (!refocus) controller.readSelectionFromDom();
-    if (!finish(store)) return;
-    onClose();
-    if (refocus) controller.focus();
-  };
   const content = useRef<HTMLDivElement>(null);
   const ownerDocument = useCallback(() => controller.root?.ownerDocument ?? document, [controller]);
   useOutsidePress(content, ownerDocument, (target) => {

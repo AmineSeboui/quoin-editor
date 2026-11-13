@@ -74,7 +74,7 @@ describe('the package entry list', () => {
       ['headless', 74_500],
       ['engine', 54_100],
       ['view', 22_214],
-      ['diff', 26_961],
+      ['diff', 26_990],
       ['docx', 25_891],
     ]);
     expect(packageEntries[3]).toMatchObject({ source: 'src/view-static/index.ts', client: false });

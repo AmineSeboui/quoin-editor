@@ -18,7 +18,7 @@ import { isComposingKey } from '../../view/input/keydown';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
 import { ColumnResizer } from './ColumnResizer';
 import { HandleMenu } from './HandleMenu';
-import type { TableGeometry, Span } from './table-geometry';
+import { edgeAt, type TableGeometry, type Span } from './table-geometry';
 import type { TableLabels } from './table-labels';
 import { alignItems, columnMenuItems, rowMenuItems } from './table-menu-items';
 import { inlineDirection } from '../../ui/direction';
@@ -45,11 +45,6 @@ const BESIDE = 4;
 
 const end = (span: Span) => span.start + span.size;
 
-/** Where the edge before the span at `edge` is drawn, the edge after the last one at their count, if the table has it. */
-function edgeOf(spans: readonly Span[], edge: number | null): number | null {
-  if (edge === null || !Number.isInteger(edge) || edge < 0 || edge > spans.length || spans.length === 0) return null;
-  return edge === spans.length ? end(spans[edge - 1]) : spans[edge].start;
-}
 const middle = (span: Span) => span.start + span.size / 2;
 
 const isTab = (event: KeyboardEvent) => event.key === 'Tab' && !event.altKey && !event.ctrlKey && !event.metaKey;
@@ -72,8 +67,8 @@ export function TableHandles(props: TableHandlesProps) {
   const align = columnAligns(block, shape.cols)[col];
   const drawn = geometry.cols.map((span) => span.size);
   const { rowEdge, colEdge } = target;
-  const rowInsertAt = edgeOf(geometry.rows, rowEdge);
-  const columnInsertAt = edgeOf(geometry.cols, colEdge);
+  const rowInsertAt = edgeAt(geometry.rows, rowEdge);
+  const columnInsertAt = edgeAt(geometry.cols, colEdge);
 
   useIsomorphicLayoutEffect(() => {
     if (!focusRequested) return;

@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { coreExtensions } from './core-extensions';
+import { defineExtension } from './define-extension';
 import { createEditor, createInternalEditor } from './editor';
 import { caret, md, range, startEditor } from '../test-support/editor-fixtures';
 
@@ -91,6 +93,28 @@ describe('clipboard through the editor', () => {
     expect(editor.getBlocks().map((block) => block.data.markdown)).toEqual(['one', 'twoone']);
     expect(editor.commands.undo()).toBe(true);
     expect(editor.getBlocks().map((block) => block.data.markdown)).toEqual(['one', 'two']);
+  });
+
+  it('hands a paste rule the whole of what was pasted', () => {
+    const match = vi.fn(() => null);
+    const rules = defineExtension({ name: 'rules', pasteRules: [{ name: 'seen', match }] });
+    const { editor } = startEditor([md('a', 'x')], { extensions: [...coreExtensions(), rules] });
+    editor.commands.setSelection(caret('a', 1));
+    const pasted = { text: 'y', html: '<b>y</b>', json: '{}' };
+    const before = editor.state;
+    editor.paste(pasted);
+    expect(match).toHaveBeenCalledWith('y', before, pasted);
+  });
+
+  it('copies the cells of a cell range alone: a table of them as json and html, their text separated by tabs', () => {
+    const table = { id: 't', type: 'TABLE', data: { rows: [['a', 'b', 'c'], ['d', 'e', 'f']], header: true, align: [null, null, null] } };
+    const { editor } = startEditor([table]);
+    const cell = (region: string) => ({ block: 't', region, offset: 0 });
+    editor.commands.setSelection({ kind: 'text', anchor: cell('cell:1:2'), head: cell('cell:0:1') });
+    const copied = editor.copy()!;
+    expect(JSON.parse(copied.json).slice.blocks[0].data).toEqual({ rows: [['b', 'c'], ['e', 'f']], header: true, align: [null, null] });
+    expect(copied.html).toBe('<table><thead><tr><th>b</th><th>c</th></tr></thead><tbody><tr><td>e</td><td>f</td></tr></tbody></table>');
+    expect(copied.text).toBe('b\tc\ne\tf');
   });
 });
 

@@ -121,6 +121,16 @@ describe('an inline math formula', () => {
     expect(canvas.host('p')).toHaveFocus();
   });
 
+  it('opens on the first click of a double click only, so its second click never opens it again', () => {
+    const canvas = lineWithFormula();
+    act(() => void fireEvent.click(canvas.formula(), { detail: 1 }));
+    expect(canvas.field()).toHaveValue('x^2');
+    canvas.key('Escape', {}, canvas.field()!);
+    expect(canvas.popover()).toBeNull();
+    act(() => void fireEvent.click(canvas.formula(), { detail: 2 }));
+    expect(canvas.popover()).toBeNull();
+  });
+
   it('extends the selection on a Shift+click rather than opening', () => {
     const canvas = lineWithFormula();
     canvas.caret('p', 2);

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { cellKey } from '../blocks/table-spec';
+import { text } from '../model/inline';
 import type { QuoinBlock } from '../model/quoin-block';
 import { cellSelectionPlugin } from '../state/cell-selection';
 import type { EditorState } from '../state/editor-state';
@@ -89,8 +90,15 @@ describe('typeOverCells', () => {
     expect(next.selection).toEqual(caretIn(0, 1, 2));
   });
 
+  it('writes inline content in the first cell with the marks it carries', () => {
+    const next = undoable(stateWith(RANGE), typeOverCells([text('x'), text('y', [{ type: 'bold' }])]));
+    expect(rowsOf(next)).toEqual([['a', 'x**y**', ''], ['d', '', ''], ['g', 'h', 'i']]);
+    expect(next.selection).toEqual(caretIn(0, 1, 2));
+  });
+
   it('does nothing without a cell range or without text', () => {
     expect(run(stateWith(at(0, 1)), typeOverCells('x')).ok).toBe(false);
     expect(run(stateWith(RANGE), typeOverCells('')).ok).toBe(false);
+    expect(run(stateWith(RANGE), typeOverCells([])).ok).toBe(false);
   });
 });

@@ -131,14 +131,14 @@ describe('deleteBackward at the start of a block', () => {
     expect(state.doc.blocks[0].regions['cell:0:0']).toEqual([{ kind: 'text', text: 'a', marks: [] }]);
   });
 
-  it('deletes a selection across two cells without touching the rest of either cell', () => {
-    const table = { id: 't', type: 'TABLE', data: { rows: [['abcdef', 'ghijkl']] } };
+  it('empties the cells a selection across cells spans, and only those, leaving the caret in the first of them', () => {
+    const table = { id: 't', type: 'TABLE', data: { rows: [['abcdef', 'ghijkl', 'mn']] } };
     const selection = { anchor: { block: 0, offset: 1 }, head: { block: 0, region: 'cell:0:1', offset: 5 } };
     const { ok, state } = after([table], selection, deleteSelection);
-    const cells = ['cell:0:0', 'cell:0:1'].map((key) => inlineText(state.doc.blocks[0].regions[key]));
+    const cells = ['cell:0:0', 'cell:0:1', 'cell:0:2'].map((key) => inlineText(state.doc.blocks[0].regions[key]));
     expect(ok).toBe(true);
-    expect(cells).toEqual(['a', 'l']);
-    expect(caretOf(state)).toEqual({ block: 0, offset: 1 });
+    expect(cells).toEqual(['', '', 'mn']);
+    expect(caretOf(state)).toEqual({ block: 0, offset: 0 });
   });
 
   it('reports nothing to do without a selection', () => {

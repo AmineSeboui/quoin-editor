@@ -77,6 +77,18 @@ test('a press on an embed selects it rather than its frame, and Enter moves focu
   expect(await types(page)).toEqual(['MARKDOWN', 'EMBED', 'BOOKMARK', 'EMBED', 'MARKDOWN']);
 });
 
+// Chromium on a Mac opens a context menu for Control and the main button, and fires no click after it.
+test('a Control+click on an embed selects it and lifts its cover as a click does', async ({ page }) => {
+  await openEditor(page, 'embeds', 'embed=1');
+  const shell = page.locator('[data-block-id="e"]');
+  const frame = (await youtube(page).boundingBox())!;
+  await page.keyboard.down('Control');
+  await page.mouse.click(frame.x + frame.width / 2, frame.y + frame.height / 2);
+  await page.keyboard.up('Control');
+  await expect(shell).toHaveAttribute('data-selected', 'true');
+  await expect(shell.locator('.quoin-embed-cover')).toHaveCount(0);
+});
+
 test('/bookmark asks for a link, and the card it places is filled in by the host', async ({ page }) => {
   await openEditor(page, 'empty', 'embed=1');
   await caretIn(page);

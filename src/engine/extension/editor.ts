@@ -121,7 +121,7 @@ export function createInternalEditor<F extends CommandFactories = CoreCommands>(
   function paste(data: { json?: string; html?: string; text?: string }, parser?: DOMParserLike): boolean {
     if (destroyed) return false;
     const { text } = data;
-    const ruled = text !== undefined && resolved.pasteRules.some((rule) => rule.match(text, state)?.(state, dispatch));
+    const ruled = text !== undefined && resolved.pasteRules.some((rule) => rule.match(text, state, data)?.(state, dispatch));
     if (ruled) return true;
     const slice = sliceFromClipboard(data, { parser, newId });
     return slice !== null && insertSlice(slice, { newId })(state, dispatchPaste(slice, dispatch));

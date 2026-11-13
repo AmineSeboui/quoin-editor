@@ -33,13 +33,13 @@ describe('insertText', () => {
     expect(caretOf(next)).toEqual({ block: 0, offset: 3 });
   });
 
-  it('replaces a selection across two cells inside their own cells', () => {
-    const table = { id: 't', type: 'TABLE', data: { rows: [['abcdef', 'ghijkl']] } };
-    const selection = { anchor: { block: 0, offset: 1 }, head: { block: 0, region: 'cell:0:1', offset: 5 } };
+  it('replaces a selection across cells with the text in the first cell of the range, emptying the others', () => {
+    const table = { id: 't', type: 'TABLE', data: { rows: [['ab', 'cd', 'ef'], ['gh', 'ij', 'kl']] } };
+    const selection = { anchor: { block: 0, region: 'cell:0:2', offset: 1 }, head: { block: 0, region: 'cell:1:1', offset: 1 } };
     const { state } = run(buildState([table], selection), insertText('X'));
-    const cells = ['cell:0:0', 'cell:0:1'].map((key) => inlineText(state.doc.blocks[0].regions[key]));
-    expect(cells).toEqual(['aX', 'l']);
-    expect(caretOf(state)).toEqual({ block: 0, offset: 2 });
+    const cells = ['cell:0:0', 'cell:0:1', 'cell:0:2', 'cell:1:0', 'cell:1:1', 'cell:1:2'];
+    expect(cells.map((key) => inlineText(state.doc.blocks[0].regions[key]))).toEqual(['ab', 'X', '', 'gh', '', '']);
+    expect(caretOf(state)).toEqual({ block: 0, region: 'cell:0:1', offset: 1 });
   });
 
   it('creates a paragraph in an empty document', () => {

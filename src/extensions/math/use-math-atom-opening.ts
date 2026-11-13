@@ -11,7 +11,7 @@ import { atomTarget, openMath } from './math-target';
 
 /**
  * Opens the math editor on a formula in a line of an editable canvas: on a click on it, and on Enter while it is
- * selected. A Shift+click extends the selection instead.
+ * selected. A Shift+click extends the selection instead, and a double click opens once.
  */
 export function useMathAtomOpening(controller: ViewController, editable: boolean): void {
   useEffect(() => {
@@ -26,7 +26,8 @@ export function useMathAtomOpening(controller: ViewController, editable: boolean
       return true;
     };
     const onClick = (event: MouseEvent) => {
-      const place = event.shiftKey ? null : atomAtTarget(controller, event.target, MATH_ATOMS);
+      const once = !event.shiftKey && event.detail <= 1;
+      const place = once ? atomAtTarget(controller, event.target, MATH_ATOMS) : null;
       if (place !== null) openMath(controller, atomTarget(place));
     };
     controller.keyInterceptors.add(intercept);

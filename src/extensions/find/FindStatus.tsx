@@ -11,11 +11,11 @@ export function statusText(labels: FindLabels, value: FindState): string {
   if (value.error !== null) return labels.invalidPattern;
   if (value.search.query === '') return '';
   if (value.matches.length === 0) return labels.noResults;
-  return labels.matchCount(value.current + 1, value.matches.length, value.capped);
+  return labels.matchCount(value.current + 1, value.matches.length, false);
 }
 
 /** Which match is current of how many, or why there is none, and the same said once typing rests. */
-export function FindStatus({ labels, value }: { labels: FindLabels; value: FindState }) {
+export function FindStatus({ id, labels, value }: { id: string; labels: FindLabels; value: FindState }) {
   const text = statusText(labels, value);
   const [announced, setAnnounced] = useState('');
   useEffect(() => {
@@ -24,7 +24,7 @@ export function FindStatus({ labels, value }: { labels: FindLabels; value: FindS
   }, [text]);
   return (
     <>
-      <span data-quoin-find-status="" className="text-muted-foreground min-w-16 text-xs whitespace-nowrap tabular-nums">
+      <span id={id} data-quoin-find-status="" className="text-muted-foreground min-w-16 text-xs whitespace-nowrap tabular-nums">
         {text}
       </span>
       <span data-quoin-find-announcer="" aria-live="polite" className="quoin-visually-hidden">

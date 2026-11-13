@@ -68,7 +68,7 @@ describe('suggestionPlugin', () => {
     const all = [
       suggestionPlugin(mention, { char: '@', allowSpaces: true }),
       suggestionPlugin(key, { char: '/' }),
-      suggestionPlugin(emoji, { char: ':' }),
+      suggestionPlugin(emoji, { char: ':', minLength: 2 }),
     ];
     const typed = (text: string) => buildState([{ paragraph: text }], { block: 0, offset: text.length }, { plugins: all });
     const actives = (state: EditorState) => [mention, key, emoji].map((each) => getPluginState(state, each).active?.query ?? null);
@@ -77,6 +77,12 @@ describe('suggestionPlugin', () => {
       expect(actives(typed('Ask @Ada /x'))).toEqual([null, 'x', null]);
       expect(actives(typed('Ask @Ada :sm'))).toEqual([null, null, 'sm']);
       expect(actives(typed('/x @Ada'))).toEqual(['Ada', null, null]);
+    });
+
+    it('pass over one whose query is shorter than its least length, leaving the farther one active', () => {
+      expect(actives(typed('Ask @Ada :'))).toEqual(['Ada :', null, null]);
+      expect(actives(typed('Ask @Ada :s'))).toEqual(['Ada :s', null, null]);
+      expect(actives(typed('Ask @Ada :sm'))).toEqual([null, null, 'sm']);
     });
 
     it('give the farther one back, undismissed, once the nearer one goes away', () => {

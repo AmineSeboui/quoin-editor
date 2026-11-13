@@ -27,5 +27,5 @@ export function emojiExtension(options: EmojiOptions = {}): Extension {
     <CalloutIconPicker controller={controller} labels={labels} />
   );
   const ui: ExtensionUI = { blockMenuItems: [chooseIconAction(labels)], overlays: [Menu, Picker] };
-  return defineExtension({ name: 'emoji', plugins: [suggestionPlugin(emojiKey, { char: ':' })], ui });
+  return defineExtension({ name: 'emoji', plugins: [suggestionPlugin(emojiKey, { char: ':', minLength: 2 })], ui });
 }

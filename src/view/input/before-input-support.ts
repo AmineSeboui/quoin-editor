@@ -1,10 +1,11 @@
 import { createEditor } from '../../engine/extension/editor';
+import type { Extension } from '../../engine/extension/types';
 import { inlineText } from '../../engine/model/inline';
 import { textSelection } from '../../engine/state/selection';
 import { ViewController } from '../controller/view-controller';
 
-export function setup(markdown = 'hi') {
-  const editor = createEditor({ blocks: [{ id: 'a', type: 'MARKDOWN', data: { markdown } }] });
+export function setup(markdown = 'hi', extensions?: readonly Extension[]) {
+  const editor = createEditor({ blocks: [{ id: 'a', type: 'MARKDOWN', data: { markdown } }], extensions });
   const controller = new ViewController({ editor });
   const host = document.createElement('div');
   host.contentEditable = 'true';

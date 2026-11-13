@@ -14,8 +14,9 @@ const ACTIVE_CELL = '[role="gridcell"][tabindex="0"]';
 
 /**
  * A search field over grids of every emoji, one for each group, or one of the emoji the search finds, best first. Tab
- * moves between the field and the grids, ArrowDown in the field goes to the grids and Enter there picks the first
- * match. The dataset loads the first time a picker mounts, and again in a picker mounted after a load that failed.
+ * moves from the field through each grid in turn and back to the field, ArrowDown in the field goes to the first grid
+ * and Enter there picks the first match. The dataset loads the first time a picker mounts, and again in a picker
+ * mounted after a load that failed.
  */
 export function EmojiPicker({ labels, onPick }: Props) {
   const data = useEmojiData();
@@ -27,18 +28,19 @@ export function EmojiPicker({ labels, onPick }: Props) {
     () => (typeof data === 'string' ? null : pickerLayout(data.searchEmoji(query), searching, labels)),
     [data, query, searching, labels],
   );
-  const shown = layout !== null && layout.sections.length > 0;
+  const shown = layout !== null && layout.length > 0;
   const status = data === 'loading' ? labels.loading : data === 'failed' ? labels.loadFailed : shown ? '' : labels.noMatches;
   const focusGrids = () => grids.current?.querySelector<HTMLElement>(ACTIVE_CELL)?.focus();
 
   // Tab stays within the picker: the popover it sits in is drawn at the end of the page, where Tab would leave the page.
-  // It goes no further either, where Radix would send focus on the last tabbable cell round to the field.
+  // The picker moves focus itself, and keeps the key from the popover's own focus scope.
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key !== 'Tab' || isComposing(event.nativeEvent) || event.altKey || event.ctrlKey || event.metaKey) return;
     event.preventDefault();
     event.stopPropagation();
-    if (event.target === field.current) focusGrids();
-    else field.current?.focus();
+    const stops = [field.current, ...(grids.current?.querySelectorAll<HTMLElement>(ACTIVE_CELL) ?? [])];
+    const at = stops.indexOf(event.target as HTMLElement);
+    stops[(at + (event.shiftKey ? -1 : 1) + stops.length) % stops.length]?.focus();
   };
   const onFieldKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (isComposing(event.nativeEvent)) return;
@@ -47,7 +49,7 @@ export function EmojiPicker({ labels, onPick }: Props) {
       focusGrids();
     } else if (event.key === 'Enter' && searching && shown) {
       event.preventDefault();
-      onPick(layout.rows[0][0].emoji);
+      onPick(layout[0].rows[0][0].emoji);
     }
   };
 

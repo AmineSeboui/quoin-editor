@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { Command } from '../commands/command';
-import { inlineText } from '../model/inline';
-import type { EditorState } from '../state/editor-state';
+import { createDoc } from '../model/doc';
+import { atom, inlineText, text } from '../model/inline';
+import { createSchema } from '../schema/create-schema';
+import { createState, type EditorState } from '../state/editor-state';
 import { historyPlugin, undo, undoDepth } from '../state/history';
 import { buildState, markdownOf, run } from '../test-support/build-state';
 import { findMatches } from './find-matches';
@@ -46,6 +48,18 @@ describe('replaceMatches', () => {
       regex: true,
     });
     expect(markdownOf(state)).toEqual(['21/10/2026 (2026-10-21) and 02/01/1999 (1999-01-02)']);
+  });
+
+  it('reads ^ and $ as the ends of the line on replacing, never as an atom inside it', () => {
+    const math = atom('math', { latex: 'x' });
+    const regions = { text: [text('ab'), math, text('ab')] };
+    const doc = createDoc([{ id: 'b0', type: 'MARKDOWN', indent: 0, attrs: { kind: 'paragraph' }, regions }]);
+    const state = createState({ doc, schema: createSchema() });
+    const search = { ...PLAIN, regex: true, query: '^ab|ab$' };
+    const stale = [{ block: 'b0', region: 'text', from: 3, to: 5 }];
+    expect(run(state, replaceMatches({ ...search, query: '^ab' }, stale, 'x')).ok).toBe(false);
+    const { state: next } = run(state, replaceMatches(search, matchesOf(state, search), '[$&]'));
+    expect(inlineText(next.doc.blocks[0].regions.text)).toBe('[ab]\uFFFC[ab]');
   });
 
   it('keeps the replacement literal outside regex mode', () => {

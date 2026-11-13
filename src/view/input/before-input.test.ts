@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import { coreExtensions, defineExtension } from '../../engine';
 import { textSelection } from '../../engine/state/selection';
 import { handleBeforeInput } from './before-input';
 import { input, setup, targeting } from './before-input-support';
+
+const refusingEdits = [...coreExtensions(), defineExtension({ name: 'refuse', filterTransaction: (tr) => !tr.docChanged })];
 
 describe('handleBeforeInput', () => {
   it('inserts text with markdown shortcuts and prevents the default', () => {
@@ -82,6 +85,17 @@ describe('handleBeforeInput', () => {
     const { controller, host, text } = setup('teh cat');
     handleBeforeInput(controller, targeting(input('insertReplacementText', 'the'), host.firstChild!, 0, 3));
     expect(text()).toBe('the cat');
+  });
+
+  it('leaves the selection where it was when the replacement, or the deletion of a target range, is refused', () => {
+    const { editor, controller, host, text } = setup('teh cat', refusingEdits);
+    const caret = textSelection({ block: 'a', region: 'text', offset: 7 });
+    handleBeforeInput(controller, targeting(input('insertReplacementText', 'the'), host.firstChild!, 0, 3));
+    expect(text()).toBe('teh cat');
+    expect(editor.state.selection).toEqual(caret);
+    handleBeforeInput(controller, targeting(input('deleteWordBackward'), host.firstChild!, 0, 4));
+    expect(text()).toBe('teh cat');
+    expect(editor.state.selection).toEqual(caret);
   });
 
   it('inserts a hard break and transposes characters', () => {

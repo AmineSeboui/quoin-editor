@@ -79,6 +79,19 @@ describe('findMatches', () => {
     expect(spans(doc, 'cd', { wholeWord: true })).toEqual(['b0/text:3-5']);
   });
 
+  it('anchors ^ and $ to the ends of the line, never to an atom inside it', () => {
+    const math = atom('math', { latex: 'x' });
+    const regions = { text: [text('ab'), math, text('ab cd'), math, text('cd')] };
+    const doc = createDoc([{ id: 'b0', type: 'MARKDOWN', indent: 0, attrs: { kind: 'paragraph' }, regions }]);
+    expect(spans(doc, '^ab', { regex: true })).toEqual(['b0/text:0-2']);
+    expect(spans(doc, 'cd$', { regex: true })).toEqual(['b0/text:9-11']);
+    expect(spans(doc, '^\\w+$|[$^]', { regex: true })).toEqual([]);
+    expect(spans(doc, '[^a]b|c[d$]', { regex: true })).toEqual(['b0/text:6-8', 'b0/text:9-11']);
+    expect(spans(doc, '\\^|\\$', { regex: true })).toEqual([]);
+    expect(spans(plainDoc('a^b c$d'), '\\^|\\$', { regex: true })).toEqual(['b0/text:1-2', 'b0/text:5-6']);
+    expect(spans(plainDoc('ab'), '^ab$', { regex: true })).toEqual(['b0/text:0-2']);
+  });
+
   it('finds matches in every text region, in document order', () => {
     const table: QuoinBlock = {
       id: 't',

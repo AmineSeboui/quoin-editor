@@ -1,12 +1,13 @@
 import type { Command } from '../commands/command';
 import { blockById } from '../model/doc';
-import { sliceInline, text } from '../model/inline';
+import { inlineLength, sliceInline, text } from '../model/inline';
 import { comparePos } from '../model/position';
 import type { EngineDoc, Inline } from '../model/types';
 import { Transaction } from '../state/transaction';
 import { replaceInlineStep } from '../transform/replace-inline-step';
 import { findPattern } from './find-pattern';
 import type { FindMatch, FindQuery } from './find-types';
+import { runPattern } from './run-pattern';
 import { runHolding, type TextRun } from './text-runs';
 
 type Replacement = { readonly match: FindMatch; readonly slice: Inline };
@@ -21,7 +22,7 @@ function expand(run: TextRun, sticky: RegExp, from: number, to: number, replacem
 // lookarounds and groups read the same text they read when it was found.
 function replacementFor(
   doc: EngineDoc,
-  pattern: RegExp,
+  patternOf: ReturnType<typeof runPattern>,
   search: FindQuery,
   match: FindMatch,
   replacement: string,
@@ -31,6 +32,7 @@ function replacementFor(
   if (inline === undefined || run === undefined) return null;
   const from = match.from - run.start;
   const to = match.to - run.start;
+  const pattern = patternOf(run, inlineLength(inline));
   const sticky = new RegExp(pattern.source, pattern.flags.replace('g', 'y'));
   sticky.lastIndex = from;
   const found = sticky.exec(run.text);
@@ -61,10 +63,11 @@ export function replaceMatches(search: FindQuery, matches: readonly FindMatch[],
   return (state, dispatch) => {
     const pattern = findPattern(search);
     if (!(pattern instanceof RegExp) || search.query === '') return false;
+    const patternOf = runPattern(pattern);
     const replacements = lastFirst(
       state.doc,
       matches
-        .map((match) => replacementFor(state.doc, pattern, search, match, replacement))
+        .map((match) => replacementFor(state.doc, patternOf, search, match, replacement))
         .filter((found): found is Replacement => found !== null),
     );
     if (replacements.length === 0) return false;

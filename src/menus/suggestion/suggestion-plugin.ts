@@ -27,13 +27,17 @@ function stillDismissed(tr: Transaction, dismissed: SuggestionRange, found: Acti
 
 type SuggestionSpec = PluginSpec<SuggestionState> & { readonly trigger?: TriggerConfig };
 
+const opens = (found: ActiveTrigger | null, { minLength = 0 }: TriggerConfig): found is ActiveTrigger =>
+  found !== null && found.query.length >= minLength;
+
 // Of the triggers open at the caret only the one that starts nearest it is active, so one menu at a time holds the keys
 // and the combobox. The others stay where they are, dismissed or not, and come back once it has gone.
-function nearest(state: EditorState, found: ActiveTrigger | null): ActiveTrigger | null {
-  if (found === null) return null;
+function nearest(state: EditorState, found: ActiveTrigger | null, config: TriggerConfig): ActiveTrigger | null {
+  if (!opens(found, config)) return null;
   for (const { trigger } of state.plugins as readonly SuggestionSpec[]) {
-    const other = trigger && findTrigger(state, trigger);
-    if (other && other.from > found.from) return null;
+    if (trigger === undefined) continue;
+    const other = findTrigger(state, trigger);
+    if (opens(other, trigger) && other.from > found.from) return null;
   }
   return found;
 }
@@ -42,7 +46,7 @@ export function suggestionPlugin(key: PluginKey<SuggestionState>, config: Trigge
   return {
     key,
     trigger: config,
-    init: (state) => ({ active: nearest(state, findTrigger(state, config)), dismissedAt: null }),
+    init: (state) => ({ active: nearest(state, findTrigger(state, config), config), dismissedAt: null }),
     apply(tr, value, oldState, newState) {
       const dismissing = tr.getMeta(DISMISS) !== undefined;
       if (!dismissing && !tr.docChanged && sameSelection(oldState.selection, newState.selection)) return value;
@@ -50,7 +54,7 @@ export function suggestionPlugin(key: PluginKey<SuggestionState>, config: Trigge
       let dismissedAt: SuggestionRange | null = null;
       if (dismissing) dismissedAt = found && rangeOf(found);
       else if (value.dismissedAt !== null) dismissedAt = stillDismissed(tr, value.dismissedAt, found);
-      const active = dismissedAt === null ? nearest(newState, found) : null;
+      const active = dismissedAt === null ? nearest(newState, found, config) : null;
       const unchanged = sameTrigger(active, value.active) && sameRange(dismissedAt, value.dismissedAt);
       if (unchanged) return value;
       return {

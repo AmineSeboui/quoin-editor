@@ -86,14 +86,19 @@ describe('the find panel', () => {
     expect(matches('a')).toEqual(['cat']);
   });
 
-  it('says when nothing matches and when a pattern cannot be read', () => {
-    const { fill, button } = openOn();
+  it('says when nothing matches and when a pattern cannot be read, which describes the query field', () => {
+    const { fill, button, field } = openOn();
     fill('Find', 'dog');
     expect(status()).toHaveTextContent('No results');
+    expect(field('Find')).not.toHaveAttribute('aria-describedby');
     act(() => button('Regular expression').click());
     fill('Find', 'ca(');
     expect(status()).toHaveTextContent('Invalid regular expression');
+    expect(field('Find')).toHaveAttribute('aria-invalid', 'true');
+    expect(field('Find')).toHaveAccessibleDescription('Invalid regular expression');
     expect(document.querySelectorAll('.quoin-find-match')).toHaveLength(0);
+    fill('Find', 'ca');
+    expect(field('Find')).not.toHaveAttribute('aria-describedby');
   });
 
   it('replaces the current match on Enter in the replace field and moves on, then replaces the rest in one step', () => {

@@ -104,13 +104,36 @@ describe('the find state', () => {
     expect(find()).toMatchObject({ error: null, matches: [], current: -1 });
   });
 
-  it('counts and draws at most 1,000 matches, and says when there are more', () => {
-    const { editor, search, find } = editorWith('x'.repeat(600), 'x'.repeat(600));
+  it('counts every match and steps to each, drawing only the 1,000 around the current one', () => {
+    const { editor, search, find, step, current } = editorWith('x'.repeat(600), 'x'.repeat(600));
+    const drawn = () => editor.decorations().flatMap((d) => (d.kind === 'inline' ? [`${d.block}:${d.from}`] : []));
+    const drawnCurrent = () =>
+      editor.decorations().flatMap((d) => (d.kind === 'inline' && d.attrs.class.includes('current') ? [d] : []));
     open(editor);
     search('x');
-    expect(find().matches).toHaveLength(1000);
-    expect(find().capped).toBe(true);
-    expect(editor.decorations()).toHaveLength(1000);
+    expect(find().matches).toHaveLength(1200);
+    expect(drawn()).toHaveLength(1000);
+    expect(drawn()[0]).toBe('p0:0');
+    step(-1);
+    expect(current()).toBe('p1:599');
+    expect(drawn()).toHaveLength(1000);
+    expect(drawn().at(-1)).toBe('p1:599');
+    expect(drawnCurrent()).toMatchObject([{ block: 'p1', from: 599 }]);
+  });
+
+  it('opens on the match nearest after the caret, past the first 1,000', () => {
+    const { editor, search, find, current } = editorWith('x'.repeat(600), 'x'.repeat(600), 'x'.repeat(600));
+    open(editor);
+    search('x');
+    editor.dispatch(closeFind(editor.state));
+    editor.commands.setSelection(caret('p1', 500));
+    open(editor);
+    expect(current()).toBe('p1:500');
+    expect(find().current).toBe(1100);
+    const drawn = editor.decorations().flatMap((d) => (d.kind === 'inline' ? [`${d.block}:${d.from}`] : []));
+    expect(drawn).toHaveLength(1000);
+    expect(drawn[0]).toBe('p1:0');
+    expect(drawn).toContain('p1:500');
   });
 });
 
@@ -139,7 +162,7 @@ describe('replacing from the find state', () => {
     expect(current()).toBe('p0:3');
   });
 
-  it('replaces every match, past the 1,000 it counts, in one step of history', () => {
+  it('replaces every match, past the 1,000 it draws, in one step of history', () => {
     const { editor, search, find, texts } = editorWith('x'.repeat(600), 'x'.repeat(600));
     open(editor);
     search('x');

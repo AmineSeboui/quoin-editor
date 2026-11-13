@@ -129,6 +129,18 @@ describe('the emoji menu', () => {
     expect(screen.queryByRole('listbox', { name: 'Emoji' })).toBeNull();
   });
 
+  it('leaves the @ menu open while fewer than two characters follow the :', async () => {
+    const search = vi.fn(async () => [{ id: '1', label: 'Ada Lovelace' }]);
+    const extensions = [mentionExtension({ search }), emojiExtension()];
+    const canvas = mountTypingCanvas([paragraph('p', '')], { extensions });
+    canvas.caret('p', 0);
+    canvas.type('@Ada :');
+    await act(async () => {});
+    expect(screen.getAllByRole('listbox').map((listbox) => listbox.getAttribute('aria-label'))).toEqual(['Mentions']);
+    canvas.type('s');
+    expect(screen.getAllByRole('listbox').map((listbox) => listbox.getAttribute('aria-label'))).toEqual(['Mentions']);
+  });
+
   it('stays closed on a read-only canvas', () => {
     const canvas = openOn(':tada', { readOnly: true });
     expect(canvas.menu()).toBeNull();

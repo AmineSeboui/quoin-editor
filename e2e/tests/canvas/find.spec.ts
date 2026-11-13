@@ -78,6 +78,24 @@ test('replaces the current match on Enter in the replace field and moves to the 
   await expect.poll(async () => (await allMarkdown(page))[0]).toBe('A cow sat on the **cat** mat');
 });
 
+test('brings a match above the page back into view below the panel, never under it', async ({ page }) => {
+  await openFind(page, 'large');
+  await panel(page).getByRole('button', { name: 'Regular expression' }).click();
+  await query(page).fill('Paragraph (100|500) of');
+  await expect(status(page)).toHaveText('1 of 2');
+  await page.keyboard.press('Enter');
+  await expect(status(page)).toHaveText('2 of 2');
+  await page.keyboard.press('Enter');
+  await expect(status(page)).toHaveText('1 of 2');
+  const current = page.locator('.quoin-find-current');
+  await expect(current).toBeInViewport();
+  const below = async () => {
+    const [match, box] = await Promise.all([current.boundingBox(), panel(page).boundingBox()]);
+    return match!.y - (box!.y + box!.height);
+  };
+  await expect.poll(below).toBeGreaterThanOrEqual(0);
+});
+
 test('Escape closes the panel, clears the marks and selects the current match', async ({ page }) => {
   await openFind(page);
   await page.keyboard.type('cat');
@@ -112,8 +130,8 @@ test('has no axe violations with matches, without, with an invalid pattern, and 
 });
 
 // The same measure as the typing budget of the headless suite: on a shared runner a 1,000 block document is judged
-// against a 40 block one, here with the panel open on a query every block matches, and a round over the limit is
-// measured again, since noise only adds time.
+// against a 40 block one, here with the panel open on a query every block matches five times, so the large one holds
+// five times the matches the panel draws, and a round over the limit is measured again, since noise only adds time.
 const SLOWDOWN_LIMIT = 4;
 const ROUNDS = 6;
 const SENTENCE = 'The quick brown fox jumps over the lazy dog again and again.';
@@ -121,8 +139,8 @@ const p95 = (timings: number[]) => [...timings].sort((a, b) => a - b)[Math.floor
 
 async function typingWithPanelOpen(page: Page, doc: string, block: string): Promise<number> {
   await openFind(page, doc);
-  await page.keyboard.type('words');
-  await expect(status(page)).toHaveText(/^1 of \d/);
+  await page.keyboard.type('a');
+  await expect(status(page)).toHaveText(/^1 of [\d,]+$/);
   await host(page, block).click();
   await caretSettled(page, host(page, block));
   await page.evaluate(() => (window.__quoin.timings = []));
@@ -138,6 +156,8 @@ test('typing in a 1,000 block document with the panel open keeps the typing budg
   test.setTimeout(120_000);
   const large = await typingWithPanelOpen(page, 'large', 'p500');
   test.info().annotations.push({ type: 'p95 of 1,000 blocks', description: `${large.toFixed(1)} ms` });
+  await expect(status(page)).toHaveText(/ of 5,0\d\d$/);
+  await expect(page.locator('.quoin-find-match')).toHaveCount(1000);
   if (!process.env.CI) {
     expect(large).toBeLessThan(16);
     return;

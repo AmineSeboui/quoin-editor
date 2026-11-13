@@ -10,10 +10,10 @@ export const DOCS_URL = `${SITE_URL}docs/`;
 
 export const readText = (path) => readFileSync(path, 'utf8');
 
+/** The guide's pages, which quoincloud.com serves now, as the site lists them. */
 export const docSlugs = () =>
-  readdirSync(join(demoRoot, 'docs'))
-    .filter((name) => name.endsWith('.md'))
-    .map((name) => name.slice(0, -'.md'.length))
+  JSON.parse(readFileSync(join(demoRoot, 'src', 'site', 'moved-guide.json'), 'utf8'))
+    .map(({ slug }) => slug)
     .sort();
 
 /** The documentation paths, which this site no longer serves: each is a notice saying where the page went. */

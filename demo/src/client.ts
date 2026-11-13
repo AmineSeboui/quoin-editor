@@ -17,14 +17,12 @@ import { addHeadingLinks } from './heading-links';
 import { revealCurrentNavItem } from './nav-scroll';
 import { wireSearch } from './search/dialog';
 import { wireThemeToggle } from './theme-toggle';
-import { trackTocSections } from './toc-active';
 
 const toggle = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
 if (toggle) wireThemeToggle(toggle);
 
 addCodeCopyButtons();
 addHeadingLinks();
-trackTocSections();
 revealCurrentNavItem();
 wireClips();
 

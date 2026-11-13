@@ -1,23 +1,10 @@
-import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { englishLabels } from '../src/i18n/english-labels';
 import { formatShortcut } from '../src/shortcuts/format-shortcut';
 import { shortcutGroups } from '../src/shortcuts/shortcut-groups';
 import { CANVAS_EXTENSIONS, canvasChords, featureChords } from './bound-keys';
-import { docsDir, readText, root } from './docs-sources.mjs';
-
-const PAGE = join(docsDir, 'keyboard.md');
-const page = existsSync(PAGE) ? readText(PAGE) : '';
-
-type Row = { action: string; mac: string; other: string };
-
-const rowsOf = (markdown: string): Row[] =>
-  markdown
-    .split('\n')
-    .map((line) => /^\| (.+?) \| (.+?) \| (.+?) \|$/.exec(line))
-    .filter((match): match is RegExpExecArray => match !== null && !/^-+$/.test(match[2]) && match[2] !== 'macOS')
-    .map(([, action, mac, other]) => ({ action, mac, other }));
+import { readText, root } from './docs-sources.mjs';
 
 // The keys the view or a hook reads from the keyboard event itself rather than through a keymap, each with the code
 // that reads it, so that removing the handler fails here as removing a keymap entry does.
@@ -42,7 +29,7 @@ const PLATFORM_KEYS = [
   { mac: 'Mod-ArrowDown', other: 'Mod-End', file: 'src/view/input/keydown.ts', reads: DOCUMENT_EDGE_KEYS },
 ];
 
-// Bound chords the page leaves out on purpose.
+// Bound chords the shortcuts dialog leaves out on purpose.
 const UNDOCUMENTED = [
   // Shift and the slash type a question mark on a US keyboard, so the dialog's Mod+Shift+/ is bound under this name too.
   'Mod-Shift-?',
@@ -57,11 +44,6 @@ const written = (chord: string) => [formatShortcut(keyName(chord), { isMac: true
 /** The single keys of a cell, which writes alternatives as "A or B" and sequences as "A, then B". */
 const partsOf = (cell: string) => cell.split(/ or |, then /);
 
-const documented = rowsOf(page).flatMap(({ mac, other }) => {
-  const [macParts, otherParts] = [partsOf(mac), partsOf(other)];
-  return macParts.map((part, index) => `${part} | ${otherParts[index]}`);
-});
-
 const dialog = () => {
   const mac = shortcutGroups(englishLabels, true).flatMap(({ items }) => items);
   const other = shortcutGroups(englishLabels, false).flatMap(({ items }) => items);
@@ -75,43 +57,13 @@ const platformPairs = PLATFORM_KEYS.map(
 );
 const boundPairs = () => new Set([...bound().map(pair), ...platformPairs]);
 
-describe('the keyboard page', () => {
-  it('lists only keys the code binds', () => {
-    expect(documented.filter((keys) => !boundPairs().has(keys))).toEqual([]);
-  });
-
-  it("lists every key the canvas's own keymaps bind", () => {
-    const listed = new Set(documented);
-    const missing = canvasChords().filter((chord) => !UNDOCUMENTED.includes(chord) && !listed.has(pair(chord)));
-    expect(missing).toEqual([]);
-  });
-
-  it("lists every key the opt-in features' keymaps bind", () => {
-    const listed = new Set(documented);
-    const missing = featureChords().filter((chord) => !UNDOCUMENTED.includes(chord) && !listed.has(pair(chord)));
-    expect(missing).toEqual([]);
-  });
-
-  it('lists every row of the shortcuts dialog with its label and keys', () => {
-    const rows = rowsOf(page).map((row) => JSON.stringify(row));
-    const mac = shortcutGroups(englishLabels, true).flatMap(({ items }) => items);
-    const other = shortcutGroups(englishLabels, false).flatMap(({ items }) => items);
-    const missing = mac
-      .map((item, index) => ({ action: item.label, mac: item.keys, other: other[index].keys }))
-      .filter((row) => !rows.includes(JSON.stringify(row)));
-    expect(missing).toEqual([]);
-  });
-
-  it.each(READ_FROM_EVENTS)('finds $chord read from the event in $file', ({ file, reads }) => {
+describe('the keys read from the event rather than a keymap', () => {
+  it.each(READ_FROM_EVENTS)('include $chord, read in $file', ({ file, reads }) => {
     expect(readText(join(root, file))).toContain(reads);
   });
 
-  it.each(PLATFORM_KEYS)('finds $mac and $other read from the event in $file', ({ file, reads }) => {
+  it.each(PLATFORM_KEYS)('include $mac and $other, read in $file', ({ file, reads }) => {
     expect(readText(join(root, file))).toContain(reads);
-  });
-
-  it('lists the keys that differ between the platforms', () => {
-    expect(platformPairs.filter((keys) => !documented.includes(keys))).toEqual([]);
   });
 });
 

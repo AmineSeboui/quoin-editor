@@ -37,19 +37,27 @@ A renderer for a text block, such as a paragraph or a heading, that draws no `Ed
 The renderers `EditorView` draws for text blocks name each block's text for assistive technology, such as `Heading 2`, `Bullet list item` or `Callout, warning`, and name the controls beside it: a task's checkbox, named after the task's text and by `task` while that is empty, and a toggle's chevron, named by `toggle`, or by `toggleButton` with the count of blocks a closed toggle hides. `rendererLabels` gives them in your language, and a key you leave out stays English:
 
 ```tsx
-<EditorView
-  controller={controller}
-  rendererLabels={{
-    paragraph: 'Paragraphe',
-    heading: (level) => `Titre ${level}`,
-    task: 'Tâche',
-    toggle: 'Dépliant',
-    toggleButton: (hidden) => `Dépliant, ${hidden} masqués`,
-  }}
-/>
+'use client';
+
+import { useState } from 'react';
+import { EditorView, useQuoinEditor, type QuoinBlock, type RendererLabels } from 'quoin-editor/headless';
+
+const french: Partial<RendererLabels> = {
+  paragraph: 'Paragraphe',
+  heading: (level) => `Titre ${level}`,
+  task: 'Tâche',
+  toggle: 'Dépliant',
+  toggleButton: (hidden) => `Dépliant, ${hidden} masqués`,
+};
+
+export function Notes() {
+  const [blocks, setBlocks] = useState<QuoinBlock[]>([]);
+  const controller = useQuoinEditor({ blocks, onChange: setBlocks });
+  return <EditorView controller={controller} aria-label="Notes" rendererLabels={french} />;
+}
 ```
 
-The empty document's paragraph and the placeholder of an empty heading take the same names, unless `paragraphLabel` or `blockPlaceholder` says otherwise. The canvas's own `labels` carry every one of these keys, so a locale pack such as `frLabels` can be passed as `rendererLabels` as it is. `calloutTones` names each `CalloutTone` inside the name of a callout's text, and a tone you leave out of it stays English.
+The empty document's paragraph and the placeholder of an empty heading take the same names, unless `paragraphLabel` or `blockPlaceholder` says otherwise. The canvas's own `labels` carry every one of these keys, so a locale pack such as `frLabels` can be passed as `rendererLabels` as it is. `calloutTones` names each `CalloutTone` inside the name of a callout's text, and a tone you leave out of it stays English. Define the object once, as for `renderers`: a new one on every render redraws the text of every block.
 
 ## A block that cannot be drawn
 

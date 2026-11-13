@@ -78,6 +78,24 @@ test('replaces the current match on Enter in the replace field and moves to the 
   await expect.poll(async () => (await allMarkdown(page))[0]).toBe('A cow sat on the **cat** mat');
 });
 
+test('brings a match above the page back into view below the panel, never under it', async ({ page }) => {
+  await openFind(page, 'large');
+  await panel(page).getByRole('button', { name: 'Regular expression' }).click();
+  await query(page).fill('Paragraph (100|500) of');
+  await expect(status(page)).toHaveText('1 of 2');
+  await page.keyboard.press('Enter');
+  await expect(status(page)).toHaveText('2 of 2');
+  await page.keyboard.press('Enter');
+  await expect(status(page)).toHaveText('1 of 2');
+  const current = page.locator('.quoin-find-current');
+  await expect(current).toBeInViewport();
+  const below = async () => {
+    const [match, box] = await Promise.all([current.boundingBox(), panel(page).boundingBox()]);
+    return match!.y - (box!.y + box!.height);
+  };
+  await expect.poll(below).toBeGreaterThanOrEqual(0);
+});
+
 test('Escape closes the panel, clears the marks and selects the current match', async ({ page }) => {
   await openFind(page);
   await page.keyboard.type('cat');

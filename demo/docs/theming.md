@@ -71,11 +71,11 @@ The other tokens each belong to one part of the editor, with a light and a dark 
 | `--quoin-diff-inserted`, `--quoin-diff-deleted` | The words `QuoinDiff` marks as inserted and deleted |
 | `--quoin-link` | Links in `QuoinView` and `QuoinDiff` |
 
-Apart from these the stylesheet reads `--tw-*`, which belong to the Tailwind runtime it is compiled with, the `--radix-*` values Radix writes on its own portalled elements while they are open, and the six names the editor [sets itself](#names-the-editor-sets-itself). Tailwind's theme tokens are imported by reference, so the package resolves `--spacing`, `--text-base`, `--container-md` and the rest at build time and declares none of them on your page.
+Apart from these the stylesheet reads `--tw-*`, which belong to the Tailwind runtime it is compiled with, the `--radix-*` values Radix writes on its own portalled elements while they are open, and the seven names the editor [sets itself](#names-the-editor-sets-itself). Tailwind's theme tokens are imported by reference, so the package resolves `--spacing`, `--text-base`, `--container-md` and the rest at build time and declares none of them on your page.
 
 ## Names the editor sets itself
 
-Six prefixed names carry a measurement, or one collaborator's colour, rather than a theme value. The package writes them as it draws, so they are not a host's to set:
+Seven prefixed names carry a measurement, or one collaborator's colour, rather than a theme value. The package writes them as it draws, so they are not a host's to set:
 
 | Name | Written by | What it carries |
 | --- | --- | --- |
@@ -84,9 +84,10 @@ Six prefixed names carry a measurement, or one collaborator's colour, rather tha
 | `--quoin-ai-room` | the canvas root | the space a streaming answer needs under the block it belongs to |
 | `--quoin-comments-height` | the canvas root | the height the stacked threads reach, which the canvas grows to |
 | `--quoin-comments-room` | a `:has()` rule in the stylesheet | the width reserved at the end of every line for threads: 272px for the list beside the text, 36px for the markers alone |
+| `--quoin-find-clearance` | the canvas root, while the find panel is open | where the panel's bottom edge is, so the current match is scrolled into view below the panel |
 | `--quoin-presence` | every remote caret, selection and avatar | that collaborator's colour, with `--quoin-ring` standing in where they have none |
 
-Five of the six are written as inline styles, which beat any rule you write, so setting them yourself is merely pointless. `--quoin-comments-room` is the exception and the one that bites: it comes from a rule inside the package, so an unlayered `.quoin` block that maps every `--quoin-*` name it can find outranks that rule and pins the rail at one width. Nothing errors and the editor still renders; the room beside the text simply stops changing as threads open and close. Enumerate the theme tokens above rather than every name in the stylesheet, and this cannot happen.
+Six of the seven are written as inline styles, which beat any rule you write, so setting them yourself is merely pointless. `--quoin-comments-room` is the exception and the one that bites: it comes from a rule inside the package, so an unlayered `.quoin` block that maps every `--quoin-*` name it can find outranks that rule and pins the rail at one width. Nothing errors and the editor still renders; the room beside the text simply stops changing as threads open and close. Enumerate the theme tokens above rather than every name in the stylesheet, and this cannot happen.
 
 ## Mapping your own tokens
 

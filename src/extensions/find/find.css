@@ -3,11 +3,13 @@
   background: var(--quoin-bg-yellow);
 }
 
-/* An outline as well as a stronger wash, so the current match stands apart without relying on colour. */
+/* An outline as well as a stronger wash, so the current match stands apart without relying on colour. The panel
+   writes where its bottom edge is, so a match brought into view from above stops below the panel. */
 .quoin .quoin-find-current {
   background: var(--quoin-bg-orange);
   outline: 2px solid var(--quoin-ring);
   outline-offset: 1px;
+  scroll-margin-top: calc(var(--quoin-find-clearance, 0px) + 0.5rem);
 }
 
 @media (forced-colors: active) {

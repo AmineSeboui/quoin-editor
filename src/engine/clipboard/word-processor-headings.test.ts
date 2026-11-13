@@ -22,6 +22,9 @@ describe('fromHTML class rules', () => {
     const rules = '/* p.x {font-weight:bold} */ p {color: #d44c47} @font-face {font-family: X} span.MsoX {font-style: italic}';
     expect(markdownOf(sheet(rules, '<p class="x">a <span class="MsoX">b</span></p>'))).toEqual(['a _b_']);
   });
+  it('passes over a class no selector can name', () => {
+    expect(markdownOf(sheet('.1x {font-weight: bold} p.-1 {font-style: italic}', '<p class="1x -1">a</p>'))).toEqual(['a']);
+  });
 });
 
 describe('fromHTML headings written as styled runs', () => {

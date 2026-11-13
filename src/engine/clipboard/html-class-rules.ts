@@ -1,6 +1,6 @@
 const RULE = /([^{}]+)\{([^{}]*)\}/g;
 const COMMENT = /\/\*[\s\S]*?\*\/|<!--|-->/g;
-const CLASS_SELECTOR = /^(?:[a-z][\w-]*)?\.[\w-]+$/i;
+const CLASS_SELECTOR = /^(?:[a-z][\w-]*)?\.[a-z_][\w-]*$/i;
 
 // Word, LibreOffice and the Cocoa writer behind TextEdit and Pages set sizes, colours and decorations on classes in a
 // style sheet. Rules for a class are written onto the elements they match, ahead of their own style so it still wins.

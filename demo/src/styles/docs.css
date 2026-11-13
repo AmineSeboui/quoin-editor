@@ -112,7 +112,7 @@
 }
 
 .page-step:hover {
-  border-color: var(--quoin-input);
+  border-color: var(--site-field-edge);
   background: var(--site-surface);
 }
 

@@ -74,7 +74,7 @@
   border: 1px solid var(--site-hairline);
   border-radius: 1rem;
   background: var(--quoin-background);
-  box-shadow: 0 1px 2px var(--quoin-shadow), 0 32px 64px -32px var(--quoin-shadow);
+  box-shadow: 0 1px 2px var(--site-shadow), 0 32px 64px -32px var(--site-shadow);
   overflow: clip;
 }
 
@@ -153,7 +153,7 @@ main > .lede {
   border: 1px solid var(--site-hairline);
   border-radius: 1rem;
   background: var(--quoin-background);
-  box-shadow: 0 1px 2px var(--quoin-shadow);
+  box-shadow: 0 1px 2px var(--site-shadow);
 }
 
 .storage-window .island-fallback {

@@ -14,7 +14,7 @@
 }
 
 .site-search:hover {
-  border-color: var(--quoin-input);
+  border-color: var(--site-field-edge);
   color: var(--quoin-foreground);
 }
 
@@ -31,7 +31,7 @@
   border-radius: 0.875rem;
   background: var(--quoin-popover);
   color: var(--quoin-popover-foreground);
-  box-shadow: 0 1px 2px var(--quoin-shadow), 0 40px 80px -24px var(--quoin-shadow);
+  box-shadow: 0 1px 2px var(--site-shadow), 0 40px 80px -24px var(--site-shadow);
   overflow: hidden;
 }
 

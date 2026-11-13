@@ -139,6 +139,7 @@
     .quoin *::before,
     .quoin *::after {
       transition: none !important;
+      animation: none !important;
       scroll-behavior: auto !important;
     }
   }
@@ -168,6 +169,7 @@
   --radius-lg: var(--quoin-radius);
   --radius-md: calc(var(--quoin-radius) - 2px);
   --radius-sm: calc(var(--quoin-radius) - 4px);
-  --shadow-md: 0 1px 2px var(--quoin-shadow), 0 6px 16px -4px var(--quoin-shadow);
-  --shadow-lg: 0 1px 3px var(--quoin-shadow), 0 16px 36px -10px var(--quoin-shadow);
+  --radius-xl: calc(var(--quoin-radius) + 4px);
+  --shadow-md: 0 4px 6px -1px var(--quoin-shadow), 0 2px 4px -2px var(--quoin-shadow);
+  --shadow-lg: 0 10px 15px -3px var(--quoin-shadow), 0 4px 6px -4px var(--quoin-shadow);
 }

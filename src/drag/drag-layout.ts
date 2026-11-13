@@ -1,3 +1,4 @@
+import { isClosedToggle } from '../engine/commands/collapsed-toggle';
 import { movedBlockIds } from '../engine/commands/move-blocks-to';
 import { inlineDirection, type InlineDirection } from '../ui/direction';
 import type { ViewController } from '../view';
@@ -49,13 +50,24 @@ function measure(controller: ViewController, root: HTMLElement, moved: ReadonlyS
   const { doc } = controller.editor.state;
   const origin = rootOrigin(root);
   return visibleBlockIndexes(doc).flatMap((index) => {
-    const { id, indent } = doc.blocks[index];
-    const shell = controller.blockElement(id);
+    const block = doc.blocks[index];
+    const shell = controller.blockElement(block.id);
     if (shell === undefined) return [];
     const box = shell.getBoundingClientRect();
     const { start, end } = inlineEdges(shell, box, rtl);
-    const [top, bottom] = [box.top - origin.y, box.bottom - origin.y];
-    return [{ id, top, bottom, start: start - origin.x, end: end - origin.x, indent, dragged: moved.has(id), shell }];
+    return [
+      {
+        id: block.id,
+        top: box.top - origin.y,
+        bottom: box.bottom - origin.y,
+        start: start - origin.x,
+        end: end - origin.x,
+        indent: block.indent,
+        dragged: moved.has(block.id),
+        hidesNested: isClosedToggle(block),
+        shell,
+      },
+    ];
   });
 }
 

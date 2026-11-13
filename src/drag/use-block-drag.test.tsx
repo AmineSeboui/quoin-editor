@@ -126,6 +126,19 @@ describe('dragging a block by its handle', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Block moved to position 2 of 3');
   });
 
+  it('drops a nested block carried straight down below a closed toggle beside the toggle, where it stays drawn', () => {
+    const toggle = { id: 't', type: 'TOGGLE', data: { markdown: 'Details', open: false } };
+    const doc = [paragraph('p', 'one'), md('n', 'nested', 1), toggle, md('h', 'hidden', 1), paragraph('z', 'z')];
+    const { hover, last } = mountRows(doc);
+    hover('n');
+    press(20, 40);
+    moveTo(20, 87);
+    expect(dropLine().style.left).toBe(`${LEFT}px`);
+    release(20, 87);
+    expect(last().map(({ id, indent }) => [id, indent ?? 0])).toEqual([['p', 0], ['t', 0], ['h', 1], ['n', 0], ['z', 0]]);
+    expect(screen.getByRole('status')).toHaveTextContent('Block moved to position 3 of 4');
+  });
+
   it('keeps the gutter beside the dragged block while the pointer crosses others', () => {
     const { hover } = mountRows([paragraph('a', 'one'), paragraph('b', 'two'), paragraph('c', 'three')]);
     hover('a');

@@ -1,3 +1,4 @@
+import { concatBytes } from '../../export/concat-bytes';
 import { pdfDict, type PdfEntries } from './pdf-syntax';
 
 export type PdfObject = { readonly value: string } | { readonly dict: PdfEntries; readonly data: Uint8Array };
@@ -29,11 +30,5 @@ export function pdfFile(objects: readonly PdfObject[], trailer: PdfEntries): Uin
   const start = length;
   push(`xref\n0 ${objects.length + 1}\n0000000000 65535 f \n${table}`);
   push(`trailer\n${pdfDict({ Size: objects.length + 1, ...trailer })}\nstartxref\n${start}\n%%EOF\n`);
-  const out = new Uint8Array(length);
-  let at = 0;
-  for (const part of parts) {
-    out.set(part, at);
-    at += part.length;
-  }
-  return out;
+  return concatBytes(parts);
 }

@@ -1,3 +1,4 @@
+import { concatBytes } from '../export/concat-bytes';
 import { crc32 } from './crc32';
 import { deflate } from '../export/deflate';
 
@@ -69,16 +70,6 @@ function endOfDirectory(count: number, size: number, offset: number): Uint8Array
   return bytes;
 }
 
-function concat(parts: readonly Uint8Array[]): Uint8Array {
-  const out = new Uint8Array(parts.reduce((sum, part) => sum + part.length, 0));
-  let at = 0;
-  for (const part of parts) {
-    out.set(part, at);
-    at += part.length;
-  }
-  return out;
-}
-
 /** A zip archive of `files` in order, each deflated where that makes it smaller and the runtime can, else stored. */
 export async function zipArchive(files: readonly ZipFile[]): Promise<Uint8Array> {
   const entries = await Promise.all(files.map(entryOf));
@@ -91,6 +82,6 @@ export async function zipArchive(files: readonly ZipFile[]): Promise<Uint8Array>
     local.push(head, entry.body);
     offset += head.length + entry.body.length;
   }
-  const directory = concat(central);
-  return concat([...local, directory, endOfDirectory(entries.length, directory.length, offset)]);
+  const directory = concatBytes(central);
+  return concatBytes([...local, directory, endOfDirectory(entries.length, directory.length, offset)]);
 }

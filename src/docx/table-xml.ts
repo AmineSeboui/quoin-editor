@@ -1,22 +1,12 @@
-import { calloutTone, type CalloutTone } from '../engine/blocks/callout-tones';
 import { str } from '../engine/blocks/data-fields';
-import type { PaletteName } from '../engine/markdown/palette';
 import type { EngineBlock } from '../engine/model/types';
 import { tableCells } from '../engine/render/table-cells';
 import type { DocxContext } from './docx-context';
 import { PAGE_TEXT_WIDTH } from './drawing-xml';
-import { backgroundHex } from '../export/palette-hex';
+import { calloutFill } from '../export/callout-fill';
 import { indentOf, paragraphXml } from './paragraph-xml';
 import { runsXml, runXml } from './runs-xml';
 import { xmlElement } from './xml';
-
-const TONE_COLORS: Readonly<Record<CalloutTone, PaletteName>> = {
-  info: 'blue',
-  tip: 'purple',
-  success: 'green',
-  warning: 'yellow',
-  danger: 'red',
-};
 
 const NO_BORDERS = xmlElement(
   'w:tblBorders',
@@ -59,7 +49,7 @@ export function tableXml(block: EngineBlock, ctx: DocxContext): string {
 /** A callout as one shaded cell holding its icon and body. */
 export function calloutXml(block: EngineBlock, ctx: DocxContext): string {
   const icon = str(block.attrs.icon);
-  const fill = backgroundHex(TONE_COLORS[calloutTone(block.attrs.tone)]);
+  const fill = calloutFill(block.attrs.tone);
   const shade = xmlElement('w:shd', { 'w:val': 'clear', 'w:color': 'auto', 'w:fill': fill });
   const body = paragraphXml({}, (icon === '' ? '' : runXml(`${icon} `)) + runsXml(block.regions.body, ctx));
   return tableShell({ cols: 1, indent: block.indent, rows: [xmlElement('w:tr', {}, cellXml(body, shade))] });

@@ -1,5 +1,5 @@
-import { act } from '@testing-library/react';
-import { removeBlocksStep, undo } from '../../engine';
+import { act, waitFor } from '@testing-library/react';
+import { redo, removeBlocksStep, undo } from '../../engine';
 import { setAttrs } from '../../engine/commands/block-style';
 import { onBlock } from '../../view/react/block-command';
 import type { QuoinBlock, UploadFn, UploadResult } from '../../types';
@@ -126,6 +126,34 @@ describe('an upload into an image block', () => {
     await measured('/cdn/k1', { width: 40, height: 30 });
     await act(() => done);
     expect(imageData()).toEqual({ storageKey: '', alt: '' });
+  });
+
+  it('redoes the upload with the size measured before it was undone', async () => {
+    const { upload, uploaded, measured } = held();
+    const { controller, imageData } = mountImage();
+    const done = uploadImage(controller(), 'i', png('cat.png'), { upload, resolveAssetUrl });
+    await uploaded('cat.png', 'k1');
+    await measured('/cdn/k1', { width: 40, height: 30 });
+    await act(() => done);
+    act(() => void controller().run(undo));
+    act(() => void controller().run(redo));
+    expect(imageData()).toEqual({ storageKey: 'k1', alt: '', width: 40, height: 30 });
+  });
+
+  it('writes the size measured after the upload was undone once a redo brings its key back', async () => {
+    const { upload, uploaded, measured } = held();
+    const { controller, imageData } = mountImage();
+    const done = uploadImage(controller(), 'i', png('cat.png'), { upload, resolveAssetUrl });
+    await uploaded('cat.png', 'k1');
+    act(() => void controller().run(undo));
+    await measured('/cdn/k1', { width: 40, height: 30 });
+    await act(() => done);
+    act(() => void controller().run(redo));
+    await waitFor(() => expect(imageData()).toEqual({ storageKey: 'k1', alt: '', width: 40, height: 30 }));
+    act(() => void controller().run(undo));
+    expect(imageData()).toEqual({ storageKey: '', alt: '' });
+    act(() => void controller().run(redo));
+    expect(imageData()).toEqual({ storageKey: 'k1', alt: '', width: 40, height: 30 });
   });
 
   it('drops an upload that lands once the block was given a link or another key', async () => {

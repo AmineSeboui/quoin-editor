@@ -1,14 +1,14 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
-import { buildState, newIds, run } from '../test-support/build-state';
-import { insertSlice } from './insert-slice';
+import { createEditor } from '../extension/editor';
+import type { Transaction } from '../state/transaction';
 import { PASTED_HTML } from './slice';
-import { sliceFromClipboard, type ClipboardData } from './slice-from-clipboard';
 
-function pastedHTML(data: ClipboardData): unknown {
-  const state = buildState(['x'], { block: 0, offset: 1 });
-  const slice = sliceFromClipboard(data, { newId: newIds('p') })!;
-  return run(state, insertSlice(slice, { newId: newIds('q') })).tr?.getMeta(PASTED_HTML);
+function pastedHTML(data: { html?: string; json?: string; text?: string }): unknown {
+  const seen: Transaction[] = [];
+  const editor = createEditor({ blocks: [], onTransaction: (tr) => seen.push(tr) });
+  expect(editor.paste(data)).toBe(true);
+  return seen.find((tr) => tr.origin === 'paste')?.getMeta(PASTED_HTML);
 }
 
 describe('a paste read from HTML', () => {

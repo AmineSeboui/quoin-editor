@@ -3,6 +3,7 @@ import { sliceToClipboard } from '../clipboard/serialize-slice';
 import { insertSlice } from '../clipboard/insert-slice';
 import { sliceFromSelection } from '../clipboard/extract-slice';
 import type { DOMParserLike } from '../clipboard/from-html';
+import { PASTED_HTML } from '../clipboard/slice';
 import { sliceFromClipboard } from '../clipboard/slice-from-clipboard';
 import { createCommandHelpers, type BoundCommands, type Chain, type CommandFactories } from '../commands/chain';
 import { isActive } from '../commands/is-active';
@@ -124,7 +125,8 @@ export function createInternalEditor<F extends CommandFactories = CoreCommands>(
     const ruled = text !== undefined && resolved.pasteRules.some((rule) => rule.match(text, state)?.(state, dispatch));
     if (ruled) return true;
     const slice = sliceFromClipboard(data, { parser, newId });
-    return slice !== null && insertSlice(slice, { newId })(state, dispatch);
+    const mark = (tr: Transaction) => dispatch(slice?.fromHTML ? tr.setMeta(PASTED_HTML, true) : tr);
+    return slice !== null && insertSlice(slice, { newId })(state, mark);
   }
 
   function copy() {

@@ -1,7 +1,8 @@
 import type { EditorState } from '../../engine';
 import { descendantsEnd } from '../../engine/commands/block-helpers';
 import { sameItems } from '../../engine/model/same-items';
-import { useEditorState, type ViewController } from '../../view';
+import type { ViewController } from '../controller/view-controller';
+import { useEditorState } from './use-editor-state';
 
 function nestedBlockIds({ doc }: EditorState, blockId: string): readonly string[] {
   const index = doc.index.get(blockId);

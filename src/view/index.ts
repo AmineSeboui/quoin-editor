@@ -15,5 +15,6 @@ export { useEditorState } from './react/use-editor-state';
 export { useQuoinEditor, type UseQuoinEditorOptions } from './react/use-quoin-editor';
 export { EditorView, type EditorViewProps } from './react/EditorView';
 export type { BlockPlaceholder } from './react/block-placeholder';
+export type { RendererLabels } from './react/renderer-labels';
 export { EditableRegion, type EditableRegionProps } from './react/EditableRegion';
 export type { BlockRenderProps, BlockRenderer } from './react/block-renderer-types';

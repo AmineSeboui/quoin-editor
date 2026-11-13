@@ -1,4 +1,5 @@
 import { formatSize } from '../blocks/file/format-size';
+import { englishRendererLabels } from '../view/react/renderer-labels';
 import type { QuoinLabels } from './labels';
 
 // Frozen in the initializer rather than after it, because a module here runs no statement when it loads: a bundler
@@ -8,24 +9,13 @@ function frozen(labels: Required<QuoinLabels>): Required<QuoinLabels> {
   return Object.freeze(labels);
 }
 
-const TOGGLE = 'Toggle';
-
 /** Every string the canvas shows or speaks, in English. Pass `labels` to the canvas to change any of them. */
 export const englishLabels: Required<QuoinLabels> = frozen({
   document: 'Editor',
   editorHint: 'Press Escape, then Tab, to leave the editor.',
-  paragraph: 'Paragraph',
-  heading: (level) => `Heading ${level}`,
-  bulletItem: 'Bullet list item',
-  numberedItem: (n) => `Numbered list item ${n}`,
-  task: 'Task',
-  quote: 'Quote',
-  callout: (tone) => `Callout, ${tone}`,
-  calloutTones: { info: 'info', tip: 'tip', success: 'success', warning: 'warning', danger: 'danger' },
+  ...englishRendererLabels,
   calloutIcon: 'Callout icon',
   calloutToneMenu: (tone) => `Callout tone: ${tone}`,
-  toggle: TOGGLE,
-  toggleButton: (hidden) => (hidden === 0 ? TOGGLE : `${TOGGLE}, ${hidden} ${hidden === 1 ? 'block' : 'blocks'} hidden`),
   placeholderEmpty: "Type '/' for commands",
   placeholderHeading: (level) => `Heading ${level}`,
   placeholderList: 'List',

@@ -3,12 +3,14 @@ import type { ViewController } from '../controller/view-controller';
 import type { BlockLabel } from '../selection/selection-sink';
 import { BLOCK_ERROR, BlockErrorContext } from './block-error-context';
 import { BlockDomIdScope } from './block-dom-id';
-import { BlockPlaceholderContext, headingPlaceholder, type BlockPlaceholder } from './block-placeholder';
+import { BlockPlaceholderContext, headingPlaceholderOf, type BlockPlaceholder } from './block-placeholder';
 import type { BlockRenderer } from './block-renderer-types';
 import { QuoinEditorContext } from './editor-context';
 import { EmptyDocumentHost } from './EmptyDocumentHost';
 import { focusOwners } from './focus-owners';
 import { LiveRegion } from './LiveRegion';
+import { rendererLabelsWith, type RendererLabels } from './renderer-labels';
+import { RendererLabelsContext } from './renderer-labels-context';
 import { SelectionSink } from './SelectionSink';
 import { SelectionWriter } from './SelectionWriter';
 import { UNSUPPORTED_BLOCK, UnsupportedBlockLabel } from './unsupported-block-label';
@@ -24,7 +26,12 @@ export type EditorViewProps = {
   'aria-label'?: string;
   /** What the editor's accessible description says, in place of the English way out. */
   hint?: string;
-  /** The accessible name of the paragraph an empty document offers to type into. */
+  /**
+   * The names the default renderers give the text of each block and the controls beside it, in place of the English
+   * ones. A key left out stays English, and so does each tone `calloutTones` leaves out.
+   */
+  rendererLabels?: Partial<RendererLabels>;
+  /** The accessible name of the paragraph an empty document offers to type into, by default `rendererLabels.paragraph`. */
   paragraphLabel?: string;
   /** The accessible name of the hidden textbox that holds a selection across blocks. */
   selectedContentLabel?: string;
@@ -38,7 +45,7 @@ export type EditorViewProps = {
   onBlockError?: (error: Error) => void;
   /** The text of the host an empty document draws. */
   placeholder?: string;
-  /** The placeholder of each empty block, by default the name of a heading and nothing for other blocks. */
+  /** The placeholder of each empty block, by default the name `rendererLabels` gives a heading and nothing for others. */
   blockPlaceholder?: BlockPlaceholder;
   /** What the live region says when blocks are selected, given how many it draws, in place of the English words. */
   blocksSelectedLabel?: (count: number) => string;
@@ -61,6 +68,7 @@ export function EditorView({
   id,
   'aria-label': label = 'Editor',
   hint = HINT,
+  rendererLabels,
   paragraphLabel,
   selectedContentLabel,
   blockLabel,
@@ -68,7 +76,7 @@ export function EditorView({
   blockErrorLabel = BLOCK_ERROR,
   onBlockError,
   placeholder,
-  blockPlaceholder = headingPlaceholder,
+  blockPlaceholder,
   blocksSelectedLabel = BLOCKS_SELECTED,
   children,
 }: EditorViewProps) {
@@ -77,6 +85,8 @@ export function EditorView({
   const blockIdScope = useId();
   const blocks = useEditorState(controller, (state) => state.doc.blocks);
   const blockError = useMemo(() => ({ label: blockErrorLabel, report: onBlockError }), [blockErrorLabel, onBlockError]);
+  const labels = useMemo(() => rendererLabelsWith(rendererLabels), [rendererLabels]);
+  const headingPlaceholder = useMemo(() => headingPlaceholderOf(labels.heading), [labels.heading]);
   const shells = useBlockElements(blocks, renderers);
 
   useIsomorphicLayoutEffect(() => (root.current ? controller.attach(root.current) : undefined), [controller]);
@@ -98,8 +108,14 @@ export function EditorView({
         <BlockDomIdScope.Provider value={blockIdScope}>
           <UnsupportedBlockLabel.Provider value={unsupportedBlockLabel}>
             <BlockErrorContext.Provider value={blockError}>
-              <BlockPlaceholderContext.Provider value={blockPlaceholder}>
-                {blocks.length === 0 ? <EmptyDocumentHost placeholder={placeholder} label={paragraphLabel} /> : shells}
+              <BlockPlaceholderContext.Provider value={blockPlaceholder ?? headingPlaceholder}>
+                <RendererLabelsContext.Provider value={labels}>
+                  {blocks.length === 0 ? (
+                    <EmptyDocumentHost placeholder={placeholder} label={paragraphLabel ?? labels.paragraph} />
+                  ) : (
+                    shells
+                  )}
+                </RendererLabelsContext.Provider>
               </BlockPlaceholderContext.Provider>
             </BlockErrorContext.Provider>
           </UnsupportedBlockLabel.Provider>

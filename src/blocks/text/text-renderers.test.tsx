@@ -68,6 +68,11 @@ describe('a markdown block in the canvas', () => {
     expect(screen.getByRole('checkbox')).toHaveAttribute('aria-label', 'Task');
   });
 
+  it('draws a quote as a blockquote, in the markup the headless view draws', () => {
+    const { shell } = mountCanvas([md('q', '> cited')]);
+    expect(shell('q').querySelector('.quoin-quote')?.tagName).toBe('BLOCKQUOTE');
+  });
+
   it('names every host and control in the words the canvas labels give', () => {
     const labels = {
       paragraph: 'Paragraphe',

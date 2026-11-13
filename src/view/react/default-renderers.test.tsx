@@ -131,7 +131,7 @@ describe('toggle blocks', () => {
 
   it('shows a closed toggle without the blocks nested under it', () => {
     const { container } = mount(toggle(false));
-    const chevron = screen.getByRole('button', { name: 'Toggle' });
+    const chevron = screen.getByRole('button', { name: 'Toggle, 2 blocks hidden' });
     expect(chevron).toHaveAttribute('aria-expanded', 'false');
     expect(screen.getByRole('textbox', { name: 'Toggle' })).toHaveTextContent('Summary');
     expect(Array.from(container.querySelectorAll('[data-quoin-block]'), (s) => (s as HTMLElement).dataset.blockId)).toEqual(['t', 's']);
@@ -140,7 +140,7 @@ describe('toggle blocks', () => {
   it('opens and closes through the chevron, bringing the nested blocks back and taking them away', () => {
     const { container, controller } = mount(toggle(false));
     const ids = () => Array.from(container.querySelectorAll('[data-quoin-block]'), (s) => (s as HTMLElement).dataset.blockId);
-    act(() => screen.getByRole('button', { name: 'Toggle' }).click());
+    act(() => screen.getByRole('button', { name: 'Toggle, 2 blocks hidden' }).click());
     expect(controller.editor.state.doc.blocks[0].attrs.open).toBe(true);
     expect(screen.getByRole('button', { name: 'Toggle' })).toHaveAttribute('aria-expanded', 'true');
     expect(ids()).toEqual(['t', 'c', 'g', 's']);
@@ -153,7 +153,7 @@ describe('toggle blocks', () => {
   it('opens for a reader while read-only, leaving the document alone and reporting no change', () => {
     const onChange = vi.fn();
     const { controller, container } = mount(toggle(false), { readOnly: true, onChange });
-    act(() => screen.getByRole('button', { name: 'Toggle' }).click());
+    act(() => screen.getByRole('button', { name: 'Toggle, 2 blocks hidden' }).click());
     expect(controller.editor.state.doc.blocks[0].attrs.open).not.toBe(true);
     expect(screen.getByRole('button', { name: 'Toggle' })).toHaveAttribute('aria-expanded', 'true');
     expect(container.querySelector('[data-block-id="g"]')).toHaveTextContent('grandchild');

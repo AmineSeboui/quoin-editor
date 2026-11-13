@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { act, fireEvent, screen } from '@testing-library/react';
 import { nodeSelection } from '../../engine';
@@ -21,6 +22,21 @@ const pickerNote = defineBlock({
     </div>
   ),
   preview: () => <p>Picker note</p>,
+});
+
+const lateDone: { current?: () => void } = {};
+
+const lateNote = defineBlock({
+  type: 'LATE_NOTE',
+  label: 'Late note',
+  icon: Sticker,
+  editor: function LateEditor({ onDone }) {
+    useEffect(() => {
+      lateDone.current = onDone;
+    });
+    return <input aria-label="Late field" />;
+  },
+  preview: () => <p>Late note</p>,
 });
 
 function pageOverlay(role: string) {
@@ -104,6 +120,20 @@ describe('VoidBlock editing ends', () => {
     expect(urlField()).toBeNull();
     expect(selection()).toEqual(nodeSelection('b'));
     expect(document.activeElement).toBe(sink());
+  });
+
+  it('not again from an onDone the editor calls once it has closed, which leaves the selection and focus alone', () => {
+    const blocks = [paragraph('a', 'above'), { id: 'n', type: 'LATE_NOTE', data: {} }, paragraph('c', 'below')];
+    const { nodeSelect, press, handle, selection, shell } = mountCanvas(blocks, {
+      blockTypes: [...testBlockTypes, lateNote],
+    });
+    nodeSelect('n');
+    press('Enter');
+    act(() => handle().focus({ block: 'c', region: 'text', offset: 1 }));
+    expect(screen.queryByRole('textbox', { name: 'Late field' })).toBeNull();
+    act(() => lateDone.current?.());
+    expect(selection()).toMatchObject({ kind: 'text', head: { block: 'c', offset: 1 } });
+    expect(document.activeElement).toBe(shell('c').querySelector('[data-quoin-host]'));
   });
 
   it('when the editor inserts a block after its own, whose editor opens with focus', () => {

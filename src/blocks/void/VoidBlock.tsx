@@ -20,6 +20,7 @@ import { focusNode, selectNode } from './select-node';
 import { useBlockIndex } from './use-block-index';
 import { useEditingFocus } from './use-editing-focus';
 import { useVoidEditing } from './use-void-editing';
+import { useWhileMounted } from './use-while-mounted';
 
 
 function useMissingPreviewWarning(readOnly: boolean, { type, preview }: AnyBlockDefinition): void {
@@ -39,15 +40,18 @@ function VoidPreview({ definition: { preview: Preview }, name, ...props }: VoidP
   return <Preview {...props} />;
 }
 
-type VoidEditorProps = Omit<BlockEditorProps, 'index'> & {
+type VoidEditorProps = Omit<BlockEditorProps, 'index' | 'onDone'> & {
   Editor: NonNullable<AnyBlockDefinition['editor']>;
   controller: ViewController;
   blockId: string;
+  onDone: () => void;
 };
 
-function VoidEditor({ Editor, controller, ...props }: VoidEditorProps) {
+// An editor may call onDone after it closed, as when an upload it started settles, and by then the reader has moved on.
+function VoidEditor({ Editor, controller, onDone, ...props }: VoidEditorProps) {
   const index = useBlockIndex(controller, props.blockId);
-  return <Editor {...props} index={index} />;
+  const done = useWhileMounted(onDone);
+  return <Editor {...props} index={index} onDone={done} />;
 }
 
 export function VoidBlock({ block, controller, definition }: BlockRenderProps & { definition: AnyBlockDefinition }) {

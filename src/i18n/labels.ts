@@ -1,4 +1,4 @@
-import type { PaletteName } from '../engine/markdown/palette-rgb';
+import type { PaletteName } from '../engine';
 
 export type SlashGroup = 'basic' | 'lists' | 'media' | 'advanced' | 'embeds' | 'ai' | 'custom';
 

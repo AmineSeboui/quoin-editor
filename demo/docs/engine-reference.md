@@ -966,6 +966,16 @@ const PALETTE: readonly ["default", "gray", "brown", "orange", "yellow", "green"
 
 [PALETTE on GitHub](src/engine/markdown/palette.ts#L2)
 
+### PaletteName
+
+One of the names in `PALETTE`, which the labels of the colour menu are keyed by.
+
+```ts
+type PaletteName = (typeof PALETTE)[number];
+```
+
+[PaletteName on GitHub](src/engine/markdown/palette.ts#L16)
+
 ### parseInline
 
 ```ts

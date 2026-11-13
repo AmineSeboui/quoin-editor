@@ -1,10 +1,9 @@
 'use client';
 
 import { useId, type ReactNode } from 'react';
-import { PALETTE, type EngineBlock } from '../engine';
+import { PALETTE, type EngineBlock, type PaletteName } from '../engine';
 import { paletteOrUndefined } from '../engine/blocks/data-fields';
 import { setBlockColor } from '../engine/commands/block-style';
-import type { PaletteName } from '../engine/markdown/palette-rgb';
 import { useLabels } from '../i18n/use-labels';
 import { Check, Palette } from '../icons';
 import type { ViewController } from '../view';

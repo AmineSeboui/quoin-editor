@@ -1,5 +1,5 @@
-import { PALETTE } from '../markdown/palette';
-import { PALETTE_RGB, type PaletteKind, type PaletteName, type Rgb } from '../markdown/palette-rgb';
+import { PALETTE, type PaletteName } from '../markdown/palette';
+import { PALETTE_RGB, type PaletteKind, type Rgb } from '../markdown/palette-rgb';
 
 export type StyleMap = ReadonlyMap<string, string>;
 

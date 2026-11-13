@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, screen, within } from '@testing-library/react';
 import { axe } from 'vitest-axe';
 import { paragraph } from '../../blocks/test-support/test-canvas';
 import { mountAi } from './ai-test-canvas';
@@ -103,6 +103,51 @@ describe('an answer streaming into the document', () => {
     await canvas.frame();
     canvas.click('Accept');
     expect(canvas.markdown('a')).toBe('Say one here');
+  });
+
+  it('sends the follow-up on Enter, where Shift+Enter breaks the line instead', async () => {
+    const canvas = improving();
+    canvas.last().push('one term');
+    canvas.last().end();
+    await canvas.frame();
+    const field = screen.getByRole('textbox', { name: 'Tell AI what to do next' });
+    expect(field.tagName).toBe('TEXTAREA');
+    act(() => void fireEvent.change(field, { target: { value: 'shorter' } }));
+    act(() => void fireEvent.keyDown(field, { key: 'Enter', shiftKey: true }));
+    expect(canvas.stream).toHaveBeenCalledTimes(1);
+    act(() => void fireEvent.keyDown(field, { key: 'Enter' }));
+    expect(canvas.last().request).toMatchObject({ action: 'custom', prompt: 'shorter', selection: 'one term' });
+  });
+
+  it("keeps the follow-up's Send unavailable until something is typed", async () => {
+    const canvas = improving();
+    canvas.last().push('one term');
+    canvas.last().end();
+    await canvas.frame();
+    expect(canvas.button('Send')).toBeDisabled();
+    act(() => void fireEvent.change(screen.getByRole('textbox', { name: 'Tell AI what to do next' }), { target: { value: 'shorter' } }));
+    expect(canvas.button('Send')).toBeEnabled();
+  });
+
+  it('discards on Escape from Discard while its tooltip shows', async () => {
+    const canvas = improving();
+    canvas.last().push('one');
+    canvas.last().end();
+    await canvas.frame();
+    const discard = canvas.button('Discard');
+    act(() => discard.focus());
+    await screen.findByRole('tooltip');
+    canvas.press('Escape', discard);
+    expect(canvas.ghost()).toBeNull();
+    expect(canvas.markdown('a')).toBe('Say a word here');
+    expect(document.activeElement).toBe(canvas.host('a'));
+  });
+
+  it('shimmers Writing while the answer streams', async () => {
+    const canvas = improving();
+    canvas.last().push('one');
+    await canvas.frame();
+    expect(within(canvas.bar()!).getByText('Writing')).toHaveClass('quoin-shimmer');
   });
 
   it('takes Escape from the text to its bar, and Escape there stops, then discards', async () => {

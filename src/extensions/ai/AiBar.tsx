@@ -1,13 +1,18 @@
 'use client';
 
-import { useRef, useState, type FormEvent } from 'react';
+import { useRef } from 'react';
+import { useQuoin } from '../../context';
+import { Check, RotateCcw, Square, X } from '../../icons';
+import { formatShortcut } from '../../shortcuts/format-shortcut';
 import { Button } from '../../ui/button';
-import { Input } from '../../ui/input';
+import { IconButton } from '../../ui/icon-button';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
 import { acceptAnswer } from './ai-accept';
 import type { AiEnv } from './ai-env';
 import { discard, followUp, retry, stop } from './ai-flow';
 import type { AiGhost } from './ai-plugin';
+import { AiBarError } from './AiBarError';
+import { AiFollowUp } from './AiFollowUp';
 
 /** The control of the bar that takes focus: Stop, Accept, Retry, or Discard when there is no Retry. */
 export const PRIMARY = 'data-ai-primary';
@@ -24,9 +29,9 @@ export function AiBar({ env, ghost, gone, barId }: AiBarProps) {
   const { editor } = controller;
   const content = useRef<HTMLDivElement>(null);
   const inside = useRef(false);
-  const [next, setNext] = useState('');
   const { phase, failure } = ghost;
-  const retryable = failure?.retryable !== false;
+  const keyLabels = useQuoin().labels;
+  const discardKey = formatShortcut('Escape', { isMac: controller.isMac, labels: keyLabels });
 
   const focusPrimary = () => content.current?.querySelector<HTMLElement>(`[${PRIMARY}]`)?.focus();
   // Opened from the menu, whose field is gone, focus has fallen to the body: it comes here, never from anywhere else.
@@ -58,12 +63,6 @@ export function AiBar({ env, ghost, gone, barId }: AiBarProps) {
     discard(editor);
     backToText();
   };
-  const onFollowUp = (event: FormEvent) => {
-    event.preventDefault();
-    if (next.trim() === '') return;
-    followUp(editor, stream, next.trim());
-    setNext('');
-  };
   const primary = { [PRIMARY]: '' };
 
   return (
@@ -72,7 +71,7 @@ export function AiBar({ env, ghost, gone, barId }: AiBarProps) {
       id={barId}
       role="group"
       aria-label={labels.response}
-      className="quoin-ai-bar flex flex-wrap items-center gap-2 rounded-lg border bg-popover p-2 text-popover-foreground shadow-md"
+      className="quoin-ai-bar flex flex-wrap items-center gap-1.5 rounded-lg bg-popover p-1.5 text-popover-foreground shadow-md ring-1 ring-foreground/10"
       onFocus={() => (inside.current = true)}
       onBlur={(event) => (inside.current = content.current?.contains(event.relatedTarget as Node) ?? false)}
       onKeyDown={(event) => {
@@ -84,52 +83,38 @@ export function AiBar({ env, ghost, gone, barId }: AiBarProps) {
     >
       {phase === 'streaming' && (
         <>
-          <span className="text-sm text-muted-foreground">{labels.writing}</span>
-          <Button {...primary} size="sm" variant="outline" onClick={() => stop(editor)}>
+          <span className="quoin-shimmer px-1.5 text-sm text-muted-foreground">{labels.writing}</span>
+          <Button {...primary} size="sm" variant="outline" className="ms-auto" onClick={() => stop(editor)}>
+            <Square />
             {labels.stop}
           </Button>
         </>
       )}
       {phase === 'error' && (
-        <>
-          <div role="alert" className="text-sm">
-            <p className="text-destructive">{labels.failed}</p>
-            {failure?.reason !== undefined && <p className="text-xs text-muted-foreground">{failure.reason}</p>}
-          </div>
-          {retryable && (
-            <Button {...primary} size="sm" onClick={() => retry(editor, stream)}>
-              {labels.retry}
-            </Button>
-          )}
-          <Button {...(retryable ? {} : primary)} size="sm" variant="ghost" onClick={onDiscard}>
-            {labels.discard}
-          </Button>
-        </>
+        <AiBarError
+          labels={labels}
+          failure={failure}
+          discardKey={discardKey}
+          primary={primary}
+          onRetry={() => retry(editor, stream)}
+          onDiscard={onDiscard}
+        />
       )}
       {(phase === 'done' || phase === 'stopped') && (
         <>
-          {phase === 'stopped' && <span className="text-sm text-muted-foreground">{labels.stopped}</span>}
-          {gone && <p className="w-full text-xs text-muted-foreground">{labels.targetGone}</p>}
+          {phase === 'stopped' && <span className="px-1.5 text-sm text-muted-foreground">{labels.stopped}</span>}
+          {gone && <p className="w-full px-1.5 text-xs text-muted-foreground">{labels.targetGone}</p>}
           <Button {...primary} size="sm" onClick={onAccept}>
+            <Check />
             {labels.accept}
           </Button>
-          <Button size="sm" variant="ghost" onClick={onDiscard}>
-            {labels.discard}
-          </Button>
-          <Button size="sm" variant="ghost" onClick={() => retry(editor, stream)}>
-            {labels.retry}
-          </Button>
-          <form className="w-full" onSubmit={onFollowUp}>
-            <Input
-              aria-label={labels.followUp}
-              placeholder={labels.followUp}
-              value={next}
-              onChange={(event) => setNext(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' && event.nativeEvent.isComposing) event.preventDefault();
-              }}
-            />
-          </form>
+          <IconButton label={labels.discard} shortcut={discardKey} onClick={onDiscard}>
+            <X />
+          </IconButton>
+          <IconButton label={labels.retry} onClick={() => retry(editor, stream)}>
+            <RotateCcw />
+          </IconButton>
+          <AiFollowUp labels={labels} onSend={(request) => followUp(editor, stream, request)} />
         </>
       )}
     </div>

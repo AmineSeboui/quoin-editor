@@ -62,6 +62,18 @@ test('an unsafe address keeps the popover open with its explanation', async ({ p
   expect(await allMarkdown(page)).toEqual([LINKED, PLAIN]);
 });
 
+test('Tab past the last control of the popover gives focus back to the text', async ({ page, browserName }) => {
+  await openEditor(page, 'link');
+  await caretAt(page, 'p', 8);
+  await page.keyboard.press('ControlOrMeta+k');
+  await expect(field(page)).toBeFocused();
+  await dialog(page).getByRole('button', { name: 'Remove link' }).focus();
+  await page.keyboard.press(browserName === 'webkit' ? 'Alt+Tab' : 'Tab');
+  await expect(dialog(page)).toHaveCount(0);
+  await expect(host(page, 'p')).toBeFocused();
+  expect(await allMarkdown(page)).toEqual([LINKED, PLAIN]);
+});
+
 test('a caret resting in a link shows its card without taking focus, and Unlink removes the link', async ({ page }) => {
   await openEditor(page, 'link');
   await caretAt(page, 'p', 8);

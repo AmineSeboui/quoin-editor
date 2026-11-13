@@ -135,6 +135,27 @@ describe('the link popover', () => {
     expect(canvas.changes).toHaveLength(0);
   });
 
+  it.each([
+    ['Tab past its last control', 'Remove link', { key: 'Tab' }],
+    ['Option+Tab past its last control', 'Remove link', { key: 'Tab', altKey: true }],
+    ['Shift+Tab before its field', null, { key: 'Tab', shiftKey: true }],
+  ])('gives focus back to the text on %s, rather than leaving it on the page', (_, from, init) => {
+    const canvas = openPopover([paragraph('a', 'see [docs](https://old.example) here')], pos(6));
+    const start = from === null ? field() : control(from);
+    act(() => start.focus());
+    fireEvent.keyDown(start, init);
+    expect(popover()).toBeNull();
+    expect(host(canvas)).toHaveFocus();
+    expect(canvas.selection()).toEqual(textSelection(pos(6)));
+  });
+
+  it('keeps Tab between its own controls', () => {
+    openPopover([paragraph('a', 'see [docs](https://old.example) here')], pos(6));
+    act(() => field().focus());
+    expect(fireEvent.keyDown(field(), { key: 'Tab' })).toBe(true);
+    expect(popover()).not.toBeNull();
+  });
+
   it('stays closed after the canvas turns read-only and back, and leaves focus where it is', () => {
     const ref = createRef<QuoinEditorHandle>();
     const blocks = [paragraph('a', 'hello world')];

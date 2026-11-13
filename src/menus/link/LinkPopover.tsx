@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useId, useMemo, useState, type ChangeEvent, type FormEvent, type KeyboardEvent } from 'react';
 import { unsetLink } from '../../engine/commands/marks';
 import { isCollapsed } from '../../engine/state/selection';
 import type { QuoinLabels } from '../../i18n/labels';
@@ -21,6 +21,7 @@ import { OpenLinkButton } from './OpenLinkButton';
 const CONTENT = 'w-80 p-2 shadow-md';
 const FIELD = 'h-8';
 const MESSAGE = 'mt-1.5 px-1 text-sm text-destructive';
+const CONTROLS = 'input, button, a[href]';
 
 // The selected text, or at a collapsed caret the link it is in, or the caret itself.
 function popoverAnchor(controller: ViewController, link: LinkAtSelection | null): VirtualAnchor | null {
@@ -40,8 +41,8 @@ type LinkPopoverProps = { controller: ViewController; labels: QuoinLabels; onClo
 /**
  * The link address of the selection, to apply on Enter: it links selected text, edits the link a caret is in, or
  * inserts the address as linked text at any other caret. An address the engine would not keep as a link is refused
- * with a message the field names as its description and the canvas says once. Escape, Apply and Remove give focus back
- * to the text with its selection.
+ * with a message the field names as its description and the canvas says once. Escape, Apply, Remove and Tab past
+ * either end give focus back to the text with its selection.
  */
 export function LinkPopover({ controller, labels, onClose }: LinkPopoverProps) {
   const [link] = useState(() => linkAtSelection(controller.editor.state));
@@ -73,6 +74,15 @@ export function LinkPopover({ controller, labels, onClose }: LinkPopoverProps) {
     controller.run(unsetLink);
     backToText();
   };
+  // The popover is drawn at the end of the page, so Tab past its last control, or Option+Tab in WebKit, would leave
+  // focus on the body, and Shift+Tab before its field on whatever the page has last.
+  const tabOut = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== 'Tab' || event.ctrlKey || event.metaKey) return;
+    const controls = [...event.currentTarget.querySelectorAll(CONTROLS)];
+    if (event.target !== (event.shiftKey ? controls[0] : controls.at(-1))) return;
+    event.preventDefault();
+    backToText();
+  };
 
   return (
     <Popover
@@ -93,6 +103,7 @@ export function LinkPopover({ controller, labels, onClose }: LinkPopoverProps) {
           event.preventDefault();
           backToText();
         }}
+        onKeyDown={tabOut}
       >
         <form noValidate className="flex items-center gap-0.5" onSubmit={apply}>
           <Input

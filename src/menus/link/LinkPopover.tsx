@@ -1,11 +1,10 @@
 'use client';
 
 import { useId, useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
-import { sanitizeHref } from '../../engine';
 import { unsetLink } from '../../engine/commands/marks';
 import { isCollapsed } from '../../engine/state/selection';
 import type { QuoinLabels } from '../../i18n/labels';
-import { Check, ExternalLink, Unlink } from '../../icons';
+import { Check, Unlink } from '../../icons';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
@@ -17,6 +16,7 @@ import { virtualAnchor, type VirtualAnchor } from '../floating/virtual-anchor';
 import { applyLink } from './apply-link';
 import { linkAddress } from './link-address';
 import { linkAtSelection, type LinkAtSelection } from './link-at-selection';
+import { OpenLinkButton } from './OpenLinkButton';
 
 const CONTENT = 'w-80 p-2 shadow-md';
 const FIELD = 'h-8';
@@ -48,7 +48,6 @@ export function LinkPopover({ controller, labels, onClose }: LinkPopoverProps) {
   const [invalid, setInvalid] = useState(false);
   const messageId = useId();
   const anchor = useMemo(() => ({ current: popoverAnchor(controller, link) }), [controller, link]);
-  const openHref = link && sanitizeHref(link.href);
 
   const backToText = () => {
     onClose();
@@ -103,13 +102,7 @@ export function LinkPopover({ controller, labels, onClose }: LinkPopoverProps) {
           <Button type="submit" variant="ghost" size="icon-sm" aria-label={labels.linkApply}>
             <Check />
           </Button>
-          {openHref && (
-            <Button asChild variant="ghost" size="icon-sm">
-              <a href={openHref} target="_blank" rel="noopener noreferrer" aria-label={labels.linkOpen}>
-                <ExternalLink />
-              </a>
-            </Button>
-          )}
+          {link !== null && <OpenLinkButton href={link.href} label={labels.linkOpen} />}
           {link !== null && (
             <Button type="button" variant="ghost" size="icon-sm" aria-label={labels.linkRemove} onClick={remove}>
               <Unlink />

@@ -76,6 +76,14 @@ describe('the link hover card at the caret', () => {
     expect(card()).toBeNull();
   });
 
+  it('offers no Open for a link with an empty address, as the link popover does not', () => {
+    const canvas = mount('see [docs](<>) here');
+    placeCaret(canvas, 6);
+    wait(300);
+    expect(card()).not.toBeNull();
+    expect(card()!.querySelector('a[aria-label="Open link"]')).toBeNull();
+  });
+
   it('middle-truncates a long address to 48 characters', () => {
     const canvas = mount(`see [docs](${LONG}) here`);
     placeCaret(canvas, 6);

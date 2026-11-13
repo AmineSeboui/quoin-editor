@@ -2,10 +2,10 @@
 
 import { useCallback, useMemo, useRef, type RefObject } from 'react';
 import type { CanvasUiStore } from '../../canvas/ui-store';
-import { sanitizeHref, textSelection, type EditorState } from '../../engine';
+import { textSelection, type EditorState } from '../../engine';
 import { shortcutHint } from '../../gutter/shortcut-hint';
 import type { QuoinLabels } from '../../i18n/labels';
-import { ExternalLink, Pencil, Unlink } from '../../icons';
+import { Pencil, Unlink } from '../../icons';
 import { Button } from '../../ui/button';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
 import { preventDefault } from '../../ui/prevent-default';
@@ -16,6 +16,7 @@ import { rangeRect } from '../floating/range-rect';
 import { virtualAnchor } from '../floating/virtual-anchor';
 import { linkAtSelection, sameLink } from './link-at-selection';
 import { linkAtElement } from './link-element';
+import { OpenLinkButton } from './OpenLinkButton';
 import { truncateMiddle } from './truncate-middle';
 import { unlinkRange } from './unlink-range';
 import { useCaretInLink } from './use-caret-in-link';
@@ -51,7 +52,6 @@ function LinkCard({ controller, labels, store, cardRef, element, onUnlinked }: L
   if (link === null) return null;
 
   const { block, region, from, to } = link.range;
-  const href = sanitizeHref(link.href);
   const address = truncateMiddle(link.href, URL_LENGTH);
   const edit = () => {
     if (element !== null) {
@@ -83,13 +83,7 @@ function LinkCard({ controller, labels, store, cardRef, element, onUnlinked }: L
         <span className={ADDRESS} title={address === link.href ? undefined : link.href}>
           {address}
         </span>
-        {href !== null && (
-          <Button asChild variant="ghost" size="icon-sm">
-            <a href={href} target="_blank" rel="noopener noreferrer" aria-label={labels.linkOpen}>
-              <ExternalLink />
-            </a>
-          </Button>
-        )}
+        <OpenLinkButton href={link.href} label={labels.linkOpen} />
         <Button
           type="button"
           variant="ghost"

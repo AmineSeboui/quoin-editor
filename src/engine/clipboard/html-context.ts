@@ -1,5 +1,6 @@
 import type { BlockAttrs, EngineBlock, Inline, Mark } from '../model/types';
 import type { SizedHeading } from './html-font-size';
+import type { StyleMap } from './html-styles';
 import { boxedTask } from './html-task-box';
 
 export type Context = {
@@ -14,6 +15,8 @@ export type Sink = {
   readonly out: EngineBlock[];
   readonly newId: () => string;
   readonly sizedHeading: SizedHeading;
+  /** What the classes of an element set in the style sheets pasted with it, which name the paragraph styles of Word. */
+  readonly classStyle: (element: Element) => StyleMap;
   walk(nodes: Iterable<Node>, ctx: Context): void;
 };
 

@@ -1,10 +1,11 @@
 import { inlineLength, rangeHasMark } from '../model/inline';
 import type { BlockAttrs, EngineBlock, Inline } from '../model/types';
 import { inlineClassRules } from './html-class-rules';
-import { codeBlock } from './html-code';
+import { codeBlock, codeLine } from './html-code';
 import { child, emit, emitText, PARAGRAPH, type Context, type Sink } from './html-context';
 import {
   hasBlockDescendant,
+  hasClass,
   isBlockLevel,
   isDropped,
   isElement,
@@ -17,12 +18,15 @@ import { inlineFromNodes } from './html-inline';
 import { list, listItem, wordListItem } from './html-lists';
 import { elementMarks } from './html-marks';
 import { figure, imageBlock } from './html-media';
+import { isRule } from './html-rule';
 import { isMonospace, keepsWhitespace, parseStyle } from './html-styles';
 import { tableBlock } from './html-table';
 import { withoutBold } from './without-bold';
 
 const QUOTE: BlockAttrs = { kind: 'quote' };
 const HEADING = /^h([1-6])$/;
+// Word's quote styles, which give their text the italic grey a quote is drawn with.
+const WORD_QUOTES = ['MsoQuote', 'MsoIntenseQuote'];
 
 function emitRun(run: readonly Node[], ctx: Context, sink: Sink): void {
   const inline = inlineFromNodes(run, ctx);
@@ -64,9 +68,21 @@ function headingLevel(element: Element, tag: string, ctx: Context, sink: Sink): 
   return level === 1 || (level !== null && isBold(element, ctx)) ? level : null;
 }
 
+function paragraphStyle(element: Element, outer: Context, sink: Sink): boolean {
+  if (WORD_QUOTES.some((name) => hasClass(element, name))) {
+    sink.walk(element.childNodes, child(outer, { run: QUOTE }));
+    return true;
+  }
+  if (!isMonospace(sink.classStyle(element))) return false;
+  codeLine(element, outer, sink);
+  return true;
+}
+
 function handleBlock(element: Element, outer: Context, sink: Sink): void {
-  const { ctx, code } = styledContext(element, outer);
   const tag = tagName(element);
+  if ((tag === 'p' || tag === 'div') && isRule(element)) return emit(sink, 'DIVIDER', outer.indent, {}, {});
+  if (tag === 'p' && paragraphStyle(element, outer, sink)) return;
+  const { ctx, code } = styledContext(element, outer);
   if (code && tag === 'div') return codeBlock(element, ctx, sink);
   if (tag === 'p' && wordListItem(element, ctx, sink)) return;
   const level = headingLevel(element, tag, ctx, sink);
@@ -120,11 +136,12 @@ function walkNodes(nodes: Iterable<Node>, ctx: Context, sink: Sink): void {
 }
 
 export function blocksFromBody(body: Element, newId: () => string): EngineBlock[] {
-  inlineClassRules(body);
+  const classes = inlineClassRules(body);
   const sink: Sink = {
     out: [],
     newId,
     sizedHeading: sizedHeading(body),
+    classStyle: (element) => parseStyle(classes.get(element) ?? null),
     walk: (nodes, ctx) => walkNodes(nodes, ctx, sink),
   };
   sink.walk(body.childNodes, { indent: 0, marks: [], run: PARAGRAPH, preformatted: false, depth: 0 });

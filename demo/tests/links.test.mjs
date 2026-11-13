@@ -5,9 +5,7 @@ import { describe, it } from 'node:test';
 import {
   BASE,
   builtPage,
-  demoRoot,
   dist,
-  docSlugs,
   DOCS_URL,
   expectedPages,
   hrefsOf,
@@ -36,15 +34,11 @@ const headingsOf = (markdown) =>
 const sources = [
   { name: 'README.md', path: join(repoRoot, 'README.md') },
   { name: 'MIGRATION.md', path: join(repoRoot, 'MIGRATION.md') },
-  ...docSlugs().map((slug) => ({ name: `docs/${slug}.md`, path: join(demoRoot, 'docs', `${slug}.md`) })),
 ];
 
 describe('links to the documentation', () => {
   const old = DOCS_URL;
-  // This repository's own prose only. The pages under demo/docs are drawn by the site that serves them now,
-  // which rewrites a reference written for the old addresses and has its own test that none survives.
-  const ours = sources.filter(({ name }) => !name.startsWith('docs/'));
-  for (const { name, path } of ours) {
+  for (const { name, path } of sources) {
     // The documentation is served from the one site now. A link written here should go there rather than to
     // the notice left behind, which still works but costs the reader a redirect to read the next page.
     it(`from ${name} go to the site that serves it`, () => {

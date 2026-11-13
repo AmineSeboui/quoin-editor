@@ -1,4 +1,4 @@
-import { docSources } from './sources';
+import movedGuide from './moved-guide.json';
 
 export type PageKind =
   | { kind: 'home' }
@@ -16,40 +16,17 @@ export type PageKind =
 
 export type Page = PageKind & { path: string; title: string; description: string };
 
-/** The guide's pages in reading order; a source left out of this list still gets its page, after these. */
-export const GUIDE_ORDER = [
-  'getting-started',
-  'contract',
-  'adoption',
-  'theming',
-  'custom-blocks',
-  'blocks',
-  'uploads',
-  'extensions',
-  'keyboard',
-  'localization',
-  'direction',
-  'collaboration',
-  'comments',
-  'ai',
-  'server-rendering',
-  'headless',
-  'api',
-  'engine-reference',
-  'headless-reference',
-  'accessibility',
-  'faq',
-  'styles-history',
-];
-
-const rank = (slug: string) => {
-  const index = GUIDE_ORDER.indexOf(slug);
-  return index === -1 ? GUIDE_ORDER.length : index;
-};
-
-export const guidePages: Page[] = [...docSources.values()]
-  .sort((a, b) => rank(a.slug) - rank(b.slug) || a.slug.localeCompare(b.slug))
-  .map(({ slug, title, description }) => ({ kind: 'doc', slug, path: `docs/${slug}/`, title, description }));
+/**
+ * The guide's pages, which quoincloud.com serves now. Each address here answers with a notice that sends the reader
+ * there, so this list is history rather than something derived, and it keeps every address a link was ever written to.
+ */
+export const guidePages: Page[] = movedGuide.map(({ slug, title, description }) => ({
+  kind: 'doc' as const,
+  slug,
+  path: `docs/${slug}/`,
+  title,
+  description,
+}));
 
 export const demoPages: Page[] = [
   {

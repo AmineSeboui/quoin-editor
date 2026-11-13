@@ -170,6 +170,7 @@ export const zhLabels: Required<QuoinLabels> = {
   uploaded: (name) => `已上传 ${name}`,
   uploadFailed: '上传失败。',
   uploadsUnavailable: '此编辑器未配置上传功能。',
+  pastedPictureTooLarge: '粘贴的图片太大，无法上传。',
   uploadImage: '上传图片',
   embedLink: '嵌入链接',
   imageLink: '图片链接',

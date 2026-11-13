@@ -13,9 +13,10 @@ import {
   verticalAlign,
 } from './html-styles';
 
+// A bare fragment names a place in the document the paste came from, such as a Word bookmark, which no pasted block is.
 function linkMark(element: Element): Mark | null {
   const href = sanitizeHref(element.getAttribute('href') ?? '');
-  if (href === null || href === '') return null;
+  if (href === null || href === '' || href.startsWith('#')) return null;
   const title = element.getAttribute('title');
   return { type: 'link', attrs: title ? { href, title } : { href } };
 }
@@ -67,6 +68,8 @@ export function elementMarks(element: Element, inherited: readonly Mark[]): read
   if (color !== null) add({ type: 'color', attrs: { color } });
   const fill = styles.get('background-color') ?? styles.get('background') ?? '';
   const background = pageStyle ? null : nearestPaletteColor(fill, 'background');
-  if (background !== null) add({ type: 'background', attrs: { color: background } });
+  // Word and the editor itself shade code grey, which is how code is drawn rather than a highlight.
+  const shading = background === 'gray' && hasMark(marks, 'code');
+  if (background !== null && !shading) add({ type: 'background', attrs: { color: background } });
   return marks;
 }

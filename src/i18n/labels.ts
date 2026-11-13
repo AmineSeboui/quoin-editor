@@ -162,6 +162,8 @@ export type QuoinLabels = {
   uploadFailed: string;
   /** What an upload field shows in place of working when the canvas was given no upload function. */
   uploadsUnavailable: string;
+  /** What `onError` hears of a picture a paste carried inline that is too large to upload. Optional like `blockError`. */
+  pastedPictureTooLarge?: string;
   /** An empty image block: its upload button, the link it can embed instead and what can be dropped or pasted on it. */
   uploadImage: string;
   embedLink: string;

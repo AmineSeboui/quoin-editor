@@ -174,6 +174,7 @@ export const esLabels: Required<QuoinLabels> = {
   uploaded: (name) => `${name} subido`,
   uploadFailed: 'La subida ha fallado.',
   uploadsUnavailable: 'Este editor no tiene configuradas las subidas.',
+  pastedPictureTooLarge: 'Una imagen pegada es demasiado grande para subirla.',
   uploadImage: 'Subir una imagen',
   embedLink: 'Incrustar un enlace',
   imageLink: 'Enlace de la imagen',

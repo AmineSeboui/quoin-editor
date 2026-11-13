@@ -2,6 +2,7 @@ import { fileAttrs } from '../blocks/file/file-upload';
 import { isImageFile, measureImage } from '../blocks/image/image-upload';
 import { insertBlocks, type NewBlock } from '../blocks/insert-blocks';
 import { isStored } from '../blocks/upload/block-upload';
+import { fillSelectedBlock } from '../blocks/upload/upload-targets';
 import type { Pos, Selection } from '../engine';
 import { headBlockId } from '../engine/commands/block-helpers';
 import { newId } from '../engine/model/new-id';
@@ -45,10 +46,12 @@ function movedOn(controller: ViewController, before: Writer): boolean {
 
 /**
  * Uploads the files and inserts an image block for each image and a file block for anything else, in their order,
- * then measures the images. An upload that fails, or resolves to no stored key, is reported to `onError` and left out,
- * in the words of the `Error` it rejects with when that has a message, and of `failed` otherwise. A writer still where
- * the paste or drop left them goes on in an empty line after the blocks; one who moved on while the files uploaded
- * keeps their caret and focus. The blocks go in through the editor itself, as `writeAttrs` explains.
+ * then measures the images. Pasted while an empty image or file block is selected as a whole, the first file the block
+ * takes is uploaded into it instead, and the others go in after it. An upload that fails, or resolves to no stored
+ * key, is reported to `onError` and left out, in the words of the `Error` it rejects with when that has a message, and
+ * of `failed` otherwise. A writer still where the paste or drop left them goes on in an empty line after the blocks;
+ * one who moved on while the files uploaded keeps their caret and focus. The blocks go in through the editor itself,
+ * as `writeAttrs` explains.
  */
 export async function insertUploads(
   controller: ViewController,
@@ -59,12 +62,14 @@ export async function insertUploads(
   if (!upload) return onError(new Error(unavailable));
   // A click just before the drop moved the caret where its selectionchange has not told the editor yet.
   controller.readSelectionFromDom();
+  const rest = at === null ? fillSelectedBlock(controller, files) : files;
+  if (rest.length === 0) return;
   const writer = writerOf(controller);
-  const outcomes = await Promise.allSettled(files.map(async (file) => upload(file, isImageFile(file) ? 'image' : 'file')));
+  const outcomes = await Promise.allSettled(rest.map(async (file) => upload(file, isImageFile(file) ? 'image' : 'file')));
   const blocks: NewBlock[] = [];
   outcomes.forEach((outcome, index) => {
     if (outcome.status === 'rejected') onError(uploadError(outcome.reason, failed));
-    else if (isStored(outcome.value)) blocks.push(fileBlock(files[index], outcome.value));
+    else if (isStored(outcome.value)) blocks.push(fileBlock(rest[index], outcome.value));
     else onError(new Error(failed));
   });
   if (blocks.length === 0 || controller.root === null || controller.readOnly) return;

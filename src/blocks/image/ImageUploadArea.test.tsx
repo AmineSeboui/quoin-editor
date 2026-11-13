@@ -83,6 +83,24 @@ describe('an image block with no picture yet', () => {
     await waitFor(() => expect(imageData()).toMatchObject({ storageKey: 'key/cat.png' }));
   });
 
+  it('takes an image pasted while it is selected as a whole, and sends what else was pasted after it', async () => {
+    const { imageData, last, nodeSelect, sink } = mount();
+    nodeSelect('i');
+    act(() => void sink().dispatchEvent(clipboardEvent('paste', fakeTransfer({}, [pdf, png]).transfer)));
+    expect(within(area()).getByText('Uploading...')).toBeInTheDocument();
+    await waitFor(() => expect(imageData()).toMatchObject({ storageKey: 'key/cat.png' }));
+    await waitFor(() => expect(last()?.map((block) => block.type)).toEqual(['MARKDOWN', 'IMAGE', 'FILE', 'MARKDOWN']));
+    expect(last()![2].data).toMatchObject({ storageKey: 'key/notes.pdf' });
+  });
+
+  it('leaves an image pasted while another block is selected to the canvas', async () => {
+    const { imageData, last, handle } = mount();
+    act(() => handle().focus({ block: 'a', region: 'text', offset: 5 }));
+    act(() => void document.activeElement!.dispatchEvent(clipboardEvent('paste', fakeTransfer({}, [png]).transfer)));
+    await waitFor(() => expect(last()?.map((block) => block.type)).toEqual(['MARKDOWN', 'IMAGE', 'MARKDOWN', 'IMAGE']));
+    expect(imageData()).toEqual({ storageKey: '', alt: '' });
+  });
+
   it('says it is uploading, and shows why an upload failed', async () => {
     const user = userEvent.setup();
     let fail!: (cause: Error) => void;

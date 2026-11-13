@@ -46,6 +46,14 @@ describe('a file block with no file yet', () => {
     expect(sink()).toHaveFocus();
   });
 
+  it('takes the first file pasted while it is selected as a whole into itself', async () => {
+    const { last, fileData, nodeSelect, sink } = mount();
+    nodeSelect('f');
+    act(() => void sink().dispatchEvent(clipboardEvent('paste', fakeTransfer({}, [png]).transfer)));
+    await waitFor(() => expect(fileData()).toMatchObject({ storageKey: 'key/cat.png', filename: 'cat.png' }));
+    expect(last()?.map((block) => block.type)).toEqual(['MARKDOWN', 'FILE']);
+  });
+
   it('takes any file dropped on it into itself, where the canvas would add a block for it', async () => {
     const { last, fileData } = mount();
     const drop = dragEvent('drop', fakeTransfer({}, [png]).transfer);

@@ -60,6 +60,15 @@ test('a file dropped on the picture of an image goes in after that image, even b
   ]);
 });
 
+test('an image pasted while an empty image is selected as a whole fills it', async ({ page }) => {
+  await openEditor(page, 'media', 'upload=100');
+  await page.locator('.quoin-image-upload').click({ position: { x: 4, y: 4 } });
+  await expect(page.locator('[data-block-id="img"]')).toHaveAttribute('data-selected', 'true');
+  await pasteFilesEvent(page, [png]);
+  await expect(page.locator('.quoin-image-upload')).toContainText('Uploading...');
+  await expect.poll(() => shape(page)).toEqual(['MARKDOWN:Above media', 'IMAGE:key-cat.png', 'MARKDOWN:Below media']);
+});
+
 test('an upload picked from an empty image keeps focus on its button, then hands it to the image it fills', async ({
   page,
 }) => {

@@ -7,6 +7,7 @@ import type { QuoinLabels } from '../i18n/labels';
 import { toError } from '../to-error';
 import type { UploadResult } from '../types';
 import { FilePickerButton } from './FilePickerButton';
+import { uploadError } from './upload-error';
 
 /** Props for `UploadField`; the upload function itself comes from the canvas, not from here. */
 export type UploadFieldProps = {
@@ -45,7 +46,7 @@ export function UploadField({ category, label, accept, onUploaded }: UploadField
     try {
       result = await upload(file, category);
     } catch (cause) {
-      setState({ phase: 'failed', message: (cause instanceof Error && cause.message) || labels.uploadFailed });
+      setState({ phase: 'failed', message: uploadError(cause, labels.uploadFailed).message });
       return;
     }
     try {

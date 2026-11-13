@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState, type RefObject } from 'react';
 import { useQuoin } from '../../context';
+import { uploadError } from '../../upload/upload-error';
 import type { ViewController } from '../../view';
 import { focusNode } from '../void/select-node';
 import type { BlockUploader } from './block-upload';
@@ -37,7 +38,7 @@ export function useBlockUpload(
       };
       uploader(controller, blockId, file, { upload, resolveAssetUrl, onLand }).then(
         () => settle(IDLE),
-        (cause: unknown) => settle({ busy: false, error: (cause instanceof Error && cause.message) || labels.uploadFailed }),
+        (cause: unknown) => settle({ busy: false, error: uploadError(cause, labels.uploadFailed).message }),
       );
     },
     [controller, blockId, area, uploader, upload, resolveAssetUrl, onError, labels],

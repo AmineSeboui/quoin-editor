@@ -38,6 +38,11 @@ export function assetOf(controller: ViewController, blockId: string, type: strin
   return { url: str(block.attrs.url), storageKey: str(block.attrs.storageKey) };
 }
 
+// An upload that resolves to no stored key has failed. An empty key is that same failure written as a string, and it
+// would otherwise leave the block empty, or a dropped picture drawn as missing, with nothing said.
+export const isStored = (stored: UploadResult | null | undefined): stored is UploadResult =>
+  typeof stored?.storageKey === 'string' && stored.storageKey !== '';
+
 export const sameAsset = (a: Asset | null, b: Asset | null): boolean =>
   a !== null && b !== null && a.url === b.url && a.storageKey === b.storageKey;
 
@@ -67,9 +72,8 @@ export async function uploadInto(
   const token = claimUpload(controller, blockId);
   const before = assetOf(controller, blockId, type);
   const stored = await upload(file, category);
-  // An upload that resolves to no stored key fails with no message, so that the block words the failure itself. An
-  // empty key is that same failure written as a string, and it would otherwise leave the block empty with nothing said.
-  if (typeof stored?.storageKey !== 'string' || stored.storageKey === '') throw new Error();
+  // A failure with no message is worded by the block itself.
+  if (!isStored(stored)) throw new Error();
   if (!isNewestUpload(controller, blockId, token) || !sameAsset(assetOf(controller, blockId, type), before)) return;
   onLand?.();
   await land(stored, token);

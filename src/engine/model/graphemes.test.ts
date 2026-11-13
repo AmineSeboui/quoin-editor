@@ -1,5 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { graphemeCount, nextGraphemeOffset, nextWordOffset, prevGraphemeOffset, prevWordOffset, wordCount } from './graphemes';
+import {
+  graphemeCount,
+  graphemePrefix,
+  nextGraphemeOffset,
+  nextWordOffset,
+  prevGraphemeOffset,
+  prevWordOffset,
+  wordCount,
+} from './graphemes';
 
 describe('graphemes', () => {
   it('steps over surrogate pairs and combining sequences as one', () => {
@@ -35,6 +43,12 @@ describe('counts', () => {
     expect(wordCount('hello, big world')).toBe(3);
     expect(wordCount(' ,; ')).toBe(0);
   });
+
+  it('takes the text up to a number of grapheme clusters, or all of a shorter one', () => {
+    expect(graphemePrefix('a\u{1F44D}\u{1F3FD}e\u0301z', 3)).toBe('a\u{1F44D}\u{1F3FD}e\u0301');
+    expect(graphemePrefix('ab', 5)).toBe('ab');
+    expect(graphemePrefix('ab', 0)).toBe('');
+  });
 });
 
 describe('graphemes without Intl.Segmenter', () => {
@@ -62,6 +76,7 @@ describe('graphemes without Intl.Segmenter', () => {
     expect(fallback.graphemeCount('a\u{1F44D}\u{1F3FD}b')).toBe(4);
     expect(fallback.graphemeCount('')).toBe(0);
     expect(fallback.wordCount('h\u00E9llo, big_2 world')).toBe(3);
+    expect(fallback.graphemePrefix('a\u{1F44D}\u{1F3FD}b', 2)).toBe('a\u{1F44D}');
   });
 
   it('falls back to runs of letters, digits and underscores for words', async () => {

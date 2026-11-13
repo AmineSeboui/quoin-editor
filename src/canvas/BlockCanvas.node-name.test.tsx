@@ -56,6 +56,19 @@ describe('a block the canvas selects as a whole', () => {
     expect(sink().getAttribute('aria-label')).toBe(`${'x'.repeat(78)}\u{1F600}\u2026`);
   });
 
+  it('counts and clips its text by what a reader sees as one character, never inside a cluster of them', () => {
+    const family = '\u{1F468}\u200d\u{1F469}\u200d\u{1F467}';
+    const flag = '\u{1F1EB}\u{1F1F7}';
+    const { nodeSelect, sink } = mountCanvas([
+      bookmarkBlock('b', `${'x'.repeat(78)}${family}${'y'.repeat(10)}`),
+      bookmarkBlock('f', flag.repeat(80)),
+    ]);
+    nodeSelect('b');
+    expect(sink().getAttribute('aria-label')).toBe(`${'x'.repeat(78)}${family}\u2026`);
+    nodeSelect('f');
+    expect(sink().getAttribute('aria-label')).toBe(flag.repeat(80));
+  });
+
   it('is named in the labels the host gave the canvas', () => {
     const blocks = [image('j', { storageKey: 'k' }), code('c', ''), file('n', { storageKey: 'k', filename: 'notes.pdf' })];
     const { nodeSelect, sink } = mountCanvas(blocks, {

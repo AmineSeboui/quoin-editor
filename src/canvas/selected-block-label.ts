@@ -4,6 +4,7 @@ import { languageName } from '../blocks/code/code-languages';
 import { fileName, hasFile } from '../blocks/file/file-source';
 import { hasPicture } from '../blocks/image/image-source';
 import { str } from '../engine/blocks/data-fields';
+import { graphemePrefix } from '../engine/model/graphemes';
 import { blockTypeLabel } from '../gutter/block-type-label';
 import type { QuoinLabels } from '../i18n/labels';
 import type { AnyBlockDefinition } from '../registry';
@@ -11,8 +12,8 @@ import type { AnyBlockDefinition } from '../registry';
 const LONGEST = 80;
 
 function firstLine(text: string): string {
-  const characters = [...text.split('\n', 1)[0].trim()];
-  return characters.length > LONGEST ? `${characters.slice(0, LONGEST - 1).join('')}\u2026` : characters.join('');
+  const line = text.split('\n', 1)[0].trim();
+  return graphemePrefix(line, LONGEST) === line ? line : `${graphemePrefix(line, LONGEST - 1)}\u2026`;
 }
 
 /**

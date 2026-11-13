@@ -95,6 +95,20 @@ describe('FilePickerButton', () => {
         again(false);
         expect(screen.getByRole('button', { name: 'Elsewhere' })).toHaveFocus();
       });
+
+      it('leaves focus on the page when the user pressed blank space meanwhile', async () => {
+        const again = await pickAndDisable();
+        fireEvent.pointerDown(document.body);
+        again(false);
+        expect(document.body).toHaveFocus();
+      });
+
+      it('still gives focus back after a press on the picker itself while it was disabled', async () => {
+        const again = await pickAndDisable();
+        fireEvent.pointerDown(screen.getByLabelText('Pick'));
+        again(false);
+        expect(screen.getByLabelText('Pick')).toHaveFocus();
+      });
     });
 
     it('does not take focus when it is enabled without a pick behind it', () => {

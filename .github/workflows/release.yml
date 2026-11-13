@@ -19,7 +19,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 22
-          cache: npm
+          package-manager-cache: false
           registry-url: https://registry.npmjs.org
       - name: Check the tag names the package version
         run: test "$GITHUB_REF_NAME" = "v$(node -p "require('./package.json').version")"
@@ -35,6 +35,7 @@ jobs:
       - run: npm run check:consumer
         env:
           QUOIN_REACT: '18'
-      - run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Upgrade to npm 11, since trusted publishing needs 11.5.1 and Node 22 ships npm 10
+        run: npm install -g npm@11
+      - name: Publish through npm trusted publishing
+        run: npm publish --access public --provenance

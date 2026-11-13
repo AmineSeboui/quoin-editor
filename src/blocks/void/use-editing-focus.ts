@@ -34,24 +34,30 @@ export function useEditingFocus(
   // An overlay the editor opens is portalled out of the block's DOM but stays in its React tree, whose handlers React
   // runs from its root and portal containers, below the document. So the document hears a press or a focus after the
   // block's root marked it as its own. A press on the rest of the canvas leaves before the canvas sees it, since the
-  // canvas places the caret itself once the press has moved focus. Focus that goes nowhere, as when the window loses it
-  // or a focused control is disabled mid-upload, fires no focusin and has not left.
+  // canvas places the caret itself once the press has moved focus. A press that a page element keeps from propagating
+  // never comes back up to the document, so every other press is judged again once its dispatch is over. Focus that
+  // goes nowhere, as when the window loses it or a focused control is disabled mid-upload, fires no focusin and has
+  // not left.
   useEffect(() => {
     const element = root.current;
     if (!editing || element === null) return;
     (element.querySelector<HTMLElement>(FOCUSABLE) ?? element).focus();
     const doc = element.ownerDocument;
     const canvas = element.closest(CANVAS);
-    const leaveForCanvas = (event: Event) => {
-      const target = event.target as Node;
-      if (!element.contains(target) && canvas?.contains(target)) stop();
-    };
     const leaveUnlessInside = (event: Event) => {
       if (!inside.current.has(event)) stop();
     };
-    const unlistenCapture = listen(doc, { pointerdown: leaveForCanvas }, true);
+    let afterDispatch: ReturnType<typeof setTimeout> | undefined;
+    const onPress = (event: Event) => {
+      const target = event.target as Node;
+      if (!element.contains(target) && canvas?.contains(target)) return stop();
+      clearTimeout(afterDispatch);
+      afterDispatch = setTimeout(() => leaveUnlessInside(event));
+    };
+    const unlistenCapture = listen(doc, { pointerdown: onPress }, true);
     const unlisten = listen(doc, { pointerdown: leaveUnlessInside, focusin: leaveUnlessInside });
     return () => {
+      clearTimeout(afterDispatch);
       unlistenCapture();
       unlisten();
     };

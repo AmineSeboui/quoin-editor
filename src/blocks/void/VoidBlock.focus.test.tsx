@@ -136,6 +136,29 @@ describe('VoidBlock editing ends', () => {
     expect(document.activeElement).toBe(shell('c').querySelector('[data-quoin-host]'));
   });
 
+  it('when the pointer goes down on a page element that keeps the press from propagating', async () => {
+    openBookmark();
+    const { overlay } = pageOverlay('region');
+    overlay.addEventListener('pointerdown', (event) => event.stopPropagation());
+    fireEvent.pointerDown(overlay);
+    await act(() => new Promise((resolve) => setTimeout(resolve)));
+    expect(urlField()).toBeNull();
+    overlay.remove();
+  });
+
+  it('not when a press inside an overlay it opened is kept from propagating', async () => {
+    const { nodeSelect, press } = mountCanvas([paragraph('a', 'above'), { id: 'n', type: 'PICKER_NOTE', data: {} }], {
+      blockTypes: [...testBlockTypes, pickerNote],
+    });
+    nodeSelect('n');
+    press('Enter');
+    const picker = screen.getByTestId('picker');
+    picker.addEventListener('pointerdown', (event) => event.stopPropagation());
+    fireEvent.pointerDown(picker);
+    await act(() => new Promise((resolve) => setTimeout(resolve)));
+    expect(screen.queryByRole('textbox', { name: 'Note field' })).not.toBeNull();
+  });
+
   it('when the editor inserts a block after its own, whose editor opens with focus', () => {
     const { last, selection, shell } = openBookmark();
     fireEvent.click(screen.getByRole('button', { name: 'Add bookmark' }));

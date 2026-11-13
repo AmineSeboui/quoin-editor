@@ -10,6 +10,7 @@ import type { CanvasUiStore } from '../../canvas/ui-store';
 import { defineExtension, textSelection, type Pos } from '../../engine';
 import type { ExtensionUI, ToolbarItem } from '../../extensions/ui-types';
 import { Sparkles } from '../../icons';
+import { formatShortcut } from '../../shortcuts/format-shortcut';
 import type { QuoinBlock } from '../../types';
 
 const stores = vi.hoisted(() => [] as CanvasUiStore[]);
@@ -184,6 +185,26 @@ describe('the bubble toolbar', () => {
     expect(host).toHaveFocus();
     expect(canvas.selection()).toEqual(textSelection(pos('a', 0), pos('a', 5)));
     expect(toolbar()).toBeInTheDocument();
+  });
+
+  it('leaves for the text on Escape while a button shows its tooltip', async () => {
+    const canvas = openToolbar();
+    const host = canvas.shell('a').querySelector<HTMLElement>('[data-quoin-host]')!;
+    fireEvent.keyDown(host, { key: 'F10', altKey: true });
+    fireEvent.keyDown(within(toolbar()).getAllByRole('button')[0], { key: 'ArrowRight' });
+    expect(control('Bold')).toHaveFocus();
+    await screen.findByRole('tooltip');
+    fireEvent.keyDown(control('Bold'), { key: 'Escape' });
+    expect(host).toHaveFocus();
+  });
+
+  it("shows Bold's shortcut in its tooltip", async () => {
+    const canvas = openToolbar();
+    const host = canvas.shell('a').querySelector<HTMLElement>('[data-quoin-host]')!;
+    fireEvent.keyDown(host, { key: 'F10', altKey: true });
+    fireEvent.keyDown(within(toolbar()).getAllByRole('button')[0], { key: 'ArrowRight' });
+    const { isMac } = canvas.handle().controller;
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(formatShortcut('Mod-b', { isMac }));
   });
 
   it('gives focus back to the text, not the page, when the canvas turns read-only with focus in the toolbar', async () => {

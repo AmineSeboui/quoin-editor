@@ -1,5 +1,6 @@
 import type { QuoinLabels, ShortcutGroupName } from '../i18n/labels';
 import { formatShortcut } from './format-shortcut';
+import { MARK_SHORTCUTS } from './mark-shortcuts';
 
 export type ShortcutRow = { label: string; keys: string };
 
@@ -17,13 +18,13 @@ export function shortcutGroups(labels: QuoinLabels, isMac: boolean): ShortcutGro
       name: 'text',
       title: titles.text,
       items: [
-        row(labels.bold, 'Mod-b'),
-        row(labels.italic, 'Mod-i'),
-        row(labels.underline, 'Mod-u'),
-        row(labels.strike, 'Mod-Shift-s'),
-        row(labels.code, 'Mod-e'),
-        row(labels.highlight, 'Mod-Shift-h'),
-        row(labels.link, 'Mod-k'),
+        row(labels.bold, MARK_SHORTCUTS.bold),
+        row(labels.italic, MARK_SHORTCUTS.italic),
+        row(labels.underline, MARK_SHORTCUTS.underline),
+        row(labels.strike, MARK_SHORTCUTS.strike),
+        row(labels.code, MARK_SHORTCUTS.code),
+        row(labels.highlight, MARK_SHORTCUTS.highlight),
+        row(labels.link, MARK_SHORTCUTS.link),
         row(names.lineBreak, 'Shift-Enter'),
         row(labels.undo, 'Mod-z'),
         { label: labels.redo, keys: labels.keyAlternative(keys('Mod-Shift-z'), keys('Mod-y')) },

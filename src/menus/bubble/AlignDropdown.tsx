@@ -8,7 +8,7 @@ import { selectedBlockIds } from '../../engine/state/selection';
 import { MenuIcon } from '../../gutter/MenuIcon';
 import { useLabels } from '../../i18n/use-labels';
 import { AlignCenter, AlignJustify, AlignLeft, AlignRight, Check } from '../../icons';
-import { Button } from '../../ui/button';
+import { IconButton } from '../../ui/icon-button';
 import { DropdownMenuRadioGroup, DropdownMenuRadioItem } from '../../ui/dropdown-menu';
 import type { ViewController } from '../../view';
 import { ToolbarMenu } from '../../toolbar/ToolbarMenu';
@@ -35,9 +35,9 @@ export function AlignDropdown({ controller, state }: AlignDropdownProps) {
   if (value === null) return null;
   const Icon = value === '' ? AlignLeft : ICONS[value as Align];
   const trigger = (
-    <Button type="button" variant="ghost" size="icon-sm" aria-label={labels.align}>
+    <IconButton type="button" variant="ghost" size="icon-sm" label={labels.align}>
       <Icon />
-    </Button>
+    </IconButton>
   );
   return (
     <ToolbarMenu controller={controller} trigger={trigger}>

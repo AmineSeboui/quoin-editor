@@ -5,7 +5,7 @@ import { unsetLink } from '../../engine/commands/marks';
 import { isCollapsed } from '../../engine/state/selection';
 import type { QuoinLabels } from '../../i18n/labels';
 import { Check, Unlink } from '../../icons';
-import { Button } from '../../ui/button';
+import { IconButton } from '../../ui/icon-button';
 import { Input } from '../../ui/input';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
 import { preventDefault } from '../../ui/prevent-default';
@@ -119,14 +119,14 @@ export function LinkPopover({ controller, labels, onClose }: LinkPopoverProps) {
             value={address}
             onChange={onChange}
           />
-          <Button type="submit" variant="ghost" size="icon-sm" aria-label={labels.linkApply}>
+          <IconButton type="submit" variant="ghost" size="icon-sm" label={labels.linkApply}>
             <Check />
-          </Button>
+          </IconButton>
           {link !== null && <OpenLinkButton href={link.href} label={labels.linkOpen} />}
           {link !== null && (
-            <Button type="button" variant="ghost" size="icon-sm" aria-label={labels.linkRemove} onClick={remove}>
+            <IconButton type="button" variant="ghost" size="icon-sm" label={labels.linkRemove} onClick={remove}>
               <Unlink />
-            </Button>
+            </IconButton>
           )}
         </form>
         {invalid && (

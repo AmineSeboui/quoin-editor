@@ -7,7 +7,7 @@ import { blockTypeLabel } from '../../gutter/block-type-label';
 import { Pencil } from '../../icons';
 import { parsedData, type AnyBlockDefinition } from '../../registry';
 import type { BlockEditorProps, BlockPreviewProps } from '../../types';
-import { Button } from '../../ui/button';
+import { IconButton } from '../../ui/icon-button';
 import type { BlockRenderProps, ViewController } from '../../view';
 import { BlockErrorContext } from '../../view/react/block-error-context';
 import { useReadOnly } from '../../view/react/use-read-only';
@@ -156,17 +156,17 @@ export function VoidBlock({ block, controller, definition }: BlockRenderProps & 
         />
       )}
       {editable && !editorShown && (
-        <Button
+        <IconButton
           type="button"
           variant="ghost"
           size="icon-sm"
           tabIndex={-1}
-          aria-label={labels.editBlock(name)}
+          label={labels.editBlock(name)}
           onClick={() => start()}
           className="absolute right-0 top-0 bg-background/90 opacity-0 group-hover/void:opacity-100 in-data-[selected=true]:opacity-100 pointer-coarse:opacity-100 focus-visible:opacity-100"
         >
           <Pencil aria-hidden="true" />
-        </Button>
+        </IconButton>
       )}
     </div>
   );

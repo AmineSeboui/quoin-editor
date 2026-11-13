@@ -3,6 +3,7 @@ import { axeViolations } from '../../support/axe';
 import { firstLine, host } from '../../support/block';
 import { forward, inlineX } from '../../support/direction';
 import { blocks, openEditor } from '../../support/editor';
+import { settled } from '../../support/settle';
 
 const handle = (page: Page) => page.getByRole('button', { name: 'Drag to move, click for options' });
 const addBelow = (page: Page) => page.getByRole('button', { name: 'Add block below' });
@@ -149,6 +150,7 @@ test('a right-click on the handle opens the block menu at the pointer', async ({
   const pointer = { x: grip.x + grip.width / 2, y: grip.y + grip.height / 2 };
   await handle(page).click({ button: 'right' });
   await expect(menu(page)).toHaveAccessibleName('Heading 1 block menu');
+  await settled(menu(page));
   const opened = (await menu(page).boundingBox())!;
   const pageWidth = await page.evaluate(() => document.documentElement.clientWidth);
   const [start, at] = [inlineX(opened, pageWidth), inlineX({ x: pointer.x, width: 0 }, pageWidth)];
@@ -169,6 +171,7 @@ test('a right-click on the handle while its menu is open opens the menu again at
   const pointer = { x: grip.x + grip.width / 2, y: grip.y + grip.height / 2 };
   await page.mouse.click(pointer.x, pointer.y, { button: 'right' });
   await expect(menu(page)).toHaveAccessibleName('Heading 1 block menu');
+  await settled(menu(page));
   const opened = (await menu(page).boundingBox())!;
   expect(Math.abs(opened.y - pointer.y)).toBeLessThanOrEqual(MENU_GAP);
 });

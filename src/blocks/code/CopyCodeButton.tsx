@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { copyText } from '../../gutter/copy-text';
 import { useLabels } from '../../i18n/use-labels';
 import { Check, Copy } from '../../icons';
-import { Button } from '../../ui/button';
+import { IconButton } from '../../ui/icon-button';
 import type { ViewController } from '../../view';
 import { useReadOnly } from '../../view/react/use-read-only';
 
@@ -28,16 +28,16 @@ export function CopyCodeButton({ code, controller }: { code: string; controller:
   };
   const Icon = copied ? Check : Copy;
   return (
-    <Button
+    <IconButton
       type="button"
       variant="ghost"
       size="icon-xs"
       tabIndex={readOnly ? undefined : -1}
-      aria-label={labels.copyCode}
+      label={labels.copyCode}
       className="quoin-code-control"
       onClick={() => void copy()}
     >
       <Icon aria-hidden="true" />
-    </Button>
+    </IconButton>
   );
 }

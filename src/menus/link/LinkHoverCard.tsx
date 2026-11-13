@@ -6,7 +6,7 @@ import { textSelection, type EditorState } from '../../engine';
 import { shortcutHint } from '../../gutter/shortcut-hint';
 import type { QuoinLabels } from '../../i18n/labels';
 import { Pencil, Unlink } from '../../icons';
-import { Button } from '../../ui/button';
+import { IconButton } from '../../ui/icon-button';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
 import { preventDefault } from '../../ui/prevent-default';
 import type { ViewController } from '../../view';
@@ -53,6 +53,7 @@ function LinkCard({ controller, labels, store, cardRef, element, onUnlinked }: L
 
   const { block, region, from, to } = link.range;
   const address = truncateMiddle(link.href, URL_LENGTH);
+  const editHint = shortcutHint(OPEN_POPOVER, controller.isMac, labels);
   const edit = () => {
     if (element !== null) {
       const selection = textSelection({ block, region, offset: from }, { block, region, offset: to });
@@ -84,19 +85,20 @@ function LinkCard({ controller, labels, store, cardRef, element, onUnlinked }: L
           {address}
         </span>
         <OpenLinkButton href={link.href} label={labels.linkOpen} />
-        <Button
+        <IconButton
           type="button"
           variant="ghost"
           size="icon-sm"
-          aria-label={labels.linkEdit}
-          aria-keyshortcuts={shortcutHint(OPEN_POPOVER, controller.isMac, labels).aria}
+          label={labels.linkEdit}
+          shortcut={editHint.text}
+          aria-keyshortcuts={editHint.aria}
           onClick={edit}
         >
           <Pencil />
-        </Button>
-        <Button type="button" variant="ghost" size="icon-sm" aria-label={labels.linkRemove} onClick={unlink}>
+        </IconButton>
+        <IconButton type="button" variant="ghost" size="icon-sm" label={labels.linkRemove} onClick={unlink}>
           <Unlink />
-        </Button>
+        </IconButton>
       </PopoverContent>
     </Popover>
   );

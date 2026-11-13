@@ -11,7 +11,7 @@ import { endOf } from '../state/selection';
 import { Transaction } from '../state/transaction';
 import { insertBlocksStep, removeBlocksStep } from '../transform/block-steps';
 import { pasteAtCaret } from './paste-at-caret';
-import type { Slice } from './slice';
+import { PASTED_HTML, type PastedSlice } from './slice';
 import { freshBlocks } from './slice-blocks';
 
 function replaceSelected(
@@ -38,7 +38,7 @@ function appendAtEnd(tr: Transaction, schema: Schema, pieces: readonly EngineBlo
   tr.setSelection(endOf(tr.doc, schema, fresh[fresh.length - 1].id));
 }
 
-export function insertSlice(slice: Slice, options: { newId?: () => string } = {}): Command {
+export function insertSlice(slice: PastedSlice, options: { newId?: () => string } = {}): Command {
   const makeId = options.newId ?? newId;
   return (state, dispatch) => {
     const { doc, schema, selection } = state;
@@ -46,6 +46,7 @@ export function insertSlice(slice: Slice, options: { newId?: () => string } = {}
     const pieces = slice.blocks.flatMap((block) => codec.toEngineBlocks(block));
     if (pieces.length === 0) return false;
     const tr = new Transaction(state).setOrigin('paste');
+    if (slice.fromHTML) tr.setMeta(PASTED_HTML, true);
     if (selection === null) {
       appendAtEnd(tr, schema, pieces, makeId);
     } else if (selection.kind === 'text') {

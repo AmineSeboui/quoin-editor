@@ -1,11 +1,11 @@
 ---
 title: Uploads
-description: Quoin never makes a request: hand it an upload function and an asset resolver, and its image and file blocks call them.
+description: Quoin stores no file itself: hand it an upload function and an asset resolver, and its image and file blocks call them.
 ---
 
 # Uploads
 
-Quoin never performs a request. You hand it an `upload` function, and the image and file blocks call it with the chosen `File` and a `category` that names what the file is for (the core blocks use `'image'` and `'file'`). It resolves with an `UploadResult`.
+Quoin stores no file itself. You hand it an `upload` function, and the image and file blocks call it with the chosen `File` and a `category` that names what the file is for (the core blocks use `'image'` and `'file'`). It resolves with an `UploadResult`.
 
 ```tsx
 import { BlockCanvas, type QuoinBlock, type UploadFn } from 'quoin-editor';
@@ -51,6 +51,7 @@ export function Editor({ blocks, onChange }: { blocks: QuoinBlock[]; onChange: (
 - **Catch network failures and rethrow with your own wording.** A raw `fetch` rejection such as "Failed to fetch" would otherwise be shown to the user verbatim.
 - The upload control is disabled while an upload is in flight.
 - With no `upload` function, upload fields render disabled, with a note that uploads are not configured.
+- A picture in HTML pasted from another document, such as Google Docs or Notion, is read from its address and handed to `upload` as an image, so the document keeps its own copy. This is the one request the canvas makes itself, and only when it has an `upload` function. A picture whose server does not let the page read it stays linked to its address, and an upload that fails leaves it linked and reaches `onError`.
 - `onError` receives errors Quoin cannot show inline, such as a dropped file that failed to upload. It defaults to `console.error`.
 
 The [image and file blocks](https://amineseboui.github.io/quoin-editor/docs/blocks/) say what they write once an upload resolves, and [Custom blocks](https://amineseboui.github.io/quoin-editor/docs/custom-blocks/#reaching-uploads-from-a-custom-block) shows the same `upload` reached from a block of your own.

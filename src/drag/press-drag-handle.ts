@@ -1,6 +1,6 @@
+import { handleTargets } from '../canvas/block-targets';
 import type { CanvasUiStore } from '../canvas/ui-store';
 import { moveBlocksTo } from '../engine/commands/move-blocks-to';
-import { menuTargets } from '../gutter/block-menu-items';
 import type { ViewController } from '../view';
 import { listen } from '../view/dom/listen';
 import { createAutoScroll } from '../view/selection/auto-scroll';
@@ -30,7 +30,7 @@ const sameTarget = (a: DropTarget | null, b: DropTarget) => a?.index === b.index
 
 function draggedBlocks(controller: ViewController, blockId: string): string[] {
   const { state } = controller.editor;
-  return state.doc.index.has(blockId) ? menuTargets(state, blockId) : [];
+  return state.doc.index.has(blockId) ? handleTargets(state, blockId) : [];
 }
 
 function followPress(press: HandlePress, root: HTMLElement, view: Window): () => void {

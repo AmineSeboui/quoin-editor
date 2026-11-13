@@ -71,6 +71,18 @@ test('a click on a void block selects it as a node and outlines it', async ({ pa
   await expect(page.getByRole('status')).toHaveText('1 block selected');
 });
 
+test.describe('on a touch screen', () => {
+  test.use({ hasTouch: true });
+
+  test('a tap on a void block selects it as a node', async ({ page }) => {
+    await openHeadless(page);
+    const divider = page.locator('[data-quoin-block][data-type="DIVIDER"]');
+    await divider.tap();
+    await expect.poll(() => modelSelection(page)).toEqual({ kind: 'node', block: 'd' });
+    await expect(divider).toHaveAttribute('data-selected', 'true');
+  });
+});
+
 test('the task checkbox toggles the block and reports the change', async ({ page }) => {
   await openHeadless(page);
   const box = page.getByRole('checkbox', { name: 'Task' });

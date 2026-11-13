@@ -34,4 +34,7 @@ export const ptAiLabels: AiLabels = {
   written: (text) => `Resposta da IA pronta: ${text}`,
   halted: (text) => `Parada. Resposta da IA até agora: ${text}`,
   targetGone: 'O texto a que isto se referia foi removido, então Aceitar insere a resposta onde ele estava',
+  send: 'Enviar',
+  editGroup: 'Editar',
+  writeGroup: 'Escrever',
 };

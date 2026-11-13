@@ -1,4 +1,4 @@
-import { englishAiLabels, resolveAiLabels } from './ai-labels';
+import { englishAiLabels, resolveAiLabels, type AiLabels } from './ai-labels';
 
 describe('the AI labels', () => {
   it('are English by default', () => {
@@ -36,6 +36,16 @@ describe('the AI labels', () => {
     expect(labels.written('Hello there')).toBe('AI response ready: Hello there');
     expect(labels.halted('Hello')).toBe('Stopped. AI response so far: Hello');
     expect(labels.targetGone).toBe('The text this was for was removed, so Accept inserts it where that text was');
+    expect(labels.send).toBe('Send');
+    expect(labels.editGroup).toBe('Edit');
+    expect(labels.writeGroup).toBe('Write');
+  });
+
+  it('still take a complete translation written before send, editGroup and writeGroup, and read those in English', () => {
+    const { send: _send, editGroup: _editGroup, writeGroup: _writeGroup, ...before } = englishAiLabels;
+    const translation: AiLabels = { ...before, accept: 'Accepter' };
+    const labels = resolveAiLabels(translation);
+    expect([labels.send, labels.editGroup, labels.writeGroup]).toEqual(['Send', 'Edit', 'Write']);
   });
 
   it('take the host overrides, and keep English for a key left out or undefined', () => {

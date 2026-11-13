@@ -111,3 +111,32 @@ export const X = (props: IconProps) => (
     <path d="m6 6 12 12" />
   </Icon>
 );
+
+export const CircleAlert = (props: IconProps) => (
+  <Icon name="circle-alert" {...props}>
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" x2="12" y1="8" y2="12" />
+    <line x1="12" x2="12.01" y1="16" y2="16" />
+  </Icon>
+);
+
+export const CircleHelp = (props: IconProps) => (
+  <Icon name="circle-help" {...props}>
+    <circle cx="12" cy="12" r="10" />
+    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+    <path d="M12 17h.01" />
+  </Icon>
+);
+
+export const RotateCcw = (props: IconProps) => (
+  <Icon name="rotate-ccw" {...props}>
+    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+    <path d="M3 3v5h5" />
+  </Icon>
+);
+
+export const Square = (props: IconProps) => (
+  <Icon name="square" {...props}>
+    <rect width="18" height="18" x="3" y="3" rx="2" />
+  </Icon>
+);

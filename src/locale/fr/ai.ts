@@ -34,4 +34,7 @@ export const frAiLabels: AiLabels = {
   written: (text) => `Réponse de l’IA prête : ${text}`,
   halted: (text) => `Arrêté. Réponse de l’IA jusqu’ici : ${text}`,
   targetGone: 'Le texte visé a été supprimé ; Accepter insérera la réponse là où il se trouvait',
+  send: 'Envoyer',
+  editGroup: 'Modifier',
+  writeGroup: 'Écrire',
 };

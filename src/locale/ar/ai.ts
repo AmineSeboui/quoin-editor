@@ -34,4 +34,7 @@ export const arAiLabels: AiLabels = {
   written: (text) => `رد الذكاء الاصطناعي جاهز: ${text}`,
   halted: (text) => `توقّف. الرد حتى الآن: ${text}`,
   targetGone: 'حُذف النص المقصود، لذا سيُدرج القبول الرد في موضعه السابق',
+  send: 'إرسال',
+  editGroup: 'تحرير',
+  writeGroup: 'كتابة',
 };

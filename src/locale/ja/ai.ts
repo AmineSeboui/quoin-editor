@@ -34,4 +34,7 @@ export const jaAiLabels: AiLabels = {
   written: (text) => `AI の回答ができました: ${text}`,
   halted: (text) => `停止しました。ここまでの回答: ${text}`,
   targetGone: '対象の文章が削除されたため、反映するとその場所に回答が挿入されます',
+  send: '送信',
+  editGroup: '編集',
+  writeGroup: '書く',
 };

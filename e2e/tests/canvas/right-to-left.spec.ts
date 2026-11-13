@@ -132,6 +132,70 @@ test('on a right-to-left page a menu row ends on the left, with its shortcut and
   expect(await trigger.locator('svg').last().evaluate((svg) => getComputedStyle(svg).rotate)).toBe('180deg');
 });
 
+const direction = (locator: Locator) => locator.evaluate((element) => getComputedStyle(element).direction);
+const editingTools = (page: Page) => page.getByRole('toolbar', { name: 'Editing tools' });
+
+// A double click on the first word, which on a turned round line is at its right end.
+async function openFormatting(page: Page) {
+  const line = await box(host(page, 'p'));
+  await host(page, 'p').dblclick({ position: { x: line.width - 16, y: 12 } });
+  const toolbar = page.getByRole('toolbar', { name: 'Text formatting' });
+  await expect(toolbar).toBeVisible();
+  return toolbar;
+}
+
+const runsFromTheRight = async (row: Locator) =>
+  (await box(row.getByRole('button').nth(1))).x < (await box(row.getByRole('button').first())).x;
+
+test('on a right-to-left page the formatting toolbar runs from the right, and the left arrow walks on along it', async ({ page }) => {
+  await openRightToLeft(page, 'rich');
+  const toolbar = await openFormatting(page);
+  expect(await runsFromTheRight(toolbar)).toBe(true);
+  await page.keyboard.press('Alt+F10');
+  await expect(toolbar.getByRole('button').first()).toBeFocused();
+  await page.keyboard.press('ArrowLeft');
+  await expect(toolbar.getByRole('button').nth(1)).toBeFocused();
+});
+
+// The harness turns round the element that holds the canvas and leaves the page itself, and so the body that the
+// menus and toolbars are drawn into, running left to right.
+const openTurnedRoundCanvas = async (page: Page) => {
+  await page.goto('/?doc=rich&canvas-dir=rtl');
+  await page.getByRole('group', { name: 'Document' }).waitFor();
+  expect(await direction(page.locator('body'))).toBe('ltr');
+};
+
+test('on a page turned round around the canvas alone, what it draws over the page turns round with it', async ({ page }) => {
+  await openTurnedRoundCanvas(page);
+  expect(await direction(await openBlockMenu(page))).toBe('rtl');
+  await page.keyboard.press('Escape');
+  expect(await direction(await openSlashMenu(page))).toBe('rtl');
+  await page.keyboard.press('Escape');
+  const toolbar = await openFormatting(page);
+  expect(await direction(toolbar)).toBe('rtl');
+  expect(await runsFromTheRight(toolbar)).toBe(true);
+});
+
+test.describe('on a phone', () => {
+  test.skip(({ browserName }) => browserName === 'firefox', 'Firefox cannot emulate a mobile device');
+  test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
+
+  test('on a right-to-left page the editing tools run from the right', async ({ page }) => {
+    await openRightToLeft(page, 'rich');
+    await host(page, 'p').tap();
+    await expect(editingTools(page)).toBeVisible();
+    expect(await runsFromTheRight(editingTools(page))).toBe(true);
+  });
+
+  test('on a page turned round around the canvas alone, the editing tools run from the right', async ({ page }) => {
+    await openTurnedRoundCanvas(page);
+    await host(page, 'p').tap();
+    await expect(editingTools(page)).toBeVisible();
+    expect(await direction(editingTools(page))).toBe('rtl');
+    expect(await runsFromTheRight(editingTools(page))).toBe(true);
+  });
+});
+
 test('on a right-to-left page Tab indents a block, and the room is taken from the right', async ({ page }) => {
   await openRightToLeft(page, 'sample');
   await host(page, 'b').click();

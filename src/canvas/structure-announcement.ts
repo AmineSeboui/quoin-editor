@@ -3,6 +3,7 @@ import { isParagraph, regionLength } from '../engine/commands/block-helpers';
 import { LINE_JOIN } from '../engine/commands/line-join';
 import { LINE_SPLIT } from '../engine/commands/line-split';
 import { primaryRegion } from '../engine/state/selection';
+import { englishLabels } from '../i18n/english-labels';
 import type { QuoinLabels } from '../i18n/labels';
 import type { ViewController } from '../view';
 import { drawnBlockCount } from '../view/navigation/visible-blocks';
@@ -76,7 +77,9 @@ function insertedMessage(tr: Transaction, labels: QuoinLabels): string | null {
   const [first, ...more] = insertedBlocks(tr);
   const position = first === undefined ? null : drawnPosition(tr.doc, first);
   if (position === null) return null;
-  return more.length === 0 ? labels.blockInserted(...position) : labels.blocksInserted(more.length + 1, ...position);
+  if (more.length === 0) return labels.blockInserted(...position);
+  const blocksInserted = labels.blocksInserted ?? englishLabels.blocksInserted;
+  return blocksInserted(more.length + 1, ...position);
 }
 
 /**

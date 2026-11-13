@@ -89,7 +89,7 @@ export type QuoinLabels = {
   copy: string;
   copyLink: string;
   copied: string;
-  copyFailed: string;
+  copyFailed?: string;
   moveUp: string;
   moveDown: string;
   delete: string;
@@ -97,7 +97,7 @@ export type QuoinLabels = {
   addBelow: string;
   dragHandle: string;
   /** The drag handle's name on a touch screen, where a tap opens the block menu and a touch does not drag. */
-  blockOptions: string;
+  blockOptions?: string;
   slashMenu: string;
   noResults: string;
   /** What the open slash menu says once its list settles, given how many commands match. */
@@ -129,7 +129,7 @@ export type QuoinLabels = {
   blockMoved: (position: number, total: number) => string;
   blockInserted: (position: number, total: number) => string;
   /** Several blocks inserted at once, at the place of the first of them. */
-  blocksInserted: (n: number, position: number, total: number) => string;
+  blocksInserted?: (n: number, position: number, total: number) => string;
   blockDeleted: (n: number) => string;
   blocksSelected: (n: number) => string;
   /** How to bring deleted blocks back, given the platform's undo shortcut. */

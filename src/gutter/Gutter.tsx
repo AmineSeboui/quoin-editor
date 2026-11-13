@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useCanvasUi, type CanvasUiStore } from '../canvas/ui-store';
 import { DragOverlay, type DragOverlayHandle } from '../drag/DragOverlay';
 import { useBlockDrag } from '../drag/use-block-drag';
+import { englishLabels } from '../i18n/english-labels';
 import { useLabels } from '../i18n/use-labels';
 import { GripVertical, Plus } from '../icons';
 import { keepFocus } from '../menus/floating/keep-focus';
@@ -75,7 +76,7 @@ export function Gutter({ controller, store, actions }: GutterProps) {
             variant="ghost"
             size={null}
             tabIndex={-1}
-            aria-label={coarse ? labels.blockOptions : labels.dragHandle}
+            aria-label={coarse ? (labels.blockOptions ?? englishLabels.blockOptions) : labels.dragHandle}
             className={cn('text-muted-foreground h-6 w-4 cursor-grab rounded-md', SQUARE_TAP_TARGET_FLOOR)}
             onPointerDown={(event) => {
               // The press closes an open menu as a press outside it, before its click arrives, so that click must not

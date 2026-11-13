@@ -12,6 +12,7 @@ import { coreBlockMenuActions, menuActions } from '../gutter/block-menu-items';
 import { blockMenuKeymap } from '../gutter/block-menu-keymap';
 import { ExtensionBlockNames } from '../gutter/extension-block-names';
 import { Gutter } from '../gutter/Gutter';
+import { englishLabels } from '../i18n/english-labels';
 import { bubbleExtension, BubbleItemsProvider } from '../menus/bubble/bubble-extension';
 import { linkExtension } from '../menus/link/link-extension';
 import { slashExtension, SlashItemsProvider } from '../menus/slash/slash-extension';
@@ -112,7 +113,7 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
   useStructureAnnouncements(controller, labels);
   const actions = useMemo(() => {
     const onCopied = () => controller.announce(labels.copied);
-    const onCopyFailed = () => controller.announce(labels.copyFailed);
+    const onCopyFailed = () => controller.announce(labels.copyFailed ?? englishLabels.copyFailed);
     const core = coreBlockMenuActions(labels, { blockLink, onCopied, onCopyFailed, resolveAssetUrl });
     return menuActions(core, ui.blockMenuItems);
   }, [controller, labels, blockLink, resolveAssetUrl, ui.blockMenuItems]);

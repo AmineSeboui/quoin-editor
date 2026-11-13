@@ -4,11 +4,14 @@ import type { QuoinLabels } from './labels';
 
 describe('the QuoinLabels type', () => {
   it('still takes a complete translation written before the optional labels were added', () => {
-    const { blockError, decorativeImage, noAltBadge, addAltText, textColorSample, ...translation } = englishLabels;
+    const { blockError, decorativeImage, noAltBadge, addAltText, textColorSample, ...older } = englishLabels;
+    const { copyFailed, blockOptions, blocksInserted, ...translation } = older;
     const labels: QuoinLabels = translation;
     expect([blockError, decorativeImage, noAltBadge]).toEqual(['Block could not be drawn', 'Decorative image', 'No alt text']);
     expect(addAltText).toBe('No alt text, add alt text');
     expect(textColorSample).toBe('A');
+    expect([copyFailed, blockOptions]).toEqual([englishLabels.copyFailed, 'Block options']);
+    expect(blocksInserted).toBeTypeOf('function');
     expect(labels).not.toHaveProperty('noAltBadge');
   });
 

@@ -57,6 +57,8 @@ export async function insertUploads(
   { upload, resolveAssetUrl, onError, unavailable, failed }: InsertUploadsOptions,
 ): Promise<void> {
   if (!upload) return onError(new Error(unavailable));
+  // A click just before the drop moved the caret where its selectionchange has not told the editor yet.
+  controller.readSelectionFromDom();
   const writer = writerOf(controller);
   const outcomes = await Promise.allSettled(files.map(async (file) => upload(file, isImageFile(file) ? 'image' : 'file')));
   const blocks: NewBlock[] = [];

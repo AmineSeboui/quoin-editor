@@ -88,6 +88,50 @@ test('on a right-to-left page the slash menu opens from the inline start too', a
   expect(await alignedEdge(text, menu)).toBe('right');
 });
 
+// The caret at the end of a line, put there through the editor: End scrolls the page in Chrome on macOS.
+const caretAtEnd = (page: Page, id: string, offset: number) =>
+  page.evaluate(([block, at]) => window.__quoin.controller!.focus({ block, region: 'text', offset: at }), [id, offset] as const);
+
+async function openSlashMenu(page: Page) {
+  await host(page, 'tc').click();
+  await caretAtEnd(page, 'tc', 'Hidden detail'.length);
+  await page.keyboard.type(' /');
+  const menu = page.getByRole('listbox', { name: 'Commands' });
+  await expect(menu).toBeVisible();
+  return menu;
+}
+
+// The highlighted row of a menu is marked with a bar, an inset shadow whose offset says which side it is on.
+const barSide = (row: Locator) =>
+  row.evaluate((element) => {
+    const offset = parseFloat(/(-?[\d.]+)px 0px 0px 0px inset/.exec(getComputedStyle(element).boxShadow)?.[1] ?? '0');
+    return offset < 0 ? 'right' : offset > 0 ? 'left' : 'none';
+  });
+
+test('on a right-to-left page the highlighted row of a menu is marked on the right, where its text starts', async ({ page }) => {
+  await openRightToLeft(page, 'rich');
+  const row = (await openBlockMenu(page)).getByRole('menuitem').first();
+  await row.hover();
+  await expect(row).toHaveAttribute('data-highlighted', '');
+  expect(await barSide(row)).toBe('right');
+  await page.keyboard.press('Escape');
+  const option = (await openSlashMenu(page)).getByRole('option').first();
+  await expect(option).toHaveAttribute('aria-selected', 'true');
+  expect(await barSide(option)).toBe('right');
+});
+
+test('on a right-to-left page a menu row ends on the left, with its shortcut and a chevron pointing that way', async ({ page }) => {
+  await openRightToLeft(page, 'rich');
+  const menu = await openBlockMenu(page);
+  const row = await box(menu.getByRole('menuitem', { name: 'Duplicate' }));
+  const shortcut = await box(menu.getByRole('menuitem', { name: 'Duplicate' }).locator('[data-slot$="shortcut"]'));
+  expect(shortcut.x - row.x).toBeLessThanOrEqual(9);
+  const trigger = menu.getByRole('menuitem', { name: 'Turn into' });
+  const chevron = await box(trigger.locator('svg').last());
+  expect(chevron.x - (await box(trigger)).x).toBeLessThanOrEqual(9);
+  expect(await trigger.locator('svg').last().evaluate((svg) => getComputedStyle(svg).rotate)).toBe('180deg');
+});
+
 test('on a right-to-left page Tab indents a block, and the room is taken from the right', async ({ page }) => {
   await openRightToLeft(page, 'sample');
   await host(page, 'b').click();

@@ -65,7 +65,7 @@ const DialogContent = /* @__PURE__ */ React.forwardRef<
         {children}
         <DialogPrimitive.Close
           className={cn(
-            "absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100",
+            "absolute top-4 end-4 rounded-xs opacity-70 transition-opacity hover:opacity-100",
             FOCUS_RING,
             ICON_TAP_TARGET_FLOOR,
           )}

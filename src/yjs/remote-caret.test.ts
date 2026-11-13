@@ -1,6 +1,6 @@
 import * as Y from 'yjs';
 import { describe, expect, it } from 'vitest';
-import { caret, md } from '../engine/test-support/editor-fixtures';
+import { caret, md, range } from '../engine/test-support/editor-fixtures';
 import { linkedDocs, peer } from './test-support/peers';
 
 function setup() {
@@ -36,6 +36,13 @@ describe('the local caret after a remote change read again as blocks or as the w
   it('moves on by the characters typed before it in its block along with a change of the id of another block', () => {
     const { text, remote, marker, start } = setup();
     expect(remote(() => (text.insert(start('b'), 'xx'), marker('p').set('id', 'q')))).toEqual(caret('b', 5));
+  });
+
+  it('keeps what is typed at either end of a range outside it along with a change of the type of its block', () => {
+    const { two, text, remote, marker, start } = setup();
+    two.editor.commands.setSelection(range('b', 1, 4));
+    const typed = () => (text.insert(start('b') + 4, 'yy'), text.insert(start('b') + 1, 'xx'));
+    expect(remote(() => (typed(), marker('b').set('type', 'MARKDOWN')))).toEqual(range('b', 3, 6));
   });
 
   it('stays on its character when the block above is typed in and has its type changed', () => {

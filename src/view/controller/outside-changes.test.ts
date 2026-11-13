@@ -55,6 +55,16 @@ describe('outside changes', () => {
     expect(outside.takeMoved()).toBeNull();
   });
 
+  it('keeps the selection the browser moved before what a collaborator puts in at it', () => {
+    const at = (origin: 'remote' | 'command') =>
+      new Transaction(state).setOrigin(origin).step(replaceInlineStep('b0', 'text', 1, 1, [text('XX')]));
+    const outside = createOutsideChanges(() => true, () => caret(1));
+    outside.committed(at('remote'));
+    expect(outside.takeMoved()).toEqual(caret(1));
+    outside.committed(at('command'));
+    expect(outside.takeMoved()).toEqual(caret(3));
+  });
+
   it('drops the selection the browser moved once a change sets the selection, and reads none without focus', () => {
     let focused = true;
     const outside = createOutsideChanges(() => focused, () => caret(1));

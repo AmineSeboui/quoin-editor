@@ -1,7 +1,7 @@
 import type { EngineDoc, Mark, Pos, Selection } from '../model/types';
 import { StepError, type Assoc, type PosMap, type Step } from '../transform/step';
 import type { EditorState } from './editor-state';
-import { mapSelection } from './selection';
+import { carrySelection } from './carry-selection';
 
 export type TransactionOrigin = 'input' | 'command' | 'paste' | 'drop' | 'remote' | 'reconcile' | 'ai' | 'history';
 
@@ -83,7 +83,7 @@ export class Transaction {
   step(step: Step): this {
     const { doc, map } = step.apply(this.#currentDoc);
     if (this.#currentSelection !== null) {
-      this.#currentSelection = mapSelection(this.#currentSelection, map, this.#currentDoc);
+      this.#currentSelection = carrySelection(this.#currentSelection, map, this.#currentDoc, doc, this.origin);
     }
     this.#docList.push(this.#currentDoc);
     this.#stepList.push(step);

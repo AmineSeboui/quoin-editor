@@ -13,3 +13,10 @@ export {
   type CommentUser,
   type ThreadComment,
 } from './extensions/comments/comment-threads';
+export {
+  yjsCommentThreads,
+  type YjsCommentThreads,
+  type YjsCommentThreadsOptions,
+  type YjsCommentsDoc,
+} from './extensions/comments/yjs-comment-threads';
+export type { YjsCommentsMap } from './extensions/comments/shared-threads';

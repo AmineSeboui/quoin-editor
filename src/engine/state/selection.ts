@@ -61,7 +61,7 @@ export function selectedBlockIds(doc: EngineDoc, selection: Selection | null): s
   return doc.blocks.slice(Math.min(first, second), Math.max(first, second) + 1).map((block) => block.id);
 }
 
-function isBackward(doc: EngineDoc, selection: TextSelection | BlockRangeSelection): boolean {
+export function isBackward(doc: EngineDoc, selection: TextSelection | BlockRangeSelection): boolean {
   if (selection.kind === 'text') {
     const { anchor, head } = selection;
     return doc.index.has(anchor.block) && doc.index.has(head.block) && comparePos(doc, anchor, head) > 0;

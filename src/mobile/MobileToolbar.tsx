@@ -25,10 +25,20 @@ const TOOLBAR = [
 ].join(' ');
 
 // A fixed element is placed against the layout viewport, which a virtual keyboard leaves whole, so the bar follows the
-// bottom edge of the visual viewport instead.
+// bottom edge of the visual viewport instead. Under a pinch zoom the bar is laid out at the width the zoom would give
+// it and scaled back by as much, so it spans the visible part of the page at its own size.
 function placement(viewport: VisualViewportBox | null): CSSProperties {
   if (viewport === null) return { bottom: 0 };
-  return { top: viewport.offsetTop + viewport.height, width: viewport.width, transform: 'translateY(-100%)' };
+  const { offsetLeft, offsetTop, height, width, scale } = viewport;
+  const shift = 'translateY(-100%)';
+  return {
+    top: offsetTop + height,
+    left: offsetLeft,
+    right: 'auto',
+    width: width * scale,
+    transform: scale === 1 ? shift : `scale(${1 / scale}) ${shift}`,
+    transformOrigin: '0 0',
+  };
 }
 
 type MobileToolbarProps = { controller: ViewController };

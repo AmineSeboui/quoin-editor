@@ -10,8 +10,10 @@ import { defineBlock } from '../registry';
 
 class FakeViewport extends EventTarget {
   offsetTop = 0;
+  offsetLeft = 0;
   height = 800;
   width = 400;
+  scale = 1;
 }
 
 function stubPointer(coarse: boolean): void {
@@ -169,6 +171,27 @@ describe('the mobile toolbar', () => {
       viewport.dispatchEvent(new Event('resize'));
     });
     expect(toolbar().style).toMatchObject({ top: '580px', width: '400px' });
+  });
+
+  it('follows a pinch zoom, keeping its own size across the part of the page left visible', () => {
+    const viewport = new FakeViewport();
+    vi.stubGlobal('visualViewport', viewport);
+    editAt(pos('a', 0));
+    act(() => {
+      Object.assign(viewport, { offsetLeft: 150, offsetTop: 90, width: 200, height: 400, scale: 2 });
+      viewport.dispatchEvent(new Event('resize'));
+    });
+    expect(toolbar().style).toMatchObject({
+      left: '150px',
+      top: '490px',
+      width: '400px',
+      transform: 'scale(0.5) translateY(-100%)',
+    });
+    act(() => {
+      viewport.offsetLeft = 40;
+      viewport.dispatchEvent(new Event('scroll'));
+    });
+    expect(toolbar().style.left).toBe('40px');
   });
 
   // Where there is no visual viewport to follow, the layout viewport is the whole page and its bottom edge is the

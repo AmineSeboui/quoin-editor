@@ -134,6 +134,19 @@ test("undo in the code goes to the editor's history, not to the browser's", asyn
   await expect.poll(() => texts(page)).toEqual(['Above the code!', 'let a = 1;\nlet b = 2;', 'Below the code']);
 });
 
+test('undo and redo inside a line leave the caret after the text they change, not at the end', async ({ page }) => {
+  await openEditor(page, 'code');
+  await caretAt(page, 3);
+  await page.keyboard.type('XY');
+  const caret = () => area(page).evaluate((field: HTMLTextAreaElement) => [field.selectionStart, field.selectionEnd]);
+  await page.keyboard.press('ControlOrMeta+z');
+  await expect.poll(() => codeOf(page)).toBe('let a = 1;\nlet b = 2;');
+  expect(await caret()).toEqual([3, 3]);
+  await page.keyboard.press('ControlOrMeta+Shift+z');
+  await expect.poll(() => codeOf(page)).toBe('letXY a = 1;\nlet b = 2;');
+  expect(await caret()).toEqual([5, 5]);
+});
+
 test('a drag inside the code selects its text and never the blocks around it', async ({ page }) => {
   await openEditor(page, 'code');
   const box = (await area(page).boundingBox())!;

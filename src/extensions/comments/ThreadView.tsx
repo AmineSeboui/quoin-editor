@@ -46,7 +46,7 @@ export function ThreadView({ env, id, thread, onEnded }: ThreadViewProps) {
   return (
     <div ref={root} className="flex flex-col gap-3">
       {comments.length > 0 && (
-        <ol className="flex flex-col gap-3">
+        <ol className="flex list-none flex-col gap-3">
           {comments.map((comment) => (
             <CommentItem key={comment.id} comment={comment} labels={labels} />
           ))}

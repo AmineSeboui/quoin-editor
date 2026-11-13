@@ -145,7 +145,7 @@ Dark mode keys on a `.dark` class on an ancestor (for example `<html class="dark
 
 ## Resets
 
-Quoin does not reset your page. The stylesheet contains no `html`, `body`, heading, list or other element rules, and no universal `*` reset. Its own reset (box sizing, zero margins, unstyled lists and form controls) applies only inside a `.quoin` element: the canvas root, and the menus, popovers and dialogs that Quoin renders into `document.body`, which carry the class themselves. Your headings, paragraphs, lists and buttons keep whatever styles you gave them, or the browser's.
+Quoin does not reset your page. The stylesheet contains no `html`, `body`, heading, list or other element rules, and no universal `*` reset. Its own reset (box sizing, zero margins and padding, and unstyled form controls) applies only inside a `.quoin` element: the canvas root, and the menus, popovers and dialogs that Quoin renders into `document.body`, which carry the class themselves. It leaves list markers alone, so a list a custom block draws inside the canvas keeps its bullets or numbers; Quoin's own lists drop theirs with a class of their own. Give such a list a `padding-inline-start` of its own, since the reset takes the browser's away. Your headings, paragraphs, lists and buttons keep whatever styles you gave them, or the browser's.
 
 All of Quoin's own rules are in cascade layers, so an **unlayered** global reset of yours beats them. A host that ships one (Bootstrap's reboot, or a hand-rolled `* { margin: 0; padding: 0; border: 0 }`) will see Quoin's padding and borders vanish. Tailwind 4's preflight is itself layered and is fine. Either declare your reset in a layer that comes before Quoin's, or scope it away from `.quoin`:
 

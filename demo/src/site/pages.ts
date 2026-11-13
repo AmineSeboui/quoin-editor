@@ -20,6 +20,7 @@ export type Page = PageKind & { path: string; title: string; description: string
 export const GUIDE_ORDER = [
   'getting-started',
   'contract',
+  'adoption',
   'theming',
   'custom-blocks',
   'blocks',

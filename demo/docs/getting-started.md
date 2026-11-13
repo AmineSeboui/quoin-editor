@@ -36,6 +36,8 @@ A document is an array of `QuoinBlock`, each `{ id, type, data }`. Text blocks, 
 
 The main entry point is marked `'use client'`, so render `BlockCanvas` from a client component. To draw a document on a server, use [`quoin-editor/view`](https://amineseboui.github.io/quoin-editor/docs/server-rendering/).
 
+Moving documents you already have? [Adopting existing documents](https://quoincloud.com/docs/editor/adoption) says what a directory of markdown files or a column of HTML loses on the way in, and how to check a whole document set before you move it.
+
 If your application has Tailwind of its own, import the stylesheet from your CSS into a layer you have named instead of from JavaScript, so you decide which of the two wins. See [Cascade layers and import order](https://amineseboui.github.io/quoin-editor/docs/theming/#cascade-layers-and-import-order).
 
 ## What a page downloads

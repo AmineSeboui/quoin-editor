@@ -6,11 +6,11 @@ import type { KeyInterceptor } from '../input/keydown';
 import { createCrossMode } from '../selection/cross-mode';
 import { createNodeReveal } from '../selection/node-reveal';
 import { inPlace } from '../selection/in-place';
-import { focusSink } from '../selection/selection-sink';
 import { createAnnouncer } from './announcer';
 import { dispatchSelection } from './dispatch-selection';
 import { createDrawnElements } from './drawn-elements';
 import { createEngagement, type Engagement } from './engagement';
+import { createFocusFollow } from './focus-follow';
 import { hasFocus, ownsFocus } from './focus-ownership';
 import { focusTarget, type FocusTarget } from './focus-target';
 import { createHostRegistry, hostKey, type HostEntry, type HostRegistry } from './host-registry';
@@ -57,6 +57,7 @@ export class ViewController {
   readonly #hosts: HostRenderer;
   readonly #drawn = createDrawnElements(this.registry, () => this.editor.state);
   readonly #cross = createCrossMode(this);
+  readonly #focus = createFocusFollow(this, () => this.#drawn.focusElement());
   readonly #outside = createOutsideChanges(
     () => hasFocus(this, this.#ownerDocument()),
     (model) => movedSelection(this, this.#ownerDocument(), model),
@@ -177,7 +178,7 @@ export class ViewController {
     if (this.editor.state.doc !== before.doc) this.goalX = null;
     this.refreshHosts();
     this.#cross.sync();
-    if (focused && doc !== null && ownsFocus(this, doc)) this.#keepFocus();
+    if (focused && doc !== null && ownsFocus(this, doc)) this.#focus.keep();
     this.syncSelectionToDom(true);
     return handled;
   }
@@ -194,7 +195,7 @@ export class ViewController {
     if (moved) this.#selectFromDom(moved);
     this.#cross.sync();
     const follow = () => {
-      this.#keepFocus(quiet);
+      this.#focus.keep(quiet);
       this.syncSelectionToDom();
     };
     if (!quiet) return follow();
@@ -216,15 +217,10 @@ export class ViewController {
     this.announcer.announce(message);
   }
 
-  // A redraw of the decorations alone, such as one that follows a selection the browser made, replaces the nodes that
-  // selection sits in, and nothing else writes it back. It is written only while the editor holds focus: written while
-  // focus is on the page, it would pull focus into the line.
   renderHost(block: string, region: string): void {
     const element = this.registry.get(block, region);
     const host = element && { block, region, element };
-    if (!host || this.#isComposing(host) || !this.#hosts.render(host)) return;
-    const inSelection = element.contains(this.domSelection()?.focusNode ?? null);
-    if (inSelection && hasFocus(this, element.ownerDocument)) this.syncSelectionToDom();
+    if (host && !this.#isComposing(host) && this.#hosts.render(host)) this.#focus.rewrite(element);
   }
 
   domSelection(): globalThis.Selection | null {
@@ -246,7 +242,7 @@ export class ViewController {
     this.#flush(() => this.#selectFromDom(selection));
     this.#cross.sync();
     if (!wasCross && !this.#cross.active) return;
-    this.#keepFocus();
+    this.#focus.keep();
     this.syncSelectionToDom();
   }
 
@@ -254,7 +250,7 @@ export class ViewController {
     const { editor } = this;
     const selection = focusTarget(editor.state, target);
     if (selection !== null && !sameSelection(selection, editor.state.selection)) dispatchSelection(this, selection);
-    this.#takeFocus();
+    this.#focus.take();
     this.syncSelectionToDom();
   }
 
@@ -281,18 +277,5 @@ export class ViewController {
 
   #ownerDocument(): Document | null {
     return (this.#binding?.root ?? this.registry.all().next().value?.element)?.ownerDocument ?? null;
-  }
-
-  // React replaces a host whose block changes kind, which drops focus, and Firefox does not move focus into another
-  // host when a script selects inside it.
-  #keepFocus(preventScroll?: boolean): void {
-    if (this.composingKey === null) this.#takeFocus(preventScroll);
-  }
-
-  #takeFocus(preventScroll?: boolean): void {
-    const element = this.#drawn.focusElement();
-    if (!element || element.ownerDocument.activeElement === element) return;
-    if (element === this.sink) focusSink(this);
-    else element.focus({ preventScroll });
   }
 }

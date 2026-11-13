@@ -1,9 +1,6 @@
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 import type { QuoinBlock } from '../../src/types';
-
-// A project named for the direction turns the harness round, so a spec written once runs both ways and the suite does
-// not have to be kept twice. The language is left alone, since these specs find almost everything by its English name.
-const rightToLeft = () => /(^|-)rtl$/.test(test.info().project.name);
+import { rightToLeft } from './direction';
 
 // extra is more query parameters the harness reads, such as 'readonly=1'.
 export async function openEditor(page: Page, doc = 'empty', extra = '') {

@@ -1,5 +1,6 @@
 import { host, shell } from '../../support/block';
 import { expect, test, type Page } from '@playwright/test';
+import { onward } from '../../support/direction';
 import { blocks, openEditor } from '../../support/editor';
 
 const handle = (page: Page) => page.getByRole('button', { name: 'Drag to move, click for options' });
@@ -47,10 +48,10 @@ test('a drag held near the bottom of a scrolling pane scrolls it, and drops past
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
 });
 
-test('a drag that ends 48 px right of where it started nests the block under a list item', async ({ page }) => {
+test('a drag that ends 48 px on along the line from where it started nests the block under a list item', async ({ page }) => {
   await openEditor(page, 'drag');
   const start = await grab(page, 'a');
-  await page.mouse.move(start.x + 48, await bottomOf(page, 'l'), { steps: 8 });
+  await page.mouse.move(start.x + onward(48), await bottomOf(page, 'l'), { steps: 8 });
   await page.mouse.up();
   await expect.poll(() => order(page)).toEqual(['b', 'c', 'l', 'a', 'd']);
   expect((await blocks(page)).find((block) => block.id === 'a')?.indent).toBe(1);

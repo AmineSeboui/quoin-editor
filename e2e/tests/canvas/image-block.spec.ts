@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { FIXTURE_PNG } from '../../app/fixture-png';
 import { axeViolations } from '../../support/axe';
 import { shell } from '../../support/block';
+import { backward, forward, lineStart, onward, rightToLeft } from '../../support/direction';
 import { blocks, openEditor } from '../../support/editor';
 import { dropEvent, pasteFilesEvent } from '../../support/synthetic-events';
 
@@ -44,11 +45,12 @@ test('dragging a width handle shows the width as it goes and writes it once, whe
   await openEditor(page, 'image');
   await page.getByRole('img', { name: 'A red square' }).click();
   const frame = shell(page, 'img').locator('.quoin-image-frame');
-  const handle = (await shell(page, 'img').getByRole('slider', { name: 'Resize from the right' }).boundingBox())!;
+  const side = rightToLeft() ? 'left' : 'right';
+  const handle = (await shell(page, 'img').getByRole('slider', { name: `Resize from the ${side}` }).boundingBox())!;
   const before = await changes(page);
   await page.mouse.move(handle.x + handle.width / 2, handle.y + handle.height / 2);
   await page.mouse.down();
-  await page.mouse.move(handle.x + 120, handle.y + handle.height / 2, { steps: 6 });
+  await page.mouse.move(handle.x + onward(120), handle.y + handle.height / 2, { steps: 6 });
   await expect.poll(() => frame.evaluate((element) => element.style.width)).not.toBe('50%');
   expect(await imageData(page)).toMatchObject({ widthPercent: 50 });
   await page.mouse.up();
@@ -67,7 +69,7 @@ test('the toolbar of a selected image is reached with Alt+F10 and aligns it, and
   await expect(toolbar(page)).toBeVisible();
   await page.keyboard.press('Alt+F10');
   await expect(toolbar(page).getByRole('button', { name: 'Align left' })).toBeFocused();
-  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press(forward());
   await page.keyboard.press('Enter');
   await expect.poll(() => imageData(page)).toMatchObject({ align: 'center' });
   await expect(toolbar(page).getByRole('button', { name: 'Align center' })).toHaveAttribute('aria-pressed', 'true');
@@ -162,7 +164,9 @@ test('Enter on a selected image takes the caret into its caption, and Left from 
   await expect(caption).toBeFocused();
   await page.keyboard.type('Sleepy');
   await expect.poll(() => imageData(page)).toMatchObject({ caption: 'Sleepy' });
-  for (let n = 0; n <= 'Sleepy'.length; n++) await page.keyboard.press('ArrowLeft');
+  await caption.click({ position: await lineStart(caption, 8) });
+  await expect.poll(() => page.evaluate(() => getSelection()!.focusOffset)).toBe(0);
+  await page.keyboard.press(backward());
   await expect(shell(page, 'img')).toHaveAttribute('data-selected', 'true');
   await expect(sink(page)).toBeFocused();
   await page.keyboard.type('!');

@@ -1,9 +1,11 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
 import { host } from '../../support/block';
+import { backThroughText, onThroughText, onward, rightToLeft } from '../../support/direction';
 import { blocks, caretSettled, openEditor } from '../../support/editor';
 import { allMarkdown } from '../../support/markdown';
 import { caretOf, onCharacter } from '../../support/presence';
+import { textPoint } from '../../support/text-point';
 
 const offset = (page: Page) =>
   page.evaluate(() => {
@@ -107,8 +109,8 @@ test.describe('presence between two pages', () => {
       }
       return offsets;
     };
-    expect(await moved('ArrowRight')).toEqual([4, 5, 6, 7]);
-    expect(await moved('ArrowLeft')).toEqual([6, 5, 4, 3]);
+    expect(await moved(onThroughText())).toEqual([4, 5, 6, 7]);
+    expect(await moved(backThroughText())).toEqual([6, 5, 4, 3]);
     await page.keyboard.type('Q');
     await expect.poll(() => allMarkdown(bea)).toEqual(['# Title', 'FirQst paragraph.']);
   });
@@ -124,7 +126,7 @@ test.describe('presence between two pages', () => {
     await expect(caret).toBeAttached();
     await expect(caret).toBeHidden();
     expect(await bea.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(640);
-    await bea.locator('.quoin-table-scroll').evaluate((scroller) => (scroller.scrollLeft = scroller.scrollWidth));
+    await bea.locator('.quoin-table-scroll').evaluate((scroller, end) => (scroller.scrollLeft = end), onward(100000));
     await expect(caret).toBeVisible();
     const cell = bea.getByRole('textbox', { name: 'Row 2, column 15', exact: true });
     await expect
@@ -149,16 +151,17 @@ test.describe('presence between two pages', () => {
         return line !== null && box !== null && line.x >= box.x - 2 && line.x <= box.x + box.width;
       })
       .toBe(true);
-    const moved = await bea.evaluate(async () => {
+    const step = onward(40);
+    const moved = await bea.evaluate(async (by) => {
       const scroller = document.querySelector<HTMLElement>('.quoin-table-scroll')!;
       const caret = document.querySelector<HTMLElement>('.quoin-presence-caret')!;
       const before = caret.getBoundingClientRect().left;
       const scrolled = new Promise((resolve) => scroller.addEventListener('scroll', resolve, { once: true }));
-      scroller.scrollLeft += 40;
+      scroller.scrollLeft += by;
       await scrolled;
       return before - caret.getBoundingClientRect().left;
-    });
-    expect(Math.abs(moved - 40)).toBeLessThan(1);
+    }, step);
+    expect(Math.abs(moved - step)).toBeLessThan(1);
   });
 
   test('hides a caret that a clipping box around the scroller it is in cuts off', async ({ page }) => {
@@ -186,23 +189,30 @@ test.describe('presence between two pages', () => {
     await page.evaluate(() => {
       const { controller } = window.__quoin;
       const selection = controller!.editor.state.selection;
-      if (selection?.kind === 'text') controller!.focus({ ...selection.head, offset: 0 });
+      if (selection?.kind === 'text') controller!.focus({ ...selection.head, offset: 2 });
     });
     await expect(caretOf(bea, 'Ada Lovelace')).toBeAttached();
-    await bea.evaluate(() => {
+    // Measured along the line, from the side where it starts: on a right to left page a name runs on to the left. The
+    // caret is inside the cell's left to right text rather than at an end of it, where the browsers disagree about
+    // which side of the text the caret is drawn on a right to left page.
+    const rtl = rightToLeft();
+    await bea.evaluate((rtl) => {
+      const along = (box: DOMRect) => (rtl ? { start: -box.right, end: -box.left } : { start: box.left, end: box.right });
       const scroller = document.querySelector<HTMLElement>('.quoin-table-scroll')!;
-      const at = scroller.querySelector('[aria-label="Row 2, column 8"]')!.getBoundingClientRect().left;
-      scroller.scrollLeft += at - (scroller.getBoundingClientRect().right - 20);
-    });
+      const at = along(scroller.querySelector('[aria-label="Row 2, column 8"]')!.getBoundingClientRect()).start;
+      const by = at - (along(scroller.getBoundingClientRect()).end - 40);
+      scroller.scrollLeft += rtl ? -by : by;
+    }, rtl);
     const edges = () =>
-      bea.evaluate(() => {
+      bea.evaluate((rtl) => {
+        const along = (box: DOMRect) => (rtl ? { start: -box.right, end: -box.left } : { start: box.left, end: box.right });
         const caret = document.querySelector<HTMLElement>('.quoin-presence-caret')!;
-        const name = caret.querySelector('.quoin-presence-name')!.getBoundingClientRect();
+        const name = along(caret.querySelector('.quoin-presence-name')!.getBoundingClientRect());
         const inset = getComputedStyle(caret).clipPath.match(/-?[\d.]+/g)?.map(Number);
-        const cut = inset === undefined ? Infinity : caret.getBoundingClientRect().right - inset[1];
-        const table = document.querySelector('.quoin-table-scroll')!.getBoundingClientRect().right;
-        return { shown: Math.min(name.right, cut) <= table + 1, name: name.right > table };
-      });
+        const cut = inset === undefined ? Infinity : along(caret.getBoundingClientRect()).end - inset[rtl ? 3 : 1];
+        const table = along(document.querySelector('.quoin-table-scroll')!.getBoundingClientRect()).end;
+        return { shown: Math.min(name.end, cut) <= table + 1, name: name.end > table };
+      }, rtl);
     await expect.poll(edges).toEqual({ shown: true, name: true });
     await expect(caretOf(bea, 'Ada Lovelace')).toBeVisible();
   });
@@ -266,9 +276,8 @@ test.describe('presence between two pages', () => {
 
   test('passes an accessibility scan with a collaborator caret, selection and avatar shown', async ({ page }) => {
     const bea = await twoPages(page);
-    await caretAtEnd(page, 'b');
-    for (let i = 0; i < 'paragraph.'.length; i++) await page.keyboard.press('Shift+ArrowLeft');
-    await expect(bea.locator('[data-block-id="b"] .quoin-presence-selection')).toHaveText('paragraph.');
+    await host(page, 'b').dblclick({ position: await textPoint(host(page, 'b'), 'paragraph') });
+    await expect(bea.locator('[data-block-id="b"] .quoin-presence-selection')).toHaveText('paragraph');
     await expect(bea.getByRole('img', { name: 'Ada Lovelace is here' })).toBeVisible();
     expect(await axeViolations(bea, 'all', '.quoin')).toEqual([]);
   });

@@ -1,8 +1,10 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
 import { onlyHost } from '../../support/block';
-import { blocks, openEditor } from '../../support/editor';
+import { backward, fromLineStart, rightToLeft } from '../../support/direction';
+import { blocks, caretSettled, openEditor } from '../../support/editor';
 import { markdownOf } from '../../support/markdown';
+import { caretBefore } from '../../support/text-point';
 
 const popover = (page: Page) => page.getByRole('dialog', { name: 'Edit equation' });
 const field = (page: Page) => page.getByRole('textbox', { name: 'LaTeX' });
@@ -20,7 +22,7 @@ async function caretIn(page: Page, host: Locator = onlyHost(page)) {
 
 async function caretAtEnd(page: Page, host: Locator) {
   const box = (await host.boundingBox())!;
-  await page.mouse.click(box.x + box.width - 2, box.y + box.height / 2);
+  await page.mouse.click(fromLineStart(box, box.width - 2), box.y + box.height / 2);
   await expect(host).toBeFocused();
   await page.waitForFunction(() => document.activeElement?.contains(document.getSelection()?.focusNode ?? null));
 }
@@ -96,8 +98,8 @@ test('Backspace selects a formula with a highlight, Enter then edits it, and a s
 }) => {
   await openEditor(page, 'math', 'math=1');
   const host = page.locator('[data-block-id="p"] [data-quoin-host]');
-  await caretAtEnd(page, host);
-  for (let step = 0; step < ' here'.length; step++) await page.keyboard.press('ArrowLeft');
+  await host.click({ position: await caretBefore(host, ' here') });
+  await caretSettled(page, host);
   await page.keyboard.press('Backspace');
   const selected = page.locator('[data-quoin-selected-atom] > [data-quoin-atom="math"]');
   await expect(selected).toHaveCount(1);
@@ -125,7 +127,7 @@ for (const key of ['Backspace', 'Enter']) {
     await caretAtEnd(page, host);
     for (let step = 0; step < ' here'.length; step++) await page.keyboard.press('Backspace');
     await expect.poll(() => markdownOf(page, 'p')).toBe('Area $x^2$');
-    await page.keyboard.press('Shift+ArrowLeft');
+    await page.keyboard.press(`Shift+${backward()}`);
     await expect(page.locator('[data-quoin-selected-atom] > [data-quoin-atom="math"]')).toHaveCount(1);
     await page.keyboard.press(key);
     if (key === 'Enter') {
@@ -143,6 +145,10 @@ for (const key of ['Backspace', 'Enter']) {
 test('a drag from inside a word to past a formula at the end of its line takes the formula, so Backspace removes both', async ({
   page,
 }) => {
+  test.skip(
+    rightToLeft(),
+    'English words and the formula after them are drawn at the start of a right to left line, which leaves no place past the formula at the end of the line to drag to',
+  );
   await openEditor(page, 'math', 'math=1');
   const host = page.locator('[data-block-id="p"] [data-quoin-host]');
   await caretAtEnd(page, host);

@@ -1,4 +1,5 @@
 import { domMapOf } from '../dom/render-inline';
+import { inlineDirection } from '../../ui/direction';
 import type { CaretPoint } from './caret-from-point';
 
 const TEXT_NODE = 3;
@@ -10,11 +11,17 @@ const hasSize = (rect: DOMRect | undefined): rect is DOMRect =>
 const edgeOf = (rect: DOMRect, right: boolean): DOMRect =>
   new DOMRect(right ? rect.right : rect.left, rect.top, 0, rect.height);
 
+// WebKit gives a collapsed range no box at the end of a paragraph whose last character is drawn apart from the words
+// before it, as a full stop or an emoji after English words is on a right to left line. The character before the
+// caret then stands in, at its side towards the end of the line.
 function textCaretRect(text: Text, offset: number): DOMRect | null {
   const range = (text.ownerDocument as Document).createRange();
   range.setStart(text, offset);
   const rect = range.getClientRects()[0];
-  return hasSize(rect) ? rect : null;
+  if (hasSize(rect) || offset === 0) return hasSize(rect) ? rect : null;
+  range.setStart(text, offset - (/[\uDC00-\uDFFF]/.test(text.data[offset - 1]) ? 2 : 1));
+  const before = [...range.getClientRects()].pop();
+  return hasSize(before) ? edgeOf(before, inlineDirection(text.parentElement!) === 'ltr') : null;
 }
 
 function besideNode(node: Node, before: boolean): DOMRect | null {

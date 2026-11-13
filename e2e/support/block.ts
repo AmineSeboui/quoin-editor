@@ -12,6 +12,6 @@ export const onlyHost = (page: Page) => page.locator('[data-quoin-host]').first(
 
 export const firstLine = (page: Page, id: string) =>
   host(page, id).evaluate((element) => {
-    const { top, left } = element.getBoundingClientRect();
-    return { top, left, height: parseFloat(getComputedStyle(element).lineHeight) };
+    const { top, left, width } = element.getBoundingClientRect();
+    return { top, left, width, height: parseFloat(getComputedStyle(element).lineHeight) };
   });

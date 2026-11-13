@@ -1,7 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
 import { caretSettled, openEditor } from '../../support/editor';
+import { backThroughText, onThroughText, rightToLeft } from '../../support/direction';
 import { markdownOf } from '../../support/markdown';
+import { caretPoint } from '../../support/text-point';
 
 const hostOf = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
 const toolbar = (page: Page) => page.getByRole('toolbar', { name: 'Text formatting' });
@@ -19,7 +21,10 @@ for (const host of ['held', 'instant'] as const) {
     const held = host === 'held';
     const answer = () => (held ? page.evaluate(() => window.__quoinAnswerComments?.()) : Promise.resolve());
     await openComments(page, held ? '&commentdelay=hold' : '');
-    await hostOf(page, 'p').dblclick({ position: { x: 4, y: 10 } });
+    // A press at either edge of a one letter word that starts a right to left line is where the line's other end
+    // meets it too, so the letter is selected back from just after it rather than found by a double click.
+    await hostOf(page, 'p').click({ position: await caretPoint(hostOf(page, 'p'), 1) });
+    await page.keyboard.press(`Shift+${backThroughText(true)}`);
     await expect(toolbar(page)).toBeVisible();
     await toolbar(page).getByRole('button', { name: 'Comment', exact: true }).click();
     if (held) {
@@ -114,10 +119,10 @@ test('a thread a click opened stays while the caret moves in its text and closes
   await hostOf(page, 'q').locator('[data-comment="seeded"]').click();
   await caretSettled(page, hostOf(page, 'q'));
   await expect(thread(page, 'about this')).toBeVisible();
-  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press(onThroughText());
   await page.waitForTimeout(100);
   await expect(thread(page, 'about this')).toBeVisible();
-  for (let i = 0; i < 7; i++) await page.keyboard.press('ArrowRight');
+  for (let i = 0; i < 7; i++) await page.keyboard.press(onThroughText());
   await expect(thread(page, 'about this')).toBeHidden();
   await expect(hostOf(page, 'q')).toBeFocused();
 });
@@ -142,7 +147,8 @@ test('lists the threads beside a wide canvas, a thread whose text is gone after 
   await expect(cards.nth(1)).toContainText('Text removed');
   const text = await hostOf(page, 'q').boundingBox();
   const card = await cards.nth(0).boundingBox();
-  expect(card!.x).toBeGreaterThanOrEqual(text!.x + text!.width);
+  const pastTheEnd = rightToLeft() ? text!.x - (card!.x + card!.width) : card!.x - (text!.x + text!.width);
+  expect(pastTheEnd).toBeGreaterThanOrEqual(0);
   expect(Math.abs(card!.y - text!.y)).toBeLessThan(24);
   await cards.nth(1).click();
   await expect(cards.nth(1)).toHaveAttribute('aria-expanded', 'true');

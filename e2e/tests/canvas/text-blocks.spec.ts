@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
 import { shell } from '../../support/block';
+import { rightToLeft } from '../../support/direction';
 import { blocks, openEditor } from '../../support/editor';
 
 const dataOf = async (page: Page, id: string) => (await blocks(page)).find((block) => block.id === id)?.data;
@@ -62,7 +63,8 @@ test('a toggle chevron turns, hides the blocks under it and counts them in its n
   await expect(chevron).toHaveAccessibleName('Toggle, 1 block hidden');
   await expect(chevron).toHaveAttribute('aria-expanded', 'false');
   await expect(shell(page, 'tc')).toHaveCount(0);
-  await expect.poll(turn).toBe('none');
+  // Closed, it points the way the text runs: as drawn on a left to right page, and a half turn on a right to left one.
+  await expect.poll(turn).toMatch(rightToLeft() ? /^matrix\(-1,\s*0,\s*0,\s*-1/ : /^none$/);
   expect(await dataOf(page, 't')).toEqual({ markdown: 'Details', open: false });
 });
 

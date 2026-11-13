@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
 import { onlyHost } from '../../support/block';
+import { forward, fromLineStart } from '../../support/direction';
 import { blocks, openEditor } from '../../support/editor';
 import { answerEveryRequest } from '../../support/network';
 import { pasteEvent } from '../../support/synthetic-events';
@@ -53,7 +54,7 @@ test('the link options are reached with Alt+F10 and walked with the arrows, and 
   await pasteEvent(page, { 'text/plain': 'https://example.com/page' });
   await page.keyboard.press('Alt+F10');
   await expect(options(page).getByRole('button', { name: 'Bookmark' })).toBeFocused();
-  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press(forward());
   await expect(options(page).getByRole('button', { name: 'Keep as link' })).toBeFocused();
   expect(await axeViolations(page, 'all', '[role="toolbar"]')).toEqual([]);
   await page.keyboard.press('Escape');
@@ -131,7 +132,7 @@ test('a press in the text while /embed asks for a link places the embed and leav
   await page.keyboard.press('Enter');
   await page.keyboard.type(YOUTUBE);
   const box = (await title.boundingBox())!;
-  await page.mouse.click(box.x + box.width - 2, box.y + box.height / 2);
+  await page.mouse.click(fromLineStart(box, box.width - 2), box.y + box.height / 2);
   await expect(youtube(page)).toBeVisible();
   await expect(title).toBeFocused();
   await page.keyboard.type('!');

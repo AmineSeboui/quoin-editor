@@ -93,7 +93,8 @@ for (const axis of ['column', 'row'] as const) {
     await page.getByRole('menu').getByRole('menuitem', { name: `Delete ${axis}` }).focus();
     await page.keyboard.press('Enter');
     await expect.poll(async () => (axis === 'column' ? (await rowsOf(page))?.[0].length : (await rowsOf(page))?.length)).toBe(2);
-    await page.waitForTimeout(100);
+    // The table is measured again on the frame after the change, and drawn from that measure before the next one.
+    await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
     await expect(page.getByRole('group', { name: 'Document' })).toBeVisible();
     await expect(page.getByRole('button', { name: new RegExp(`^Insert ${axis}`) })).toHaveCount(0);
     expect(errors).toEqual([]);

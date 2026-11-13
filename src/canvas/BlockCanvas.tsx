@@ -31,6 +31,7 @@ import { selectedBlockLabel } from './selected-block-label';
 import { CanvasUiProvider, createCanvasUiStore } from './ui-store';
 import { useBlockLinkTarget } from './use-block-link-target';
 import { useDeleteReporter } from './use-delete-reporter';
+import { uploadPastedImages } from './upload-pasted-images';
 import { useStructureAnnouncements } from './use-structure-announcements';
 import { useDefinitionWarnings } from './use-definition-warnings';
 
@@ -90,6 +91,11 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
     readOnly,
     extensions: allExtensions,
     render: ui.render,
+    onTransaction(tr, state) {
+      if (!upload) return;
+      const host = { upload, resolveAssetUrl: resolveAssetUrl ?? String, onError: onError ?? console.error };
+      uploadPastedImages(controller, tr, state, { ...host, failed: labels.uploadFailed });
+    },
     onFiles(files, at) {
       const report = onError ?? console.error;
       void insertUploads(controller, files, at, {

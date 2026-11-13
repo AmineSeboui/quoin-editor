@@ -8,7 +8,8 @@ import { availableParser, fromHTML, type DOMParserLike } from './from-html';
 import { looksLikeMarkdown, plainTextToBlocks } from './from-text';
 import { parseSliceJSON } from './parse-slice-json';
 import { pastedLink } from './paste-url';
-import type { Slice } from './slice';
+import type { Transaction } from '../state/transaction';
+import { PASTED_HTML, type PastedSlice, type Slice } from './slice';
 
 export type ClipboardData = { json?: string; html?: string; text?: string };
 export type SliceFromClipboardOptions = { parser?: DOMParserLike; newId?: () => string };
@@ -37,16 +38,23 @@ function textBlocks(text: string, makeId: () => string): QuoinBlock[] {
   return looksLikeMarkdown(text) ? fromMarkdown(text, { newId: makeId }) : plainTextToBlocks(text, makeId);
 }
 
-function htmlSlice(html: string | undefined, options: SliceFromClipboardOptions): Slice | null {
+function htmlSlice(html: string | undefined, options: SliceFromClipboardOptions): PastedSlice | null {
   if (html === undefined) return null;
   const parser = availableParser(options.parser);
-  return parser === null ? null : openSlice(fromHTML(html, { ...options, parser }));
+  const slice = parser === null ? null : openSlice(fromHTML(html, { ...options, parser }));
+  return slice && { ...slice, fromHTML: true };
 }
 
-export function sliceFromClipboard(data: ClipboardData, options: SliceFromClipboardOptions = {}): Slice | null {
+export function sliceFromClipboard(data: ClipboardData, options: SliceFromClipboardOptions = {}): PastedSlice | null {
   const fromJson = data.json === undefined ? null : parseSliceJSON(data.json);
   if (fromJson !== null) return fromJson;
   const fromHtml = htmlSlice(data.html, options);
   if (fromHtml !== null) return fromHtml;
   return data.text === undefined ? null : openSlice(textBlocks(data.text, options.newId ?? newId), true);
 }
+
+/** Dispatches the transaction that inserts a slice, marked when the slice was read from HTML. */
+export const dispatchPaste =
+  (slice: PastedSlice, dispatch: (tr: Transaction) => void) =>
+  (tr: Transaction): void =>
+    dispatch(slice.fromHTML ? tr.setMeta(PASTED_HTML, true) : tr);

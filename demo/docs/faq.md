@@ -1,6 +1,6 @@
 ---
 title: FAQ
-description: Why the package is called quoin-editor, what the name means, which frameworks it supports and what its semantic versioning promises.
+description: Why the package is called quoin-editor, what the name means, what a paste from a word processor keeps, which frameworks it supports and what its semantic versioning promises.
 ---
 
 # FAQ
@@ -16,6 +16,18 @@ A quoin is the wedge a letterpress printer tightens to lock blocks of type into 
 ## Does it render markdown?
 
 Yes. The canvas draws each text block formatted as you type, and keeps its markdown source in `data.markdown`. `toMarkdown`, `toHTML` and `toPlainText` from `quoin-editor/engine` turn a whole document into each format, `fromMarkdown` reads one back, and [`QuoinView`](https://amineseboui.github.io/quoin-editor/docs/server-rendering/) draws it on a server. Blocks you never edit are never rewritten: `onChange` hands them back as the same objects you supplied, with the same markdown. A block whose id repeats another's is the exception: it gets a fresh id.
+
+## What does a paste from Word or Google Docs keep?
+
+Its structure. The canvas reads the HTML that Microsoft Word on the desktop and on the web, Google Docs, LibreOffice Writer, Notion, TextEdit and Pages put on the clipboard, and turns it into blocks:
+
+- **Headings**, from heading elements, from the heading role Word on the web gives a paragraph, and from a paragraph set larger than most of the text pasted with it, which is how TextEdit, Pages and a hand-styled Word heading write one. At 1.8 times that size a paragraph is a level 1 heading. A bold one is a level 2 heading at 1.4 times and a level 3 at 1.15 times, while a larger line that is not bold, such as the opening paragraph of an article, stays a paragraph.
+- **Lists**, nested to their level, among them the lists Word writes as paragraphs with a typed marker and an indent level. **Tasks** come from the checklists of Google Docs and Notion, and from a line that opens with a ballot box (☐, ☑ or ☒), as a Word checkbox or a Pages document writes it.
+- **Tables.** A table here has no merged cells, so a merged cell keeps its text in its first row and column and leaves the cells it covered empty. Every other cell stays in its own column, and nothing is lost but the merge.
+- **Bold, italic, underline, strikethrough, inline code, links, text colour and highlight.** Text in a monospaced typeface becomes inline code. A colour becomes the nearest colour of the palette, and one far from every palette colour, or the black text and white page of the source, is left out.
+- **Pictures with a web address.** With an [`upload` function](https://amineseboui.github.io/quoin-editor/docs/uploads/), the canvas reads each picture and uploads it as it would a dropped file, so the document keeps a copy of its own rather than a link the source may later expire. A picture whose server does not let the page read it stays linked to its address.
+
+The document stores markdown, so the typeface, the font size, line and paragraph spacing, alignment, and indentation outside a list have nowhere to live, and a paste does not try to look the way the page looked in the word processor. Leaving them out is deliberate. A picture that a word processor keeps as a file on the writer's computer, as desktop Word does, or carries inside the clipboard itself, as LibreOffice can, is left out too, since the page cannot read it as an address: paste or drop the picture on its own to upload it.
 
 ## Which frameworks does it support?
 

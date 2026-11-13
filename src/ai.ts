@@ -6,3 +6,4 @@ import './index';
 export { aiExtension, type AiOptions } from './extensions/ai/ai-extension';
 export { englishAiLabels, type AiLabels } from './extensions/ai/ai-labels';
 export type { AiAction, AiRequest, AiStream } from './extensions/ai/ai-actions';
+export type { AiActionDefinition, AiActionPlace } from './extensions/ai/ai-host-actions';

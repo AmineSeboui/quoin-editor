@@ -6,6 +6,8 @@ import type { ExtensionUI } from '../ui-types';
 import type { AiStream } from './ai-actions';
 import { aiDecorations } from './ai-decorations';
 import { failureOf } from './ai-failure';
+import { hostActions, placedIn, type AiActionDefinition } from './ai-host-actions';
+import { hostItems } from './ai-host-items';
 import { aiBlockMenuItem, aiBubbleItem, aiSlashItems } from './ai-items';
 import { resolveAiLabels, type AiLabels } from './ai-labels';
 import { linkOf } from './ai-link';
@@ -19,6 +21,12 @@ export type AiOptions = {
   stream: AiStream;
   /** Every string AI actions show or speak, English by default. A key left out stays English. */
   labels?: Partial<AiLabels>;
+  /**
+   * The host's own actions, listed in the AI menu after the built-in ones, in a group under `labels.moreActions`. Each
+   * asks `stream` as a `custom` request carrying its prompt and its id. An action whose id a built-in action or an
+   * earlier one already has is left out, with a warning in development.
+   */
+  actions?: readonly AiActionDefinition[];
   /**
    * The reason a failed answer shows under `labels.failed`, given what the stream threw or rejected with. Nothing is
    * shown for an error it returns undefined for, so an error it was not written for stays out of the bar.
@@ -36,13 +44,16 @@ export type AiOptions = {
 export function aiExtension(options: AiOptions): Extension {
   const { stream } = options;
   const labels = resolveAiLabels(options.labels);
+  const actions = hostActions(options.actions);
+  const inMenu = actions.filter(placedIn('aiMenu'));
+  const host = hostItems(actions, stream);
   function Overlay({ controller }: { controller: ViewController }) {
-    return <AiOverlay controller={controller} stream={stream} labels={labels} />;
+    return <AiOverlay controller={controller} stream={stream} labels={labels} actions={inMenu} />;
   }
   const ui: ExtensionUI = {
-    slashItems: aiSlashItems(labels, stream),
-    bubbleItems: [aiBubbleItem(labels)],
-    blockMenuItems: [aiBlockMenuItem(labels)],
+    slashItems: [...aiSlashItems(labels, stream), ...host.slashItems],
+    bubbleItems: [aiBubbleItem(labels), ...host.bubbleItems],
+    blockMenuItems: [aiBlockMenuItem(labels), ...host.blockMenuItems],
     overlays: [Overlay],
   };
   return defineExtension({

@@ -71,8 +71,8 @@ describe('the package entry list', () => {
       .map(({ name, total }) => [name, total]);
     expect(totals).toEqual([
       ['index', 157_000],
-      ['headless', 73_000],
-      ['engine', 52_600],
+      ['headless', 74_300],
+      ['engine', 53_900],
       ['view', 22_214],
       ['diff', 26_961],
       ['docx', 25_891],

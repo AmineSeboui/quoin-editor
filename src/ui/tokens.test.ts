@@ -4,7 +4,6 @@ import commentsCss from '../extensions/comments/comments.css?raw';
 import { TONE } from '../blocks/previews';
 import { PALETTE } from '../engine/markdown/palette';
 import { contrastOnWash, contrastRatio, tokenReader, type Theme } from './oklch-contrast';
-import { HIGHLIGHT_BAR } from './focus';
 
 const token = tokenReader(css);
 const contrast = (theme: Theme, a: string, b: string) => contrastRatio(token(theme, a), token(theme, b));
@@ -40,8 +39,6 @@ const HIGHLIGHT = 'accent';
 
 /** The syntax colours, read from the palette so one added later is held to the same contrast. */
 const SYNTAX = [...new Set([...css.matchAll(/--quoin-(syntax-[\w-]+):/g)].map(([, name]) => name))];
-
-const BAR = /var\(--quoin-([\w-]+)\)/.exec(HIGHLIGHT_BAR)![1];
 
 describe.each<Theme>(['light', 'dark'])('%s theme', (theme) => {
   it('draws the focus ring at 3:1 or more against the page', () => {
@@ -136,11 +133,6 @@ describe.each<Theme>(['light', 'dark'])('%s theme', (theme) => {
   it('draws the rule under comment anchors at 3:1 or more against the page and the tints', () => {
     expect(contrast(theme, 'comment-edge', 'background')).toBeGreaterThanOrEqual(3);
     expect(contrast(theme, 'comment-edge', 'comment-active')).toBeGreaterThanOrEqual(3);
-  });
-
-  it('draws the highlight bar at 3:1 or more against the row and its popover', () => {
-    expect(contrast(theme, BAR, HIGHLIGHT)).toBeGreaterThanOrEqual(3);
-    expect(contrast(theme, BAR, 'popover')).toBeGreaterThanOrEqual(3);
   });
 });
 

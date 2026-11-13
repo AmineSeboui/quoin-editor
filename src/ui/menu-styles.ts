@@ -1,4 +1,3 @@
-import { HIGHLIGHT_BAR } from './focus';
 import { TAP_TARGET_FLOOR } from './touch-target';
 
 /** A row of buttons floating over the canvas, as the formatting toolbar and the toolbar of a selected image are. */
@@ -13,13 +12,11 @@ export const MENU_SUB_CONTENT =
 
 export const MENU_ITEM = [
   "focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm focus:outline-hidden select-none data-[inset]:ps-8 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg:not([class*='size-'])]:size-4",
-  HIGHLIGHT_BAR,
   TAP_TARGET_FLOOR,
 ].join(' ');
 
 export const MENU_CHECKABLE_ITEM = [
   'focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pe-2 ps-8 text-sm focus:outline-hidden select-none',
-  HIGHLIGHT_BAR,
   TAP_TARGET_FLOOR,
 ].join(' ');
 
@@ -27,7 +24,6 @@ export const MENU_ITEM_INDICATOR = 'pointer-events-none absolute start-2 flex si
 
 export const MENU_SUB_TRIGGER = [
   'focus:bg-accent data-[state=open]:bg-accent flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm focus:outline-hidden select-none data-[inset]:ps-8',
-  HIGHLIGHT_BAR,
   TAP_TARGET_FLOOR,
 ].join(' ');
 

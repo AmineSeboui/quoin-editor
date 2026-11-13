@@ -70,8 +70,8 @@
 
 .quoin .quoin-math-field:focus-visible {
   border-color: var(--quoin-ring);
-  outline: 2px solid var(--quoin-ring);
-  outline-offset: 1px;
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--quoin-ring) 50%, transparent);
 }
 
 .quoin .quoin-math-preview {

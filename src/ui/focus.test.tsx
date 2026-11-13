@@ -26,18 +26,21 @@ import {
 } from './context-menu';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import { FilePickerButton } from '../upload/FilePickerButton';
-import { sourceFiles } from '../../test/support/source-files';
+import { readdirSync, readFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 
-const SOURCES = sourceFiles();
+const SRC = resolve(__dirname, '..');
 
-const RING_CLASSES = [
-  'focus-visible:outline-2',
-  'focus-visible:outline-offset-2',
-  'focus-visible:outline-solid',
-  'focus-visible:outline-[var(--quoin-ring)]',
-];
+const STYLED_FILES = readdirSync(SRC, { recursive: true, encoding: 'utf8' })
+  .filter((path) => /\.(tsx?|css)$/.test(path) && !/\.test\.tsx?$/.test(path))
+  .map((path) => ({ path, source: readFileSync(join(SRC, path), 'utf8') }));
 
-const BAR = 'shadow-[inset_2px_0_0_var(--quoin-ring)]';
+const RING_CLASSES = ['outline-none', 'focus-visible:border-ring', 'focus-visible:ring-3', 'focus-visible:ring-ring/50'];
+
+/** Outlines that mark a selection or the current find match rather than focus. */
+const SELECTION_OUTLINES = ['extensions/atoms/selected-atom.css', 'extensions/find/find.css'];
+
+const OLD_FOCUS_OUTLINE = /outline-\[var\(--quoin-ring\)\]|outline:\s*2px solid var\(--quoin-ring\)/;
 
 /** Unconditional, this utility draws a 2px outline round every control at rest in forced-colors mode, so the one with
  *  focus no longer stands out. Scoped to :focus it frames only the focused control. */
@@ -50,7 +53,8 @@ function classesOf(el: Element | null): string[] {
 
 function expectHighlightedRows(rows: HTMLElement[]) {
   for (const row of rows) {
-    expect(classesOf(row)).toContain(`data-[highlighted]:${BAR}`);
+    expect(classesOf(row)).toContain('focus:bg-accent');
+    expect(classesOf(row).some((c) => c.includes('inset_2px'))).toBe(false);
     expect(classesOf(row)).toContain(`focus:${FORCED_COLORS_FRAME}`);
     expect(classesOf(row)).not.toContain(FORCED_COLORS_FRAME);
   }
@@ -59,12 +63,10 @@ function expectHighlightedRows(rows: HTMLElement[]) {
 function expectFocusRing(el: Element | null) {
   const classes = classesOf(el);
   expect(classes).toEqual(expect.arrayContaining(RING_CLASSES));
-  expect(classes).not.toContain('outline-none');
-  expect(classes).not.toContain(FORCED_COLORS_FRAME);
-  expect(classes.some((c) => c.includes('ring-ring'))).toBe(false);
+  expect(classes).not.toContain('focus-visible:outline-2');
 }
 
-describe('keyboard focus is a solid outline', () => {
+describe("keyboard focus is shadcn's ring", () => {
   it('on a button', () => {
     render(<Button>Save</Button>);
     expectFocusRing(screen.getByRole('button', { name: 'Save' }));
@@ -93,16 +95,16 @@ describe('keyboard focus is a solid outline', () => {
     const classes = classesOf(wrapper);
     expect(classes).toEqual(
       expect.arrayContaining([
-        'has-[:focus-visible]:outline-2',
-        'has-[:focus-visible]:outline-offset-2',
-        'has-[:focus-visible]:outline-[var(--quoin-ring)]',
+        'has-[:focus-visible]:border-ring',
+        'has-[:focus-visible]:ring-3',
+        'has-[:focus-visible]:ring-ring/50',
       ]),
     );
-    expect(classes.some((c) => c.includes('ring-ring'))).toBe(false);
+    expect(classes.some((c) => c.includes('outline-[var(--quoin-ring)]'))).toBe(false);
   });
 });
 
-describe('a highlighted row carries a bar as well as a background', () => {
+describe('a highlighted row is a background tint', () => {
   it('in a menu', () => {
     render(
       <DropdownMenu open>
@@ -169,15 +171,16 @@ describe('forced-colors mode', () => {
 });
 
 describe('the component sources', () => {
-  it('neither hide focus with outline-none nor draw it as a translucent ring', () => {
-    const offenders = Object.entries(SOURCES)
-      .filter(([path]) => !/\.test\.tsx?$/.test(path))
-      .filter(([, source]) => /outline-none|ring-ring/.test(source))
-      .map(([path]) => path);
+  it('draw no focus as the old solid outline', () => {
+    const offenders = STYLED_FILES.filter(({ path }) => !SELECTION_OUTLINES.includes(path))
+      .filter(({ source }) => OLD_FOCUS_OUTLINE.test(source))
+      .map(({ path }) => path);
     expect(offenders).toEqual([]);
   });
 
   it('are found by the scan above', () => {
-    expect(Object.keys(SOURCES).some((path) => path.endsWith('/button.tsx'))).toBe(true);
+    const paths = STYLED_FILES.map(({ path }) => path);
+    expect(paths).toContain('ui/button.tsx');
+    expect(paths).toContain('extensions/toc/toc-block.css');
   });
 });

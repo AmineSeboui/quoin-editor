@@ -1,36 +1,16 @@
 import { StrictMode, useEffect, useRef, useState } from 'react';
-import { act, cleanup, render, screen, within } from '@testing-library/react';
+import { act, cleanup, render, screen } from '@testing-library/react';
 import { axe } from 'vitest-axe';
 import { coreBlocks } from '../../blocks/core';
 import { paragraph } from '../../blocks/void/test-canvas';
 import { BlockCanvas } from '../../canvas/BlockCanvas';
 import type { QuoinEditorHandle } from '../../canvas/canvas-props';
 import type { Extension } from '../../engine';
-import { clipboardEvent, fakeTransfer } from '../../view/clipboard/test-transfer';
 import { mentionExtension } from './mention-extension';
 import type { MentionResult } from './mention-feature';
-import { deferredSearch, mountMentions, waitForSearch } from './mention-test-canvas';
+import { ada, answered, deferredSearch, mountMentions, openOn, options, optionTexts, waitForSearch } from './mention-test-canvas';
 
-const ada: MentionResult = { id: '42', label: 'Ada' };
 const SEARCHING = 'Searching\u2026';
-
-const options = () => within(screen.getByRole('listbox', { name: 'Mentions' })).queryAllByRole('option');
-const optionTexts = () => options().map((option) => option.textContent);
-
-function openOn(markdown: string, canvasProps: Parameters<typeof mountMentions>[2] = {}) {
-  const deferred = deferredSearch();
-  const canvas = mountMentions([paragraph('p', markdown)], { search: deferred.search }, canvasProps);
-  canvas.caret('p', markdown.length);
-  return { ...deferred, canvas };
-}
-
-async function answered(results: readonly MentionResult[]) {
-  const opened = openOn('Ask');
-  opened.canvas.type(' @ad');
-  waitForSearch();
-  await opened.last().resolve(results);
-  return opened;
-}
 
 describe('the mention menu', () => {
   beforeEach(() => void vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] }));
@@ -130,57 +110,6 @@ describe('the mention menu', () => {
     canvas.key('ArrowDown');
     canvas.key('Tab');
     expect(canvas.markdown('p')).toBe('Ask [@Adam](mention:user:7)&#32;');
-  });
-
-  it('closes on Escape and leaves the @ and the query as text', async () => {
-    const { canvas } = await answered([ada]);
-    canvas.key('Escape');
-    expect(canvas.menu()).toBeNull();
-    expect(canvas.markdown('p')).toBe('Ask @ad');
-    canvas.type('a');
-    expect(canvas.menu()).toBeNull();
-  });
-
-  it('closes on a space right after the @, and asks nothing for the words after it', () => {
-    const { canvas, search } = openOn('Ask');
-    canvas.type(' @ ');
-    expect(canvas.menu()).toBeNull();
-    canvas.type('and more');
-    waitForSearch();
-    expect(canvas.menu()).toBeNull();
-    expect(search).not.toHaveBeenCalled();
-    expect(canvas.markdown('p')).toBe('Ask @ and more');
-  });
-
-  it('closes on pasted text that starts with a space right after the @', () => {
-    const { canvas, search } = openOn('Ask');
-    canvas.type(' @');
-    expect(canvas.menu()).not.toBeNull();
-    const { transfer } = fakeTransfer({ 'text/plain': ' and more' });
-    act(() => void document.activeElement!.dispatchEvent(clipboardEvent('paste', transfer)));
-    waitForSearch();
-    expect(canvas.markdown('p')).toBe('Ask @ and more');
-    expect(canvas.menu()).toBeNull();
-    expect(search).not.toHaveBeenCalled();
-  });
-
-  it('closes on a space once the host has found nothing, and stays open on one after results', async () => {
-    const { canvas, last, queries } = openOn('Ask');
-    canvas.type(' @zz');
-    waitForSearch();
-    await last().resolve([]);
-    canvas.type(' ');
-    expect(canvas.menu()).toBeNull();
-    canvas.type('top');
-    waitForSearch();
-    expect(queries()).toEqual(['zz']);
-    expect(canvas.markdown('p')).toBe('Ask @zz top');
-
-    canvas.type(' @ada');
-    waitForSearch();
-    await last().resolve([ada]);
-    canvas.type(' ');
-    expect(optionTexts()).toEqual(['Ada']);
   });
 
   it('asks nothing once the menu closes during the wait, or once the canvas is gone', () => {

@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent, type RefObject } from 'react';
+import { useCallback, useId, useRef, useState, type FormEvent, type KeyboardEvent, type RefObject } from 'react';
+import { useClosing } from '../../blocks/image/use-closing';
 import { useOutsidePress } from '../../blocks/image/use-outside-press';
 import { bubblePart } from '../../menus/bubble/bubble-part';
 import type { MenuSide, VirtualAnchor } from '../../menus/floating/virtual-anchor';
@@ -41,32 +42,13 @@ export function MathEditorPopover(props: MathEditorPopoverProps) {
   const { labels } = feature;
   const [draft, setDraft] = useState(latex);
   const fieldId = useId();
-  const closed = useRef(false);
   const field = useRef<HTMLTextAreaElement>(null);
   const saveButton = useRef<HTMLButtonElement>(null);
-
-  // Handing focus back is focus leaving the popover, which would close it a second time.
-  const finish = (store: boolean, refocus = false) => {
-    if (closed.current) return false;
-    closed.current = true;
-    if (store && draft !== latex) onStore(draft, refocus);
-    return true;
-  };
-  const latestFinish = useRef(finish);
-  latestFinish.current = finish;
-  useEffect(() => {
-    closed.current = false;
-    return () => void latestFinish.current(true);
-  }, []);
-
-  // A tap gives the text focus and the caret before its click closes the popover, and the editor reads the caret only
-  // on the next selection change, so it is read first: the store would otherwise draw the old caret back.
-  const close = (store: boolean, refocus = true) => {
-    if (!refocus) controller.readSelectionFromDom();
-    if (!finish(store, refocus)) return;
-    onClose();
-    if (refocus) onReturn();
-  };
+  const { close } = useClosing(controller, {
+    store: (refocus) => draft !== latex && onStore(draft, refocus),
+    onClose,
+    onReturn,
+  });
   const content = useRef<HTMLDivElement>(null);
   const ownerDocument = useCallback(() => controller.root?.ownerDocument ?? document, [controller]);
   useOutsidePress(content, ownerDocument, () => close(true, false));

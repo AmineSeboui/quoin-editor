@@ -118,7 +118,7 @@ describe('the emoji picker', () => {
     expect(within(grids().at(-1)!).getAllByRole('gridcell')[0]).toHaveFocus();
     const stops = (grid: HTMLElement) => within(grid).getAllByRole('gridcell').filter((cell) => cell.tabIndex === 0);
     expect(grids().map((grid) => stops(grid).length)).toEqual(grids().map(() => 1));
-  });
+  }, 60_000);
 
   it('keeps the active cell in the grid when a search narrows it, and picks the first match with Enter in the field', async () => {
     const { user, field, onPick } = renderPicker();

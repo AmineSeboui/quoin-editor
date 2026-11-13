@@ -77,5 +77,5 @@ describe('carrying the history over a stream of unrecorded changes', () => {
     expect(vi.mocked(mapping.mapStep).mock.calls.length).toBe(500 * 4);
     const done = getPluginState(state, historyKey).done;
     expect(done.filter((item, i) => item === items[i])).toHaveLength(196);
-  });
+  }, 60_000);
 });

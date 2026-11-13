@@ -106,7 +106,7 @@ describe('a character limit', () => {
     expect(announce).not.toHaveBeenCalled();
   });
 
-  it('lets a Backspace typed in the line undo an input rule at the limit, then delete', () => {
+  it('lets a Backspace typed in the line undo an input rule at the limit, past it as an undo goes, then delete', () => {
     const { caret, type, handle } = mountStats([md('a', 'abc'), md('b', '')], { limit: 5, typography: true });
     const backspace = () => {
       const event = new InputEvent('beforeinput', { inputType: 'deleteContentBackward', bubbles: true, cancelable: true });
@@ -118,6 +118,7 @@ describe('a character limit', () => {
     expect(text()[0]).toBe('abc\u2026');
     backspace();
     expect(text()[0]).toBe('abc...');
+    expect(handle().editor.stats().characters).toBe(6);
     backspace();
     expect(text()[0]).toBe('abc..');
     backspace();

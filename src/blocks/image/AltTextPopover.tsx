@@ -44,10 +44,12 @@ function storeAlt(controller: ViewController, blockId: string, opened: Opened, p
 
 /**
  * The alt text of an image, asked for as required. Enter, Save, and Tab or Shift+Tab out of it store it and hand focus
- * back to the image, and Escape hands focus back keeping the alt text the image had. A press elsewhere, or a script
- * moving focus elsewhere, stores it and leaves focus where that puts it; a press on the image's toolbar or handles
- * hands focus back to the image. A press on the button that opened it is left to that button. It closes, storing
- * nothing, once the alt text or the decorative flag changes under it.
+ * back to the image, and Escape hands focus back keeping the alt text the image had. A press elsewhere stores it and
+ * leaves focus where the press puts it, and so does a script moving focus out of the editor. Focus a script moves into
+ * the editor goes to its selection, the image, as any focus coming back to the editor does. A press on the image's
+ * toolbar or handles hands focus back to the image, and one on the button that opened it is left to that button. Focus
+ * leaving the window keeps it open with what was typed. It closes, storing nothing, once the alt text or the decorative
+ * flag changes under it.
  */
 export function AltTextPopover({ blockId, controller, anchor, opener, alt, decorative, onClose }: AltTextPopoverProps) {
   const labels = useLabels();

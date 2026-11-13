@@ -11,13 +11,13 @@ const definitions = samples.flatMap((code) => blockDefinitions(code));
 describe('the custom blocks of the README and docs samples', () => {
   it('each take a type no built-in or opt-in block has', () => {
     expect(definitions.filter(({ type }) => type !== undefined).length).toBeGreaterThan(0);
-    const builtIn = new Set(coreBlockSpecs.map(({ type }) => type));
+    const builtIn = new Set<string | undefined>(coreBlockSpecs.map(({ type }) => type));
     expect(definitions.filter(({ type }) => builtIn.has(type))).toEqual([]);
   });
 
   it('each take a name no command of an opt-in feature has', () => {
     const titles = catalogue().flatMap(({ ui }) => (ui as ExtensionUI).slashItems?.map(({ title }) => title) ?? []);
-    const commands = new Set(titles);
+    const commands = new Set<string | undefined>(titles);
     expect(definitions.filter(({ label }) => commands.has(label))).toEqual([]);
   });
 });

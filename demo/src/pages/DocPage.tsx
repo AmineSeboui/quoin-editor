@@ -1,16 +1,15 @@
-import { MarkdownArticle } from '../site/MarkdownArticle';
-import { PageSteps } from '../site/PageSteps';
-import { guidePages } from '../site/pages';
-import { docSources } from '../site/sources';
+import { DOCS_HOME } from '../site/site';
 
+/** What the development server shows at a guide address; the build writes a notice that redirects instead. */
 export function DocPage({ slug }: { slug: string }) {
-  const source = docSources.get(slug);
-  if (!source) throw new Error(`no docs source for ${slug}`);
-  const index = guidePages.findIndex((page) => page.kind === 'doc' && page.slug === slug);
+  const to = `${DOCS_HOME}${slug}`;
   return (
-    <>
-      <MarkdownArticle markdown={source.body} />
-      <PageSteps previous={guidePages[index - 1]} next={guidePages[index + 1]} />
-    </>
+    <article className="article">
+      <h1>This page has moved</h1>
+      <p>Quoin's documentation is served from quoincloud.com now.</p>
+      <p>
+        <a href={to}>{to}</a>
+      </p>
+    </article>
   );
 }

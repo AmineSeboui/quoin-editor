@@ -89,8 +89,7 @@ describe('the migration guide', () => {
     expect(manifest.files).toEqual(expect.arrayContaining(['CHANGELOG.md', 'MIGRATION.md']));
   });
 
-  it('is linked from the README and the FAQ', () => {
+  it('is linked from the README', () => {
     expect(readText(join(root, 'README.md'))).toMatch(/\]\(MIGRATION\.md(?:#[\w-]+)?\)/);
-    expect(readText(join(root, 'demo', 'docs', 'faq.md'))).toContain('/blob/main/MIGRATION.md');
   });
 });

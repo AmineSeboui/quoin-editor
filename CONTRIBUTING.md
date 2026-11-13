@@ -1,6 +1,6 @@
 # Contributing to Quoin
 
-Thank you for helping. Bug reports, block type ideas, docs fixes and pull requests are all welcome. Questions go to [Discussions](https://github.com/AmineSeboui/quoin-editor/discussions). Please follow the [code of conduct](CODE_OF_CONDUCT.md), and report a security problem privately as [SECURITY.md](SECURITY.md) explains, never in a public issue.
+Thank you for helping. Bug reports, block type ideas, docs corrections and pull requests are all welcome. Questions go to [Discussions](https://github.com/AmineSeboui/quoin-editor/discussions). Please follow the [code of conduct](CODE_OF_CONDUCT.md), and report a security problem privately as [SECURITY.md](SECURITY.md) explains, never in a public issue.
 
 ## Setup
 
@@ -13,9 +13,15 @@ npm ci
 npx playwright install chromium webkit firefox
 ```
 
-The package lives at the root. `demo/` is the docs site and the live demo, a separate package with its own `npm ci`.
+The package lives at the root. `demo/` is the demo site, a separate package with its own `npm ci`.
 
-## The docs site
+## The documentation
+
+The guide is written and served at [quoincloud.com/docs/editor](https://quoincloud.com/docs/editor), from a repository that is not public, and its tests hold every page to the package that site installs. To correct a page, open an issue here naming it. A change here that a reader would notice needs its page updated there, which the issue or pull request should say.
+
+Two pages are made here: the engine and headless references are generated from the source into `demo/docs/` each time the demo site is built, and the site copies them in when it moves to a new release. Edit the declarations, never the generated pages.
+
+## The demo site
 
 `demo/` depends on the package at the root through `file:..`, so build the root first. `npm run build` in `demo/` builds the site into `demo/dist/`, each page's main content drawn at build time with `QuoinView` and every live editor mounted in the browser; `npm run dev` serves the same pages while you edit. `npm test` in `demo/` checks the built pages' titles, descriptions, canonical addresses, Open Graph tags and links, and `npm run test:e2e` runs axe and the live demos over every page in Chromium, Firefox and WebKit.
 
@@ -51,7 +57,7 @@ npm run record:demo && npm run render:og
 | `npm run check:css` | Every rule of the built stylesheet is scoped to the editor |
 | `npm run check:directives` | Client entries carry `'use client'`, server entries do not |
 | `npm run check:size` | Each entry stays within its gzip budget |
-| `npm run check:consumer` | Packs the package, installs it in a fresh project and typechecks every entry and every `ts` and `tsx` sample of the README, MIGRATION.md and the docs pages |
+| `npm run check:consumer` | Packs the package, installs it in a fresh project and typechecks every entry and every `ts` and `tsx` sample of the README and MIGRATION.md |
 | `npm run record:demo` | Records the README's animation from the built site into `demo/public/quoin-demo.gif` |
 | `npm run render:og` | Draws `demo/og.html` into the social preview, `demo/public/og.png` |
 

@@ -1,0 +1,112 @@
+[
+  {
+    "slug": "getting-started",
+    "title": "Getting started",
+    "description": "Install quoin-editor, render a BlockCanvas, import its stylesheet and see what each entry adds to a page."
+  },
+  {
+    "slug": "contract",
+    "title": "The controlled contract",
+    "description": "BlockCanvas behaves like a controlled input: blocks in, onChange out, with autosave, loading, discarding and undoing a deletion in your own code."
+  },
+  {
+    "slug": "adoption",
+    "title": "Adopting existing documents",
+    "description": "Move a directory of markdown files or a column of HTML into Quoin, knowing first what each conversion loses, then give the blocks ids that last, take documents back out, and check a whole corpus before you move it."
+  },
+  {
+    "slug": "theming",
+    "title": "Theming",
+    "description": "Every colour and radius comes from a --quoin- token, the stylesheet sits in one quoin cascade layer and resets nothing outside the editor."
+  },
+  {
+    "slug": "custom-blocks",
+    "title": "Custom blocks",
+    "description": "Add block types of your own with defineBlock, whose editor and preview are plain React components, and read uploads from inside them."
+  },
+  {
+    "slug": "blocks",
+    "title": "Code, image and file blocks",
+    "description": "How the code, image and file blocks are typed into, selected, uploaded to and highlighted, from the mouse or the keyboard."
+  },
+  {
+    "slug": "uploads",
+    "title": "Uploads",
+    "description": "Quoin stores no file itself: hand it an upload function and an asset resolver, and its image and file blocks call them."
+  },
+  {
+    "slug": "extensions",
+    "title": "Opt-in features",
+    "description": "Tables, embeds and bookmarks, math, tables of contents, mentions, emoji, find and replace and document stats, each an entry of its own that a page loads only when it imports it."
+  },
+  {
+    "slug": "keyboard",
+    "title": "Keyboard",
+    "description": "Every key the canvas and its opt-in features answer to, as macOS and Windows or Linux write them, the same list the shortcuts dialog shows."
+  },
+  {
+    "slug": "localization",
+    "title": "Localization",
+    "description": "The seven locale packs the package ships, how a host passes one to the canvas and to each feature, and how to write a language of your own."
+  },
+  {
+    "slug": "direction",
+    "title": "Right to left",
+    "description": "How the canvas follows a page that runs right to left, what stays physical on purpose, and what is not covered yet."
+  },
+  {
+    "slug": "collaboration",
+    "title": "Collaboration",
+    "description": "Real-time co-editing through a Yjs document and your own provider, with an undo of your own changes and collaborators' carets and avatars."
+  },
+  {
+    "slug": "comments",
+    "title": "Comments",
+    "description": "Comment threads anchored to text, kept in your own store and reached through your callbacks, with a list beside the text or a sheet on a narrow page."
+  },
+  {
+    "slug": "ai",
+    "title": "AI actions",
+    "description": "Stream your own model's answers into the document through one callback: continue, improve, translate, summarize and more, accepted in one undo step."
+  },
+  {
+    "slug": "server-rendering",
+    "title": "Read-only and server rendering",
+    "description": "Draw a document read-only on the canvas, in a React Server Component with QuoinView, as a diff of two versions with QuoinDiff, or as a Word file with toDocx."
+  },
+  {
+    "slug": "headless",
+    "title": "Headless",
+    "description": "The editing engine and its editable view without the canvas UI, for a host that draws its own chrome."
+  },
+  {
+    "slug": "api",
+    "title": "Exports",
+    "description": "What each entry of quoin-editor exports, from the canvas to the Word export."
+  },
+  {
+    "slug": "engine-reference",
+    "title": "Engine reference",
+    "description": "Every export of quoin-editor/engine with its signature: the document, steps, commands, markdown and the editor."
+  },
+  {
+    "slug": "headless-reference",
+    "title": "Headless reference",
+    "description": "Every export quoin-editor/headless adds to the engine: the hook, the editable view, the controller and the DOM map."
+  },
+  {
+    "slug": "accessibility",
+    "title": "Accessibility",
+    "description": "What Quoin's test suites check for keyboard, screen reader and colour access, and what is not checked yet."
+  },
+  {
+    "slug": "faq",
+    "title": "FAQ",
+    "description": "Why the package is called quoin-editor, what the name means, what a paste from a word processor keeps, which frameworks it supports and what its semantic versioning promises."
+  },
+  {
+    "slug": "styles-history",
+    "title": "The history of the stylesheet",
+    "description": "Why Quoin's tokens carry a --quoin- prefix and its rules sit in one quoin cascade layer, both since 0.2.0, and what a host upgrading from 0.1 has to do."
+  }
+]

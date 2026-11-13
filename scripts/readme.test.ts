@@ -2,13 +2,15 @@
 import { existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { STRUCTURAL_ECHO_WINDOW } from '../src/engine/extension/echo-tracker';
 import { DOCS_URL, docsDir, docsSources, readText, REFERENCE_SLUGS, root } from './docs-sources.mjs';
 
 const README = join(root, 'README.md');
 const README_LIMIT = 14_336;
 const readme = readText(README);
 const pages = [{ slug: 'README', path: README }, ...docsSources()];
+const guide: string[] = JSON.parse(readText(join(root, 'demo', 'src', 'site', 'moved-guide.json'))).map(
+  ({ slug }: { slug: string }) => slug,
+);
 const packageVersion: string = JSON.parse(readText(join(root, 'package.json'))).version;
 const packageMinor = packageVersion.split('.').slice(0, 2).join('.');
 
@@ -39,16 +41,16 @@ const linkTargetsDropped = (markdown: string) => markdown.replace(/\]\([^)]*\)/g
 const visibleCopy = (slug: string, path: string) =>
   REFERENCE_SLUGS.includes(slug) ? linkTargetsDropped(readText(path)) : readText(path);
 
-// npm and GitHub render the README in full, so it carries the pitch and the links, and the docs pages carry the rest.
+// npm and GitHub render the README in full, so it carries the pitch and the links, and the guide carries the rest.
 describe('the README', () => {
   it(`stays under ${README_LIMIT} bytes`, () => {
     expect(statSync(README).size).toBeLessThan(README_LIMIT);
   });
 
-  it('links each docs page it names to a source the docs site lays out', () => {
+  it('links each docs page it names to a page of the guide', () => {
     const slugs = linkedSlugs(readme);
     expect(slugs.length).toBeGreaterThan(0);
-    expect(slugs.filter((slug) => !existsSync(join(docsDir, `${slug}.md`)))).toEqual([]);
+    expect(slugs.filter((slug) => !guide.includes(slug))).toEqual([]);
   });
 
   it('links the hero animation from the folder the docs site serves', () => {
@@ -62,17 +64,18 @@ describe('the README', () => {
   });
 });
 
-describe('the README and the docs sources', () => {
-  it('link only docs pages that have a source', () => {
-    const missing = pages.flatMap(({ path }) =>
-      linkedSlugs(readText(path)).filter((slug) => !existsSync(join(docsDir, `${slug}.md`))),
-    );
+describe('the README and the reference pages', () => {
+  it('link only pages of the guide', () => {
+    const missing = pages.flatMap(({ path }) => linkedSlugs(readText(path)).filter((slug) => !guide.includes(slug)));
     expect(missing).toEqual([]);
   });
 
-  it('link only anchors that a heading of the linked page gives', () => {
+  // The guide's other pages are written at quoincloud.com, whose tests check the README's anchors into them.
+  it('link only anchors that a heading of a reference page here gives', () => {
     const missing = pages.flatMap(({ path }) =>
-      linkedAnchors(readText(path)).filter(({ slug, anchor }) => !anchorsOf(slug).includes(anchor)),
+      linkedAnchors(readText(path))
+        .filter(({ slug }) => existsSync(join(docsDir, `${slug}.md`)))
+        .filter(({ slug, anchor }) => !anchorsOf(slug).includes(anchor)),
     );
     expect(missing).toEqual([]);
   });
@@ -87,14 +90,5 @@ describe('the README and the docs sources', () => {
 
   it.each(pages.map(({ slug, path }) => [slug, path]))('%s names no source or test file of the repository', (slug, path) => {
     expect(visibleCopy(slug, path)).not.toMatch(REPOSITORY_FILE);
-  });
-});
-
-describe('the controlled contract page', () => {
-  it('gives the number of reported changes a structural copy is recognised within', () => {
-    const contract = readText(join(docsDir, 'contract.md'));
-    const windows = [...contract.matchAll(/last (\d+) changes/g)].map(([, n]) => Number(n));
-    expect(windows.length).toBeGreaterThan(0);
-    expect(windows.every((n) => n === STRUCTURAL_ECHO_WINDOW)).toBe(true);
   });
 });

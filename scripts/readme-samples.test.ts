@@ -2,19 +2,15 @@ import { catalogue } from '../src/catalogue';
 import { coreBlockSpecs } from '../src/engine';
 import type { ExtensionUI } from '../src/extensions/ui-types';
 import { codeSamples, readText, samplePages } from './docs-sources.mjs';
+import { blockDefinitions } from './sample-blocks.mjs';
 
 const samples = samplePages().flatMap(({ path }) => codeSamples(readText(path)).map(({ code }) => code));
-const definitions = samples.flatMap((code) =>
-  [...code.matchAll(/defineBlock(?:<[^>]*>)?\(\{\s*type: '([^']+)',\s*label: '([^']+)'/g)].map(([, type, label]) => ({
-    type,
-    label,
-  })),
-);
+const definitions = samples.flatMap((code) => blockDefinitions(code));
 
 // A host copying a sample next to the catalogue would otherwise find its block drawn by a feature, or listed twice.
 describe('the custom blocks of the README and docs samples', () => {
   it('each take a type no built-in or opt-in block has', () => {
-    expect(definitions.length).toBeGreaterThan(0);
+    expect(definitions.filter(({ type }) => type !== undefined).length).toBeGreaterThan(0);
     const builtIn = new Set(coreBlockSpecs.map(({ type }) => type));
     expect(definitions.filter(({ type }) => builtIn.has(type))).toEqual([]);
   });

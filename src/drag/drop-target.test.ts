@@ -61,4 +61,8 @@ describe('computeDropTarget', () => {
   it('falls back to the top of the first block when every block is dragged', () => {
     expect(target(START, 50, [block('a', 10, 0, true)])).toEqual({ index: 0, indent: 0, lineTop: 10, lineStart: START });
   });
+
+  it('has no target when no block is drawn', () => {
+    expect(target(START, 50, [])).toBeNull();
+  });
 });

@@ -30,8 +30,10 @@ function nearestGap(blocks: readonly DropCandidate[], pointerY: number): number 
 /**
  * The gap among the blocks not being dragged that a drop at the pointer lands in, and the indent it takes there: one
  * level for every step the pointer is past the start of the block above, rightwards or, on right-to-left lines, leftwards.
+ * Null when no block is drawn.
  */
-export function computeDropTarget({ pointerX, pointerY, blocks, indentStep, direction }: DropTargetInput): DropTarget {
+export function computeDropTarget({ pointerX, pointerY, blocks, indentStep, direction }: DropTargetInput): DropTarget | null {
+  if (blocks.length === 0) return null;
   const staying = blocks.filter((block) => !block.dragged);
   if (staying.length === 0) return { index: 0, indent: 0, lineTop: blocks[0].top, lineStart: blocks[0].start };
   const index = nearestGap(staying, pointerY);

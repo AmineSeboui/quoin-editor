@@ -65,6 +65,7 @@ function followPress(press: HandlePress, root: HTMLElement, view: Window): () =>
     const { indentStep, blocks, direction } = layout;
     const target = computeDropTarget({ pointerX: layout.draggedStart + dx, pointerY, blocks, indentStep, direction });
     overlay.follow(dx, pointer.y - press.y);
+    if (target === null) return;
     overlay.mark({ top: target.lineTop, ...spanBetween(target.lineStart, layout.end) });
     if (!sameTarget(active.target, target)) {
       store.set({ drag: { blockIds: ids, targetIndent: target.indent } });

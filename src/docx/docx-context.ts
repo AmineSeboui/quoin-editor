@@ -1,6 +1,6 @@
 import type { Heading } from '../engine/render/headings';
 import type { Schema } from '../engine/schema/types';
-import type { LoadedImage } from './images';
+import type { LoadedImage } from '../export/images';
 
 export type Relationship = { readonly id: string; readonly kind: 'hyperlink' | 'image'; readonly target: string };
 

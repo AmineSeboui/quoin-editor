@@ -68,7 +68,7 @@ What `onChange` hands you, and what you store:
 | `quoin-editor/yjs`, `/presence` | Real-time co-editing through your own Yjs provider, and collaborators' carets |
 | `quoin-editor/comments` | Comment threads anchored to text, kept in your store |
 | `quoin-editor/ai` | Your model's answers streamed into the document; Quoin never calls a model |
-| `quoin-editor/view`, `/diff`, `/docx` | Server rendering with no hooks, a diff of two versions, a Word export |
+| `quoin-editor/view`, `/diff`, `/docx`, `/pdf` | Server rendering with no hooks, a diff of two versions, a Word export and a PDF export |
 | `quoin-editor/locale-ar`, `/locale-de`, `/locale-es`, `/locale-fr`, `/locale-ja`, `/locale-pt`, `/locale-zh` | Every string the editor shows, in that language |
 | `quoin-editor/headless`, `/engine` | The editor without the canvas UI, and the engine alone with no React |
 
@@ -130,7 +130,7 @@ Sources, checked on 2026-11-05: Tiptap [persistence][tt-store], [markdown][tt-md
 - [Custom blocks](https://quoincloud.com/docs/editor/custom-blocks) and [uploads](https://quoincloud.com/docs/editor/uploads)
 - [Extensions](https://quoincloud.com/docs/editor/extensions): every opt-in feature, and writing your own
 - [Collaboration](https://quoincloud.com/docs/editor/collaboration), [comments](https://quoincloud.com/docs/editor/comments) and [AI](https://quoincloud.com/docs/editor/ai)
-- [Server rendering](https://quoincloud.com/docs/editor/server-rendering): read-only, `QuoinView`, `QuoinDiff`, `toDocx`
+- [Server rendering](https://quoincloud.com/docs/editor/server-rendering): read-only, `QuoinView`, `QuoinDiff`, `toDocx`, `toPdf`
 - [Accessibility](https://quoincloud.com/docs/editor/accessibility): what each test suite checks, and what it does not yet
 - [FAQ](https://quoincloud.com/docs/editor/faq): the package name, stability, React versions, and [upgrading to 2.0](MIGRATION.md#migrating-from-1x-to-20)
 

@@ -72,6 +72,8 @@ export const packageEntries = [
   // Word documents written in a browser, a worker or Node, loaded alone like the view: most of it is the block reading.
   { name: 'docx', source: 'src/docx/index.ts', client: false, total: 25_891 },
   ...localeEntries,
+  // PDF files written in a browser, a worker or Node, loaded alone like the Word export, which shares its block reading.
+  { name: 'pdf', source: 'src/pdf/index.ts', client: false, total: incrementalBudget(32_870) },
   // Measured as what it adds to the main entry, like a feature: the engine entry it loads is a part of the main entry.
   { name: 'yjs', source: 'src/yjs.ts', client: false, added: incrementalBudget(8_498) },
   // Collaborators drawn in the canvas: a client entry, apart from the adapter, which a worker or a server can load alone.

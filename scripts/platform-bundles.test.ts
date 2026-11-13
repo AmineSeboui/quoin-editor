@@ -7,13 +7,14 @@ import { entryBundle } from './measure-size.mjs';
 const root = resolve(__dirname, '..');
 const CORE = ['index', 'headless', 'engine'];
 
-// Words only each entry's own code holds: the classes it draws and, for the Word export, the parts of its file.
+// Words only each entry's own code holds: the classes it draws and, for the exports, the parts of their files.
 const OWN: Record<string, readonly string[]> = {
   comments: ['quoin-comments-rail', 'quoin-comment-pending'],
   ai: ['quoin-ai-ghost', 'quoin-ai-replaced'],
   view: ['quoin-view'],
   diff: ['quoin-diff', 'data-diff'],
   docx: ['wordprocessingml', 'word/document.xml'],
+  pdf: ['/FlateDecode', 'Identity-H'],
 };
 
 const files = [...CORE, ...Object.keys(OWN)].map((name) => `${name}.js`);

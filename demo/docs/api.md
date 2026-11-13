@@ -51,6 +51,8 @@ From `quoin-editor/diff`: `QuoinDiff` with its `QuoinDiffProps` and `DiffLabels`
 
 From `quoin-editor/docx`: `toDocx` with its `DocxOptions` and `FetchAsset` types. It has no `'use client'` banner, needs no DOM and loads no React.
 
+From `quoin-editor/pdf`: `toPdf` with its `PdfOptions`, `PdfFonts`, `PdfFontData`, `PdfFontRole`, `PdfMargin`, `PdfPageSize`, `PdfProblem` and `FetchAsset` types. Like the Word export it has no `'use client'` banner, needs no DOM and loads no React.
+
 From `quoin-editor/catalogue`: `catalogue`, every opt-in feature at once.
 
 From `quoin-editor/styles.css`: the stylesheet, opt-in features included.

@@ -1,6 +1,6 @@
 ---
 title: Read-only and server rendering
-description: Draw a document read-only on the canvas, in a React Server Component with QuoinView, as a diff of two versions with QuoinDiff, or as a Word file with toDocx.
+description: Draw a document read-only on the canvas, in a React Server Component with QuoinView, as a diff of two versions with QuoinDiff, or as a Word file with toDocx or a PDF with toPdf.
 ---
 
 # Read-only and server rendering
@@ -99,3 +99,63 @@ export async function downloadDocx(blocks: QuoinBlock[]): Promise<void> {
 Headings take Word's Heading 1 to Heading 6 styles and the table of contents links to them. Bullet and numbered lists are Word lists, nested by their indent, each numbered list starting at its own first number; a task is a checkbox character and its text. Quotes take the Quote style, code a monospace style with its line breaks, and math its source in a monospace run. A callout is a shaded table of one cell, a divider a paragraph with a bottom border, and a toggle its summary followed by what it holds. Bold, italic, underline, strike, inline code, subscript, superscript, text colour, highlight and background become run properties; links to an absolute `http` or `https` address with a host (`https://example.com`, not `http:foo` or `http://?x`), or to a `mailto` or `tel` address, become hyperlinks, and any other link is written as its text with its marks: an unsafe address (such as `javascript:`), a relative one (Word would resolve it against the file's folder) unless you pass `baseUrl`, a network path such as `\\host\share` or `//host/x` (Word would open it as a share), and a `mention:` link. Comments export as their plain text: the file holds no Word comments. Files, embeds and bookmarks become links under the same rule, so a file whose `resolveAssetUrl` address is relative, such as `/files/report.pdf`, is written as its name. Pass `baseUrl`, the absolute `http` or `https` address of the page the document comes from (such as `location.href`; any other base is ignored, and a user and password in it are left out), and a relative path is read against it, as the browser reads it on that page, and linked when it then is an `http` or `https` address with a host: `/files/report.pdf` with `baseUrl: 'https://app.example/doc/1'` links to `https://app.example/files/report.pdf`. An address that names its scheme, such as `http:foo`, is never read against it, nor is a network path (`//host/x`, `\\host\share` or `/\host`) or a fragment such as `#top`: each stays text, as without `baseUrl`, and so does an empty link. Code keeps its tabs and its line breaks, whether written as LF, CRLF or CR. A block type Quoin does not know is written as its type in brackets and its plain text, when its spec gives one.
 
 Pictures are fetched from the address `resolveAssetUrl` gives (or their own `url`) through `fetchAsset`, the global `fetch` by default, four at a time (`imageConcurrency`), and drawn at the size their PNG, JPEG, GIF or WebP header gives, shrunk to the page width or set to their width percent. One that fails, answers with an error status, is no such picture or takes longer than `imageTimeout` milliseconds (10,000 by default; `Infinity`, a negative number, NaN or more than 2,147,483,647 waits that longest time, about 24.8 days) is replaced by its alt text, and the export goes on. WebP pictures are written as WebP, which Word 2019 and Microsoft 365 show and older Word versions replace with a placeholder. Parts are deflated through `CompressionStream` where the runtime offers it and stored otherwise; either way the archive is a standard zip.
+
+## Exporting to PDF
+
+`quoin-editor/pdf` writes a document as a PDF with no dependency, in a browser, a worker or Node 18 and later. Like the Word export it needs no DOM, carries no `'use client'` banner and loads no React.
+
+```ts
+import type { QuoinBlock } from 'quoin-editor/engine';
+import { toPdf, type PdfProblem } from 'quoin-editor/pdf';
+
+export async function downloadPdf(blocks: QuoinBlock[]): Promise<PdfProblem[]> {
+  const problems: PdfProblem[] = [];
+  const blob = await toPdf(blocks, {
+    title: 'Release notes',
+    resolveAssetUrl: (key) => `/files/${key}`,
+    baseUrl: location.href,
+    onProblem: (problem) => problems.push(problem),
+  });
+  const link = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'notes.pdf' });
+  link.click();
+  URL.revokeObjectURL(link.href);
+  return problems;
+}
+```
+
+It reads the blocks as the Word export does. Headings are bold, from 18 points for a first level heading down to 11, and make the outline a reader lists beside the pages; the table of contents links to them. Bullets are discs, circles and squares by level, numbered items count from each list's first number in decimals, then letters, then roman numerals by level, and a task is a checkbox, filled and ticked once done. Quotes are grey and italic beside a bar, code is Courier on a grey ground with its line breaks and its tabs stopped every four columns, a callout is its icon and body on the ground of its tone, a divider a rule, and a toggle its summary followed by what it holds. A table has equal columns and borders, its header row bold and shaded and each cell wrapped in its column's alignment. Math is its source in Courier, and a block type Quoin does not know its type in brackets and its plain text. Bold and italic take the bold and oblique faces, inline code Courier on grey, subscripts and superscripts are smaller and lowered or raised, and underline, strike, text colour, highlight and background are drawn as the canvas draws them. Links follow the Word export's rule, `baseUrl` included, and become link annotations over their text; a character outside ASCII in an address is written percent-encoded. The same blocks and options always give the same bytes.
+
+Pages are A4 unless `pageSize` is `'letter'`, with `margin` points of margin, 72 (an inch) by default: one number for every side or `{ top, right, bottom, left }`, each side left out keeping 72. A side that is negative or no number keeps 72 too, and margins that would leave less than an inch of text across or down are reduced in proportion. Blocks flow from page to page and a page breaks between two lines, never inside one; a heading moves to the next page with the line that follows it, and a picture with its caption. The ground of a callout or of code is drawn again on each page it reaches. A table breaks between its rows, and a row taller than a page between the lines of its cells; its header row is not drawn again on the next page. Pages have no header, footer or number. `title` goes into the document properties, and a reader shows it in place of the file name.
+
+### Fonts and scripts
+
+Text is drawn in Helvetica, with its bold and oblique faces, and code in Courier: the standard fonts every PDF reader carries, so nothing is embedded and the file stays small. Each line is laid out with the real width of every letter. These fonts draw Latin text only, the characters of the Windows Western character set: the letters of Western European languages, typographic quotes and dashes, the euro sign and the ellipsis. A character they cannot draw, such as Greek, Cyrillic, Chinese, Japanese, Korean or an emoji, is drawn as an empty box, never as another character, and reported to `onProblem`.
+
+For any other text, pass `fonts`: TrueType files (`.ttf`), as a `Uint8Array` or an `ArrayBuffer`, for `regular`, `bold`, `italic` and `mono`, each optional.
+
+```ts
+import type { QuoinBlock } from 'quoin-editor/engine';
+import { toPdf } from 'quoin-editor/pdf';
+
+export async function japanesePdf(blocks: QuoinBlock[]): Promise<Blob> {
+  const font = (path: string) => fetch(path).then((response) => response.arrayBuffer());
+  const [regular, bold] = await Promise.all([font('/fonts/NotoSansJP-Regular.ttf'), font('/fonts/NotoSansJP-Bold.ttf')]);
+  return toPdf(blocks, { fonts: { regular, bold } });
+}
+```
+
+A character takes the host face of its style when it has the character, then the host's regular face with bold drawn outlined and italic slanted, then the standard font. Code takes the `mono` face, then Courier, then the regular face. Each font is embedded whole, with the width of each glyph it draws and a map from its glyphs back to their characters, so the text can be selected, copied and searched. It is not cut down to the glyphs the document uses, so the file grows by about the size of each font: a font that covers Chinese and Japanese can add several megabytes. A font collection (`.ttc`), an OpenType font with PostScript outlines (`.otf`), a WOFF or WOFF2 web font, or a font whose licence forbids embedding it is left out and reported, and the text falls back as though it had not been given.
+
+The export has no shaping engine. Chinese and Japanese need none: with a font that has their characters they are drawn as written, and a line breaks between any two characters, though never before a closing bracket or punctuation mark, while Korean breaks between words. Arabic and Hebrew are written right to left, Arabic letters join their neighbours, and Devanagari, Bengali, Tamil, Thai and the other scripts of South and South East Asia compose their letters into clusters: this export does none of that, so such text comes out in the wrong order or with its letters apart even with a font that has every glyph. For documents in those scripts, print the read-only view from a browser instead.
+
+### Pictures and problems
+
+Pictures are fetched as the Word export fetches them, through `resolveAssetUrl`, `fetchAsset`, `imageConcurrency` and `imageTimeout`, and drawn at 96 pixels to the inch, shrunk to the text width and to the height of a page, or set to their width percent, and placed by their alignment. A JPEG is embedded as it is, grey, RGB or CMYK. A PNG is decoded, whatever its colour type, bit depth or interlacing, and its transparency kept. A GIF or a WebP, which a PDF cannot hold, a PNG that cannot be read or holds more than 40 million pixels, and a picture that fails to load are drawn as their alt text.
+
+`onProblem` hears of each thing the export could not draw as the document holds it, and the export goes on:
+
+- `{ type: 'glyphs', blockId, characters }`, once for each block holding characters no font draws, after the layout;
+- `{ type: 'image', blockId, url, reason }`, where `reason` is `'unavailable'` for a picture that failed to load, took too long or is no picture, and `'format'` for one a PDF cannot hold;
+- `{ type: 'font', role, reason }`, where `reason` is `'format'` for a file that is no TrueType font this export embeds and `'restricted'` for one whose licence forbids embedding.
+
+Streams are deflated through `CompressionStream` and PNG pictures inflated through `DecompressionStream`, which Node 18 and current browsers offer. Where the runtime lacks the first, the file is written uncompressed; where it lacks the second, a PNG is drawn as its alt text. The file carries no tags for assistive technology, so a screen reader reads its text in the order it is drawn.

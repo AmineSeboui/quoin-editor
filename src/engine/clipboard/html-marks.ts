@@ -34,6 +34,7 @@ function fontAttributes(element: Element): string {
 
 export function elementMarks(element: Element, inherited: readonly Mark[]): readonly Mark[] {
   const tag = tagName(element);
+  const pageStyle = isFragmentRoot(element);
   const styles = parseStyle((tag === 'font' ? fontAttributes(element) : '') + (element.getAttribute('style') ?? ''));
   let marks = inherited;
   const add = (mark: Mark) => {
@@ -56,17 +57,16 @@ export function elementMarks(element: Element, inherited: readonly Mark[]): read
   if (tag === 's' || tag === 'del' || tag === 'strike' || hasDecoration(styles, 'line-through')) {
     add({ type: 'strike' });
   }
-  if (CODE_TAGS.has(tag) || isMonospace(styles)) add({ type: 'code' });
+  if (CODE_TAGS.has(tag) || (!pageStyle && isMonospace(styles))) add({ type: 'code' });
   const align = verticalAlign(styles);
   if (tag === 'sub' || align === 'sub') add({ type: 'sub' });
   if (tag === 'sup' || align === 'super') add({ type: 'sup' });
   if (tag === 'mark') add(highlightMark(element));
 
-  const pageColors = isFragmentRoot(element);
-  const color = linked || pageColors ? null : nearestPaletteColor(styles.get('color') ?? '', 'text');
+  const color = linked || pageStyle ? null : nearestPaletteColor(styles.get('color') ?? '', 'text');
   if (color !== null) add({ type: 'color', attrs: { color } });
   const fill = styles.get('background-color') ?? styles.get('background') ?? '';
-  const background = pageColors ? null : nearestPaletteColor(fill, 'background');
+  const background = pageStyle ? null : nearestPaletteColor(fill, 'background');
   if (background !== null) add({ type: 'background', attrs: { color: background } });
   return marks;
 }

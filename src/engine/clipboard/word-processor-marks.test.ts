@@ -17,6 +17,8 @@ describe('fromHTML word processor marks', () => {
     ['<tt>x</tt>', '`x`'],
     ['<samp>x</samp>', '`x`'],
     ['<font face="Liberation Mono, monospace">x</font>', '`x`'],
+    ['<span style="font-family:\'Lucida Console\'">x</span>', '`x`'],
+    ['<span style="font-family:\'Monotype Corsiva\'">x</span>', 'x'],
     ['<font color="#c9211e">x</font>', '<span data-color="red">x</span>'],
     ['<font size="2">x</font>', 'x'],
     ['<span style="color:red">x</span>', '<span data-color="red">x</span>'],
@@ -26,4 +28,12 @@ describe('fromHTML word processor marks', () => {
     ['<span style="color:toString">x</span>', 'x'],
     ['x<span>&nbsp;</span>', 'x'],
   ])('maps %s', (html, expected) => expect(markdownOf(`<p>${html}</p>`)).toEqual([expected]));
+});
+
+describe('fromHTML page fonts', () => {
+  it('keeps the typeface of the page a selection was copied from out of the marks', () => {
+    expect(markdownOf('<div style="font-family: monospace"><p>a <span style="font-family: monospace">b</span></p></div>')).toEqual([
+      'a `b`',
+    ]);
+  });
 });

@@ -37,7 +37,7 @@ export function isItalicStyle(styles: StyleMap): boolean | null {
 
 const PRESERVING = new Set(['pre', 'pre-wrap', 'break-spaces']);
 const COLLAPSING = new Set(['normal', 'nowrap', 'pre-line']);
-const MONOSPACE = /mono|menlo|monaco|consolas|courier/;
+const MONOSPACE = /\bmono\b|monospace|menlo|monaco|consol|courier/;
 
 export function keepsWhitespace(styles: StyleMap): boolean | null {
   const value = styles.get('white-space');

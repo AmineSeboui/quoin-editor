@@ -76,14 +76,14 @@ What `onChange` hands you, and what you store:
 
 Each competitor cell links to the page that shows it; the Tiptap UI cell also draws on the review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73) (2026-10-12).
 
-| Feature | Quoin 2.0 | Tiptap 3 | BlockNote | Editor.js | Lexical | Plate |
+| Feature | Quoin 2.1 | Tiptap 3 | BlockNote | Editor.js | Lexical | Plate |
 | --- | --- | --- | --- | --- | --- | --- |
 | Stored document | Block array, markdown per text block | [JSON, or HTML][tt-store] | [Block JSON][bn-formats] | [JSON][ej-repo] | [Editor state, as JSON][lx-intro] | [Slate JSON][pl-docs] |
 | Markdown | The storage format | [`@tiptap/markdown`, an early release][tt-md] | [Export and import, documented as lossy][bn-formats] | [Community plugin][ej-awesome] | [`@lexical/markdown`, in and out][lx-md] | [`@platejs/markdown`, in and out][pl-md] |
 | Notion-style UI | Included, MIT | [MIT menus and drag handle][tt-review]; [Notion-like template on a paid plan][tt-notion] | [Included][bn-home] | [Toolbox and inline toolbar][ej-repo] | [None; you draw it][lx-intro] | [MIT components][pl-repo]; [Notion-like set on a paid licence][pl-pro] |
 | Licence | MIT | [MIT core, paid Pro extensions][tt-repo] | [MPL-2.0, `xl-*` packages GPL-3.0 or commercial][bn-repo] | [Apache-2.0][ej-repo] | [MIT][lx-repo] | [MIT, with paid Plus components][pl-pro] |
 | Real-time collaboration | Yjs, opt-in entry | [Yjs][tt-collab] | [Yjs][bn-collab] | [On its roadmap, in progress][ej-repo] | [Yjs][lx-collab] | [Yjs][pl-yjs] |
-| Comments | Opt-in, your store | [Paid plan][tt-comments] | [Built in, on Yjs or a thread store][bn-comments] | [Community plugin][ej-awesome] | [None shipped; a playground example][lx-repo] | [`@platejs/comment`, as text marks][pl-comment] |
+| Comments | Opt-in, on your store or on Yjs | [Paid plan][tt-comments] | [Built in, on Yjs or a thread store][bn-comments] | [Community plugin][ej-awesome] | [None shipped; a playground example][lx-repo] | [`@platejs/comment`, as text marks][pl-comment] |
 | Localization | Seven packs, every string | [None shipped; the UI is yours][tt-ui] | [24 locales built in][bn-i18n] | [An i18n API; you bring the words][ej-i18n] | [None shipped; it draws no UI][lx-repo] | [None shipped; the UI is yours][pl-docs] |
 | Framework | React | [React, Vue, Svelte, plain JavaScript and more][tt-install] | [React, or vanilla JS with your own UI][bn-vanilla] | [Plain JavaScript][ej-start] | [Any, with React bindings][lx-repo] | [React][pl-repo] |
 

@@ -7,7 +7,8 @@ const FINISHED: ReadonlySet<string | undefined> = new Set([undefined, FinishReas
 export function geminiStream(env: AiEnv, model: string): ModelStream {
   return async function* ({ system, user }, signal) {
     try {
-      const client = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
+      // The -latest model aliases exist only on v1beta, and @google/genai 3 defaults to v1.
+      const client = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY, apiVersion: 'v1beta' });
       const chunks = await client.models.generateContentStream({
         model,
         contents: user,

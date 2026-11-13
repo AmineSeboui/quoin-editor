@@ -32,7 +32,10 @@ test("cuts a long name off before the avatars' gutter", async ({ page }) => {
     while (last < text.length && topOf(last + 1) === topOf(1)) last++;
     return last - 1;
   });
-  await page.evaluate((offset) => window.__quoin.controller!.focus({ block: 'b', region: 'text', offset }), end);
+  // English words on a right to left line run on from the left, where the gutter is, so there the caret goes two
+  // letters into them rather than to the end of the first line, which is drawn on the right.
+  const nearGutter = rightToLeft() ? 2 : end;
+  await page.evaluate((offset) => window.__quoin.controller!.focus({ block: 'b', region: 'text', offset }), nearGutter);
   await expect(caretOf(bea, NAME)).toBeVisible();
   await expect(bea.getByRole('img', { name: `${NAME} is here` })).toBeVisible();
   // Measured along the line, from the side where it starts: on a right to left page the gutter is on the left.

@@ -1,6 +1,6 @@
 import { host } from '../../support/block';
 import { expect, test, type Page } from '@playwright/test';
-import { fromLineStart } from '../../support/direction';
+import { edgeX, fromLineStart } from '../../support/direction';
 import { blocks, openEditor } from '../../support/editor';
 import { phoneTest } from '../../support/phone';
 import { copyEvent } from '../../support/synthetic-events';
@@ -115,7 +115,7 @@ async function selectTitleAndParagraph(page: Page) {
   const to = (await host(page, 'p').boundingBox())!;
   await page.mouse.move(fromLineStart(from, 1), from.y + from.height / 2);
   await page.mouse.down();
-  await page.mouse.move(fromLineStart(to, to.width - 1), to.y + to.height / 2, { steps: 8 });
+  await page.mouse.move(edgeX(to, 1, true), to.y + to.height / 2, { steps: 8 });
   await page.mouse.up();
   await expect
     .poll(() => page.evaluate(() => getSelection()!.toString().replace(/\s+/g, ' ').trim()))

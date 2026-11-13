@@ -4,11 +4,12 @@ import { host } from '../../support/block';
 import { lineStart } from '../../support/direction';
 import { openEditor } from '../../support/editor';
 import { phoneTest } from '../../support/phone';
-import { selectFromStart } from '../../support/select-start';
+import { firstWordPoint } from '../../support/text-point';
 
 const serious = (page: Page) => axeViolations(page, 'serious', '.quoin');
 
-const selectFirstWord = (page: Page) => selectFromStart(host(page, 'p'), 'Keeps'.length);
+const selectFirstWord = async (page: Page) =>
+  host(page, 'p').dblclick({ position: await firstWordPoint(host(page, 'p')) });
 
 const STATES: Record<string, (page: Page) => Promise<void>> = {
   'at rest': async () => {},

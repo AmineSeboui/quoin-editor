@@ -2,8 +2,8 @@ import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
 import { blocks, caretSettled, openEditor } from '../../support/editor';
 import { markdownOf } from '../../support/markdown';
-import { backThroughText, backward, forward, lineEnd, lineStart, onThroughText } from '../../support/direction';
-import { caretPoint, firstWordPoint } from '../../support/text-point';
+import { backThroughText, backward, forward, lineEnd, onThroughText } from '../../support/direction';
+import { caretBefore, caretPoint, firstWordPoint } from '../../support/text-point';
 
 const hostOf = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
 const toolbar = (page: Page) => page.getByRole('toolbar', { name: 'Text formatting' });
@@ -90,9 +90,9 @@ test('applies the answer where edits made while it streamed moved its text, incl
   await askAboutFirstWord(page, 'fix');
   await ai.push(page, 'Mke');
   await expect(ghost(page)).toHaveText('Mke');
-  await hostOf(page, 'r').click({ position: await lineStart(hostOf(page, 'r'), 10) });
+  await hostOf(page, 'r').click({ position: await caretBefore(hostOf(page, 'r'), ' paragraph') });
   await caretSettled(page, hostOf(page, 'r'));
-  await page.keyboard.type('So, ');
+  await page.keyboard.type(',');
   await page.evaluate(() => window.__quoin.removeRemotely?.('q'));
   await ai.push(page, ' it');
   await ai.end(page);
@@ -101,7 +101,7 @@ test('applies the answer where edits made while it streamed moved its text, incl
   await expect(bar(page).getByRole('button', { name: 'Accept' })).toBeFocused();
   await page.keyboard.press('Enter');
   await expect.poll(() => markdownOf(page, 'p')).toBe('Mke it this sentence better.');
-  expect(await markdownOf(page, 'r')).toBe('So, Another paragraph after.');
+  expect(await markdownOf(page, 'r')).toBe('Another, paragraph after.');
 });
 
 test('shows a failed answer inline with Retry, which asks the same again', async ({ page }) => {

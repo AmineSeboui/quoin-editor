@@ -62,10 +62,10 @@ test('Bold toggles the selected word and shows whether it is on', async ({ page 
 
 test('Alt+F10 moves focus into the toolbar and Escape takes it back with the same selection', async ({ page }) => {
   await openEditor(page, 'drag');
-  await selectFromStart(host(page, 'b'), 3);
+  await doubleClickFirstWord(page, 'b');
   await expect(toolbar(page)).toBeVisible();
   const before = await domSelection(page);
-  expect(before.text).toBe('Bra');
+  expect(before.text).toBe('Bravo');
   await page.keyboard.press('Alt+F10');
   await expect(control(page, 'Turn into')).toBeFocused();
   await page.keyboard.press(forward());

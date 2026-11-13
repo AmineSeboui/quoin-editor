@@ -28,3 +28,11 @@ export function linkAtSelection(state: EditorState): LinkAtSelection | null {
   const { from, to } = orderedRange(state.doc, selection.anchor, selection.head);
   return linkAround(state, from, to);
 }
+
+/** Whether two answers name the same link over the same text, so a card drawn for one stays put for the other. */
+export function sameLink(a: LinkAtSelection | null, b: LinkAtSelection | null): boolean {
+  if (a === null || b === null) return a === b;
+  const [x, y] = [a.range, b.range];
+  const sameRange = x.block === y.block && x.region === y.region && x.from === y.from && x.to === y.to;
+  return sameRange && a.href === b.href && a.title === b.title;
+}

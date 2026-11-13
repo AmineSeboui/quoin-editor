@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo, useRef, type RefObject } from 'react';
+import { useCallback, useMemo, useRef, type RefObject } from 'react';
 import type { CanvasUiStore } from '../../canvas/ui-store';
-import { sanitizeHref, textSelection } from '../../engine';
+import { sanitizeHref, textSelection, type EditorState } from '../../engine';
 import { shortcutHint } from '../../gutter/shortcut-hint';
 import type { QuoinLabels } from '../../i18n/labels';
 import { ExternalLink, Pencil, Unlink } from '../../icons';
@@ -10,11 +10,11 @@ import { Button } from '../../ui/button';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
 import { preventDefault } from '../../ui/prevent-default';
 import type { ViewController } from '../../view';
-import { useEditorState, wholeState } from '../../view/react/use-editor-state';
+import { useEditorState } from '../../view/react/use-editor-state';
 import { keepFocus } from '../floating/keep-focus';
 import { rangeRect } from '../floating/range-rect';
 import { virtualAnchor } from '../floating/virtual-anchor';
-import { linkAtSelection } from './link-at-selection';
+import { linkAtSelection, sameLink } from './link-at-selection';
 import { linkAtElement } from './link-element';
 import { truncateMiddle } from './truncate-middle';
 import { unlinkRange } from './unlink-range';
@@ -37,11 +37,11 @@ type LinkCardProps = LinkHoverCardProps & {
 };
 
 function LinkCard({ controller, labels, store, cardRef, element, onUnlinked }: LinkCardProps) {
-  const state = useEditorState(controller, wholeState);
-  const link = useMemo(
-    () => (element === null ? linkAtSelection(state) : linkAtElement(controller, state, element)),
-    [controller, state, element],
+  const select = useCallback(
+    (state: EditorState) => (element === null ? linkAtSelection(state) : linkAtElement(controller, state, element)),
+    [controller, element],
   );
+  const link = useEditorState(controller, select, sameLink);
   const anchor = useMemo(() => {
     if (link === null) return { current: null };
     const { range } = link;

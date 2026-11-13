@@ -4,7 +4,7 @@ import { renderToString } from 'react-dom/server';
 import { toHTML } from '../../engine';
 import { QuoinView } from '../../view-static/QuoinView';
 import type { QuoinBlock } from '../../types';
-import { mountCanvas } from '../void/test-canvas';
+import { mountCanvas } from '../test-support/test-canvas';
 
 const resolveAssetUrl = (key: string) => `/cdn/${key}`;
 const image = (data: Record<string, unknown> = {}): QuoinBlock => ({

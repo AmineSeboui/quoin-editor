@@ -1,5 +1,5 @@
 import { act, fireEvent, screen } from '@testing-library/react';
-import { bookmarkBlock, mountCanvas, paragraph } from '../blocks/void/test-canvas';
+import { bookmarkBlock, mountCanvas, paragraph } from '../blocks/test-support/test-canvas';
 import { defineExtension } from '../engine';
 import type { ExtensionUI } from '../extensions/ui-types';
 import type { QuoinBlock } from '../types';
@@ -54,6 +54,19 @@ describe('a block the canvas selects as a whole', () => {
     const { nodeSelect, sink } = mountCanvas([bookmarkBlock('b', `${'x'.repeat(78)}\u{1F600}${'y'.repeat(10)}`)]);
     nodeSelect('b');
     expect(sink().getAttribute('aria-label')).toBe(`${'x'.repeat(78)}\u{1F600}\u2026`);
+  });
+
+  it('counts and clips its text by what a reader sees as one character, never inside a cluster of them', () => {
+    const family = '\u{1F468}\u200d\u{1F469}\u200d\u{1F467}';
+    const flag = '\u{1F1EB}\u{1F1F7}';
+    const { nodeSelect, sink } = mountCanvas([
+      bookmarkBlock('b', `${'x'.repeat(78)}${family}${'y'.repeat(10)}`),
+      bookmarkBlock('f', flag.repeat(80)),
+    ]);
+    nodeSelect('b');
+    expect(sink().getAttribute('aria-label')).toBe(`${'x'.repeat(78)}${family}\u2026`);
+    nodeSelect('f');
+    expect(sink().getAttribute('aria-label')).toBe(flag.repeat(80));
   });
 
   it('is named in the labels the host gave the canvas', () => {

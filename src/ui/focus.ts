@@ -8,5 +8,8 @@ export const FOCUS_RING = [
 ].join(' ');
 
 /** An inset bar that marks the highlighted row of a Radix menu or select, so the row is not
- *  told apart from its neighbours by background colour alone. */
-export const HIGHLIGHT_BAR = 'data-[highlighted]:shadow-[inset_2px_0_0_var(--quoin-ring)]';
+ *  told apart from its neighbours by background colour alone. It sits on the side the row's text starts from. */
+export const HIGHLIGHT_BAR = [
+  'data-[highlighted]:shadow-[inset_2px_0_0_var(--quoin-ring)]',
+  'rtl:data-[highlighted]:shadow-[inset_-2px_0_0_var(--quoin-ring)]',
+].join(' ');

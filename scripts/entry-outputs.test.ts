@@ -70,11 +70,11 @@ describe('the package entry list', () => {
       .filter((entry) => entry.total !== undefined && !localeEntries.includes(entry))
       .map(({ name, total }) => [name, total]);
     expect(totals).toEqual([
-      ['index', 157_000],
-      ['headless', 73_000],
-      ['engine', 52_600],
+      ['index', 159_500],
+      ['headless', 76_600],
+      ['engine', 54_900],
       ['view', 22_214],
-      ['diff', 26_961],
+      ['diff', 26_990],
       ['docx', 25_891],
     ]);
     expect(packageEntries[3]).toMatchObject({ source: 'src/view-static/index.ts', client: false });

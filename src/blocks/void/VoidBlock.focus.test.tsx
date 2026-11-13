@@ -1,9 +1,10 @@
+import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { act, fireEvent, screen } from '@testing-library/react';
 import { nodeSelection } from '../../engine';
 import { Sticker } from '../../icons';
 import { defineBlock } from '../../registry';
-import { bookmarkBlock, mountCanvas, paragraph, testBlockTypes } from './test-canvas';
+import { bookmarkBlock, mountCanvas, paragraph, testBlockTypes } from '../test-support/test-canvas';
 
 const pickerNote = defineBlock({
   type: 'PICKER_NOTE',
@@ -22,6 +23,42 @@ const pickerNote = defineBlock({
   ),
   preview: () => <p>Picker note</p>,
 });
+
+const lateDone: { current?: () => void } = {};
+
+const lateNote = defineBlock({
+  type: 'LATE_NOTE',
+  label: 'Late note',
+  icon: Sticker,
+  editor: function LateEditor({ onDone }) {
+    useEffect(() => {
+      lateDone.current = onDone;
+    });
+    return <input aria-label="Late field" />;
+  },
+  preview: () => <p>Late note</p>,
+});
+
+const overlayNote = (role: string) =>
+  defineBlock({
+    type: 'OVERLAY_NOTE',
+    label: 'Overlay note',
+    icon: Sticker,
+    editor: () => (
+      <div>
+        <input aria-label="Overlay field" />
+        {createPortal(
+          <div role={role} aria-label="Opened">
+            <button type="button" role={role === 'listbox' ? 'option' : undefined} aria-selected="false" tabIndex={0}>
+              Inside
+            </button>
+          </div>,
+          document.body,
+        )}
+      </div>
+    ),
+    preview: () => <p>Overlay note</p>,
+  });
 
 function pageOverlay(role: string) {
   const overlay = document.body.appendChild(document.createElement('div'));
@@ -79,6 +116,17 @@ describe('VoidBlock editing ends', () => {
     expect(screen.queryByRole('textbox', { name: 'Note field' })).not.toBeNull();
   });
 
+  it.each(['alertdialog', 'listbox'])('not on a press or focus inside a portalled %s the editor opened', (role) => {
+    const blocks = [paragraph('a', 'above'), { id: 'n', type: 'OVERLAY_NOTE', data: {} }];
+    const { nodeSelect, press } = mountCanvas(blocks, { blockTypes: [...testBlockTypes, overlayNote(role)] });
+    nodeSelect('n');
+    press('Enter');
+    const inside = screen.getByText('Inside');
+    fireEvent.pointerDown(inside);
+    act(() => inside.focus());
+    expect(screen.queryByRole('textbox', { name: 'Overlay field' })).not.toBeNull();
+  });
+
   it.each(['dialog', 'menu'])('when the pointer goes down in a %s another part of the page opened', (role) => {
     openBookmark();
     const { overlay } = pageOverlay(role);
@@ -104,6 +152,43 @@ describe('VoidBlock editing ends', () => {
     expect(urlField()).toBeNull();
     expect(selection()).toEqual(nodeSelection('b'));
     expect(document.activeElement).toBe(sink());
+  });
+
+  it('not again from an onDone the editor calls once it has closed, which leaves the selection and focus alone', () => {
+    const blocks = [paragraph('a', 'above'), { id: 'n', type: 'LATE_NOTE', data: {} }, paragraph('c', 'below')];
+    const { nodeSelect, press, handle, selection, shell } = mountCanvas(blocks, {
+      blockTypes: [...testBlockTypes, lateNote],
+    });
+    nodeSelect('n');
+    press('Enter');
+    act(() => handle().focus({ block: 'c', region: 'text', offset: 1 }));
+    expect(screen.queryByRole('textbox', { name: 'Late field' })).toBeNull();
+    act(() => lateDone.current?.());
+    expect(selection()).toMatchObject({ kind: 'text', head: { block: 'c', offset: 1 } });
+    expect(document.activeElement).toBe(shell('c').querySelector('[data-quoin-host]'));
+  });
+
+  it('when the pointer goes down on a page element that keeps the press from propagating', async () => {
+    openBookmark();
+    const { overlay } = pageOverlay('region');
+    overlay.addEventListener('pointerdown', (event) => event.stopPropagation());
+    fireEvent.pointerDown(overlay);
+    await act(() => new Promise((resolve) => setTimeout(resolve)));
+    expect(urlField()).toBeNull();
+    overlay.remove();
+  });
+
+  it('not when a press inside an overlay it opened is kept from propagating', async () => {
+    const { nodeSelect, press } = mountCanvas([paragraph('a', 'above'), { id: 'n', type: 'PICKER_NOTE', data: {} }], {
+      blockTypes: [...testBlockTypes, pickerNote],
+    });
+    nodeSelect('n');
+    press('Enter');
+    const picker = screen.getByTestId('picker');
+    picker.addEventListener('pointerdown', (event) => event.stopPropagation());
+    fireEvent.pointerDown(picker);
+    await act(() => new Promise((resolve) => setTimeout(resolve)));
+    expect(screen.queryByRole('textbox', { name: 'Note field' })).not.toBeNull();
   });
 
   it('when the editor inserts a block after its own, whose editor opens with focus', () => {

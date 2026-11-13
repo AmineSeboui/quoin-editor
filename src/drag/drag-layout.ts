@@ -1,11 +1,9 @@
+import { isClosedToggle } from '../engine/commands/collapsed-toggle';
 import { movedBlockIds } from '../engine/commands/move-blocks-to';
 import { inlineDirection, type InlineDirection } from '../ui/direction';
 import type { ViewController } from '../view';
 import { visibleBlockIndexes } from '../view/navigation/visible-blocks';
 import type { DropCandidate } from './drop-target';
-
-// The margin a shell takes per level of indent in view.css.
-const INDENT_STEP_REM = 1.5;
 
 export type DragBox = { top: number; left: number; width: number };
 
@@ -35,27 +33,54 @@ export function rootOrigin(root: HTMLElement): { x: number; y: number } {
 /** The horizontal span between two x positions, whichever side each is on. */
 export const spanBetween = (a: number, b: number) => ({ left: Math.min(a, b), width: Math.abs(b - a) });
 
-function indentStep(doc: Document): number {
-  return (parseFloat(getComputedStyle(doc.documentElement).fontSize) || 16) * INDENT_STEP_REM;
+const leadingMargin = (element: HTMLElement, rtl: boolean) =>
+  parseFloat(getComputedStyle(element)[rtl ? 'marginRight' : 'marginLeft']) || 0;
+
+// Read from bare copies of a shell at two depths, so a drop nests by whatever the page's stylesheet indents a level by.
+// Copies rather than the shell itself, whose margin a transition would hold still. A page that draws no indent still
+// nests by an em of travel.
+function indentStep(shell: HTMLElement, rtl: boolean): number {
+  const copies = [0, 1].map((depth) => {
+    const copy = shell.cloneNode(false) as HTMLElement;
+    copy.removeAttribute('id');
+    copy.removeAttribute('data-block-id');
+    copy.style.setProperty('--quoin-indent', String(depth));
+    copy.style.display = 'none';
+    return copy;
+  });
+  shell.after(...copies);
+  const [flat, nested] = copies.map((copy) => leadingMargin(copy, rtl));
+  for (const copy of copies) copy.remove();
+  return nested > flat ? nested - flat : parseFloat(getComputedStyle(shell).fontSize) || 16;
 }
 
 function inlineEdges(shell: HTMLElement, box: DOMRect, rtl: boolean): { start: number; end: number } {
-  const style = getComputedStyle(shell);
-  if (rtl) return { start: box.right + (parseFloat(style.marginRight) || 0), end: box.left };
-  return { start: box.left - (parseFloat(style.marginLeft) || 0), end: box.right };
+  const margin = leadingMargin(shell, rtl);
+  return rtl ? { start: box.right + margin, end: box.left } : { start: box.left - margin, end: box.right };
 }
 
 function measure(controller: ViewController, root: HTMLElement, moved: ReadonlySet<string>, rtl: boolean): Measured[] {
   const { doc } = controller.editor.state;
   const origin = rootOrigin(root);
   return visibleBlockIndexes(doc).flatMap((index) => {
-    const { id, indent } = doc.blocks[index];
-    const shell = controller.blockElement(id);
+    const block = doc.blocks[index];
+    const shell = controller.blockElement(block.id);
     if (shell === undefined) return [];
     const box = shell.getBoundingClientRect();
     const { start, end } = inlineEdges(shell, box, rtl);
-    const [top, bottom] = [box.top - origin.y, box.bottom - origin.y];
-    return [{ id, top, bottom, start: start - origin.x, end: end - origin.x, indent, dragged: moved.has(id), shell }];
+    return [
+      {
+        id: block.id,
+        top: box.top - origin.y,
+        bottom: box.bottom - origin.y,
+        start: start - origin.x,
+        end: end - origin.x,
+        indent: block.indent,
+        dragged: moved.has(block.id),
+        hidesNested: isClosedToggle(block),
+        shell,
+      },
+    ];
   });
 }
 
@@ -73,7 +98,7 @@ export function measureDrag(controller: ViewController, root: HTMLElement, ids: 
   const [first] = dragged;
   const origin = rootOrigin(root);
   const viewport = root.ownerDocument.defaultView?.innerHeight ?? Infinity;
-  const step = indentStep(root.ownerDocument);
+  const step = indentStep(first.shell, rtl);
   const rest = doc.blocks.filter((block) => !moved.has(block.id));
   const restIndex = new Map(rest.map((block, index) => [block.id, index]));
   const staying = blocks.filter((block) => !block.dragged);

@@ -16,6 +16,7 @@
 @import "./ui/tokens.css" layer(quoin.base);
 @import "./view/view.css" layer(quoin.components);
 @import "./blocks/code/code-block.css" layer(quoin.components);
+@import "./blocks/block-message.css" layer(quoin.components);
 @import "./blocks/upload/upload-area.css" layer(quoin.components);
 @import "./blocks/image/image-block.css" layer(quoin.components);
 @import "./blocks/file/file-block.css" layer(quoin.components);
@@ -81,11 +82,6 @@
   .dark .quoin,
   .quoin.dark {
     color-scheme: dark;
-  }
-
-  .quoin ul,
-  .quoin ol {
-    list-style: none;
   }
 
   .quoin button,

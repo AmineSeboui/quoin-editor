@@ -36,6 +36,12 @@ describe('the text flavour of a copy', () => {
     expect(copiedText([table], { anchor: cell(0), head: cell(5) })).toBe('a_b c');
   });
 
+  it('writes the cells of a cell range a row to a line, their text separated by tabs', () => {
+    const grid: QuoinBlock = { id: 'g', type: 'TABLE', data: { rows: [['a', '**b**', 'c'], ['d', 'e', 'f'], ['g', 'h', 'i']] } };
+    const cell = (row: number, col: number) => ({ block: 0, offset: 0, region: `cell:${row}:${col}` });
+    expect(copiedText([grid], { anchor: cell(0, 1), head: cell(1, 2) })).toBe('b\tc\ne\tf');
+  });
+
   it('keeps markdown for a selection across blocks', () => {
     const selection = { anchor: { block: 0, offset: 0 }, head: { block: 1, offset: 1 } };
     expect(copiedText(['- a_b', '- c'], selection)).toBe('- a_b\n- c');

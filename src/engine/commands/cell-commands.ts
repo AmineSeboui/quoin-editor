@@ -1,12 +1,14 @@
 import { cellKey } from '../blocks/table-spec';
 import { blockById } from '../model/doc';
 import { inlineLength } from '../model/inline';
-import type { Attrs, EngineDoc, Pos } from '../model/types';
+import type { Attrs, EngineDoc, Inline, Pos } from '../model/types';
 import { cellSelection, cellsInRange, type CellRange } from '../state/cell-selection';
+import type { EditorState } from '../state/editor-state';
 import { textSelection } from '../state/selection';
 import { Transaction } from '../state/transaction';
 import { replaceInlineStep } from '../transform/replace-inline-step';
 import type { Command } from './command';
+import { deleteRange } from './delete-range';
 import { insertTextAt } from './insert-text-at';
 import { setMark, toggleMark } from './marks';
 import { markCoverage } from './selection-marks';
@@ -22,34 +24,35 @@ function filledCells(doc: EngineDoc, range: CellRange): FilledCell[] {
   });
 }
 
-function firstCell({ block, anchor, head }: CellRange): Pos {
-  return { block, region: cellKey(Math.min(anchor[0], head[0]), Math.min(anchor[1], head[1])), offset: 0 };
-}
-
-function emptied(state: Parameters<Command>[0], range: CellRange): Transaction {
+// Empties the cells of the range, as any deletion across cells does, then writes from its first cell.
+function overCells(state: EditorState, write: (tr: Transaction, caret: Pos) => Pos): Transaction | null {
+  const { selection } = state;
+  if (cellSelection(state) === null || selection?.kind !== 'text') return null;
   const tr = new Transaction(state);
-  for (const { region, length } of filledCells(state.doc, range)) {
-    tr.step(replaceInlineStep(range.block, region, 0, length, []));
-  }
-  return tr;
+  return tr.setSelection(textSelection(write(tr, deleteRange(tr, state.schema, selection.anchor, selection.head))));
 }
 
 /** Empties every cell of the cell range and leaves the caret in its first cell. */
 export const deleteCellContents: Command = (state, dispatch) => {
-  const range = cellSelection(state);
-  if (range === null) return false;
-  dispatch?.(emptied(state, range).setSelection(textSelection(firstCell(range))));
-  return true;
+  const tr = overCells(state, (_, caret) => caret);
+  if (tr !== null) dispatch?.(tr);
+  return tr !== null;
 };
 
-/** Empties every cell of the cell range and writes `text` in its first cell, as typing over the range does. */
-export function typeOverCells(text: string): Command {
+/**
+ * Empties every cell of the cell range and writes `content` in its first cell, as typing over the range does: text
+ * takes the marks of the caret there, and inline content keeps its own.
+ */
+export function typeOverCells(content: string | Inline): Command {
   return (state, dispatch) => {
-    const range = cellSelection(state);
-    if (range === null || text === '') return false;
-    const tr = emptied(state, range);
-    dispatch?.(tr.setSelection(textSelection(insertTextAt(tr, state.schema, firstCell(range), text))));
-    return true;
+    if (content.length === 0) return false;
+    const tr = overCells(state, (into, caret) => {
+      if (typeof content === 'string') return insertTextAt(into, state.schema, caret, content);
+      into.step(replaceInlineStep(caret.block, caret.region, caret.offset, caret.offset, content));
+      return { ...caret, offset: caret.offset + inlineLength(content) };
+    });
+    if (tr !== null) dispatch?.(tr);
+    return tr !== null;
   };
 }
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, type CSSProperties, type KeyboardEvent, type PointerEvent, type Ref } from 'react';
 import { setColumnWidth } from '../../engine/commands/table-commands';
+import { arrowAsWritten, type InlineDirection } from '../../ui/direction';
 import type { ViewController } from '../../view';
 import { isComposingKey } from '../../view/input/keydown';
 import { NATIVE_INTERACTION } from '../../view/selection/native-interaction';
@@ -24,6 +25,11 @@ type ColumnResizerProps = {
   col: number;
   /** The widths the columns are drawn at. */
   drawn: readonly number[];
+  /**
+   * The way the columns run. Where they run from the right the border is on the left of its column, which a move to
+   * the left widens.
+   */
+  direction: InlineDirection;
   style: CSSProperties;
   resizerRef?: Ref<HTMLDivElement>;
   /** Called with true while a drag holds the controls on this table, and with false once it ends. */
@@ -33,11 +39,11 @@ type ColumnResizerProps = {
 };
 
 /**
- * The border after a column, which a drag or the arrows move. A drag shows the width it reaches and writes it once, as
- * one step of history, when it ends.
+ * The border at the end of a column, which a drag or the arrows move, widening the column as it goes away from it. A
+ * drag shows the width it reaches and writes it once, as one step of history, when it ends.
  */
 export function ColumnResizer(props: ColumnResizerProps) {
-  const { controller, labels, blockId, col, drawn, style, resizerRef, onHold, onBack } = props;
+  const { controller, labels, blockId, col, drawn, direction, style, resizerRef, onHold, onBack } = props;
   const drag = useRef<Drag | null>(null);
   const width = Math.round(drawn[col] ?? 0);
   const store = tableUiStore(controller);
@@ -49,8 +55,9 @@ export function ColumnResizer(props: ColumnResizerProps) {
     if (isComposingKey(controller, event.nativeEvent)) return;
     const step = event.shiftKey ? LARGE_STEP : STEP;
     const tab = event.key === 'Tab' && !event.altKey && !event.ctrlKey && !event.metaKey;
-    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-      const next = clampWidth(width + (event.key === 'ArrowLeft' ? -step : step));
+    const arrow = arrowAsWritten(event.key, direction);
+    if (arrow === 'ArrowLeft' || arrow === 'ArrowRight') {
+      const next = clampWidth(width + (arrow === 'ArrowLeft' ? -step : step));
       if (next !== width) write(next, drawn);
     } else if (tab && event.shiftKey) onBack();
     else if (tab || event.key === 'Escape') controller.focus();
@@ -66,7 +73,8 @@ export function ColumnResizer(props: ColumnResizerProps) {
   const onPointerMove = (event: PointerEvent) => {
     const current = drag.current;
     if (current === null) return;
-    current.to = clampWidth(current.widths[col] + event.clientX - current.x);
+    const moved = event.clientX - current.x;
+    current.to = clampWidth(current.widths[col] + (direction === 'rtl' ? -moved : moved));
     const widths = current.widths.map((px, i) => (i === col ? (current.to ?? px) : px));
     store.set({ preview: { block: blockId, widths } });
   };

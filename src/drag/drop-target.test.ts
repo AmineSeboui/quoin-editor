@@ -4,13 +4,14 @@ import { computeDropTarget } from './drop-target';
 const STEP = 24;
 const START = 100;
 
-const block = (id: string, top: number, indent = 0, dragged = false) => ({
+const block = (id: string, top: number, indent = 0, dragged = false, hidesNested = false) => ({
   id,
   top,
   bottom: top + 20,
   start: START,
   indent,
   dragged,
+  hidesNested,
 });
 
 const target = (pointerX: number, pointerY: number, blocks: ReturnType<typeof block>[]) =>
@@ -60,5 +61,15 @@ describe('computeDropTarget', () => {
 
   it('falls back to the top of the first block when every block is dragged', () => {
     expect(target(START, 50, [block('a', 10, 0, true)])).toEqual({ index: 0, indent: 0, lineTop: 10, lineStart: START });
+  });
+
+  it('has no target when no block is drawn', () => {
+    expect(target(START, 50, [])).toBeNull();
+  });
+
+  it('never nests a drop under a block that hides what is nested in it, as a closed toggle does', () => {
+    const closed = [block('a', 0), block('t', 30, 1, false, true), block('c', 60)];
+    expect(target(START + 2 * STEP, 52, closed)).toMatchObject({ index: 2, indent: 1, lineStart: START + STEP });
+    expect(rightToLeft(START - 2 * STEP, 52, closed)).toMatchObject({ index: 2, indent: 1, lineStart: START - STEP });
   });
 });

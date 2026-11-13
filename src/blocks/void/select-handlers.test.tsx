@@ -2,7 +2,7 @@ import { act, fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { setAttrsStep } from '../../engine';
 import type { QuoinBlock, UploadFn } from '../../types';
-import { mountCanvas, paragraph } from './test-canvas';
+import { mountCanvas, paragraph } from '../test-support/test-canvas';
 
 const upload: UploadFn = async (file) => ({ storageKey: `key/${file.name}`, filename: file.name, size: file.size });
 const emptyImage: QuoinBlock = { id: 'i', type: 'IMAGE', data: { storageKey: '', alt: '' } };

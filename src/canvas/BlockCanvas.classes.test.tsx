@@ -1,7 +1,7 @@
 import { act, fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CALLOUT_TONES } from '../blocks/text/callout-tone';
-import { bookmarkBlock, mountCanvas, paragraph } from '../blocks/void/test-canvas';
+import { bookmarkBlock, mountCanvas, paragraph } from '../blocks/test-support/test-canvas';
 import type { QuoinBlock } from '../types';
 import { classLists, classSet } from '../ui/test-class-lists';
 

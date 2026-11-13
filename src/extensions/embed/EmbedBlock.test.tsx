@@ -97,6 +97,15 @@ describe('an embed on an editable canvas', () => {
     expect(cover(shell('e'))).toBeNull();
   });
 
+  it('lifts the cover once a press opens a context menu, as Control and the main button do on a Mac', () => {
+    const { shell, selection } = mountEmbeds([embedBlock(YOUTUBE)]);
+    const over = cover(shell('e'))!;
+    press(over);
+    act(() => void fireEvent.contextMenu(over, { button: 0, ctrlKey: true }));
+    expect(selection()).toEqual(nodeSelection('e'));
+    expect(cover(shell('e'))).toBeNull();
+  });
+
   it('takes no note of a press with another button, so the cover still lifts once the block is selected', () => {
     const { shell, nodeSelect } = mountEmbeds([embedBlock(YOUTUBE)]);
     press(cover(shell('e'))!, 2);

@@ -54,13 +54,14 @@ describe('UploadField inside a custom block', () => {
     );
   });
 
-  it('announces the upload in flight to assistive technology', async () => {
+  it('announces the upload in flight through the live region of the canvas, adding none of its own', async () => {
     const user = userEvent.setup();
     let finish: (result: { storageKey: string; filename: string; size: number }) => void = () => {};
     const upload = vi.fn().mockReturnValue(new Promise((resolve) => { finish = resolve; }));
     renderCanvas(upload);
     await user.upload(screen.getByLabelText('Upload slides'), new File(['x'], 'deck.pdf'));
-    expect(screen.getByText('Uploading...')).toHaveAttribute('role', 'status');
+    expect(screen.getAllByRole('status')).toHaveLength(1);
+    expect(screen.getByRole('status')).toHaveTextContent(/^Uploading\.\.\.$/);
     expect(screen.getByLabelText('Upload slides')).toHaveAttribute('aria-disabled', 'true');
     expect(screen.getByLabelText('Upload slides')).toHaveFocus();
     finish({ storageKey: 'deck/1', filename: 'deck.pdf', size: 2 });
@@ -73,9 +74,9 @@ describe('UploadField inside a custom block', () => {
     const upload = vi.fn().mockReturnValue(new Promise((resolve) => { finish = resolve; }));
     renderCanvas(upload, { uploading: 'Envoi en cours', uploaded: (name) => `Envoy\u00e9 ${name}` });
     await user.upload(screen.getByLabelText('Upload slides'), new File(['x'], 'deck.pdf'));
-    expect(screen.getByText('Envoi en cours')).toHaveAttribute('role', 'status');
+    expect(screen.getByRole('status')).toHaveTextContent(/^Envoi en cours$/);
     finish({ storageKey: 'deck/1', filename: 'deck.pdf', size: 2 });
-    expect(await screen.findByText('Envoy\u00e9 deck.pdf')).toHaveAttribute('role', 'status');
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent(/^Envoy\u00e9 deck\.pdf$/));
   });
 
   it('says so when the canvas was given no upload function', () => {

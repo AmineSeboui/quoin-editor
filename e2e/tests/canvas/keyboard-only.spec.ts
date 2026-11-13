@@ -1,5 +1,6 @@
 import { host } from '../../support/block';
 import { expect, test, type Page } from '@playwright/test';
+import { backThroughText, forward, onThroughText } from '../../support/direction';
 import { blocks, openEditor } from '../../support/editor';
 import { markdownOrData } from '../../support/markdown';
 
@@ -47,19 +48,23 @@ test('an author builds the same document with the keyboard alone, and leaves the
   await page.keyboard.press('Enter');
   await page.keyboard.type('Buy fresh bread');
 
-  await press(page, 'ArrowLeft', ' bread'.length);
-  await press(page, 'Shift+ArrowLeft', 'fresh'.length);
+  // From the end of the line Shift walks back the same way in every browser, where an arrow alone does not on a right
+  // to left page, and a selection of left to right words collapses to its start on the left arrow.
+  await press(page, `Shift+${backThroughText(true)}`, ' bread'.length);
+  await page.keyboard.press('ArrowLeft');
+  await press(page, `Shift+${backThroughText(true)}`, 'fresh'.length);
   await page.keyboard.press('Alt+F10');
   const toolbar = page.getByRole('toolbar', { name: 'Text formatting' });
   await expect(toolbar.getByRole('button', { name: 'Turn into' })).toBeFocused();
-  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press(forward());
   await expect(toolbar.getByRole('button', { name: 'Bold', exact: true })).toBeFocused();
   await page.keyboard.press('Enter');
   await expect.poll(() => markdownOrData(page)).toEqual(['# Groceries', 'Buy **fresh** bread']);
   await page.keyboard.press('Escape');
 
-  await press(page, 'ArrowRight', 2);
-  await press(page, 'Shift+ArrowRight', 'bread'.length);
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press(onThroughText());
+  await press(page, `Shift+${onThroughText(true)}`, 'bread'.length);
   await page.keyboard.press('ControlOrMeta+k');
   await expect(page.getByRole('textbox', { name: 'Link address' })).toBeFocused();
   await page.keyboard.type('https://bread.example');

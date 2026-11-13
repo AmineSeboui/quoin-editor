@@ -22,7 +22,7 @@ export const incrementalBudget = (measured) => Math.max(Math.round(measured * 1.
  * @type {PackageEntry[]}
  */
 export const featureEntries = [
-  { name: 'table', source: 'src/table.ts', client: true, added: incrementalBudget(9_461) },
+  { name: 'table', source: 'src/table.ts', client: true, added: incrementalBudget(10_017) },
   { name: 'embed', source: 'src/embed.ts', client: true, added: incrementalBudget(4_499) },
   { name: 'math', source: 'src/math.ts', client: true, added: incrementalBudget(4_421) },
   { name: 'diagram', source: 'src/diagram.ts', client: true, added: incrementalBudget(562) },
@@ -62,13 +62,13 @@ export const localeEntries = [
 
 /** @type {PackageEntry[]} */
 export const packageEntries = [
-  { name: MAIN_ENTRY, source: 'src/index.ts', client: true, total: 157_000 },
-  { name: 'headless', source: 'src/headless.ts', client: true, total: 73_000 },
-  { name: 'engine', source: 'src/engine/index.ts', client: false, total: 52_600 },
+  { name: MAIN_ENTRY, source: 'src/index.ts', client: true, total: 159_500 },
+  { name: 'headless', source: 'src/headless.ts', client: true, total: 76_600 },
+  { name: 'engine', source: 'src/engine/index.ts', client: false, total: 54_900 },
   // Read-only React for a server, which loads it alone: the markdown parser it shares with the engine is most of it.
   { name: 'view', source: 'src/view-static/index.ts', client: false, total: 22_214 },
   // The changes between two versions, drawn with the view's node tree: loaded alone, like the view.
-  { name: 'diff', source: 'src/diff/index.ts', client: false, total: 26_961 },
+  { name: 'diff', source: 'src/diff/index.ts', client: false, total: 26_990 },
   // Word documents written in a browser, a worker or Node, loaded alone like the view: most of it is the block reading.
   { name: 'docx', source: 'src/docx/index.ts', client: false, total: 25_891 },
   ...localeEntries,
@@ -85,5 +85,5 @@ export const packageEntries = [
   // The pane reads the document through the markdown serialiser the main entry already holds.
   { name: 'source', source: 'src/source.ts', client: true, added: incrementalBudget(770) },
   ...featureEntries,
-  { name: 'catalogue', source: 'src/catalogue.ts', client: true, added: incrementalBudget(28_820) },
+  { name: 'catalogue', source: 'src/catalogue.ts', client: true, added: incrementalBudget(30_078) },
 ];

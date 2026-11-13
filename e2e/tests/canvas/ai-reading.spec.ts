@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { openEditor } from '../../support/editor';
+import { firstWordPoint } from '../../support/text-point';
 
 const hostOf = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
 const ghost = (page: Page) => page.locator('.quoin-ai-ghost');
@@ -9,7 +10,7 @@ const topOf = (page: Page, id: string) =>
 
 async function askAboutFirstWord(page: Page) {
   await openEditor(page, 'ai', 'ai=1');
-  await hostOf(page, 'p').dblclick({ position: { x: 6, y: 10 } });
+  await hostOf(page, 'p').dblclick({ position: await firstWordPoint(hostOf(page, 'p')) });
   await page.getByRole('toolbar', { name: 'Text formatting' }).getByRole('button', { name: 'Ask AI' }).click();
   await page.keyboard.type('improve');
   await page.keyboard.press('Enter');
@@ -130,4 +131,14 @@ test('draws the answer under a block whose background shows in its bottom paddin
       return Math.round(layer.top - document.querySelector('[data-block-id="p"]')!.getBoundingClientRect().bottom);
     });
   await expect.poll(gap).toBe(4);
+});
+
+test('lines the answer up with the text of its block, as wide as it', async ({ page }) => {
+  await askAboutFirstWord(page);
+  await push(page, 'One');
+  await expect(ghost(page)).toHaveText('One');
+  const layer = (await page.locator('.quoin-ai-layer').boundingBox())!;
+  const text = (await hostOf(page, 'p').boundingBox())!;
+  expect(Math.abs(layer.x - text.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(layer.width - text.width)).toBeLessThanOrEqual(1);
 });

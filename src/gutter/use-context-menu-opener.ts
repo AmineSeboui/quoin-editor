@@ -44,8 +44,18 @@ export function useContextMenuOpener(
     const onMouseDown = (event: MouseEvent) => {
       if (event.button === 2 && blockOf(event) !== null) event.preventDefault();
     };
+    // A right press on the handle while its menu is open closes the menu, which hides the gutter before contextmenu
+    // arrives, so that event lands on the editor behind it. The block is read at the press.
+    let pressed: { block: string; x: number; y: number } | null = null;
+    const onPointerDown = (event: PointerEvent) => {
+      const block = event.button === 2 ? blockOf(event) : null;
+      pressed = block === null ? null : { block, x: event.clientX, y: event.clientY };
+    };
+    const pressedAt = ({ clientX, clientY }: MouseEvent) =>
+      pressed !== null && Math.hypot(clientX - pressed.x, clientY - pressed.y) <= 2 ? pressed.block : null;
     const onContextMenu = (event: MouseEvent) => {
-      const block = blockOf(event);
+      const block = blockOf(event) ?? pressedAt(event);
+      pressed = null;
       const hidden = trigger.current;
       if (block === null || hidden === null) return;
       event.preventDefault();
@@ -54,6 +64,6 @@ export function useContextMenuOpener(
       hidden.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX, clientY }));
     };
 
-    return listen(root, { mousedown: onMouseDown, contextmenu: onContextMenu });
+    return listen(root, { pointerdown: onPointerDown, mousedown: onMouseDown, contextmenu: onContextMenu });
   }, [controller, store, trigger]);
 }

@@ -1,6 +1,6 @@
 import { act, fireEvent, screen } from '@testing-library/react';
 import { coreBlocks } from '../../blocks/core';
-import { mountCanvas } from '../../blocks/void/test-canvas';
+import { mountCanvas } from '../../blocks/test-support/test-canvas';
 import type { QuoinBlock } from '../../engine';
 import { mathExtension, type MathOptions } from './math-extension';
 import type { RenderMath } from './math-feature';

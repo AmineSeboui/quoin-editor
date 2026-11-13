@@ -36,13 +36,15 @@ A document is an array of `QuoinBlock`, each `{ id, type, data }`. Text blocks, 
 
 The main entry point is marked `'use client'`, so render `BlockCanvas` from a client component. To draw a document on a server, use [`quoin-editor/view`](https://amineseboui.github.io/quoin-editor/docs/server-rendering/).
 
+Moving documents you already have? [Adopting existing documents](https://quoincloud.com/docs/editor/adoption) says what a directory of markdown files or a column of HTML loses on the way in, and how to check a whole document set before you move it.
+
 If your application has Tailwind of its own, import the stylesheet from your CSS into a layer you have named instead of from JavaScript, so you decide which of the two wins. See [Cascade layers and import order](https://amineseboui.github.io/quoin-editor/docs/theming/#cascade-layers-and-import-order).
 
 ## What a page downloads
 
 Quoin depends on five Radix primitives and `clsx` for class composition, and draws its own icons. A page downloads only the entries it imports, and `npm run check:size` holds each to a gzip budget:
 
-- The canvas, `quoin-editor`, is held under 156.2 kB gzip, `quoin-editor/headless` under 72.6 kB and `quoin-editor/engine` under 52.6 kB.
+- The canvas, `quoin-editor`, is held under 159.5 kB gzip, `quoin-editor/headless` under 76.6 kB and `quoin-editor/engine` under 54.9 kB.
 - Each opt-in feature adds between about 1.7 kB (stats, or the table of contents) and 9.6 kB (tables) to the canvas, all of them together about 30 kB. The emoji dataset, about 42 kB, loads only when the `:` menu or the emoji picker first opens.
 - Collaboration, `quoin-editor/yjs`, adds about 8 kB and needs `yjs` installed beside it, an optional peer dependency. Showing collaborators, `quoin-editor/presence`, adds about 4.5 kB more, comments, `quoin-editor/comments`, about 6.5 kB, and AI actions, `quoin-editor/ai`, about 8 kB.
 - The read-only view for a server, `quoin-editor/view`, is about 21 kB on its own, most of it the markdown parser it shares with the engine. The diff of two versions, `quoin-editor/diff`, is about 26 kB, and the Word export, `quoin-editor/docx`, about 25 kB on its own, about 7 kB beside the engine.

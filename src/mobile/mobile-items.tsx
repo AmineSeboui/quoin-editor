@@ -15,13 +15,14 @@ import {
   Strikethrough,
   Undo2,
 } from '../icons';
-import { linkItem, markItem } from '../menus/bubble/bubble-items';
+import type { KitItem } from '../toolbar/toolbar-button';
+import { linkItem, markItem } from '../toolbar/toolbar-items';
 import type { ViewController } from '../view';
 
-export type MobileItems = { addBlock: ToolbarItem; editing: readonly ToolbarItem[] };
+export type MobileItems = { addBlock: ToolbarItem; editing: readonly KitItem[] };
 
-function commandItem(id: string, title: string, icon: ToolbarItem['icon'], command: Command): ToolbarItem {
-  return { id, title, icon, run: (controller) => void controller.run(command) };
+function commandItem(id: string, title: string, icon: ToolbarItem['icon'], command: Command): KitItem {
+  return { id, title, icon, enabled: (state) => command(state), run: (controller) => void controller.run(command) };
 }
 
 function addBlockAtCaret(controller: ViewController): void {

@@ -1,7 +1,7 @@
 import { act, fireEvent, screen } from '@testing-library/react';
 import { textSelection, type QuoinBlock } from '../../engine';
 import { cellKey } from '../../engine/blocks/table-spec';
-import { mountCanvas, paragraph } from '../../blocks/void/test-canvas';
+import { mountCanvas, paragraph } from '../../blocks/test-support/test-canvas';
 import { tableExtension } from './table-extension';
 
 export const ROWS = [

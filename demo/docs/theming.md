@@ -12,7 +12,7 @@ description: Every colour and radius comes from a --quoin- token, the stylesheet
   --quoin-background: oklch(1 0 0);
   --quoin-foreground: oklch(0.24 0.024 267);
   --quoin-muted: oklch(0.975 0.005 258);
-  --quoin-muted-foreground: oklch(0.48 0.029 263);
+  --quoin-muted-foreground: oklch(0.47 0.029 263);
   --quoin-secondary: oklch(0.965 0.007 262);
   --quoin-secondary-foreground: oklch(0.24 0.024 267);
   --quoin-popover: oklch(1 0 0);
@@ -37,7 +37,7 @@ description: Every colour and radius comes from a --quoin- token, the stylesheet
   --quoin-background: oklch(0.19 0.015 267);
   --quoin-foreground: oklch(0.965 0.005 260);
   --quoin-muted: oklch(0.245 0.02 266);
-  --quoin-muted-foreground: oklch(0.72 0.02 262);
+  --quoin-muted-foreground: oklch(0.73 0.02 262);
   --quoin-secondary: oklch(0.28 0.025 266);
   --quoin-secondary-foreground: oklch(0.965 0.005 260);
   --quoin-popover: oklch(0.225 0.019 266);
@@ -71,11 +71,11 @@ The other tokens each belong to one part of the editor, with a light and a dark 
 | `--quoin-diff-inserted`, `--quoin-diff-deleted` | The words `QuoinDiff` marks as inserted and deleted |
 | `--quoin-link` | Links in `QuoinView` and `QuoinDiff` |
 
-Apart from these the stylesheet reads `--tw-*`, which belong to the Tailwind runtime it is compiled with, the `--radix-*` values Radix writes on its own portalled elements while they are open, and the six names the editor [sets itself](#names-the-editor-sets-itself). Tailwind's theme tokens are imported by reference, so the package resolves `--spacing`, `--text-base`, `--container-md` and the rest at build time and declares none of them on your page.
+Apart from these the stylesheet reads `--tw-*`, which belong to the Tailwind runtime it is compiled with, the `--radix-*` values Radix writes on its own portalled elements while they are open, and the seven names the editor [sets itself](#names-the-editor-sets-itself). Tailwind's theme tokens are imported by reference, so the package resolves `--spacing`, `--text-base`, `--container-md` and the rest at build time and declares none of them on your page.
 
 ## Names the editor sets itself
 
-Six prefixed names carry a measurement, or one collaborator's colour, rather than a theme value. The package writes them as it draws, so they are not a host's to set:
+Seven prefixed names carry a measurement, or one collaborator's colour, rather than a theme value. The package writes them as it draws, so they are not a host's to set:
 
 | Name | Written by | What it carries |
 | --- | --- | --- |
@@ -84,9 +84,10 @@ Six prefixed names carry a measurement, or one collaborator's colour, rather tha
 | `--quoin-ai-room` | the canvas root | the space a streaming answer needs under the block it belongs to |
 | `--quoin-comments-height` | the canvas root | the height the stacked threads reach, which the canvas grows to |
 | `--quoin-comments-room` | a `:has()` rule in the stylesheet | the width reserved at the end of every line for threads: 272px for the list beside the text, 36px for the markers alone |
+| `--quoin-find-clearance` | the canvas root, while the find panel is open | where the panel's bottom edge is, so the current match is scrolled into view below the panel |
 | `--quoin-presence` | every remote caret, selection and avatar | that collaborator's colour, with `--quoin-ring` standing in where they have none |
 
-Five of the six are written as inline styles, which beat any rule you write, so setting them yourself is merely pointless. `--quoin-comments-room` is the exception and the one that bites: it comes from a rule inside the package, so an unlayered `.quoin` block that maps every `--quoin-*` name it can find outranks that rule and pins the rail at one width. Nothing errors and the editor still renders; the room beside the text simply stops changing as threads open and close. Enumerate the theme tokens above rather than every name in the stylesheet, and this cannot happen.
+Six of the seven are written as inline styles, which beat any rule you write, so setting them yourself is merely pointless. `--quoin-comments-room` is the exception and the one that bites: it comes from a rule inside the package, so an unlayered `.quoin` block that maps every `--quoin-*` name it can find outranks that rule and pins the rail at one width. Nothing errors and the editor still renders; the room beside the text simply stops changing as threads open and close. Enumerate the theme tokens above rather than every name in the stylesheet, and this cannot happen.
 
 ## Mapping your own tokens
 
@@ -122,7 +123,7 @@ Point the prefixed names at your own in one block on `.quoin`. The canvas root c
 
 `--quoin-input` is the border of the outline button, the only control that uses it, and `--quoin-warning` is the rule of a warning callout. A border or rule that carries meaning needs 3:1 against what it sits on, so give `--quoin-input` a value that reaches 3:1 against `--quoin-background` and `--quoin-popover`, and `--quoin-warning` one that reaches 3:1 against its own wash (the warning colour at 15% over the page). Quoin's defaults do, and a host that sets these tokens keeps its own values.
 
-`--quoin-ring` colours the keyboard focus outline, which is solid and drawn at full strength, so it should reach 3:1 against both `--quoin-background` and `--quoin-popover`. A pale value, such as the grey many shadcn themes keep for `--ring`, fails that, so give `--quoin-ring` a value of its own that does.
+`--quoin-ring` colours the keyboard focus outline, which is solid and drawn at full strength, so it should reach 3:1 against `--quoin-background`, `--quoin-popover` and each `--quoin-bg-*` a block can be coloured with. A pale value, such as the grey many shadcn themes keep for `--ring`, fails that, so give `--quoin-ring` a value of its own that does.
 
 That one block covers both modes: the tokens on the right already flip with your own dark class, and each mapping beats Quoin's `:root` and `.dark` defaults alike. Write it unlayered, or in a layer that sorts after `quoin`, so it outranks those defaults.
 
@@ -145,7 +146,7 @@ Dark mode keys on a `.dark` class on an ancestor (for example `<html class="dark
 
 ## Resets
 
-Quoin does not reset your page. The stylesheet contains no `html`, `body`, heading, list or other element rules, and no universal `*` reset. Its own reset (box sizing, zero margins, unstyled lists and form controls) applies only inside a `.quoin` element: the canvas root, and the menus, popovers and dialogs that Quoin renders into `document.body`, which carry the class themselves. Your headings, paragraphs, lists and buttons keep whatever styles you gave them, or the browser's.
+Quoin does not reset your page. The stylesheet contains no `html`, `body`, heading, list or other element rules, and no universal `*` reset. Its own reset (box sizing, zero margins and padding, and unstyled form controls) applies only inside a `.quoin` element: the canvas root, and the menus, popovers and dialogs that Quoin renders into `document.body`, which carry the class themselves. It leaves list markers alone, so a list a custom block draws inside the canvas keeps its bullets or numbers; Quoin's own lists drop theirs with a class of their own. Give such a list a `padding-inline-start` of its own, since the reset takes the browser's away. Your headings, paragraphs, lists and buttons keep whatever styles you gave them, or the browser's.
 
 All of Quoin's own rules are in cascade layers, so an **unlayered** global reset of yours beats them. A host that ships one (Bootstrap's reboot, or a hand-rolled `* { margin: 0; padding: 0; border: 0 }`) will see Quoin's padding and borders vanish. Tailwind 4's preflight is itself layered and is fine. Either declare your reset in a layer that comes before Quoin's, or scope it away from `.quoin`:
 

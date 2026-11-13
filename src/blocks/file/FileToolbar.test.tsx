@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'vitest-axe';
 import { nodeSelection } from '../../engine';
 import type { QuoinBlock, UploadFn } from '../../types';
-import { mountCanvas, paragraph } from '../void/test-canvas';
+import { mountCanvas, paragraph } from '../test-support/test-canvas';
 
 const resolveAssetUrl = (key: string) => `/cdn/${key}`;
 const stored: UploadFn = async (file) => ({ storageKey: `key/${file.name}`, filename: file.name, size: file.size });

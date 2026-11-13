@@ -2,7 +2,7 @@ import { act, fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'vitest-axe';
 import { textSelection } from '../../engine';
-import { paragraph } from '../../blocks/void/test-canvas';
+import { paragraph } from '../../blocks/test-support/test-canvas';
 import { mountEmbeds, YOUTUBE } from './embed-test-canvas';
 
 function type(text: string): void {

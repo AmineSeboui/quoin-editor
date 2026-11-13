@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react';
+import { useDirection } from '@radix-ui/react-direction';
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react';
 import { keyName, normalizeKey, redo, undo, type Command } from '../../engine';
 import { ChevronDown, ChevronUp, X } from '../../icons';
 import { Button } from '../../ui/button';
@@ -43,7 +44,9 @@ export function FindPanel({ controller, labels, value, readOnly }: Props) {
   const actions = useMemo(() => findActions(controller), [controller]);
   const [replacement, setReplacement] = useState('');
   const panel = useRef<HTMLDivElement>(null);
+  const dir = useDirection();
   const query = useRef<HTMLInputElement>(null);
+  const statusId = useId();
   useEffect(() => focusAll(query.current), [value.opened]);
   useScrollToCurrent(controller, panel, currentMatch(value));
 
@@ -82,9 +85,10 @@ export function FindPanel({ controller, labels, value, readOnly }: Props) {
   return (
     <div
       ref={panel}
+      dir={dir}
       role="search"
       aria-label={labels.findAndReplace}
-      className="quoin quoin-find-panel bg-popover fixed top-4 right-4 z-50 max-w-[calc(100vw-2rem)] text-popover-foreground flex flex-col gap-1.5 rounded-lg border p-2 shadow-md"
+      className="quoin quoin-find-panel bg-popover fixed top-4 end-4 z-50 max-w-[calc(100vw-2rem)] text-popover-foreground flex flex-col gap-1.5 rounded-lg border p-2 shadow-md"
       onKeyDown={onPanelKeyDown}
       onClick={onPanelClick}
     >
@@ -95,11 +99,12 @@ export function FindPanel({ controller, labels, value, readOnly }: Props) {
           placeholder={labels.find}
           value={value.search.query}
           aria-invalid={value.error !== null}
+          aria-describedby={value.error === null ? undefined : statusId}
           onChange={(event) => actions.search(event.target.value)}
           onKeyDown={onQueryKeyDown}
           className="h-8 w-48"
         />
-        <FindStatus labels={labels} value={value} />
+        <FindStatus id={statusId} labels={labels} value={value} />
         <FindToggles labels={labels} options={value.search} onToggle={actions.toggle} />
         <Button
           type="button"

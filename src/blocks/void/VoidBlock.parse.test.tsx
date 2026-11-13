@@ -5,7 +5,7 @@ import { blockTypeSlashItems } from '../../menus/slash/slash-items';
 import { defineBlock } from '../../registry';
 import type { QuoinBlock } from '../../types';
 import { insertAfterBlock } from './block-data';
-import { mountCanvas, paragraph, testBlockTypes } from './test-canvas';
+import { mountCanvas, paragraph, testBlockTypes } from '../test-support/test-canvas';
 
 type TaskData = { version: 2; title: string; owner: string };
 

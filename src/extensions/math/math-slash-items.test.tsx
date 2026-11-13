@@ -1,6 +1,6 @@
 import { act, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { paragraph } from '../../blocks/void/test-canvas';
+import { paragraph } from '../../blocks/test-support/test-canvas';
 import { atom, coreExtensions, text, textSelection } from '../../engine';
 import { caret, md, startEditor } from '../../engine/test-support/editor-fixtures';
 import { englishMathLabels } from './math-labels';

@@ -1,5 +1,5 @@
 import { act, fireEvent, screen } from '@testing-library/react';
-import { mountCanvas, paragraph } from '../../blocks/void/test-canvas';
+import { mountCanvas, paragraph } from '../../blocks/test-support/test-canvas';
 import { nodeSelection, textSelection } from '../../engine';
 import { inlineText } from '../../engine/model/inline';
 import type { QuoinBlock } from '../../types';

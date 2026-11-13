@@ -1,3 +1,5 @@
+import { inlineDirection, type InlineDirection } from '../../ui/direction';
+
 export type Span = { readonly start: number; readonly size: number };
 
 /** Where a table's rows and columns are drawn, in pixels from the top left corner of `origin`. */
@@ -8,6 +10,8 @@ export type TableGeometry = {
   readonly height: number;
   readonly rows: readonly Span[];
   readonly cols: readonly Span[];
+  /** The way the columns run: from the left, or from the right on a right to left page. */
+  readonly direction: InlineDirection;
 };
 
 export function measureTable(table: HTMLTableElement, origin: DOMRect): TableGeometry {
@@ -26,6 +30,7 @@ export function measureTable(table: HTMLTableElement, origin: DOMRect): TableGeo
       const rect = cell.getBoundingClientRect();
       return { start: rect.left - origin.left, size: rect.width };
     }),
+    direction: inlineDirection(table),
   };
 }
 
@@ -40,19 +45,47 @@ export const sameGeometry = (a: TableGeometry | null, b: TableGeometry | null): 
     a.top === b.top &&
     a.width === b.width &&
     a.height === b.height &&
+    a.direction === b.direction &&
     sameSpans(a.rows, b.rows) &&
     sameSpans(a.cols, b.cols));
 
-/** The index of the span that holds `at`, or of the nearest one. */
+const spanEnd = (span: Span) => span.start + span.size;
+
+/** The edge a span starts from in the order the spans run, on its right where they run right to left. */
+const leadingEdge = (span: Span, direction: InlineDirection) => (direction === 'rtl' ? spanEnd(span) : span.start);
+
+/** The edge a span ends at in the order the spans run, on its left where they run right to left. */
+export const trailingEdge = (span: Span, direction: InlineDirection) =>
+  direction === 'rtl' ? span.start : spanEnd(span);
+
+/** The index of the span that holds `at`, or of the nearest one, whichever way the spans run. */
 export function spanAt(spans: readonly Span[], at: number): number {
-  const inside = spans.findIndex((span) => at < span.start + span.size);
-  return inside === -1 ? spans.length - 1 : inside;
+  const inside = spans.findIndex((span) => span.start <= at && at < spanEnd(span));
+  if (inside !== -1) return inside;
+  const distances = spans.map((span) => Math.min(Math.abs(span.start - at), Math.abs(spanEnd(span) - at)));
+  return distances.indexOf(Math.min(...distances));
 }
 
 /** The index of the edge between spans, from 0 before the first to their count after the last, within `reach` of `at`. */
-export function edgeNear(spans: readonly Span[], at: number, reach: number): number | null {
+export function edgeNear(
+  spans: readonly Span[],
+  at: number,
+  reach: number,
+  direction: InlineDirection = 'ltr',
+): number | null {
   if (spans.length === 0) return null;
-  const edges = [spans[0].start, ...spans.map((span) => span.start + span.size)];
+  const last = trailingEdge(spans[spans.length - 1], direction);
+  const edges = [...spans.map((span) => leadingEdge(span, direction)), last];
   const index = edges.findIndex((edge) => Math.abs(edge - at) <= reach);
   return index === -1 ? null : index;
+}
+
+/** Where the edge before the span at `edge` is drawn, the edge after the last one at their count, if the table has it. */
+export function edgeAt(
+  spans: readonly Span[],
+  edge: number | null,
+  direction: InlineDirection = 'ltr',
+): number | null {
+  if (edge === null || !Number.isInteger(edge) || edge < 0 || edge > spans.length || spans.length === 0) return null;
+  return edge === spans.length ? trailingEdge(spans[edge - 1], direction) : leadingEdge(spans[edge], direction);
 }

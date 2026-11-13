@@ -6,7 +6,7 @@ import { usePartAnchor } from '../../blocks/void/block-part';
 import type { EditorState } from '../../engine';
 import { setAttrs } from '../../engine/commands/block-style';
 import { noChange, runOnBlocks } from '../../gutter/run-on-blocks';
-import { bubblePart } from '../../menus/bubble/bubble-part';
+import { bubblePart } from '../../toolbar/bubble-part';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
 import { preventDefault } from '../../ui/prevent-default';
 import type { ViewController } from '../../view';
@@ -20,8 +20,7 @@ import { requestIcon, useIconRequest, type IconRequest } from './icon-request';
 
 type Props = { controller: ViewController; labels: EmojiLabels };
 
-// The icon button a callout draws first, which the picker opens under.
-const CALLOUT_ICON = '.quoin-callout > :first-child';
+const CALLOUT_ICON_BUTTON = '.quoin-callout > :first-child';
 
 /** The picker a callout's Choose icon opened, while its callouts are still there and the canvas is editable. */
 export function CalloutIconPicker({ controller, labels }: Props) {
@@ -44,7 +43,7 @@ export function CalloutIconPicker({ controller, labels }: Props) {
  * hands focus back to the callout. A press outside closes the picker and leaves focus where the press puts it.
  */
 function IconPopover({ controller, labels, request: { blocks } }: Props & { request: IconRequest }) {
-  const anchor = usePartAnchor(controller, blocks[0], CALLOUT_ICON);
+  const anchor = usePartAnchor(controller, blocks[0], CALLOUT_ICON_BUTTON);
   const content = useRef<HTMLDivElement>(null);
   const close = () => requestIcon(controller, null);
   const finish = (icon: string | null) => {

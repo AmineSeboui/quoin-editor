@@ -4,7 +4,7 @@ import { axe } from 'vitest-axe';
 import { nodeSelection } from '../../engine';
 import type { QuoinBlock, UploadFn } from '../../types';
 import { intrinsicSize } from '../intrinsic-size';
-import { mountCanvas, paragraph } from '../void/test-canvas';
+import { mountCanvas, paragraph } from '../test-support/test-canvas';
 
 vi.mock('../intrinsic-size');
 
@@ -285,6 +285,19 @@ describe('the alt text of an image', () => {
     } finally {
       outside.remove();
     }
+  });
+
+  it('is stored when a script focuses text of the editor, which goes back to the image, the selection', async () => {
+    const user = userEvent.setup();
+    const { nodeSelect, imageData, shell, sink, selection } = mount();
+    nodeSelect('i');
+    await user.click(button('Alt text'));
+    await user.type(screen.getByRole('textbox', { name: 'Alt text' }), ' asleep');
+    act(() => shell('b').querySelector<HTMLElement>('[data-quoin-host]')!.focus());
+    expect(imageData()).toEqual({ storageKey: 'cat.png', alt: 'A cat asleep' });
+    expect(screen.queryByRole('textbox', { name: 'Alt text' })).toBeNull();
+    expect(selection()).toEqual(nodeSelection('i'));
+    expect(sink()).toHaveFocus();
   });
 
   it('has no accessibility violations', async () => {

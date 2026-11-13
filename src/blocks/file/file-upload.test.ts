@@ -3,7 +3,7 @@ import { undo } from '../../engine';
 import { setAttrs } from '../../engine/commands/block-style';
 import type { QuoinBlock, UploadFn, UploadResult } from '../../types';
 import { onBlock } from '../../view/react/block-command';
-import { mountCanvas, paragraph } from '../void/test-canvas';
+import { mountCanvas, paragraph } from '../test-support/test-canvas';
 import { uploadFile } from './file-upload';
 
 // Each upload waits until the test settles it, in whatever order the test picks.

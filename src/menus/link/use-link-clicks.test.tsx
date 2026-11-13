@@ -1,5 +1,5 @@
 import { fireEvent } from '@testing-library/react';
-import { mountCanvas, paragraph } from '../../blocks/void/test-canvas';
+import { mountCanvas, paragraph } from '../../blocks/test-support/test-canvas';
 
 function mount() {
   const canvas = mountCanvas([paragraph('a', 'see [docs](https://quoin.dev/docs) here')]);

@@ -13,11 +13,13 @@ import { keepFocus } from '../floating/keep-focus';
 import { useFocusKey } from '../floating/use-focus-key';
 import { useSelectionAnchor } from '../floating/use-selection-anchor';
 import { AlignDropdown } from './AlignDropdown';
-import { bubbleItems, ToolbarButton } from './bubble-items';
-import { bubblePart } from './bubble-part';
+import { ToolbarButton } from '../../toolbar/toolbar-button';
+import { bubbleItems } from './bubble-items';
+import { bubblePart } from '../../toolbar/bubble-part';
 import { ColorPopover } from './ColorPopover';
-import { TurnIntoDropdown } from './TurnIntoDropdown';
-import { useRovingFocus } from './use-roving-focus';
+import { TurnIntoDropdown } from '../../toolbar/TurnIntoDropdown';
+import { useFocusBackToText } from '../../toolbar/use-focus-back-to-text';
+import { useRovingFocus } from '../../toolbar/use-roving-focus';
 
 const DIVIDER = 'mx-0.5 h-5 w-px shrink-0 bg-border';
 
@@ -35,6 +37,7 @@ export function BubbleToolbar({ controller, labels, store, extraItems }: BubbleT
   const roving = useRovingFocus();
   const items = useMemo(() => bubbleItems(labels, () => store.set({ linkPopover: { open: true } })), [labels, store]);
   useFocusKey(controller, roving.focusCurrent);
+  useFocusBackToText(controller);
 
   const onKeyDown = (event: KeyboardEvent) => {
     if (!roving.owns(event.target)) return;

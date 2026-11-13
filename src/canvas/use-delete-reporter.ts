@@ -7,6 +7,7 @@ import { createDoc } from '../engine/model/doc';
 import { primaryRegion } from '../engine/state/selection';
 import type { ViewController } from '../view';
 import { useIsomorphicLayoutEffect } from '../view/react/use-isomorphic-layout-effect';
+import { blockRemovals } from './removed-blocks';
 
 type OnDelete = (block: QuoinBlock, index: number) => void;
 type Deletion = { block: QuoinBlock; index: number };
@@ -29,11 +30,8 @@ function filledLine({ origin, before }: Transaction, schema: Schema): (block: En
 
 function deletions(codec: BlockCodec, tr: Transaction): Deletion[] {
   const filled = filledLine(tr, tr.before.schema);
-  return tr.steps.flatMap((step, i) => {
-    if (step.stepType !== 'removeBlocks') return [];
-    const { index, count } = step.toJSON();
-    if (typeof index !== 'number' || typeof count !== 'number') return [];
-    const { blocks } = tr.docs[i];
+  return blockRemovals(tr).flatMap(({ step, index, count }) => {
+    const { blocks } = tr.docs[step];
     const first = codec.blocksFromDoc(createDoc(blocks.slice(0, index))).length;
     return blocks
       .slice(index, index + count)

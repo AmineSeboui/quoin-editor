@@ -3,7 +3,7 @@ import { resetDevWarnings } from '../../dev-warn';
 import { MessageSquare } from '../../icons';
 import { defineBlock } from '../../registry';
 import type { QuoinBlock } from '../../types';
-import { mountCanvas, paragraph, testBlockTypes } from './test-canvas';
+import { mountCanvas, paragraph, testBlockTypes } from '../test-support/test-canvas';
 
 const refused = new Error('owner is required');
 

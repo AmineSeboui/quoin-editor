@@ -3,7 +3,7 @@ import { sliceToClipboard } from '../clipboard/serialize-slice';
 import { insertSlice } from '../clipboard/insert-slice';
 import { sliceFromSelection } from '../clipboard/extract-slice';
 import type { DOMParserLike } from '../clipboard/from-html';
-import { sliceFromClipboard } from '../clipboard/slice-from-clipboard';
+import { dispatchPaste, sliceFromClipboard } from '../clipboard/slice-from-clipboard';
 import { createCommandHelpers, type BoundCommands, type Chain, type CommandFactories } from '../commands/chain';
 import { isActive } from '../commands/is-active';
 import { toMarkdown } from '../markdown/document/to-markdown';
@@ -121,10 +121,10 @@ export function createInternalEditor<F extends CommandFactories = CoreCommands>(
   function paste(data: { json?: string; html?: string; text?: string }, parser?: DOMParserLike): boolean {
     if (destroyed) return false;
     const { text } = data;
-    const ruled = text !== undefined && resolved.pasteRules.some((rule) => rule.match(text, state)?.(state, dispatch));
+    const ruled = text !== undefined && resolved.pasteRules.some((rule) => rule.match(text, state, data)?.(state, dispatch));
     if (ruled) return true;
     const slice = sliceFromClipboard(data, { parser, newId });
-    return slice !== null && insertSlice(slice, { newId })(state, dispatch);
+    return slice !== null && insertSlice(slice, { newId })(state, dispatchPaste(slice, dispatch));
   }
 
   function copy() {

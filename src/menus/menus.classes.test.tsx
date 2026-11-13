@@ -1,6 +1,6 @@
 import { act, fireEvent, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { mountCanvas, paragraph } from '../blocks/void/test-canvas';
+import { mountCanvas, paragraph } from '../blocks/test-support/test-canvas';
 import { textSelection, type Pos } from '../engine';
 import type { QuoinBlock } from '../types';
 import { classLists } from '../ui/test-class-lists';
@@ -53,7 +53,7 @@ describe('the classes Quoin gives its floating menus', () => {
     try {
       select(mount('see [docs](https://quoin.dev/docs) here'), 6);
       act(() => void vi.advanceTimersByTime(300));
-      expect(classLists(screen.getByRole('dialog', { name: 'Link' }))).toMatchSnapshot();
+      expect(classLists(screen.getByRole('group', { name: 'Link' }))).toMatchSnapshot();
     } finally {
       vi.useRealTimers();
     }

@@ -42,6 +42,11 @@ function selectBlock(domSelection: globalThis.Selection, element: HTMLElement | 
 
 const drawnUpstream = new WeakMap<globalThis.Selection, DomPoint>();
 
+/** Forgets where a caret at the end of a line was last drawn, so the next write looks for the wrap again. */
+export function forgetDrawnSide(domSelection: globalThis.Selection): void {
+  drawnUpstream.delete(domSelection);
+}
+
 // A caret written at a soft wrap is drawn at the start of the next line, but one the browser moves there by line
 // boundary from the glyph before is drawn at the end of the line. The selection does not say which it draws, so the
 // point last drawn that way is remembered, or the point written in place where the caret is no longer at a wrap.

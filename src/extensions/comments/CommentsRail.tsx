@@ -25,7 +25,7 @@ export function CommentsRail({ env, box, entries, value, onToggle }: CommentsRai
   useBlockAligned(env.controller, box, GAP, layoutKey(entries, value));
   return (
     <div ref={box} className="quoin-comments-rail">
-      <ul aria-label={env.labels.comments}>
+      <ul aria-label={env.labels.comments} className="list-none">
         {entries.map((entry) => (
           <li key={entry.thread.id} data-rail-item="" data-block={entry.ranges[0]?.block ?? ''}>
             <ThreadCard

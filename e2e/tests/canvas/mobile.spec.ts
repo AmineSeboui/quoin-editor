@@ -1,6 +1,7 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
 import { firstLine, host } from '../../support/block';
+import { forward, lineStart, onThroughText } from '../../support/direction';
 import { blocks, openEditor } from '../../support/editor';
 import { phoneTest as test } from '../../support/phone';
 
@@ -8,11 +9,11 @@ test.skip(({ browserName }) => browserName === 'firefox', 'Firefox cannot emulat
 
 const tools = (page: Page) => page.getByRole('toolbar', { name: 'Editing tools' });
 const tool = (page: Page, name: string) => tools(page).getByRole('button', { name, exact: true });
-const handle = (page: Page) => page.getByRole('button', { name: 'Drag to move, click for options' });
+const handle = (page: Page) => page.getByRole('button', { name: 'Block options' });
 const gutterAdd = (page: Page) =>
   page.locator('[data-quoin-gutter-block]').getByRole('button', { name: 'Add block below' });
 const box = async (locator: Locator) => (await locator.boundingBox())!;
-const tapStart = (page: Page, id: string) => host(page, id).tap({ position: { x: 1, y: 12 } });
+const tapStart = async (page: Page, id: string) => host(page, id).tap({ position: await lineStart(host(page, id), 12) });
 
 const visualViewport = (page: Page) =>
   page.evaluate(() => {
@@ -37,11 +38,57 @@ test('a tap shows the editing tools on the bottom edge, and selected text no bub
   }
   const overflow = await tools(page).evaluate((element) => element.scrollWidth - element.clientWidth);
   expect(overflow).toBeGreaterThan(0);
-  for (let i = 0; i < 3; i++) await page.keyboard.press('Shift+ArrowRight');
+  for (let i = 0; i < 3; i++) await page.keyboard.press(`Shift+${onThroughText(true)}`);
   await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   await expect(page.getByRole('toolbar', { name: 'Text formatting' })).toHaveCount(0);
   await expect(tools(page)).toBeVisible();
   expect(await axeViolations(page, 'all', '[role="toolbar"]')).toEqual([]);
+});
+
+test('under a pinch zoom the tools span the part of the page left visible, at their own size', async ({
+  page,
+  browserName,
+}) => {
+  test.skip(browserName !== 'chromium', 'Only Chromium lets a test zoom the page and pan the zoomed view');
+  await openEditor(page, 'drag');
+  await tapStart(page, 'b');
+  await expect(tools(page)).toBeVisible();
+  const unzoomed = await box(tools(page));
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setPageScaleFactor', { pageScaleFactor: 2 });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 200, y: 300 }] });
+  for (let step = 1; step <= 10; step++) {
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: 200 - step * 15, y: 300 }] });
+  }
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  const zoomed = () =>
+    page.evaluate(() => {
+      const viewport = window.visualViewport!;
+      const bar = document.querySelector('[role="toolbar"]')!.getBoundingClientRect();
+      return {
+        scale: viewport.scale,
+        offsetLeft: viewport.offsetLeft,
+        gaps: [bar.left - viewport.offsetLeft, bar.width - viewport.width, bar.bottom - viewport.offsetTop - viewport.height],
+        height: bar.height * viewport.scale,
+      };
+    });
+  await expect.poll(async () => (await zoomed()).offsetLeft).toBeGreaterThan(0);
+  const { scale, gaps, height } = await zoomed();
+  expect(scale).toBeCloseTo(2, 3);
+  for (const gap of gaps) expect(Math.abs(gap)).toBeLessThanOrEqual(1);
+  expect(Math.abs(height - unzoomed.height)).toBeLessThanOrEqual(1);
+});
+
+test('a hardware keyboard reaches the editing tools with Alt+F10 and leaves them with Escape', async ({ page }) => {
+  await openEditor(page, 'sample');
+  await tapStart(page, 'b');
+  await expect(tools(page)).toBeVisible();
+  await page.keyboard.press('Alt+F10');
+  await expect(tool(page, 'Add block below')).toBeFocused();
+  await page.keyboard.press(forward());
+  await expect(tools(page).getByRole('button', { name: 'Turn into' })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(host(page, 'b')).toBeFocused();
 });
 
 test('tapping Bold then typing writes bold text, with focus kept in the text', async ({ page }) => {

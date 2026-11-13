@@ -1,8 +1,10 @@
 import { host } from '../../support/block';
 import { expect, test, type Page } from '@playwright/test';
+import { edgeX, fromLineStart } from '../../support/direction';
 import { blocks, openEditor } from '../../support/editor';
 import { phoneTest } from '../../support/phone';
 import { copyEvent } from '../../support/synthetic-events';
+import { textPoint } from '../../support/text-point';
 
 const handle = (page: Page) => page.getByRole('button', { name: 'Drag to move, click for options' });
 const openReadOnly = (page: Page) => openEditor(page, 'rich', 'readonly=1');
@@ -53,12 +55,12 @@ test('a click on the task box leaves it as it is, and the box says it is read-on
 test('no key, selection or click opens a menu, a toolbar or a dialog, or changes the document', async ({ page }) => {
   await openReadOnly(page);
   const before = await blocks(page);
-  await host(page, 'p').click({ position: { x: 1, y: 12 } });
+  await host(page, 'p').click({ position: await textPoint(host(page, 'p'), 'Keeps') });
   for (const key of ['/', 'ControlOrMeta+/', 'ControlOrMeta+Shift+Slash', 'ControlOrMeta+k', 'x', 'Enter']) {
     await page.keyboard.press(key);
     await expectNoOverlay(page);
   }
-  await host(page, 'h').dblclick({ position: { x: 12, y: 12 } });
+  await host(page, 'h').dblclick({ position: await textPoint(host(page, 'h'), 'Release') });
   await expect.poll(() => page.evaluate(() => getSelection()!.toString().trim())).not.toBe('');
   await expectNoOverlay(page);
   await host(page, 'p').getByRole('link').hover();
@@ -111,9 +113,9 @@ const COPIED_PARAGRAPH = '<p>Keeps <strong>bold</strong>, <em>italic</em>, <code
 async function selectTitleAndParagraph(page: Page) {
   const from = (await host(page, 'h').boundingBox())!;
   const to = (await host(page, 'p').boundingBox())!;
-  await page.mouse.move(from.x + 1, from.y + from.height / 2);
+  await page.mouse.move(fromLineStart(from, 1), from.y + from.height / 2);
   await page.mouse.down();
-  await page.mouse.move(to.x + to.width - 1, to.y + to.height / 2, { steps: 8 });
+  await page.mouse.move(edgeX(to, 1, true), to.y + to.height / 2, { steps: 8 });
   await page.mouse.up();
   await expect
     .poll(() => page.evaluate(() => getSelection()!.toString().replace(/\s+/g, ' ').trim()))
@@ -147,6 +149,6 @@ phoneTest.describe('on a phone', () => {
     await host(page, 'p').tap();
     await settle(page);
     await expect(page.getByRole('toolbar', { name: 'Editing tools' })).toHaveCount(0);
-    await expect(handle(page)).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Block options' })).toHaveCount(0);
   });
 });

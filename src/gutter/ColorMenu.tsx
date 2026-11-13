@@ -1,10 +1,11 @@
 'use client';
 
 import { useId, type ReactNode } from 'react';
-import { PALETTE, type EngineBlock } from '../engine';
+import { PALETTE, type EngineBlock, type PaletteName } from '../engine';
 import { paletteOrUndefined } from '../engine/blocks/data-fields';
 import { setBlockColor } from '../engine/commands/block-style';
-import type { PaletteName } from '../engine/markdown/palette-rgb';
+import { englishLabels } from '../i18n/english-labels';
+import type { QuoinLabels } from '../i18n/labels';
 import { useLabels } from '../i18n/use-labels';
 import { Check, Palette } from '../icons';
 import type { ViewController } from '../view';
@@ -29,10 +30,10 @@ function sharedColor(blocks: readonly EngineBlock[], key: ColorKey): string {
   return colors.size === 1 ? [...colors][0] : '';
 }
 
-const swatches: Readonly<Record<ColorKey, (name: PaletteName) => ReactNode>> = {
-  color: (name) => (
+const swatches: Readonly<Record<ColorKey, (name: PaletteName, labels: QuoinLabels) => ReactNode>> = {
+  color: (name, labels) => (
     <span aria-hidden="true" data-color={name} className="w-4 text-center font-medium">
-      A
+      {labels.textColorSample ?? englishLabels.textColorSample}
     </span>
   ),
   background: (name) => <span aria-hidden="true" data-bg={name} className="size-4 rounded-sm border border-border" />,
@@ -49,7 +50,7 @@ export function ColorGroups({ kit, value, onPick }: ColorGroupsProps) {
       <kit.RadioGroup aria-labelledby={titleId} value={value[key]} onValueChange={(name) => onPick(key, name)}>
         {PALETTE.map((name) => (
           <kit.RadioItem key={name} value={name} indicator={<Check className="size-4" />}>
-            {swatches[key](name)}
+            {swatches[key](name, labels)}
             {labels.colors[name]}
           </kit.RadioItem>
         ))}

@@ -31,7 +31,11 @@ export type Decoration =
   /** Attributes written on the element of a whole block: `data-*` and `aria-*` names only. */
   | { readonly kind: 'block'; readonly block: string; readonly attrs: Attrs };
 
-export type PasteRule = { readonly name: string; match(text: string, state: EditorState): Command | null };
+/** Takes a paste before the editor does, given its plain text and everything else that was pasted with it. */
+export type PasteRule = {
+  readonly name: string;
+  match(text: string, state: EditorState, data?: { json?: string; html?: string; text?: string }): Command | null;
+};
 
 export type Extension = {
   readonly name: string;

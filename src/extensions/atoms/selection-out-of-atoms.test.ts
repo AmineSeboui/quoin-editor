@@ -1,5 +1,5 @@
 import { coreBlocks } from '../../blocks/core';
-import { mountCanvas, paragraph } from '../../blocks/void/test-canvas';
+import { mountCanvas, paragraph } from '../../blocks/test-support/test-canvas';
 import { domMapOf } from '../../view';
 import { moveSelectionOutOfAtoms } from './selection-out-of-atoms';
 

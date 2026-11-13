@@ -2,8 +2,19 @@ import type { InlineDirection } from '../ui/direction';
 
 export type DropTarget = { index: number; indent: number; lineTop: number; lineStart: number };
 
-/** A drawn block, with `start` the x where its indent is measured from, on the side its lines start. */
-export type DropCandidate = { id: string; top: number; bottom: number; start: number; indent: number; dragged: boolean };
+/**
+ * A drawn block, with `start` the x where its indent is measured from, on the side its lines start, and `hidesNested`
+ * set where what is nested in it is not drawn, as under a closed toggle.
+ */
+export type DropCandidate = {
+  id: string;
+  top: number;
+  bottom: number;
+  start: number;
+  indent: number;
+  dragged: boolean;
+  hidesNested: boolean;
+};
 
 export type DropTargetInput = {
   pointerX: number;
@@ -30,8 +41,10 @@ function nearestGap(blocks: readonly DropCandidate[], pointerY: number): number 
 /**
  * The gap among the blocks not being dragged that a drop at the pointer lands in, and the indent it takes there: one
  * level for every step the pointer is past the start of the block above, rightwards or, on right-to-left lines, leftwards.
+ * A drop never nests where it would not be drawn. Null when no block is drawn.
  */
-export function computeDropTarget({ pointerX, pointerY, blocks, indentStep, direction }: DropTargetInput): DropTarget {
+export function computeDropTarget({ pointerX, pointerY, blocks, indentStep, direction }: DropTargetInput): DropTarget | null {
+  if (blocks.length === 0) return null;
   const staying = blocks.filter((block) => !block.dragged);
   if (staying.length === 0) return { index: 0, indent: 0, lineTop: blocks[0].top, lineStart: blocks[0].start };
   const index = nearestGap(staying, pointerY);
@@ -39,6 +52,7 @@ export function computeDropTarget({ pointerX, pointerY, blocks, indentStep, dire
   if (index === 0) return { index, indent: 0, lineTop, lineStart: staying[0].start };
   const above = staying[index - 1];
   const step = direction === 'rtl' ? -indentStep : indentStep;
-  const indent = Math.min(Math.max(Math.round((pointerX - above.start) / step), 0), above.indent + 1);
+  const deepest = above.hidesNested ? above.indent : above.indent + 1;
+  const indent = Math.min(Math.max(Math.round((pointerX - above.start) / step), 0), deepest);
   return { index, indent, lineTop, lineStart: above.start + indent * step };
 }

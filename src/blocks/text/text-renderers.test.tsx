@@ -4,7 +4,7 @@ import { axe } from 'vitest-axe';
 import { nodeSelection } from '../../engine';
 import type { QuoinBlock } from '../../types';
 import { md } from '../../view/react/test-harness';
-import { mountCanvas } from '../void/test-canvas';
+import { mountCanvas } from '../test-support/test-canvas';
 import { textRenderers } from './text-renderers';
 
 const callout = (id: string, data: Record<string, unknown>): QuoinBlock => ({ id, type: 'CALLOUT', data });
@@ -66,6 +66,11 @@ describe('a markdown block in the canvas', () => {
   it.each(['', '  '])('names a task checkbox Task when the canvas labels name it %j', (task) => {
     mountCanvas([md('t', '- [ ] ')], { labels: { task } });
     expect(screen.getByRole('checkbox')).toHaveAttribute('aria-label', 'Task');
+  });
+
+  it('draws a quote as a blockquote, in the markup the headless view draws', () => {
+    const { shell } = mountCanvas([md('q', '> cited')]);
+    expect(shell('q').querySelector('.quoin-quote')?.tagName).toBe('BLOCKQUOTE');
   });
 
   it('names every host and control in the words the canvas labels give', () => {
@@ -133,6 +138,22 @@ describe('a callout in the canvas', () => {
     expect(shell('c')).toHaveTextContent('\u2705');
   });
 
+  it('keeps its tone chip in view once its icon is not the one of its tone, as colour alone would tell it', () => {
+    const pin = '\u{1F4CC}';
+    mountCanvas([callout('own', { tone: 'warning', body: 'a' }), callout('pin', { tone: 'warning', body: 'b', icon: pin })]);
+    const [own, pinned] = screen.getAllByRole('button', { name: 'Callout tone: warning' });
+    expect(own).toHaveClass('opacity-0');
+    expect(pinned).not.toHaveClass('opacity-0');
+  });
+
+  it('writes its tone beside an icon that is not the one of its tone while read-only', () => {
+    const pin = '\u{1F4CC}';
+    const blocks = [callout('own', { tone: 'tip', body: 'a' }), callout('pin', { tone: 'tip', body: 'b', icon: pin })];
+    const { shell } = mountCanvas(blocks, { readOnly: true });
+    expect(shell('own')).not.toHaveTextContent('tip');
+    expect(shell('pin')).toHaveTextContent('tip');
+  });
+
   it('names its host with the tone name a host gives, written as given', () => {
     const calloutTones = { info: 'Hinweis', tip: 'Tipp', success: 'Erfolg', warning: 'Warnung', danger: 'Gefahr' };
     mountCanvas([callout('c', { tone: 'warning', body: 'x' })], { labels: { calloutTones } });
@@ -175,6 +196,13 @@ describe('a toggle in the canvas', () => {
     mountCanvas(nested(true));
     const controlled = screen.getByRole('button', { name: 'Toggle' }).getAttribute('aria-controls')!.split(' ');
     expect(controlled.map((id) => document.getElementById(id)?.dataset.blockId)).toEqual(['c', 'g']);
+  });
+
+  it('names its chevron by the toggle label while it hides nothing, so a renamed toggle is renamed there too', () => {
+    mountCanvas([toggle('t', 'Open', true), md('c', 'child', 1), toggle('e', 'Empty', false)], {
+      labels: { toggle: 'Ouvrable' },
+    });
+    expect(screen.getAllByRole('button', { name: 'Ouvrable' })).toHaveLength(2);
   });
 
   it('controls nothing when no block sits under it', () => {

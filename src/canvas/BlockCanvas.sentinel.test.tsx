@@ -1,6 +1,6 @@
 import { act } from '@testing-library/react';
 import { coreBlocks } from '../blocks/core';
-import { mountCanvas } from '../blocks/void/test-canvas';
+import { mountCanvas } from '../blocks/test-support/test-canvas';
 import { englishLabels } from '../i18n/english-labels';
 import type { AnyBlockDefinition } from '../registry';
 import type { QuoinLabels } from '../i18n/labels';

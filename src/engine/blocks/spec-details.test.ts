@@ -240,6 +240,13 @@ describe('TABLE data', () => {
     expect(toData(fromData('TABLE', { ...data, widths: [120, 'wide'] }))).toEqual({ rows: [['a', 'b']], header: true, align: [null, null] });
   });
 
+  it('drops widths that do not give every column a width above zero', () => {
+    const data = { rows: [['a', 'b']], header: true, align: [null, null] };
+    for (const widths of [[120], [120, 80, 60], [120, 0], [120, -5]]) {
+      expect(toData(fromData('TABLE', { ...data, widths }))).toEqual(data);
+    }
+  });
+
   it('normalizes column alignments to left, centre, right or none', () => {
     const block = fromData('TABLE', { rows: [['a', 'b', 'c', 'd']], align: ['justify', 'left', 7, 'right'] });
     expect(block.attrs.align).toEqual([null, 'left', null, 'right']);

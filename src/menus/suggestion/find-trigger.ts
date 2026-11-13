@@ -5,7 +5,14 @@ import { hasMark } from '../../engine/model/marks';
 import { isCollapsed } from '../../engine/state/selection';
 import type { SuggestionRange } from '../../extensions/ui-types';
 
-export type TriggerConfig = { char: string; allowSpaces?: boolean; startOfLine?: boolean; maxLength?: number };
+export type TriggerConfig = {
+  char: string;
+  allowSpaces?: boolean;
+  startOfLine?: boolean;
+  /** The fewest characters of query that open the menu; a shorter one leaves the other triggers as they are. */
+  minLength?: number;
+  maxLength?: number;
+};
 export type ActiveTrigger = SuggestionRange & { query: string };
 
 const DEFAULT_MAX_LENGTH = 40;
@@ -23,7 +30,9 @@ function triggerOffset(text: string, start: number, config: TriggerConfig): numb
     if (character === '\n' || character === ATOM) return null;
     if (character === char) {
       const atRegionStart = start + i === 0;
-      if (atRegionStart || (!startOfLine && i > 0 && WHITESPACE.test(text[i - 1]))) return start + i;
+      const opens = atRegionStart || (!startOfLine && i > 0 && WHITESPACE.test(text[i - 1]));
+      // A space right after the trigger character starts no query, however it got there: typed, pasted or composed.
+      if (opens) return WHITESPACE.test(text[i + 1] ?? '') ? null : start + i;
     }
     if (!allowSpaces && WHITESPACE.test(character)) return null;
   }

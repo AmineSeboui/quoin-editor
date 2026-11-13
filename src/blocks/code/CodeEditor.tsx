@@ -69,7 +69,7 @@ export function CodeEditor({ block, controller, field, focusControls }: CodeEdit
     const area = event.currentTarget;
     if (isComposingKey(controller, event.nativeEvent)) return;
     const action = codeKeyAction(event, fieldOf(area), controller.isMac);
-    if (action !== null && runCodeAction(action, { controller, blockId, area, edit, focusControls })) event.preventDefault();
+    if (action !== null && runCodeAction(action, { controller, blockId, area, edit, reveal, focusControls })) event.preventDefault();
   };
 
   return (

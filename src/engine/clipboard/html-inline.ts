@@ -52,7 +52,7 @@ function append(acc: Accumulator, raw: string, marks: readonly Mark[], preformat
 function finish({ pieces }: Accumulator): Inline {
   while (pieces.length > 0) {
     const last = pieces[pieces.length - 1];
-    const trimmed = last.text.replace(/[ \n]+$/, '');
+    const trimmed = last.text.replace(/[ \n\u00a0]+$/, '');
     if (trimmed === '') pieces.pop();
     else {
       pieces[pieces.length - 1] = { ...last, text: trimmed };

@@ -21,6 +21,8 @@ Set the direction on the page, or on any element above the canvas, with either t
 
 Both work. The canvas reads the direction as it is laid out rather than the attribute alone, so a host that sets it in CSS is covered.
 
+A page can also turn round while the canvas is on it, as when a reader switches the language. The canvas follows when the change is a `dir` attribute, a class or an inline style on the canvas or on an element around it: the gutter moves to the other side at once, and the next menu opens the new way round. A stylesheet that turns the page round without any of those changing, such as a media query, is only picked up by a canvas mounted after it, so give the canvas a new `key` in that case.
+
 Direction and language are separate. Turning the page round does not translate it, and passing a locale pack does not turn it round. Most hosts want both:
 
 ```tsx
@@ -59,7 +61,6 @@ Three things name a side of the screen and keep meaning it, whichever way the pa
 
 ## What is not covered
 
-- **A page that turns round while the canvas is mounted.** The direction is read as the canvas mounts. A host that flips `dir` on a live page should remount the canvas, by giving it a new `key`.
 - **A direction per block.** One canvas runs one way. A right to left paragraph inside a left to right document is laid out by the browser as bidirectional text, which handles the words, but the block's own furniture stays on the document's side.
 - **Mixed text beyond what the browser does.** Quoin adds no bidi isolation of its own around inline code, links or mentions.
 - **Composition over an atom in Chromium.** Typing with an input method directly onto a selected formula or mention may drop the composed text. It has not been reproduced by hand, only through the automation protocol.

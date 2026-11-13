@@ -1,22 +1,14 @@
 import type { ViewController } from '../../view';
 import { intrinsicSize } from '../intrinsic-size';
-import {
-  assetOf,
-  claimUpload,
-  isNewestUpload,
-  sameAsset,
-  uploadInto,
-  writeAttrs,
-  type BlockUploader,
-} from '../upload/block-upload';
+import { claimUpload, uploadInto, writeAttrs, type BlockUploader } from '../upload/block-upload';
 import { assetHref } from '../upload/resolved-asset';
+import { writeSize } from './owed-size';
 
 export const isImageFile = (file: File): boolean => file.type.startsWith('image/');
 
 /**
- * Writes the size of the picture a key names to an image block that still shows that key, unless an upload into the
- * block started since. The size is derived from the picture, so it is no step of its own: undoing the upload takes it
- * away too.
+ * Writes the size of the picture a key names to an image block that shows that key, as `writeSize` does. The size is
+ * derived from the picture, so it is no step of its own: undoing the upload takes it away too.
  */
 export async function measureImage(
   controller: ViewController,
@@ -27,9 +19,7 @@ export async function measureImage(
 ): Promise<void> {
   const src = assetHref(resolveAssetUrl, storageKey);
   const size = src === null ? null : await intrinsicSize(src);
-  if (size && isNewestUpload(controller, blockId, token) && sameAsset(assetOf(controller, blockId, 'IMAGE'), { url: '', storageKey })) {
-    writeAttrs(controller, blockId, { ...size }, false);
-  }
+  if (size) writeSize(controller, blockId, { storageKey, size, token });
 }
 
 /**

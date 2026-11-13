@@ -74,6 +74,12 @@ describe('previews', () => {
     expect(screen.getByText('Careful')).toHaveAttribute('data-tone', 'danger');
   });
 
+  it('draws a tone it does not know as info, as the canvas does', () => {
+    wrap(<CalloutPreview data={{ tone: 'purple', body: 'Odd' }} />);
+    expect(screen.getByText('Odd')).toHaveAttribute('data-tone', 'info');
+    expect(screen.getByText('Odd')).toHaveClass('border-info');
+  });
+
   it('shows callout text from the body field the editor writes', () => {
     wrap(<CalloutPreview data={{ tone: 'info', body: 'Heads up' }} />);
     expect(screen.getByText('Heads up')).toBeInTheDocument();

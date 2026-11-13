@@ -1,5 +1,6 @@
 import { toError } from '../../to-error';
 import type { AiRequest, AiStream } from './ai-actions';
+import type { AiFailure } from './ai-failure';
 import type { AiEditor, AiLink, AiRun } from './ai-link';
 import { aiState, aiTransaction, type AiAct, type AiPhase } from './ai-plugin';
 
@@ -29,9 +30,9 @@ const send = (editor: AiEditor, act: AiAct) => editor.dispatch(aiTransaction(edi
 
 async function read(editor: AiEditor, link: AiLink, run: AiRun, stream: AiStream, request: AiRequest): Promise<void> {
   const live = () => link.run === run && link.mounts > 0;
-  const end = (phase: AiPhase) => {
+  const end = (phase: AiPhase, failure?: AiFailure) => {
     endRun(link, true);
-    send(editor, { type: 'end', key: run.key, phase, output: run.output });
+    send(editor, { type: 'end', key: run.key, phase, output: run.output, ...(failure && { failure }) });
   };
   const draw = () => {
     run.cancelFrame = null;
@@ -51,7 +52,7 @@ async function read(editor: AiEditor, link: AiLink, run: AiRun, stream: AiStream
     link.ended('done', run.output);
   } catch (error) {
     if (!live()) return;
-    end('error');
+    end('error', link.failure(error));
     link.report(toError(error));
   }
 }

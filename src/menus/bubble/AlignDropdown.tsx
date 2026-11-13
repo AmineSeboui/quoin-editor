@@ -11,7 +11,7 @@ import { AlignCenter, AlignJustify, AlignLeft, AlignRight, Check } from '../../i
 import { Button } from '../../ui/button';
 import { DropdownMenuRadioGroup, DropdownMenuRadioItem } from '../../ui/dropdown-menu';
 import type { ViewController } from '../../view';
-import { ToolbarMenu } from './ToolbarMenu';
+import { ToolbarMenu } from '../../toolbar/ToolbarMenu';
 
 const ICONS = { left: AlignLeft, center: AlignCenter, right: AlignRight, justify: AlignJustify } as const;
 const ALIGNS = Object.keys(ICONS) as Align[];

@@ -170,7 +170,7 @@ const ContextMenuSubTrigger = /* @__PURE__ */ React.forwardRef<
       {...props}
     >
       {children}
-      <ChevronRight className="ml-auto size-4" />
+      <ChevronRight className="ms-auto size-4 rtl:rotate-180" />
     </ContextMenuPrimitive.SubTrigger>
   );
 });

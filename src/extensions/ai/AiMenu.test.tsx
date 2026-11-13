@@ -1,6 +1,6 @@
 import { act, cleanup, screen, within } from '@testing-library/react';
 import { axe } from 'vitest-axe';
-import { paragraph } from '../../blocks/void/test-canvas';
+import { paragraph } from '../../blocks/test-support/test-canvas';
 import { nestedCanvas } from '../test-support/nested-canvas';
 import { portalledMenu } from '../test-support/portalled-menu';
 import { mountAi } from './ai-test-canvas';

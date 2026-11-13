@@ -2,7 +2,7 @@ import { createRef } from 'react';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'vitest-axe';
-import { mountCanvas, paragraph } from '../../blocks/void/test-canvas';
+import { mountCanvas, paragraph } from '../../blocks/test-support/test-canvas';
 import { BlockCanvas } from '../../canvas/BlockCanvas';
 import type { QuoinEditorHandle } from '../../canvas/canvas-props';
 import { textSelection, type Pos } from '../../engine';
@@ -110,6 +110,8 @@ describe('the link popover', () => {
       expect(popover()).not.toBeNull();
       expect(field()).toHaveAttribute('aria-invalid', 'true');
       expect(field()).toHaveAccessibleDescription('Enter a valid link, such as https://example.com');
+      expect(screen.queryByRole('alert')).toBeNull();
+      expect(screen.getByRole('status')).toHaveTextContent('Enter a valid link, such as https://example.com');
       expect(canvas.changes).toHaveLength(0);
     },
   );
@@ -133,7 +135,28 @@ describe('the link popover', () => {
     expect(canvas.changes).toHaveLength(0);
   });
 
-  it('stays closed after the canvas turns read-only and back, and leaves focus where it is', () => {
+  it.each([
+    ['Tab past its last control', 'Remove link', { key: 'Tab' }],
+    ['Option+Tab past its last control', 'Remove link', { key: 'Tab', altKey: true }],
+    ['Shift+Tab before its field', null, { key: 'Tab', shiftKey: true }],
+  ])('gives focus back to the text on %s, rather than leaving it on the page', (_, from, init) => {
+    const canvas = openPopover([paragraph('a', 'see [docs](https://old.example) here')], pos(6));
+    const start = from === null ? field() : control(from);
+    act(() => start.focus());
+    fireEvent.keyDown(start, init);
+    expect(popover()).toBeNull();
+    expect(host(canvas)).toHaveFocus();
+    expect(canvas.selection()).toEqual(textSelection(pos(6)));
+  });
+
+  it('keeps Tab between its own controls', () => {
+    openPopover([paragraph('a', 'see [docs](https://old.example) here')], pos(6));
+    act(() => field().focus());
+    expect(fireEvent.keyDown(field(), { key: 'Tab' })).toBe(true);
+    expect(popover()).not.toBeNull();
+  });
+
+  it('stays closed after the canvas turns read-only and back, and gives focus back to the text', async () => {
     const ref = createRef<QuoinEditorHandle>();
     const blocks = [paragraph('a', 'hello world')];
     const draw = (readOnly: boolean) => <BlockCanvas ref={ref} blocks={blocks} onChange={() => {}} readOnly={readOnly} />;
@@ -146,11 +169,13 @@ describe('the link popover', () => {
     fireEvent.keyDown(container.querySelector('[data-quoin-host]')!, { key: 'k', code: 'KeyK', ctrlKey: true });
     expect(field()).toHaveFocus();
     rerender(draw(true));
+    await act(async () => {});
     expect(popover()).toBeNull();
-    const focused = document.activeElement;
+    const text = container.querySelector('[data-quoin-host]');
+    expect(document.activeElement).toBe(text);
     rerender(draw(false));
     expect(popover()).toBeNull();
-    expect(document.activeElement).toBe(focused);
+    expect(document.activeElement).toBe(text);
   });
 
   it('opens from the Link button of the formatting toolbar', () => {

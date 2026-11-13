@@ -21,7 +21,7 @@ The text an empty block shows in its main region, read again whenever the editor
 type BlockPlaceholder = (state: EditorState, block: EngineBlock) => string | undefined;
 ```
 
-[BlockPlaceholder on GitHub](src/view/react/block-placeholder.ts#L8)
+[BlockPlaceholder on GitHub](src/view/react/block-placeholder.ts#L9)
 
 ### BlockRenderer
 
@@ -71,7 +71,7 @@ The editable view with none of the canvas UI: one editable host per text block, 
 function EditorView(props: EditorViewProps): JSX.Element
 ```
 
-[EditorView on GitHub](src/view/react/EditorView.tsx#L57)
+[EditorView on GitHub](src/view/react/EditorView.tsx#L64)
 
 ### EditorViewProps
 
@@ -84,7 +84,12 @@ type EditorViewProps = {
   'aria-label'?: string;
   /** What the editor's accessible description says, in place of the English way out. */
   hint?: string;
-  /** The accessible name of the paragraph an empty document offers to type into. */
+  /**
+   * The names the default renderers give the text of each block and the controls beside it, in place of the English
+   * ones. A key left out stays English, and so does each tone `calloutTones` leaves out.
+   */
+  rendererLabels?: Partial<RendererLabels>;
+  /** The accessible name of the paragraph an empty document offers to type into, by default `rendererLabels.paragraph`. */
   paragraphLabel?: string;
   /** The accessible name of the hidden textbox that holds a selection across blocks. */
   selectedContentLabel?: string;
@@ -98,7 +103,7 @@ type EditorViewProps = {
   onBlockError?: (error: Error) => void;
   /** The text of the host an empty document draws. */
   placeholder?: string;
-  /** The placeholder of each empty block, by default the name of a heading and nothing for other blocks. */
+  /** The placeholder of each empty block, by default the name `rendererLabels` gives a heading and nothing for others. */
   blockPlaceholder?: BlockPlaceholder;
   /** What the live region says when blocks are selected, given how many it draws, in place of the English words. */
   blocksSelectedLabel?: (count: number) => string;
@@ -107,7 +112,31 @@ type EditorViewProps = {
 };
 ```
 
-[EditorViewProps on GitHub](src/view/react/EditorView.tsx#L19)
+[EditorViewProps on GitHub](src/view/react/EditorView.tsx#L21)
+
+### RendererLabels
+
+The names the default renderers give the text of each block and the controls beside it.
+
+```ts
+type RendererLabels = {
+  paragraph: string;
+  heading: (level: number) => string;
+  bulletItem: string;
+  numberedItem: (n: number) => string;
+  task: string;
+  quote: string;
+  /** The name of a callout's text, given the name of its tone from `calloutTones`, which it takes as written. */
+  callout: (tone: string) => string;
+  /** The name of each tone, inside the name of a callout's text. */
+  calloutTones: Record<CalloutTone, string>;
+  toggle: string;
+  /** The name of a closed toggle's chevron, given how many blocks it hides. A chevron hiding none is named by `toggle`. */
+  toggleButton: (hidden: number) => string;
+};
+```
+
+[RendererLabels on GitHub](src/view/react/renderer-labels.ts#L4)
 
 ### useEditorState
 
@@ -382,7 +411,7 @@ What the editor calls a block selected as a whole, given the schema it can read 
 type BlockLabel = (block: EngineBlock, schema: Schema) => string;
 ```
 
-[BlockLabel on GitHub](src/view/selection/selection-sink.ts#L61)
+[BlockLabel on GitHub](src/view/selection/selection-sink.ts#L73)
 
 ### NodeReveal
 
@@ -411,7 +440,7 @@ Where a host takes a key before the editor does.
 type KeyInterceptor = (event: KeyboardEvent) => boolean;
 ```
 
-[KeyInterceptor on GitHub](src/view/input/keydown.ts#L10)
+[KeyInterceptor on GitHub](src/view/input/keydown.ts#L11)
 
 ## Caret placement
 

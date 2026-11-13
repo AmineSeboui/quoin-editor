@@ -7,7 +7,8 @@
 .quoin .quoin-table-scroll {
   position: relative;
   overflow-x: auto;
-  padding: 0.75rem 0.25rem 0.25rem 1rem;
+  padding-block: 0.75rem 0.25rem;
+  padding-inline: 1rem 0.25rem;
 }
 
 .quoin .quoin-table[data-readonly] .quoin-table-scroll {

@@ -129,6 +129,25 @@ describe('the host unfurl of a bookmark', () => {
     expect(within(card()).getByRole('link', { name: URL })).toBeInTheDocument();
   });
 
+  it.each<[string, () => Promise<UnfurledLink>]>([
+    ['rejects', () => Promise.reject(new Error('offline'))],
+    [
+      'throws',
+      () => {
+        throw new Error('broken');
+      },
+    ],
+  ])('is asked again once the bookmark is drawn again after it %s', async (_case, failure) => {
+    const unfurl = vi.fn(failure).mockImplementationOnce(failure).mockImplementation(async () => ({ title: 'Docs' }));
+    const { handle, last } = mountEmbeds([bookmark()], { unfurl }, { onError: () => {} });
+    await settle();
+    act(() => handle().controller.dispatch(handle().editor.createTransaction().step(removeBlocksStep(1, 1))));
+    act(() => void handle().editor.commands.undo());
+    await settle();
+    expect(unfurl).toHaveBeenCalledTimes(2);
+    expect(last()[1].data).toEqual({ url: URL, title: 'Docs' });
+  });
+
   it.each<[string, () => Promise<UnfurledLink>, string]>([
     ['rejects', () => Promise.reject(new Error('offline')), 'offline'],
     [

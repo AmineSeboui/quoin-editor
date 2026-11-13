@@ -32,6 +32,33 @@ Everything in it is re-exported from the main `quoin-editor` entry too. Both ent
 
 A renderer for a text block, such as a paragraph or a heading, that draws no `EditableRegion` for the block's text leaves nothing to hold a caret: ArrowUp and ArrowDown pass over the block, and a click on it selects the block's text as a whole, as a block selection of that one block rather than a node selection, as for a block whose renderer threw.
 
+## Names in another language
+
+The renderers `EditorView` draws for text blocks name each block's text for assistive technology, such as `Heading 2`, `Bullet list item` or `Callout, warning`, and name the controls beside it: a task's checkbox, named after the task's text and by `task` while that is empty, and a toggle's chevron, named by `toggle`, or by `toggleButton` with the count of blocks a closed toggle hides. `rendererLabels` gives them in your language, and a key you leave out stays English:
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import { EditorView, useQuoinEditor, type QuoinBlock, type RendererLabels } from 'quoin-editor/headless';
+
+const french: Partial<RendererLabels> = {
+  paragraph: 'Paragraphe',
+  heading: (level) => `Titre ${level}`,
+  task: 'Tâche',
+  toggle: 'Dépliant',
+  toggleButton: (hidden) => `Dépliant, ${hidden} masqués`,
+};
+
+export function Notes() {
+  const [blocks, setBlocks] = useState<QuoinBlock[]>([]);
+  const controller = useQuoinEditor({ blocks, onChange: setBlocks });
+  return <EditorView controller={controller} aria-label="Notes" rendererLabels={french} />;
+}
+```
+
+The empty document's paragraph and the placeholder of an empty heading take the same names, unless `paragraphLabel` or `blockPlaceholder` says otherwise. The canvas's own `labels` carry every one of these keys, so a locale pack such as `frLabels` can be passed as `rendererLabels` as it is. `calloutTones` names each `CalloutTone` inside the name of a callout's text, and a tone you leave out of it stays English. Define the object once, as for `renderers`: a new one on every render redraws the text of every block.
+
 ## A block that cannot be drawn
 
 A renderer that throws while drawing its block does not unmount the editor: that block draws a fallback inside its own element, and the other blocks keep working. ArrowUp and ArrowDown pass over a failed text block, and a click on its fallback selects the block's text as a whole, as a block selection of that one block rather than a node selection, so Delete removes it. `EditorView` takes `blockErrorLabel`, the accessible name and text of the fallback (`Block could not be drawn` by default), and `onBlockError`, called with each error a renderer throws, besides React's own report of a caught error. The block is drawn again when its data changes, or when `renderers` gives its type another renderer. The attributes a block decoration puts on its block's element are limited to the names that start with `data-` or `aria-`.

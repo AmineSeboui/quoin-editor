@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'vitest-axe';
 import { coreBlocks } from '../../blocks/core';
-import { paragraph } from '../../blocks/void/test-canvas';
+import { paragraph } from '../../blocks/test-support/test-canvas';
 import { BlockCanvas } from '../../canvas/BlockCanvas';
 import type { QuoinEditorHandle } from '../../canvas/canvas-props';
 import { blockRangeSelection, type QuoinBlock } from '../../engine';

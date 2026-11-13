@@ -12,27 +12,27 @@ export const MENU_SUB_CONTENT =
   'quoin bg-popover text-popover-foreground z-50 max-h-(--radix-popper-available-height) min-w-[8rem] overflow-x-hidden overflow-y-auto rounded-lg border border-border p-1 shadow-lg';
 
 export const MENU_ITEM = [
-  "focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm focus:outline-hidden select-none data-[inset]:pl-8 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg:not([class*='size-'])]:size-4",
+  "focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm focus:outline-hidden select-none data-[inset]:ps-8 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg:not([class*='size-'])]:size-4",
   HIGHLIGHT_BAR,
   TAP_TARGET_FLOOR,
 ].join(' ');
 
 export const MENU_CHECKABLE_ITEM = [
-  'focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm focus:outline-hidden select-none',
+  'focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pe-2 ps-8 text-sm focus:outline-hidden select-none',
   HIGHLIGHT_BAR,
   TAP_TARGET_FLOOR,
 ].join(' ');
 
-export const MENU_ITEM_INDICATOR = 'pointer-events-none absolute left-2 flex size-3.5 items-center justify-center';
+export const MENU_ITEM_INDICATOR = 'pointer-events-none absolute start-2 flex size-3.5 items-center justify-center';
 
 export const MENU_SUB_TRIGGER = [
-  'focus:bg-accent data-[state=open]:bg-accent flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm focus:outline-hidden select-none data-[inset]:pl-8',
+  'focus:bg-accent data-[state=open]:bg-accent flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm focus:outline-hidden select-none data-[inset]:ps-8',
   HIGHLIGHT_BAR,
   TAP_TARGET_FLOOR,
 ].join(' ');
 
-export const MENU_LABEL = 'px-2 py-1.5 text-sm font-medium data-[inset]:pl-8';
+export const MENU_LABEL = 'px-2 py-1.5 text-sm font-medium data-[inset]:ps-8';
 
 export const MENU_SEPARATOR = 'bg-border -mx-1 my-1 h-px';
 
-export const MENU_SHORTCUT = 'text-muted-foreground ml-auto text-xs tracking-widest';
+export const MENU_SHORTCUT = 'text-muted-foreground ms-auto text-xs tracking-widest';

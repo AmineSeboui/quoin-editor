@@ -1,5 +1,6 @@
 import type { Selection } from '../../engine';
 import { sameSelection } from '../../engine/state/selection';
+import { sideOfLineEnd } from '../navigation/line-end';
 import { focusingSink, focusSink, heldBySink } from '../selection/selection-sink';
 import { readSelection, writeSelection } from './dom-selection';
 import { ownsFocus } from './focus-ownership';
@@ -8,12 +9,15 @@ import type { ViewController } from './view-controller';
 
 /**
  * The selection the browser draws in the hosts where it is not `model`, unless a composition or a drag holds it. The
- * browser does not tell which side of a soft wrap it draws a caret on, so a caret where the model's is keeps its side.
+ * browser does not tell which side of a soft wrap it draws a caret on, so a caret where the model's is keeps its side,
+ * and one the line end key moved takes the side of the line it left.
  */
 export function movedSelection(controller: ViewController, doc: Document | null, model: Selection | null): Selection | null {
   if (controller.composingKey !== null || controller.dragging || !doc || !ownsFocus(controller, doc)) return null;
-  const selection = readSelection(controller.registry, doc.getSelection(), (node) => controller.blockAt(node));
-  const sided = selection?.kind === 'text' && model?.kind === 'text' ? { ...selection, assoc: model.assoc } : selection;
+  const read = readSelection(controller.registry, doc.getSelection(), (node) => controller.blockAt(node));
+  const selection = sideOfLineEnd(controller, read);
+  const keepsSide = selection?.kind === 'text' && model?.kind === 'text' && selection.assoc === undefined;
+  const sided = keepsSide ? { ...selection, assoc: model.assoc } : selection;
   return sided === null || sameSelection(sided, model) ? null : selection;
 }
 

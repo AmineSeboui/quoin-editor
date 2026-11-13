@@ -1,5 +1,5 @@
 import { screen, within } from '@testing-library/react';
-import { paragraph } from '../../blocks/void/test-canvas';
+import { paragraph } from '../../blocks/test-support/test-canvas';
 import { textSelection } from '../../engine';
 import { heading, mountToc } from './toc-test-canvas';
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef, type MouseEvent, type PointerEvent, type RefObject } from 'react';
-import { blockMovedMessage } from '../canvas/structure-announcement';
+import { announceBlockMoved } from '../canvas/structure-announcement';
 import type { CanvasUiStore } from '../canvas/ui-store';
 import { useLabels } from '../i18n/use-labels';
 import type { ViewController } from '../view';
@@ -47,9 +47,9 @@ export function useBlockDrag(
         onDragStart: () => {
           dragged.current = true;
         },
-        // The canvas has already said where a drop moved the block, and the announcer says the same words for the
-        // same state once, so this is heard only for a drop that nested the block in place.
-        onMoved: (movedId) => controller.announce(blockMovedMessage(controller.editor.state.doc, movedId, labels)),
+        // The canvas has already said where a drop moved the block, so this is heard only for a drop that nested the
+        // block in place.
+        onMoved: (movedId) => announceBlockMoved(controller, movedId, labels),
       });
     },
     takeClick(event) {

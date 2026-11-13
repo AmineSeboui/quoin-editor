@@ -1,6 +1,6 @@
 import { act, fireEvent, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { bookmarkBlock, mountCanvas, paragraph } from '../blocks/void/test-canvas';
+import { bookmarkBlock, mountCanvas, paragraph } from '../blocks/test-support/test-canvas';
 import { createPluginKey, defineExtension, textSelection, type Pos, type Transaction } from '../engine';
 import type { UploadFn, UploadResult } from '../types';
 import { dragEvent, fakeTransfer } from '../view/clipboard/test-transfer';

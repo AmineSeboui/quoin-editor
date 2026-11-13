@@ -1,8 +1,9 @@
-import type { PaletteName } from '../engine/markdown/palette-rgb';
+import type { PaletteName } from '../engine';
+import type { CalloutTone } from '../engine/blocks/callout-tones';
 
 export type SlashGroup = 'basic' | 'lists' | 'media' | 'advanced' | 'embeds' | 'ai' | 'custom';
 
-export type CalloutTone = 'info' | 'tip' | 'success' | 'warning' | 'danger';
+export type { CalloutTone };
 
 /** The block types the menus name. Headings are named by `heading`. */
 export type BlockName =
@@ -67,7 +68,7 @@ export type QuoinLabels = {
   /** The name of the button that shows a callout's tone and opens the menu of tones, given the tone's name. */
   calloutToneMenu: (tone: string) => string;
   toggle: string;
-  /** The name of a toggle's chevron, given how many blocks the closed toggle hides, 0 while it is open. */
+  /** The name of a closed toggle's chevron, given how many blocks it hides. A chevron hiding none is named by `toggle`. */
   toggleButton: (hidden: number) => string;
   placeholderEmpty: string;
   placeholderHeading: (level: number) => string;
@@ -79,6 +80,8 @@ export type QuoinLabels = {
   color: string;
   textColor: string;
   backgroundColor: string;
+  /** The letter the colour menus draw in each text colour beside its name. Optional like `blockError`. */
+  textColorSample?: string;
   /** The submenus of a callout's block menu that set its tone and its icon. */
   tone: string;
   icon: string;
@@ -86,12 +89,15 @@ export type QuoinLabels = {
   copy: string;
   copyLink: string;
   copied: string;
+  copyFailed?: string;
   moveUp: string;
   moveDown: string;
   delete: string;
   askAi: string;
   addBelow: string;
   dragHandle: string;
+  /** The drag handle's name on a touch screen, where a tap opens the block menu and a touch does not drag. */
+  blockOptions?: string;
   slashMenu: string;
   noResults: string;
   /** What the open slash menu says once its list settles, given how many commands match. */
@@ -122,6 +128,8 @@ export type QuoinLabels = {
   colors: Record<PaletteName, string>;
   blockMoved: (position: number, total: number) => string;
   blockInserted: (position: number, total: number) => string;
+  /** Several blocks inserted at once, at the place of the first of them. */
+  blocksInserted?: (n: number, position: number, total: number) => string;
   blockDeleted: (n: number) => string;
   blocksSelected: (n: number) => string;
   /** How to bring deleted blocks back, given the platform's undo shortcut. */

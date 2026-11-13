@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { useOutsidePress } from '../../blocks/image/use-outside-press';
 import { insertBlockToWrite, type NewBlock } from '../../blocks/insert-blocks';
-import { bubblePart } from '../../menus/bubble/bubble-part';
+import { bubblePart } from '../../toolbar/bubble-part';
 import { useRangeAnchor } from '../../menus/floating/use-range-anchor';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';

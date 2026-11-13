@@ -8,6 +8,7 @@ import type { Schema } from '../schema/types';
 import type { EditorState } from '../state/editor-state';
 import { isCollapsed, primaryRegion } from '../state/selection';
 import type { Slice } from './slice';
+import { tablePart } from './table-part';
 
 function isFlowRegion(schema: Schema, block: EngineBlock, region: string): boolean {
   return isTextFlow(schema, block) && region === primaryRegion(schema, block);
@@ -29,7 +30,7 @@ function textBlocks({ doc, schema }: EditorState, selection: TextSelection): Eng
   const end = requireBlockIndex(doc, to.block);
   const first = doc.blocks[start];
   if (start === end) {
-    if (from.region !== to.region) return [first];
+    if (from.region !== to.region) return [tablePart(first, from.region, to.region)];
     return [insideOneRegion(schema, first, from.region, from.offset, to.offset)];
   }
   const last = doc.blocks[end];

@@ -1,4 +1,4 @@
-import { paragraph } from '../../blocks/void/test-canvas';
+import { paragraph } from '../../blocks/test-support/test-canvas';
 import type { headings as Listed } from './headings';
 import { heading, mountToc, tocBlock } from './toc-test-canvas';
 import type { TocList as DrawnList } from './TocList';

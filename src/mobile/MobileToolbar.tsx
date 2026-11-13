@@ -1,15 +1,18 @@
 'use client';
 
+import { useDirection } from '@radix-ui/react-direction';
 import { useMemo, type CSSProperties, type KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useCanvasUiStore } from '../canvas/ui-store';
 import type { ToolbarItem } from '../extensions/ui-types';
 import { useLabels } from '../i18n/use-labels';
-import { ToolbarButton } from '../menus/bubble/bubble-items';
-import { TurnIntoDropdown } from '../menus/bubble/TurnIntoDropdown';
-import { useRovingFocus } from '../menus/bubble/use-roving-focus';
-import { bubblePart } from '../menus/bubble/bubble-part';
+import { ToolbarButton } from '../toolbar/toolbar-button';
+import { TurnIntoDropdown } from '../toolbar/TurnIntoDropdown';
+import { useRovingFocus } from '../toolbar/use-roving-focus';
+import { bubblePart } from '../toolbar/bubble-part';
+import { useFocusBackToText } from '../toolbar/use-focus-back-to-text';
 import { keepFocus } from '../menus/floating/keep-focus';
+import { useFocusKey } from '../menus/floating/use-focus-key';
 import type { ViewController } from '../view';
 import { useEditorState, wholeState } from '../view/react/use-editor-state';
 import { mobileItems } from './mobile-items';
@@ -23,10 +26,20 @@ const TOOLBAR = [
 ].join(' ');
 
 // A fixed element is placed against the layout viewport, which a virtual keyboard leaves whole, so the bar follows the
-// bottom edge of the visual viewport instead.
+// bottom edge of the visual viewport instead. Under a pinch zoom the bar is laid out at the width the zoom would give
+// it and scaled back by as much, so it spans the visible part of the page at its own size.
 function placement(viewport: VisualViewportBox | null): CSSProperties {
   if (viewport === null) return { bottom: 0 };
-  return { top: viewport.offsetTop + viewport.height, width: viewport.width, transform: 'translateY(-100%)' };
+  const { offsetLeft, offsetTop, height, width, scale } = viewport;
+  const shift = 'translateY(-100%)';
+  return {
+    top: offsetTop + height,
+    left: offsetLeft,
+    right: 'auto',
+    width: width * scale,
+    transform: scale === 1 ? shift : `scale(${1 / scale}) ${shift}`,
+    transformOrigin: '0 0',
+  };
 }
 
 type MobileToolbarProps = { controller: ViewController };
@@ -37,6 +50,9 @@ function EditingTools({ controller }: MobileToolbarProps) {
   const state = useEditorState(controller, wholeState);
   const viewport = useVisualViewport();
   const roving = useRovingFocus();
+  const dir = useDirection();
+  useFocusBackToText(controller);
+  useFocusKey(controller, roving.focusCurrent);
   const items = useMemo(() => mobileItems(labels, () => store.set({ linkPopover: { open: true } })), [labels, store]);
 
   const onKeyDown = (event: KeyboardEvent) => {
@@ -52,6 +68,7 @@ function EditingTools({ controller }: MobileToolbarProps) {
   return createPortal(
     <div
       ref={roving.ref}
+      dir={dir}
       role="toolbar"
       aria-label={labels.mobileToolbar}
       className={TOOLBAR}
@@ -70,7 +87,10 @@ function EditingTools({ controller }: MobileToolbarProps) {
   );
 }
 
-/** On a touch screen, the tools that format and edit the text, held above the virtual keyboard while it has focus. */
+/**
+ * On a touch screen, the tools that format and edit the text, held above the virtual keyboard while it has focus. A
+ * hardware keyboard reaches them with Alt+F10, as it does the bubble toolbar, and Escape goes back to the text.
+ */
 export function MobileToolbar({ controller }: MobileToolbarProps) {
   const coarse = useCoarsePointer();
   const focused = useEditorFocus(controller);

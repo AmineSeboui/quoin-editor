@@ -1,6 +1,5 @@
 import { gridMove } from './grid-moves';
 
-// Two sections laid out as rows of 3: one of 5 cells, then one of 4.
 const ROWS = [3, 2, 3, 1];
 
 describe('gridMove', () => {

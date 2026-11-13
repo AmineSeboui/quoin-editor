@@ -5,7 +5,7 @@ import { setAttrs } from '../../engine/commands/block-style';
 import { blockById } from '../../engine/model/doc';
 import { englishLabels } from '../../i18n/english-labels';
 import { useLabels } from '../../i18n/use-labels';
-import { bubblePart, isBubblePart } from '../../menus/bubble/bubble-part';
+import { bubblePart, isBubblePart } from '../../toolbar/bubble-part';
 import type { VirtualAnchor } from '../../menus/floating/virtual-anchor';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
@@ -15,6 +15,7 @@ import type { ViewController } from '../../view';
 import { isComposingKey } from '../../view/input/keydown';
 import { onBlock } from '../../view/react/block-command';
 import { str } from '../../engine/blocks/data-fields';
+import { useClosing } from './use-closing';
 import { useOutsidePress } from './use-outside-press';
 
 type Opened = { alt: string; decorative: boolean };
@@ -44,10 +45,12 @@ function storeAlt(controller: ViewController, blockId: string, opened: Opened, p
 
 /**
  * The alt text of an image, asked for as required. Enter, Save, and Tab or Shift+Tab out of it store it and hand focus
- * back to the image, and Escape hands focus back keeping the alt text the image had. A press elsewhere, or a script
- * moving focus elsewhere, stores it and leaves focus where that puts it; a press on the image's toolbar or handles
- * hands focus back to the image. A press on the button that opened it is left to that button. It closes, storing
- * nothing, once the alt text or the decorative flag changes under it.
+ * back to the image, and Escape hands focus back keeping the alt text the image had. A press elsewhere stores it and
+ * leaves focus where the press puts it, and so does a script moving focus out of the editor. Focus a script moves into
+ * the editor goes to its selection, the image, as any focus coming back to the editor does. A press on the image's
+ * toolbar or handles hands focus back to the image, and one on the button that opened it is left to that button. Focus
+ * leaving the window keeps it open with what was typed. It closes, storing nothing, once the alt text or the decorative
+ * flag changes under it.
  */
 export function AltTextPopover({ blockId, controller, anchor, opener, alt, decorative, onClose }: AltTextPopoverProps) {
   const labels = useLabels();
@@ -56,34 +59,18 @@ export function AltTextPopover({ blockId, controller, anchor, opener, alt, decor
   const [marked, setMarked] = useState(decorative);
   const fieldId = useId();
   const hintId = `${fieldId}-hint`;
-  const closed = useRef(false);
-
-  // Handing focus back to the image is focus leaving the popover, which would close it a second time.
-  const finish = (store: boolean) => {
-    if (closed.current) return false;
-    closed.current = true;
-    if (store && (draft !== alt || marked !== decorative))
-      storeAlt(controller, blockId, opened, { alt: draft, decorative: marked || undefined });
-    return true;
-  };
-  const latestFinish = useRef(finish);
-  latestFinish.current = finish;
-  useEffect(() => {
-    closed.current = false;
-    return () => void latestFinish.current(true);
-  }, []);
+  const { finish, close } = useClosing(controller, {
+    store() {
+      if (draft !== alt || marked !== decorative) {
+        storeAlt(controller, blockId, opened, { alt: draft, decorative: marked || undefined });
+      }
+    },
+    onClose,
+    onReturn: () => controller.focus(),
+  });
   useEffect(() => {
     if ((alt !== opened.alt || decorative !== opened.decorative) && finish(false)) onClose();
   });
-
-  // A tap gives the text focus and the caret before its click closes the popover, and the editor reads the caret only on
-  // the next selection change. It is read first, or storing the text would hand focus back to the image.
-  const close = (store: boolean, refocus = true) => {
-    if (!refocus) controller.readSelectionFromDom();
-    if (!finish(store)) return;
-    onClose();
-    if (refocus) controller.focus();
-  };
   const content = useRef<HTMLDivElement>(null);
   const ownerDocument = useCallback(() => controller.root?.ownerDocument ?? document, [controller]);
   useOutsidePress(content, ownerDocument, (target) => {

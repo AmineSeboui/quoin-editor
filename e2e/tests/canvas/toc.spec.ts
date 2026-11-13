@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
 import { host, onlyHost } from '../../support/block';
+import { edgeX } from '../../support/direction';
 import { blocks, openEditor } from '../../support/editor';
 import { markdownOf } from '../../support/markdown';
 
@@ -72,7 +73,7 @@ test('the block menu opened on an untouched table of contents draws it as select
 test('a press beside the entries selects the block, and a press on one goes to its heading', async ({ page }) => {
   await openEditor(page, 'toc', 'toc=1');
   const box = (await toc(page).boundingBox())!;
-  await page.mouse.click(box.x + box.width - 4, box.y + 4);
+  await page.mouse.click(edgeX(box, 4, true), box.y + 4);
   await expect(tocShell(page)).toHaveAttribute('data-selected', 'true');
   await expect(sink(page)).toBeFocused();
 

@@ -49,18 +49,21 @@ export const arLabels: Required<QuoinLabels> = {
   color: 'اللون',
   textColor: 'لون النص',
   backgroundColor: 'لون الخلفية',
+  textColorSample: '\u0623',
   tone: 'النوع',
   icon: 'الأيقونة',
   duplicate: 'تكرار',
   copy: 'نسخ',
   copyLink: 'نسخ رابط الكتلة',
   copied: 'تم النسخ',
+  copyFailed: 'تعذّر النسخ',
   moveUp: 'تحريك لأعلى',
   moveDown: 'تحريك لأسفل',
   delete: 'حذف',
   askAi: 'اسأل الذكاء الاصطناعي',
   addBelow: 'إضافة كتلة بالأسفل',
   dragHandle: 'اسحب للتحريك، وانقر للخيارات',
+  blockOptions: 'خيارات الكتلة',
   slashMenu: 'الأوامر',
   noResults: 'لا نتائج',
   resultCount: (n) =>
@@ -132,6 +135,14 @@ export const arLabels: Required<QuoinLabels> = {
   },
   blockMoved: (position, total) => `نُقلت الكتلة إلى الموضع ${position} من ${total}`,
   blockInserted: (position, total) => `أُدرجت كتلة في الموضع ${position} من ${total}`,
+  blocksInserted: (n, position, total) =>
+    plural(n, {
+      one: `أُدرجت كتلة في الموضع ${position} من ${total}`,
+      two: `أُدرجت كتلتان في الموضع ${position} من ${total}`,
+      few: `أُدرجت ${number(n)} كتل في الموضع ${position} من ${total}`,
+      many: `أُدرجت ${number(n)} كتلة في الموضع ${position} من ${total}`,
+      other: `أُدرجت ${number(n)} كتلة في الموضع ${position} من ${total}`,
+    }),
   blockDeleted: (n) =>
     plural(n, {
       one: 'حُذفت كتلة',

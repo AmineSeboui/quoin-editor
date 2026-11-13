@@ -1,4 +1,5 @@
 import { formatSize } from '../blocks/file/format-size';
+import { englishRendererLabels } from '../view/react/renderer-labels';
 import type { QuoinLabels } from './labels';
 
 // Frozen in the initializer rather than after it, because a module here runs no statement when it loads: a bundler
@@ -12,21 +13,9 @@ function frozen(labels: Required<QuoinLabels>): Required<QuoinLabels> {
 export const englishLabels: Required<QuoinLabels> = frozen({
   document: 'Editor',
   editorHint: 'Press Escape, then Tab, to leave the editor.',
-  paragraph: 'Paragraph',
-  heading: (level) => `Heading ${level}`,
-  bulletItem: 'Bullet list item',
-  numberedItem: (n) => `Numbered list item ${n}`,
-  task: 'Task',
-  quote: 'Quote',
-  callout: (tone) => `Callout, ${tone}`,
-  calloutTones: { info: 'info', tip: 'tip', success: 'success', warning: 'warning', danger: 'danger' },
+  ...englishRendererLabels,
   calloutIcon: 'Callout icon',
   calloutToneMenu: (tone) => `Callout tone: ${tone}`,
-  toggle: 'Toggle',
-  toggleButton: (hidden) => {
-    if (hidden === 0) return 'Toggle';
-    return `Toggle, ${hidden} ${hidden === 1 ? 'block' : 'blocks'} hidden`;
-  },
   placeholderEmpty: "Type '/' for commands",
   placeholderHeading: (level) => `Heading ${level}`,
   placeholderList: 'List',
@@ -49,18 +38,21 @@ export const englishLabels: Required<QuoinLabels> = frozen({
   color: 'Color',
   textColor: 'Text color',
   backgroundColor: 'Background color',
+  textColorSample: 'A',
   tone: 'Tone',
   icon: 'Icon',
   duplicate: 'Duplicate',
   copy: 'Copy',
   copyLink: 'Copy link to block',
   copied: 'Copied',
+  copyFailed: 'Could not copy',
   moveUp: 'Move up',
   moveDown: 'Move down',
   delete: 'Delete',
   askAi: 'Ask AI',
   addBelow: 'Add block below',
   dragHandle: 'Drag to move, click for options',
+  blockOptions: 'Block options',
   slashMenu: 'Commands',
   noResults: 'No results',
   resultCount: (n) => `${n} ${n === 1 ? 'result' : 'results'}`,
@@ -124,6 +116,7 @@ export const englishLabels: Required<QuoinLabels> = frozen({
   },
   blockMoved: (position, total) => `Block moved to position ${position} of ${total}`,
   blockInserted: (position, total) => `Block inserted at position ${position} of ${total}`,
+  blocksInserted: (n, position, total) => `${n} blocks inserted at position ${position} of ${total}`,
   blockDeleted: (n) => (n === 1 ? 'Block deleted' : `${n} blocks deleted`),
   blocksSelected: (n) => `${n} ${n === 1 ? 'block' : 'blocks'} selected`,
   undoHint: (shortcut) => `Press ${shortcut} to undo`,

@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath } from 'node:url';
 import { MAIN_ENTRY, packageEntries } from '../scripts/package-entries.mjs';
+import { harnessPort } from './harness-server';
 
 const here = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 
@@ -20,7 +21,7 @@ export const builtAliases = aliasesTo(({ name }) => `dist/${name}.js`);
 /** The `dist` mode serves the harness over the built package, on a port of its own so it never reuses the source server. */
 export default defineConfig(({ mode }) => {
   const built = mode === 'dist';
-  const port = built ? 5180 : 5179;
+  const port = harnessPort(built ? 'dist' : undefined);
   return {
     // The bundled harness keeps React's development build, the one the dev server serves: a production React
     // changes typing latency enough to move the ratios the performance budgets are held to.

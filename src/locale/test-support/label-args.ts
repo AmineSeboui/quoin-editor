@@ -10,6 +10,7 @@ export const ARGS: Readonly<Record<string, readonly (readonly unknown[])[]>> = {
   'core.resultCount': [[0], [1], [2], [11], [1234]],
   'core.blockMoved': [[2, 5]],
   'core.blockInserted': [[2, 5]],
+  'core.blocksInserted': [[2, 3, 6], [3, 3, 6], [11, 3, 20], [100, 3, 200]],
   'core.blockDeleted': [[1], [2], [11]],
   'core.blocksSelected': [[1], [2], [11]],
   'core.undoHint': [['Ctrl+Z']],

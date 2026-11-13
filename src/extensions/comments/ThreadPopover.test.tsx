@@ -1,6 +1,6 @@
 import { act, fireEvent, screen, within } from '@testing-library/react';
 import { axe } from 'vitest-axe';
-import { paragraph } from '../../blocks/void/test-canvas';
+import { paragraph } from '../../blocks/test-support/test-canvas';
 import { replaceInlineStep, textSelection } from '../../engine';
 import { nestedCanvas } from '../test-support/nested-canvas';
 import { mountComments, span, thread } from './comments-test-canvas';

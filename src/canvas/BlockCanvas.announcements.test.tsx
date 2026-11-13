@@ -1,7 +1,7 @@
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { mountCanvas, paragraph } from '../blocks/void/test-canvas';
+import { mountCanvas, paragraph } from '../blocks/test-support/test-canvas';
 import { blockRangeSelection } from '../engine';
 import type { QuoinBlock } from '../types';
 
@@ -128,6 +128,18 @@ describe('the canvas announces a block insert with the final position', () => {
     expect(status()).toHaveTextContent('Block inserted at position 2 of 4');
   });
 
+  it('of several blocks a copy of a block range makes, in the plural, at the place of the first', () => {
+    const { handle, key } = setup([paragraph('a', 'one'), paragraph('b', 'two'), paragraph('c', 'three')]);
+    act(() => {
+      const { controller } = handle();
+      controller.dispatch(controller.editor.createTransaction().setSelection(blockRangeSelection('a', 'b')));
+      handle().focus();
+    });
+    key({ key: 'd', ctrlKey: true });
+    expect(handle().editor.getBlocks()).toHaveLength(5);
+    expect(status()).toHaveTextContent('2 blocks inserted at position 3 of 5');
+  });
+
   it('of a copy made from the block menu, counting only the blocks it draws', async () => {
     const user = userEvent.setup();
     const { caret, key, handle } = setup([closedToggle('g'), nested('h', 'hidden'), paragraph('a', 'one')]);
@@ -163,6 +175,8 @@ describe('the canvas announces a block insert with the final position', () => {
     caret('a');
     await user.click(screen.getByRole('button', { name: 'Add block below' }));
     expect(status()).toHaveTextContent('Block inserted at position 2 of 3');
+    await waitFor(() => expect(status()).toHaveTextContent(/results$/));
+    expect(status()).toHaveTextContent(/^Block inserted at position 2 of 3\. \d+ results$/);
   });
 
   it('of uploaded files, not of the empty line after them', async () => {

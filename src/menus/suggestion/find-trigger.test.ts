@@ -26,6 +26,11 @@ describe('findTrigger', () => {
     expect(findTrigger(buildState(['`/x`'], { block: 0, offset: 2 }), slash)).toBeNull();
   });
 
+  it('opens for no query that starts with a space, even where spaces are allowed', () => {
+    expect(findTrigger(at('@ Ada'), { char: '@', allowSpaces: true })).toBeNull();
+    expect(findTrigger(at('Ask @\u00a0'), { char: '@', allowSpaces: true })).toBeNull();
+  });
+
   it('allows spaces when asked, up to the length cap', () => {
     expect(findTrigger(at('@Ada Lov'), { char: '@', allowSpaces: true })).toMatchObject({ query: 'Ada Lov' });
     expect(findTrigger(at('/' + 'x'.repeat(41)), slash)).toBeNull();

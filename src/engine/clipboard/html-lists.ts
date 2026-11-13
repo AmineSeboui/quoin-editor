@@ -13,7 +13,9 @@ function checkboxState(node: Node): boolean | null {
     return node.hasAttribute('checked');
   }
   if (hasClass(node, 'checkbox-on')) return true;
-  return hasClass(node, 'checkbox-off') ? false : null;
+  if (hasClass(node, 'checkbox-off')) return false;
+  const box = node.getAttribute('role') === 'checkbox' || node.getAttribute('aria-roledescription') === 'checkbox';
+  return box ? node.getAttribute('aria-checked') === 'true' : null;
 }
 
 function takeCheckbox(nodes: readonly Node[]): { checked: boolean | null; rest: Node[] } {
@@ -25,20 +27,29 @@ function takeCheckbox(nodes: readonly Node[]): { checked: boolean | null; rest: 
 const isPlainWrapper = (node: Node): node is Element =>
   isElement(node) && ['p', 'div'].includes(tagName(node)) && !hasBlockDescendant(node);
 
+const WORD_LEVELS = 9;
+
+// Word on the web writes every item as a list of its own and gives its depth as an attribute.
+function depthOf(item: Element): number {
+  const level = Math.trunc(Number(item.getAttribute('data-aria-level'))) || 1;
+  return Math.min(WORD_LEVELS, Math.max(1, level)) - 1;
+}
+
 export function listItem(item: Element, base: BlockAttrs, ctx: Context, sink: Sink): void {
   const own = takeCheckbox(Array.from(item.childNodes));
   const split = own.rest.findIndex(breaksRun);
   let content = inlineFromNodes(split < 0 ? own.rest : own.rest.slice(0, split), ctx);
   let rest = split < 0 ? [] : own.rest.slice(split);
-  let checked = own.checked;
+  let checked = checkboxState(item) ?? own.checked;
   if (content.length === 0 && rest.length > 0 && isPlainWrapper(rest[0])) {
     const inner = takeCheckbox(Array.from(rest[0].childNodes));
     checked = checked ?? inner.checked;
     content = inlineFromNodes(inner.rest, ctx);
     rest = rest.slice(1);
   }
-  emitText(sink, ctx.indent, checked === null ? base : { kind: 'task', checked }, content);
-  sink.walk(rest, child(ctx, { indent: ctx.indent + 1, run: PARAGRAPH }));
+  const indent = ctx.indent + depthOf(item);
+  emitText(sink, indent, checked === null ? base : { kind: 'task', checked }, content);
+  sink.walk(rest, child(ctx, { indent: indent + 1, run: PARAGRAPH }));
 }
 
 function firstNumber(list: Element): number {

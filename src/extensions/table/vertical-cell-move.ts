@@ -1,12 +1,13 @@
 import { textSelection, type Pos } from '../../engine';
 import { cellKey } from '../../engine/blocks/table-spec';
-import { tableBlock, tableShape, type Cell } from '../../engine/commands/table-shape';
+import { tableShape, type Cell } from '../../engine/commands/table-shape';
 import { isCollapsed } from '../../engine/state/selection';
 import type { ViewController } from '../../view';
 import { domToPos, posToDom } from '../../view/controller/dom-selection';
 import { caretFromPoint } from '../../view/navigation/caret-from-point';
 import { caretClientRect, isOnFirstLine, isOnLastLine, lineEdgeRect } from '../../view/navigation/line-edges';
 import { neighbourBlock } from '../../view/navigation/neighbour-block';
+import { spanAt } from './table-geometry';
 import { cellPos, headCell } from './table-keys';
 
 const VERTICAL: Readonly<Record<string, -1 | 1>> = { ArrowUp: -1, ArrowDown: 1 };
@@ -38,21 +39,25 @@ function caretOnEdgeLine(controller: ViewController, head: Pos, direction: -1 | 
 
 function columnAt(controller: ViewController, blockId: string, row: number, x: number): number {
   const cells = Array.from(controller.blockElement(blockId)?.querySelector('table')?.rows[row]?.cells ?? []);
-  const index = cells.findIndex((cell) => x < cell.getBoundingClientRect().right);
-  return index === -1 ? Math.max(cells.length - 1, 0) : index;
+  const spans = cells.map((cell) => {
+    const { left, width } = cell.getBoundingClientRect();
+    return { start: left, size: width };
+  });
+  return Math.max(spanAt(spans, x), 0);
 }
 
 /**
  * ArrowDown from the last line of the block above a table, or ArrowUp from the first line of the block below it, goes
  * into its first or last row, in the column under the caret.
  */
-export function enterTable(controller: ViewController, blockId: string, event: KeyboardEvent): boolean {
+export function enterTable(controller: ViewController, event: KeyboardEvent): boolean {
   const direction = plainArrow(event);
   const { state } = controller.editor;
   const { selection } = state;
-  const block = tableBlock(state.doc, blockId);
-  if (direction === undefined || event.shiftKey || block === null || selection?.kind !== 'text') return false;
-  if (!isCollapsed(selection) || neighbourBlock(state.doc, selection.head.block, direction)?.id !== blockId) return false;
+  if (direction === undefined || event.shiftKey || selection?.kind !== 'text' || !isCollapsed(selection)) return false;
+  const block = neighbourBlock(state.doc, selection.head.block, direction);
+  if (block?.type !== 'TABLE') return false;
+  const blockId = block.id;
   const caret = caretOnEdgeLine(controller, selection.head, direction);
   if (caret === null) return false;
   controller.goalX ??= caret.left;
@@ -70,13 +75,12 @@ export function enterTable(controller: ViewController, blockId: string, event: K
  * text, and with Shift extend the selection there. From the first or the last row they are left to the view, which
  * leaves the table.
  */
-export function moveBetweenRows(controller: ViewController, blockId: string, event: KeyboardEvent): boolean {
+export function moveBetweenRows(controller: ViewController, event: KeyboardEvent): boolean {
   const direction = plainArrow(event);
   const { state } = controller.editor;
   const caret = headCell(state);
-  if (direction === undefined || caret === null || caret.block.id !== blockId || state.selection?.kind !== 'text') {
-    return false;
-  }
+  if (direction === undefined || caret === null || state.selection?.kind !== 'text') return false;
+  const blockId = caret.block.id;
   const target: Cell = [caret.cell[0] + direction, caret.cell[1]];
   if (target[0] < 0 || target[0] >= caret.shape.rows) return false;
   const edge = caretOnEdgeLine(controller, caret.head, direction);

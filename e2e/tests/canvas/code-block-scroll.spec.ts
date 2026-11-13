@@ -48,3 +48,27 @@ test('Enter at the end of a long line scrolls the code back to its left edge', a
   await page.keyboard.press('Enter');
   await expect.poll(() => scrolled(page)).toBe(0);
 });
+
+async function caretAtStartScrolledBack(page: Page) {
+  await area(page).evaluate((field: HTMLTextAreaElement) => field.setSelectionRange(0, 0));
+  await page.locator('[data-block-id="k"] .quoin-code-scroll').evaluate((element) => {
+    element.scrollLeft = 0;
+  });
+}
+
+const caret = (page: Page) => area(page).evaluate((field: HTMLTextAreaElement) => field.selectionEnd);
+
+test('undo and redo bring the caret they leave back into view', async ({ page }) => {
+  await openEditor(page, 'long-code');
+  await caretAtEnd(page);
+  await page.keyboard.type('yz');
+  await expect.poll(() => scrolled(page)).toBeGreaterThan(0);
+  await caretAtStartScrolledBack(page);
+  await page.keyboard.press('ControlOrMeta+z');
+  await expect.poll(() => caret(page)).toBe(166);
+  await expect.poll(() => scrolled(page)).toBeGreaterThan(0);
+  await caretAtStartScrolledBack(page);
+  await page.keyboard.press('ControlOrMeta+Shift+z');
+  await expect.poll(() => caret(page)).toBe(168);
+  await expect.poll(() => scrolled(page)).toBeGreaterThan(0);
+});

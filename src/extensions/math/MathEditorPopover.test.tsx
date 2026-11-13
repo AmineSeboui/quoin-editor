@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { BlockCanvas } from '../../canvas/BlockCanvas';
 import type { QuoinEditorHandle } from '../../canvas/canvas-props';
 import { coreBlocks } from '../../blocks/core';
-import { paragraph } from '../../blocks/void/test-canvas';
+import { paragraph } from '../../blocks/test-support/test-canvas';
 import { textSelection, type QuoinBlock } from '../../engine';
 import { mathExtension } from './math-extension';
 import { mathBlock, mountMath } from './math-test-canvas';

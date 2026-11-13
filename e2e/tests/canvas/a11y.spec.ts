@@ -1,15 +1,15 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
 import { host } from '../../support/block';
+import { lineStart } from '../../support/direction';
 import { openEditor } from '../../support/editor';
 import { phoneTest } from '../../support/phone';
+import { firstWordPoint } from '../../support/text-point';
 
 const serious = (page: Page) => axeViolations(page, 'serious', '.quoin');
 
-async function selectFirstWord(page: Page) {
-  await host(page, 'p').click({ position: { x: 1, y: 12 } });
-  for (let i = 0; i < 'Keeps'.length; i++) await page.keyboard.press('Shift+ArrowRight');
-}
+const selectFirstWord = async (page: Page) =>
+  host(page, 'p').dblclick({ position: await firstWordPoint(host(page, 'p')) });
 
 const STATES: Record<string, (page: Page) => Promise<void>> = {
   'at rest': async () => {},
@@ -64,9 +64,9 @@ phoneTest.describe('on a phone', () => {
 
   phoneTest('axe finds no serious violation with the editing tools and the handle shown', async ({ page }) => {
     await openEditor(page, 'rich');
-    await host(page, 'p').tap({ position: { x: 1, y: 12 } });
+    await host(page, 'p').tap({ position: await lineStart(host(page, 'p'), 12) });
     await expect(page.getByRole('toolbar', { name: 'Editing tools' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Drag to move, click for options' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Block options' })).toBeVisible();
     expect(await serious(page)).toEqual([]);
   });
 });

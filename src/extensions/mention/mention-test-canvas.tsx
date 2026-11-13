@@ -1,5 +1,5 @@
-import { act, screen } from '@testing-library/react';
-import type { mountCanvas } from '../../blocks/void/test-canvas';
+import { act, screen, within } from '@testing-library/react';
+import { paragraph, type mountCanvas } from '../../blocks/test-support/test-canvas';
 import type { QuoinBlock } from '../../engine';
 import { mountTypingCanvas } from '../typing-test-canvas';
 import { mentionExtension, type MentionOptions } from './mention-extension';
@@ -42,4 +42,26 @@ export function mountMentions(
   const menu = () => screen.queryByRole('listbox', { name: 'Mentions' });
   const chip = (id: string) => mounted.host(id).querySelector<HTMLElement>('[data-quoin-atom="mention"]');
   return { ...mounted, menu, chip };
+}
+
+export const ada: MentionResult = { id: '42', label: 'Ada' };
+
+export const options = () => within(screen.getByRole('listbox', { name: 'Mentions' })).queryAllByRole('option');
+export const optionTexts = () => options().map((option) => option.textContent);
+
+/** A canvas holding one line of `markdown` with the caret at its end, and a search that answers when told to. */
+export function openOn(markdown: string, canvasProps: Parameters<typeof mountMentions>[2] = {}) {
+  const deferred = deferredSearch();
+  const canvas = mountMentions([paragraph('p', markdown)], { search: deferred.search }, canvasProps);
+  canvas.caret('p', markdown.length);
+  return { ...deferred, canvas };
+}
+
+/** A menu open on `@ad`, once the search has answered with `results`. */
+export async function answered(results: readonly MentionResult[]) {
+  const opened = openOn('Ask');
+  opened.canvas.type(' @ad');
+  waitForSearch();
+  await opened.last().resolve(results);
+  return opened;
 }

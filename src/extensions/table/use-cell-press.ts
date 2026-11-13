@@ -5,7 +5,7 @@ import { blockById } from '../../engine/model/doc';
 import type { ViewController } from '../../view';
 import { cellPos } from './table-keys';
 
-function cellOf(element: Element): [number, number] | null {
+function pressedCell(element: Element): [number, number] | null {
   const row = element.getAttribute('data-row');
   const col = element.getAttribute('data-col');
   return element.matches('td, th') && row !== null && col !== null ? [Number(row), Number(col)] : null;
@@ -25,7 +25,7 @@ export function useCellPress(
     const element = table.current;
     if (!editable || element === null) return;
     const onPointerDown = (event: PointerEvent) => {
-      const cell = event.button === 0 && event.pointerType !== 'touch' ? cellOf(event.target as Element) : null;
+      const cell = event.button === 0 && event.pointerType !== 'touch' ? pressedCell(event.target as Element) : null;
       const block = cell && blockById(controller.editor.state.doc, blockId);
       if (!cell || !block) return;
       event.preventDefault();

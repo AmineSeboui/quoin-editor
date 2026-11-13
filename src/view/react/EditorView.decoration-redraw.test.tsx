@@ -14,6 +14,12 @@ const wrapSelection = defineExtension({
   },
 });
 
+// Every way the view could write the browser's selection, so a test can tell none was used whatever nodes a redraw
+// replaced, which moves the selection without writing it.
+const WRITES = ['addRange', 'collapse', 'extend', 'removeAllRanges', 'selectAllChildren', 'setBaseAndExtent'] as const;
+
+afterEach(() => vi.restoreAllMocks());
+
 function mount() {
   let controller: ViewController | null = null;
   const { container } = render(
@@ -54,11 +60,11 @@ describe('a selection the browser made, once a decoration redraws what it covers
       host.blur();
       document.getSelection()!.collapse(host.firstChild!, 2);
     });
+    const writes = WRITES.map((name) => vi.spyOn(Selection.prototype, name));
     const over = textSelection({ block: 'a', region: 'text', offset: 5 }, { block: 'a', region: 'text', offset: 6 });
     act(() => controller.editor.dispatch(controller.editor.createTransaction().setSelection(over)));
     expect(host.querySelector('[data-wrapped]')).not.toBeNull();
     expect(document.activeElement).toBe(document.body);
-    const { anchorNode, anchorOffset, isCollapsed } = document.getSelection()!;
-    expect([anchorNode, anchorOffset, isCollapsed]).toEqual([host.firstChild, 2, true]);
+    expect(writes.filter((write) => write.mock.calls.length > 0)).toEqual([]);
   });
 });

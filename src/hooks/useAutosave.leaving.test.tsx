@@ -90,6 +90,24 @@ describe('useAutosave', () => {
       expect(save).not.toHaveBeenCalled();
     });
 
+    it('takes its pagehide and visibilitychange listeners off the page when it unmounts', () => {
+      const spies = (method: 'addEventListener' | 'removeEventListener') => [
+        vi.spyOn(window, method),
+        vi.spyOn(document, method),
+      ];
+      const hideListeners = (calls: ReturnType<typeof spies>) =>
+        calls
+          .flatMap((spy) => spy.mock.calls)
+          .filter(([type]) => type === 'pagehide' || type === 'visibilitychange')
+          .map(([type, listener]) => [type, listener]);
+      const [added, removed] = [spies('addEventListener'), spies('removeEventListener')];
+      const { unmount } = render(<Harness save={vi.fn()} />);
+      expect(hideListeners(added)).toHaveLength(2);
+      expect(hideListeners(removed)).toEqual([]);
+      unmount();
+      expect(hideListeners(removed)).toEqual(hideListeners(added));
+    });
+
     it('leaves the debounce alone when flushOnHide is off', async () => {
       const save = vi.fn();
       render(<Harness save={save} options={{ flushOnHide: false }} />);

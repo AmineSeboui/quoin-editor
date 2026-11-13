@@ -1,6 +1,8 @@
+import { cellOf, cellsBetween, type Cell } from '../blocks/table-cell';
+import { cellKey } from '../blocks/table-spec';
 import { compareRegionNames } from '../model/compare';
 import { requireBlockIndex } from '../model/doc';
-import type { Pos } from '../model/types';
+import type { EngineBlock, Pos } from '../model/types';
 import type { Schema } from '../schema/types';
 import type { Transaction } from '../state/transaction';
 import { insertBlocksStep, removeBlocksStep } from '../transform/block-steps';
@@ -13,12 +15,22 @@ function clear(tr: Transaction, pos: Pos, start: number, end: number): void {
   if (start < end) tr.step(replaceInlineStep(pos.block, pos.region, start, end, []));
 }
 
+// A range between two cells of a table is the rectangle of cells they span, emptied whole, as it is painted.
+function clearCells(tr: Transaction, block: EngineBlock, from: Cell, to: Cell): Pos {
+  const cells = cellsBetween(from, to).map((cell) => cellKey(...cell));
+  for (const region of cells) clear(tr, { block: block.id, region, offset: 0 }, 0, regionLength(block, region));
+  return { block: block.id, region: cells[0], offset: 0 };
+}
+
 function deleteWithinBlock(tr: Transaction, from: Pos, to: Pos): Pos {
   if (from.region === to.region) {
     clear(tr, from, from.offset, to.offset);
     return from;
   }
   const block = tr.doc.blocks[requireBlockIndex(tr.doc, from.block)];
+  const first = cellOf(from.region);
+  const last = cellOf(to.region);
+  if (first !== null && last !== null) return clearCells(tr, block, first, last);
   clear(tr, from, from.offset, regionLength(block, from.region));
   for (const region of Object.keys(block.regions)) {
     const between = compareRegionNames(from.region, region) < 0 && compareRegionNames(region, to.region) < 0;

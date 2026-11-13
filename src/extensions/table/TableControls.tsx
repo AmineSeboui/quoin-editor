@@ -16,11 +16,13 @@ import { sameMenuCells } from './menu-cells';
 import type { TableLabels } from './table-labels';
 import { TableHandles, type OpenMenu, type TableHandlesProps } from './TableHandles';
 import { useTableGeometry } from './use-table-geometry';
-import { useCutCells } from './use-cut-cells';
+import { useTableKeys } from './use-table-keys';
 import { caretTarget, useTableTarget, type TableTarget } from './use-table-target';
 import { interceptKeys } from '../../view/input/intercept-keys';
 
 type Held = { readonly target: TableTarget; readonly menu: OpenMenu; readonly opened?: EngineBlock };
+
+type Slot = { readonly block: string; readonly element: HTMLElement };
 
 const isFocusKey = (event: KeyboardEvent) =>
   event.key === 'F10' && event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey;
@@ -36,9 +38,9 @@ export function TableControls({ controller, labels }: { controller: ViewControll
   const readOnly = useReadOnly(controller);
   const [held, setHeld] = useState<Held | null>(null);
   const [focusFor, setFocusFor] = useState<string | null>(null);
-  const [slot, setSlot] = useState<HTMLElement | null>(null);
+  const [slot, setSlot] = useState<Slot | null>(null);
   const target = useTableTarget(controller, held?.target ?? null);
-  useCutCells(controller);
+  useTableKeys(controller, !readOnly);
   const blockId = target?.block ?? null;
   const block = useEditorState(
     controller,
@@ -80,13 +82,15 @@ export function TableControls({ controller, labels }: { controller: ViewControll
   }, []);
 
   // The table draws its slot in the same commit as this, when the canvas turns editable or the table remounts, so the
-  // slot is looked up once that commit is in the document.
+  // slot is looked up once that commit is in the document, and kept with the table it was found in.
   useIsomorphicLayoutEffect(() => {
-    const drawn = block === null || readOnly ? null : controlsSlot(controller, block.id);
-    setSlot((current) => (current === drawn ? current : drawn));
+    const element = block === null || readOnly ? null : controlsSlot(controller, block.id);
+    const drawn = element && block && { block: block.id, element };
+    setSlot((current) => (current?.element === drawn?.element && current?.block === drawn?.block ? current : drawn));
   });
 
-  if (target === null || block === null || readOnly || slot === null || !slot.isConnected) return null;
+  const placed = slot !== null && slot.block === block?.id && slot.element.isConnected ? slot.element : null;
+  if (target === null || block === null || readOnly || placed === null) return null;
   return createPortal(
     <PlacedHandles
       key={block.id}
@@ -94,14 +98,14 @@ export function TableControls({ controller, labels }: { controller: ViewControll
       labels={labels}
       block={block}
       target={target}
-      slot={slot}
+      slot={placed}
       menu={held?.menu ?? null}
       onMenu={onMenu}
       onHold={onHold}
       focusRequested={focusFor === block.id}
       onFocused={onFocused}
     />,
-    slot,
+    placed,
   );
 }
 

@@ -1,8 +1,11 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
 import { host } from '../../support/block';
+import { forward } from '../../support/direction';
 import { blocks, openEditor } from '../../support/editor';
 import { allMarkdown } from '../../support/markdown';
+import { selectFromStart } from '../../support/select-start';
+import { firstWordPoint, textPoint } from '../../support/text-point';
 
 const toolbar = (page: Page) => page.getByRole('toolbar', { name: 'Text formatting' });
 const control = (page: Page, name: string) => toolbar(page).getByRole('button', { name, exact: true });
@@ -20,12 +23,8 @@ const domSelection = (page: Page) =>
     return { text: selection.toString(), anchor: selection.anchorOffset, focus: selection.focusOffset };
   });
 
-const doubleClickFirstWord = (page: Page, id: string) => host(page, id).dblclick({ position: { x: 12, y: 12 } });
-
-async function selectStart(page: Page, id: string, characters: number) {
-  await host(page, id).click({ position: { x: 1, y: 12 } });
-  for (let i = 0; i < characters; i++) await page.keyboard.press('Shift+ArrowRight');
-}
+const doubleClickFirstWord = async (page: Page, id: string) =>
+  host(page, id).dblclick({ position: await firstWordPoint(host(page, id)) });
 
 test('double-clicking a word shows the toolbar above it, with no accessibility violations', async ({ page }) => {
   await openEditor(page, 'drag');
@@ -63,13 +62,13 @@ test('Bold toggles the selected word and shows whether it is on', async ({ page 
 
 test('Alt+F10 moves focus into the toolbar and Escape takes it back with the same selection', async ({ page }) => {
   await openEditor(page, 'drag');
-  await selectStart(page, 'b', 3);
+  await doubleClickFirstWord(page, 'b');
   await expect(toolbar(page)).toBeVisible();
   const before = await domSelection(page);
-  expect(before.text).toBe('Bra');
+  expect(before.text).toBe('Bravo');
   await page.keyboard.press('Alt+F10');
   await expect(control(page, 'Turn into')).toBeFocused();
-  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press(forward());
   await expect(control(page, 'Bold')).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(host(page, 'b')).toBeFocused();
@@ -79,11 +78,11 @@ test('Alt+F10 moves focus into the toolbar and Escape takes it back with the sam
 
 test('a drag across blocks shows the toolbar, and Italic applies to every block it crosses', async ({ page }) => {
   await openEditor(page, 'drag');
-  const from = await box(host(page, 'a'));
-  const to = await box(host(page, 'c'));
-  await page.mouse.move(from.x + 8, from.y + from.height / 2);
+  const [a, c] = [await box(host(page, 'a')), await box(host(page, 'c'))];
+  const [from, to] = [await textPoint(host(page, 'a'), 'Alpha'), await textPoint(host(page, 'c'), 'Charlie')];
+  await page.mouse.move(a.x + from.x, a.y + from.y);
   await page.mouse.down();
-  await page.mouse.move(to.x + 20, to.y + to.height / 2, { steps: 8 });
+  await page.mouse.move(c.x + to.x, c.y + to.y, { steps: 8 });
   await expect(toolbar(page)).toHaveCount(0);
   await page.mouse.up();
   await expect(toolbar(page)).toBeVisible();
@@ -109,8 +108,7 @@ test.describe('on a touch screen', () => {
 
   test('selected text shows no bubble toolbar', async ({ page }) => {
     await openEditor(page, 'drag');
-    await host(page, 'b').tap({ position: { x: 1, y: 12 } });
-    for (let i = 0; i < 3; i++) await page.keyboard.press('Shift+ArrowRight');
+    await selectFromStart(host(page, 'b'), 3, 'tap');
     await expect.poll(async () => (await domSelection(page)).text).toBe('Bra');
     await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     await expect(toolbar(page)).toHaveCount(0);
@@ -138,8 +136,6 @@ test('Turn into, Color and Align open from the toolbar and change the block the 
   await expect(red()).toHaveAttribute('aria-checked', 'true');
   await page.keyboard.press('Escape');
 
-  // Centring goes last: the word is found by clicking near the left edge of the line, which is where it stops being
-  // once the line is centred.
   await doubleClickFirstWord(page, 'd');
   await control(page, 'Align').click();
   await page.getByRole('menuitemradio', { name: 'Align center' }).click();

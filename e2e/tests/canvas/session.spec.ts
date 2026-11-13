@@ -1,5 +1,6 @@
 import { host, shell } from '../../support/block';
 import { expect, test, type Page } from '@playwright/test';
+import { backThroughText } from '../../support/direction';
 import { blocks, openEditor } from '../../support/editor';
 import { markdownOrData } from '../../support/markdown';
 import { chooseCommand } from '../../support/slash';
@@ -27,11 +28,12 @@ test('an author writes, formats, reorders, duplicates and undoes, and the docume
   await page.keyboard.type('# Groceries');
   await page.keyboard.press('Enter');
   await page.keyboard.type('Buy fresh bread');
-  for (let i = 0; i < 'bread'.length; i++) await page.keyboard.press('Shift+ArrowLeft');
+  for (let i = 0; i < 'bread'.length; i++) await page.keyboard.press(`Shift+${backThroughText(true)}`);
   const toolbar = page.getByRole('toolbar', { name: 'Text formatting' });
   await toolbar.getByRole('button', { name: 'Bold', exact: true }).click();
   await expect.poll(() => markdownOrData(page)).toEqual(['# Groceries', 'Buy fresh **bread**']);
 
+  // A selection of left to right words collapses to its end on the right arrow, whichever way the line runs.
   await page.keyboard.press('ArrowRight');
   await page.keyboard.press('Enter');
   await chooseCommand(page, 'bul', 'Bulleted list');

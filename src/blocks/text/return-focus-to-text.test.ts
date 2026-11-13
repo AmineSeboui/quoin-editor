@@ -45,6 +45,15 @@ describe('returnFocusToText', () => {
     expect(focus).toHaveBeenCalledOnce();
   });
 
+  it("leaves focus on a menu button of the host's own inside the editor, which is in the tab order", () => {
+    const { trigger, focus, run } = closeMenu();
+    trigger.tabIndex = 0;
+    trigger.focus();
+    run();
+    expect(focus).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(trigger);
+  });
+
   it('leaves focus in a field inside the editor a press moved it to', () => {
     const { field, focus, run } = closeMenu();
     field.focus();

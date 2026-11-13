@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
 import { onlyHost } from '../../support/block';
+import { forward, fromLineStart } from '../../support/direction';
 import { blocks, openEditor } from '../../support/editor';
 import { answerEveryRequest } from '../../support/network';
 import { pasteEvent } from '../../support/synthetic-events';
@@ -53,7 +54,7 @@ test('the link options are reached with Alt+F10 and walked with the arrows, and 
   await pasteEvent(page, { 'text/plain': 'https://example.com/page' });
   await page.keyboard.press('Alt+F10');
   await expect(options(page).getByRole('button', { name: 'Bookmark' })).toBeFocused();
-  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press(forward());
   await expect(options(page).getByRole('button', { name: 'Keep as link' })).toBeFocused();
   expect(await axeViolations(page, 'all', '[role="toolbar"]')).toEqual([]);
   await page.keyboard.press('Escape');
@@ -75,6 +76,18 @@ test('a press on an embed selects it rather than its frame, and Enter moves focu
   await page.keyboard.press('Enter');
   await expect.poll(() => page.evaluate(() => document.activeElement?.getAttribute('title'))).toBe('YouTube video');
   expect(await types(page)).toEqual(['MARKDOWN', 'EMBED', 'BOOKMARK', 'EMBED', 'MARKDOWN']);
+});
+
+// Chromium on a Mac opens a context menu for Control and the main button, and fires no click after it.
+test('a Control+click on an embed selects it and lifts its cover as a click does', async ({ page }) => {
+  await openEditor(page, 'embeds', 'embed=1');
+  const shell = page.locator('[data-block-id="e"]');
+  const frame = (await youtube(page).boundingBox())!;
+  await page.keyboard.down('Control');
+  await page.mouse.click(frame.x + frame.width / 2, frame.y + frame.height / 2);
+  await page.keyboard.up('Control');
+  await expect(shell).toHaveAttribute('data-selected', 'true');
+  await expect(shell.locator('.quoin-embed-cover')).toHaveCount(0);
 });
 
 test('/bookmark asks for a link, and the card it places is filled in by the host', async ({ page }) => {
@@ -119,7 +132,7 @@ test('a press in the text while /embed asks for a link places the embed and leav
   await page.keyboard.press('Enter');
   await page.keyboard.type(YOUTUBE);
   const box = (await title.boundingBox())!;
-  await page.mouse.click(box.x + box.width - 2, box.y + box.height / 2);
+  await page.mouse.click(fromLineStart(box, box.width - 2), box.y + box.height / 2);
   await expect(youtube(page)).toBeVisible();
   await expect(title).toBeFocused();
   await page.keyboard.type('!');

@@ -42,13 +42,16 @@ export type BlockCanvasProps = {
   /** The text of an empty paragraph holding the caret, or alone in the document, in place of `labels.placeholderEmpty`. */
   placeholder?: string;
   /**
-   * Every string the canvas shows or speaks, English by default. A key left out stays English. Keep the object stable,
-   * hoisted or memoised: a new one each render re-renders everything that reads the canvas configuration.
+   * Every string the canvas shows or speaks, English by default. A key left out stays English. An object written inline
+   * that holds the same strings and functions as the last one, maps of names included, is taken as unchanged; a label
+   * function written inline is new on each render and re-renders everything that reads the canvas configuration, so
+   * hoist or memoise those.
    */
   labels?: Partial<QuoinLabels>;
   /**
    * The address the block menu's "Copy link to block" copies. By default the current page with `#block-<id>`, a fragment
-   * the canvas follows on load and on hash changes to select the block and scroll it into view.
+   * the canvas follows on load and on hash changes to select the block and scroll it into view. Keep the function
+   * stable: a new one each render builds the block menu's actions again.
    */
   blockLink?: (blockId: string) => string;
   className?: string;

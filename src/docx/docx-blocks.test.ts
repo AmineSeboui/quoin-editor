@@ -115,6 +115,14 @@ describe('the blocks of a Word document', () => {
     expect(doc.paragraph('No icon').inTable).toBe(true);
   });
 
+  it('shade a callout of a tone it does not know as info, the tone the canvas and the view draw it in', async () => {
+    const fill = async (tone: string) => {
+      const doc = await exportDocument([{ id: 'c', type: 'CALLOUT', data: { tone, body: tone } }]);
+      return doc.paragraph(tone).element.parentElement!.getElementsByTagName('w:shd')[0].getAttribute('w:fill');
+    };
+    expect(await fill('purple')).toBe(await fill('info'));
+  });
+
   it('write code in the code style, a line break between its lines', async () => {
     const doc = await exportDocument(everyBlockDocument);
     expect(doc.paragraph('const a = 1 < 2;\nconst b = "x";').style).toBe('QuoinCode');

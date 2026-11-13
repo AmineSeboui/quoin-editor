@@ -2,6 +2,7 @@ import { host } from '../../support/block';
 import { expect, test, type Page } from '@playwright/test';
 import { openEditor } from '../../support/editor';
 import { allMarkdown } from '../../support/markdown';
+import { textPoint } from '../../support/text-point';
 
 const toolbar = (page: Page) => page.getByRole('toolbar', { name: 'Text formatting' });
 
@@ -37,10 +38,7 @@ test.describe('a composition over selected text', () => {
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
     await openEditor(page, 'sample');
-    await host(page, 'b').click();
-    await page.keyboard.press('End');
-    await page.keyboard.press('ArrowLeft');
-    for (let i = 0; i < 'paragraph'.length; i++) await page.keyboard.press('Shift+ArrowLeft');
+    await host(page, 'b').dblclick({ position: await textPoint(host(page, 'b'), 'paragraph') });
     await composeOverSelection(page, ['\u00b4'], '\u00e9');
     await expect.poll(() => allMarkdown(page)).toEqual(['# Title', 'First \u00e9.']);
     await expect(host(page, 'b')).toBeFocused();

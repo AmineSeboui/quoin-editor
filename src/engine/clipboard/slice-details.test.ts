@@ -58,9 +58,30 @@ describe('sliceFromSelection', () => {
     expect(shape(fromTable)).toEqual(['xy']);
   });
 
-  it('copies a whole block when the selection spans regions of one block', () => {
-    const slice = sliceOf([table], { anchor: at(0, 1, 'cell:0:0'), head: at(0, 1, 'cell:0:1') });
-    expect(slice?.blocks.map((block) => block.type)).toEqual(['TABLE']);
+  describe('of a cell range', () => {
+    const wide: QuoinBlock = {
+      id: 't',
+      type: 'TABLE',
+      data: {
+        rows: [['a', 'b', 'c'], ['d', '**e**', 'f'], ['g', 'h', 'i']],
+        header: true,
+        align: [null, 'center', 'right'],
+        widths: [80, 90, 100],
+      },
+    };
+
+    it('copies only the cells of the range, as a table of their own with their columns kept', () => {
+      const slice = sliceOf([wide], { anchor: at(0, 1, 'cell:1:2'), head: at(0, 0, 'cell:0:1') });
+      expect(slice?.blocks.map(({ type, data }) => ({ type, data }))).toEqual([
+        { type: 'TABLE', data: { rows: [['b', 'c'], ['**e**', 'f']], header: true, align: ['center', 'right'], widths: [90, 100] } },
+      ]);
+      expect(slice).toMatchObject({ openStart: true, openEnd: true });
+    });
+
+    it('copies cells below the header row as rows of data', () => {
+      const slice = sliceOf([wide], { anchor: at(0, 0, 'cell:1:0'), head: at(0, 1, 'cell:2:0') });
+      expect(slice?.blocks[0].data).toMatchObject({ rows: [['d'], ['g']], header: false, align: [null], widths: [80] });
+    });
   });
 });
 

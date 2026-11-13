@@ -90,30 +90,41 @@ describe('the emoji picker', () => {
     expect(document.activeElement).toHaveTextContent(nthEmoji(COLUMNS).emoji);
     await user.keyboard('{ArrowUp}{ArrowLeft}');
     expect(focusedName()).toBe('grinning');
-    expect(screen.getAllByRole('gridcell').filter((cell) => cell.tabIndex === 0)).toHaveLength(1);
+    expect(within(grids()[0]).getAllByRole('gridcell').filter((cell) => cell.tabIndex === 0)).toHaveLength(1);
     await user.keyboard('{ArrowRight}{Enter}');
     expect(onPick.mock.calls).toEqual([[SMILEY]]);
   });
 
-  it('moves from the last row of a group to the first of the next, and from the end of a row to the next row', async () => {
-    const { user } = renderPicker();
+  it('keeps the arrows inside the grid of a group, each grid being a tab stop of its own', async () => {
+    const { user, field } = renderPicker();
     await user.tab();
-    await user.keyboard('{End}');
-    await user.keyboard('{ArrowRight}');
-    expect(document.activeElement).toHaveTextContent(nthEmoji(COLUMNS).emoji);
-    const smileys = searchEmoji('').filter(({ group }) => group === 'smileys').length;
-    const lastRow = Math.ceil(smileys / COLUMNS) - 1;
-    for (let row = 1; row < lastRow; row++) await user.keyboard('{ArrowDown}');
-    expect(within(grids()[0]).getAllByRole('row').at(-1)).toContainElement(document.activeElement as HTMLElement);
-    await user.keyboard('{ArrowDown}');
+    const smileys = searchEmoji('').filter(({ group }) => group === 'smileys');
+    const lastRow = () => within(grids()[0]).getAllByRole('row').at(-1)!;
+    for (let row = 0; row < Math.ceil(smileys.length / COLUMNS); row++) await user.keyboard('{ArrowDown}');
+    expect(lastRow()).toContainElement(document.activeElement as HTMLElement);
+    await user.keyboard('{Control>}{End}{/Control}{ArrowRight}');
+    expect(document.activeElement).toHaveTextContent(smileys.at(-1)!.emoji);
+    await user.tab();
     expect(within(grids()[1]).getAllByRole('gridcell')[0]).toHaveFocus();
-  });
+    await user.keyboard('{ArrowUp}{ArrowLeft}');
+    expect(within(grids()[1]).getAllByRole('gridcell')[0]).toHaveFocus();
+    await user.keyboard('{Shift>}{Tab}{/Shift}');
+    expect(document.activeElement).toHaveTextContent(smileys.at(-1)!.emoji);
+    for (let grid = 1; grid < grids().length; grid++) await user.tab();
+    expect(within(grids().at(-1)!).getAllByRole('gridcell')[0]).toHaveFocus();
+    await user.tab();
+    expect(field).toHaveFocus();
+    await user.keyboard('{Shift>}{Tab}{/Shift}');
+    expect(within(grids().at(-1)!).getAllByRole('gridcell')[0]).toHaveFocus();
+    const stops = (grid: HTMLElement) => within(grid).getAllByRole('gridcell').filter((cell) => cell.tabIndex === 0);
+    expect(grids().map((grid) => stops(grid).length)).toEqual(grids().map(() => 1));
+  }, 60_000);
 
   it('keeps the active cell in the grid when a search narrows it, and picks the first match with Enter in the field', async () => {
     const { user, field, onPick } = renderPicker();
     await user.tab();
     await user.keyboard('{ArrowRight}{ArrowRight}{ArrowRight}');
-    await user.tab();
+    await user.keyboard('{Shift>}{Tab}{/Shift}');
     expect(field).toHaveFocus();
     await user.type(field, 'tada');
     await user.tab();

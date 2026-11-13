@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
 import { drawnAsText, drawnInPlace } from '../blocks/block-drawing';
+import { devWarn } from '../dev-warn';
 import { inPlaceOverlays, inPlaceRenderers } from '../blocks/in-place-renderers';
 import { textRenderers } from '../blocks/text/text-renderers';
 import { voidRenderers } from '../blocks/void/void-renderers';
@@ -44,6 +45,12 @@ const list = <T>(value: readonly T[] | undefined): readonly T[] => (Array.isArra
 const record = <T>(value: Readonly<Record<string, T>> | undefined): Readonly<Record<string, T>> =>
   typeof value === 'object' && value !== null && !Array.isArray(value) ? value : {};
 
+function doesSomething(item: SlashItem): boolean {
+  if (item.command !== undefined || item.run !== undefined) return true;
+  devWarn(`the slash command "${item.id}" has neither a command nor a run, so the slash menu leaves it out.`);
+  return false;
+}
+
 function mergeRender(uis: readonly ExtensionUI[]): RenderOptions | undefined {
   const given = uis.flatMap(({ render }) => (render === undefined ? [] : [render]));
   if (given.length === 0) return undefined;
@@ -66,7 +73,10 @@ export function collectUi(
 ): CollectedUi {
   const uis = extensions.map(extensionUi);
   return {
-    slashItems: [...uis.flatMap((ui) => list(ui.slashItems)), ...blockTypeSlashItems(definitions, onError)],
+    slashItems: [
+      ...uis.flatMap((ui) => list(ui.slashItems)).filter(doesSomething),
+      ...blockTypeSlashItems(definitions, onError),
+    ],
     bubbleItems: uis.flatMap((ui) => list(ui.bubbleItems)),
     blockMenuItems: uis.flatMap((ui) => list(ui.blockMenuItems)),
     renderers: Object.assign({}, canvasRenderers(definitions, readOnly), ...uis.map((ui) => record(ui.renderers))),

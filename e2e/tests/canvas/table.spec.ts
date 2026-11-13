@@ -1,7 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
 import { onlyHost } from '../../support/block';
+import { edgeX, onward } from '../../support/direction';
 import { blocks, openEditor } from '../../support/editor';
+import { cutEvent, pasteEvent } from '../../support/synthetic-events';
 
 const cell = (page: Page, row: number, col: number) =>
   page.getByRole('textbox', { name: `Row ${row}, column ${col}`, exact: true });
@@ -66,7 +68,7 @@ test('the arrows move between rows, and Enter in an empty cell of the last row a
 test('the + on the edge between two columns inserts a column there', async ({ page }) => {
   await openEditor(page, 'table', 'table=1');
   const second = await box(page, 1, 2);
-  await page.mouse.move(second.x + 1, second.y + 2);
+  await page.mouse.move(edgeX(second, 1), second.y + 2);
   await page.getByRole('button', { name: 'Insert column 2' }).click();
   await expect.poll(() => rowsOf(page)).toEqual([
     ['r0c0', '', 'r0c1', 'r0c2'],
@@ -78,13 +80,13 @@ test('the + on the edge between two columns inserts a column there', async ({ pa
 // The pointer rests on the + after the last column or row while the keyboard deletes that column or row.
 for (const axis of ['column', 'row'] as const) {
   test(`deleting the last ${axis} under a pointer resting on the + after it keeps the canvas`, async ({ page }) => {
-    const errors: string[] = [];
+      const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
     await openEditor(page, 'table', 'table=1');
     await caretIn(page, axis === 'column' ? 2 : 3, axis === 'column' ? 3 : 1);
     const table = (await page.locator('.quoin-table table').boundingBox())!;
-    if (axis === 'column') await page.mouse.move(table.x + table.width - 1, table.y + 4);
-    else await page.mouse.move(table.x + 6, table.y + table.height - 1);
+    if (axis === 'column') await page.mouse.move(edgeX(table, 1, true), table.y + 4);
+    else await page.mouse.move(edgeX(table, 6), table.y + table.height - 1);
     await expect(page.getByRole('button', { name: axis === 'column' ? 'Insert column 4' : 'Insert row 4' })).toBeVisible();
     await page.keyboard.press('Alt+F10');
     if (axis === 'row') await page.keyboard.press('ArrowLeft');
@@ -92,7 +94,8 @@ for (const axis of ['column', 'row'] as const) {
     await page.getByRole('menu').getByRole('menuitem', { name: `Delete ${axis}` }).focus();
     await page.keyboard.press('Enter');
     await expect.poll(async () => (axis === 'column' ? (await rowsOf(page))?.[0].length : (await rowsOf(page))?.length)).toBe(2);
-    await page.waitForTimeout(100);
+    // The table is measured again on the frame after the change, and drawn from that measure before the next one.
+    await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
     await expect(page.getByRole('group', { name: 'Document' })).toBeVisible();
     await expect(page.getByRole('button', { name: new RegExp(`^Insert ${axis}`) })).toHaveCount(0);
     expect(errors).toEqual([]);
@@ -108,8 +111,8 @@ test('dragging the border of a column resizes it, written once when the drag end
   const before = await changes(page);
   await page.mouse.move(handle.x + handle.width / 2, handle.y + handle.height / 2);
   await page.mouse.down();
-  await page.mouse.move(handle.x + handle.width / 2 + 30, handle.y + 10, { steps: 3 });
-  await page.mouse.move(handle.x + handle.width / 2 + 60, handle.y + 10, { steps: 3 });
+  await page.mouse.move(handle.x + handle.width / 2 + onward(30), handle.y + 10, { steps: 3 });
+  await page.mouse.move(handle.x + handle.width / 2 + onward(60), handle.y + 10, { steps: 3 });
   expect(await changes(page)).toBe(before);
   await page.mouse.up();
   await expect.poll(async () => ((await tableData(page))?.widths as number[] | undefined)?.length).toBe(3);
@@ -119,22 +122,63 @@ test('dragging the border of a column resizes it, written once when the drag end
   expect(Math.abs((await box(page, 2, 1)).width - widths[0])).toBeLessThanOrEqual(2);
 });
 
-test('a drag across cells selects them as a range, and Backspace empties it', async ({ page }) => {
-  await openEditor(page, 'table', 'table=1');
+// Rows 2 and 3, columns 1 and 2 of the table document, selected by a drag across them.
+async function dragRange(page: Page) {
   const from = await box(page, 2, 1);
   const to = await box(page, 3, 2);
-  await page.mouse.move(from.x + 8, from.y + from.height / 2);
+  await page.mouse.move(edgeX(from, 8), from.y + from.height / 2);
   await page.mouse.down();
   await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 8 });
   await page.mouse.up();
   await expect(page.locator('[data-in-range]')).toHaveCount(4);
+}
+
+const EMPTIED = [
+  ['r0c0', 'r0c1', 'r0c2'],
+  ['', '', 'r1c2'],
+  ['', '', 'r2c2'],
+];
+
+test('a drag across cells selects them as a range, and Backspace empties it', async ({ page }) => {
+  await openEditor(page, 'table', 'table=1');
+  await dragRange(page);
   await page.keyboard.press('Backspace');
+  await expect.poll(() => rowsOf(page)).toEqual(EMPTIED);
+  await expect(cell(page, 2, 1)).toBeFocused();
+});
+
+test('text that reaches a cell range with no key, as dictation does, replaces the range from its first cell', async ({ page }) => {
+  await openEditor(page, 'table', 'table=1');
+  await dragRange(page);
+  await page.keyboard.insertText('x');
+  await expect.poll(() => rowsOf(page)).toEqual([['r0c0', 'r0c1', 'r0c2'], ['x', '', 'r1c2'], ['', '', 'r2c2']]);
+});
+
+test('a composition over a cell range replaces the range from its first cell', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'CDP IME input is Chromium only');
+  await openEditor(page, 'table', 'table=1');
+  await dragRange(page);
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Input.imeSetComposition', { text: '\u306b', selectionStart: 1, selectionEnd: 1 });
+  await cdp.send('Input.imeSetComposition', { text: '\u306b\u307b', selectionStart: 2, selectionEnd: 2 });
+  await cdp.send('Input.insertText', { text: '\u65e5\u672c' });
+  await expect.poll(() => rowsOf(page)).toEqual([['r0c0', 'r0c1', 'r0c2'], ['\u65e5\u672c', '', 'r1c2'], ['', '', 'r2c2']]);
+});
+
+test('a cell range cuts only its cells, which a paste puts back where they were', async ({ page }) => {
+  await openEditor(page, 'table', 'table=1');
+  await dragRange(page);
+  const cut = await cutEvent(page);
+  expect(cut.plain).toBe('r1c0\tr1c1\nr2c0\tr2c1');
+  await expect.poll(() => rowsOf(page)).toEqual(EMPTIED);
+  await expect(cell(page, 2, 1)).toBeFocused();
+  await pasteEvent(page);
   await expect.poll(() => rowsOf(page)).toEqual([
     ['r0c0', 'r0c1', 'r0c2'],
-    ['', '', 'r1c2'],
-    ['', '', 'r2c2'],
+    ['r1c0', 'r1c1', 'r1c2'],
+    ['r2c0', 'r2c1', 'r2c2'],
   ]);
-  await expect(cell(page, 2, 1)).toBeFocused();
+  expect((await blocks(page)).filter((block) => block.type === 'TABLE')).toHaveLength(1);
 });
 
 test('Alt+F10 reaches the handles, whose menus work from the keyboard and give focus back to the caret', async ({ page }) => {
@@ -178,7 +222,7 @@ test('a wide table scrolls inside its block, and brings the cell the caret moves
   for (let i = 0; i < 15; i++) await page.keyboard.press('Tab');
   await expect(cell(page, 2, 16)).toBeFocused();
   await expect(cell(page, 2, 16)).toBeInViewport({ ratio: 0.9 });
-  expect(await scroller.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+  expect(await scroller.evaluate((element) => Math.abs(element.scrollLeft))).toBeGreaterThan(0);
 });
 
 test('a table has no accessibility violations, with its controls or read-only, and read-only draws no controls', async ({ page }) => {

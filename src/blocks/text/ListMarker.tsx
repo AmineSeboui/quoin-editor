@@ -1,6 +1,5 @@
+import type { ListMarkerProps } from '../../view/react/markdown-block';
 import { bulletGlyph, orderedLabel } from './marker-styles';
-
-type ListMarkerProps = { depth: number } & ({ list: 'bullet' } | { list: 'ordered'; number: number });
 
 export function ListMarker(props: ListMarkerProps) {
   const text = props.list === 'bullet' ? bulletGlyph(props.depth) : orderedLabel(props.number, props.depth);

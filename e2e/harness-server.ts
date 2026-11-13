@@ -6,3 +6,6 @@ export const harnessServer = (mode?: 'dist') => {
   const flags = mode === undefined ? CONFIG : `${CONFIG} --mode ${mode}`;
   return process.env.CI ? `vite build ${flags} && vite preview ${flags}` : `vite ${flags}`;
 };
+
+/** The port the harness is served on. Two checkouts running the suites at once each set `QUOIN_E2E_PORT`, so neither reuses the other's server. */
+export const harnessPort = (mode?: 'dist') => Number(process.env.QUOIN_E2E_PORT ?? 5179) + (mode === 'dist' ? 1 : 0);

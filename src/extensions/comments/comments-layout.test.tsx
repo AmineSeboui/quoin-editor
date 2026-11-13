@@ -2,7 +2,7 @@ import { act } from '@testing-library/react';
 import { hydrateRoot } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
 import { coreBlocks } from '../../blocks/core';
-import { paragraph } from '../../blocks/void/test-canvas';
+import { paragraph } from '../../blocks/test-support/test-canvas';
 import { BlockCanvas } from '../../canvas/BlockCanvas';
 import { createCommentThreads } from './comment-threads';
 import { commentsExtension, type CommentsOptions } from './comments-extension';

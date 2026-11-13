@@ -1,4 +1,4 @@
-import type { ViewController } from '../../view';
+import type { ViewController } from '../view';
 
 /** Marks the toolbars and the menus they open, where focus counts as still in the editor the value names. */
 export const BUBBLE_PART = 'data-quoin-bubble';

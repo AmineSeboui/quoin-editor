@@ -106,6 +106,7 @@ describe('englishLabels', () => {
   it('says where a block moved or was inserted, among how many', () => {
     expect(englishLabels.blockMoved(2, 5)).toBe('Block moved to position 2 of 5');
     expect(englishLabels.blockInserted(3, 6)).toBe('Block inserted at position 3 of 6');
+    expect(englishLabels.blocksInserted(2, 3, 6)).toBe('2 blocks inserted at position 3 of 6');
   });
 
   it('says how many blocks were deleted and how to bring them back', () => {
@@ -165,6 +166,7 @@ describe('englishLabels', () => {
   it('names the gutter controls by what they do, the handle by both its drag and its click', () => {
     expect(englishLabels.addBelow).toBe('Add block below');
     expect(englishLabels.dragHandle).toBe('Drag to move, click for options');
+    expect(englishLabels.blockOptions).toBe('Block options');
     expect(englishLabels.blockMenu('Heading 2')).toBe('Heading 2 block menu');
   });
 
@@ -214,6 +216,7 @@ describe('englishLabels', () => {
     expect(englishLabels.plainText).toBe('Plain text');
     expect(englishLabels.copyCode).toBe('Copy code');
     expect(englishLabels.copied).toBe('Copied');
+    expect(englishLabels.copyFailed).toBe('Could not copy');
   });
 
   it('writes no empty label and no em or en dash', () => {

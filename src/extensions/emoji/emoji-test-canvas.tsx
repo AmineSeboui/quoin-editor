@@ -1,5 +1,5 @@
 import { act, screen } from '@testing-library/react';
-import type { mountCanvas } from '../../blocks/void/test-canvas';
+import type { mountCanvas } from '../../blocks/test-support/test-canvas';
 import type { QuoinBlock } from '../../engine';
 import { mountTypingCanvas } from '../typing-test-canvas';
 import type { EmojiData } from './emoji-data';

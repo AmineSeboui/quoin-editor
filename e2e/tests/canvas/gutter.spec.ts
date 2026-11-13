@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
 import { firstLine, host } from '../../support/block';
+import { forward, inlineX } from '../../support/direction';
 import { blocks, openEditor } from '../../support/editor';
 
 const handle = (page: Page) => page.getByRole('button', { name: 'Drag to move, click for options' });
@@ -30,13 +31,21 @@ async function tookTheRightClick(page: Page, target: Locator): Promise<boolean |
   return page.evaluate(() => (window as Watched).taken ?? null);
 }
 
+// The handle sits on the page in the room before the start of the line, which a right to left page has on the right.
+async function expectBeforeLine(page: Page, id: string, measured = handle(page)) {
+  const line = await firstLine(page, id);
+  const box = (await measured.boundingBox())!;
+  const pageWidth = await page.evaluate(() => document.documentElement.clientWidth);
+  const at = inlineX(box, pageWidth);
+  expect(at).toBeGreaterThanOrEqual(0);
+  expect(at + box.width).toBeLessThanOrEqual(inlineX({ x: line.left, width: line.width }, pageWidth));
+  return { box, line };
+}
+
 async function expectBesideFirstLine(page: Page, id: string) {
   await host(page, id).hover();
   await expect(handle(page)).toBeVisible();
-  const line = await firstLine(page, id);
-  const box = (await handle(page).boundingBox())!;
-  expect(box.x).toBeGreaterThanOrEqual(0);
-  expect(box.x + box.width).toBeLessThanOrEqual(line.left);
+  const { box, line } = await expectBeforeLine(page, id);
   expect(Math.abs(box.y + box.height / 2 - (line.top + line.height / 2))).toBeLessThanOrEqual(1);
 }
 
@@ -123,7 +132,7 @@ test('the tone of a callout is set from the keyboard through its block menu', as
   await expect(page.getByRole('menuitem', { name: 'Turn into' })).toBeFocused();
   await page.keyboard.press('ArrowDown');
   await expect(page.getByRole('menuitem', { name: 'Tone' })).toBeFocused();
-  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press(forward());
   await expect(page.getByRole('menuitemradio', { name: 'info' })).toBeFocused();
   await page.keyboard.press('End');
   await expect(page.getByRole('menuitemradio', { name: 'danger' })).toBeFocused();
@@ -141,12 +150,40 @@ test('a right-click on the handle opens the block menu at the pointer', async ({
   await handle(page).click({ button: 'right' });
   await expect(menu(page)).toHaveAccessibleName('Heading 1 block menu');
   const opened = (await menu(page).boundingBox())!;
-  expect(opened.x).toBeGreaterThanOrEqual(pointer.x - 1);
-  expect(opened.x).toBeLessThanOrEqual(pointer.x + MENU_GAP);
+  const pageWidth = await page.evaluate(() => document.documentElement.clientWidth);
+  const [start, at] = [inlineX(opened, pageWidth), inlineX({ x: pointer.x, width: 0 }, pageWidth)];
+  expect(start).toBeGreaterThanOrEqual(at - 1);
+  expect(start).toBeLessThanOrEqual(at + MENU_GAP);
   expect(Math.abs(opened.y - pointer.y)).toBeLessThanOrEqual(MENU_GAP);
   await page.getByRole('menuitem', { name: 'Delete' }).click();
   await expect.poll(() => ids(page)).toEqual(['b']);
   await expect(host(page, 'b')).toBeFocused();
+});
+
+test('a right-click on the handle while its menu is open opens the menu again at the pointer', async ({ page }) => {
+  await openEditor(page, 'sample');
+  await host(page, 'a').hover();
+  await handle(page).click();
+  await expect(menu(page)).toHaveAccessibleName('Heading 1 block menu');
+  const grip = (await handle(page).boundingBox())!;
+  const pointer = { x: grip.x + grip.width / 2, y: grip.y + grip.height / 2 };
+  await page.mouse.click(pointer.x, pointer.y, { button: 'right' });
+  await expect(menu(page)).toHaveAccessibleName('Heading 1 block menu');
+  const opened = (await menu(page).boundingBox())!;
+  expect(Math.abs(opened.y - pointer.y)).toBeLessThanOrEqual(MENU_GAP);
+});
+
+test('a Ctrl+click on a Mac over selected blocks keeps them selected and opens their menu', async ({ page }) => {
+  test.skip(process.platform !== 'darwin', 'Control with a click is a right-click on a Mac only');
+  await openEditor(page, 'sample');
+  await host(page, 'a').click();
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('Shift+ArrowDown');
+  const selection = () => page.evaluate(() => window.__quoin.controller?.editor.state.selection);
+  await expect.poll(selection).toEqual({ kind: 'blocks', anchor: 'a', head: 'b' });
+  await host(page, 'b').click({ modifiers: ['Control'], position: { x: 20, y: 8 } });
+  await expect(menu(page)).toBeVisible();
+  expect(await selection()).toEqual({ kind: 'blocks', anchor: 'a', head: 'b' });
 });
 
 test('a right-click on a block with no text opens the block menu, and one in text leaves the browser its menu', async ({
@@ -202,18 +239,16 @@ test.describe('on a touch screen', () => {
   test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
 
   test('the gutter shows beside the block being edited only, as one handle with a 44 px target', async ({ page }) => {
+    const handle = (on: Page) => on.getByRole('button', { name: 'Block options' });
     await openEditor(page, 'sample');
     await expect(handle(page)).toBeHidden();
     await host(page, 'b').tap();
     await expect(handle(page)).toBeVisible();
     const gutter = page.locator('[data-quoin-gutter-block]');
     await expect(gutter.getByRole('button', { name: 'Add block below' })).toBeHidden();
-    const line = await firstLine(page, 'b');
-    const box = (await handle(page).boundingBox())!;
+    const { box } = await expectBeforeLine(page, 'b', handle(page));
     expect(box.width).toBeGreaterThanOrEqual(44);
     expect(box.height).toBeGreaterThanOrEqual(44);
-    expect(box.x).toBeGreaterThanOrEqual(0);
-    expect(box.x + box.width).toBeLessThanOrEqual(line.left);
     await handle(page).tap();
     await expect(menu(page)).toHaveAccessibleName('Text block menu');
   });

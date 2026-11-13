@@ -3,26 +3,12 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { addColumn, removeColumn, removeRow } from '../../engine/commands/table-commands';
-import { paragraph } from '../../blocks/void/test-canvas';
+import { mountCanvas, paragraph } from '../../blocks/test-support/test-canvas';
 import { BlockCanvas } from '../../canvas/BlockCanvas';
 import type { QuoinEditorHandle } from '../../canvas/canvas-props';
 import { tableExtension } from './table-extension';
+import { COL, layOutTable, ROW } from './test-layout';
 import { at, key, mount, press, ROWS, table } from './test-table';
-
-const ROW = 30;
-const COL = 100;
-
-// jsdom lays nothing out, so every row of the table is 30 px high and every column 100 px wide, from the top left
-// corner of the page.
-function layOutTable() {
-  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
-    const row = this.closest('tr')?.rowIndex ?? 0;
-    if (this instanceof HTMLTableCellElement) return new DOMRect(this.cellIndex * COL, row * ROW, COL, ROW);
-    if (this instanceof HTMLTableRowElement) return new DOMRect(0, row * ROW, 2 * COL, ROW);
-    if (this instanceof HTMLTableElement) return new DOMRect(0, 0, 2 * COL, this.rows.length * ROW);
-    return new DOMRect(0, 0, 0, 0);
-  });
-}
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -37,6 +23,21 @@ describe('the controls of a table', () => {
       'Column 2 options',
     ]);
     expect(screen.getAllByRole('separator', { name: /^Resize column/ })).toHaveLength(2);
+  });
+
+  it('are drawn into the table the caret moves to, never into the one it left', () => {
+    const tables = ['a', 'b'].map((id) => ({ ...table(), id }));
+    const { handle, shell } = mountCanvas([paragraph('p', 'Above'), ...tables], { extensions: [tableExtension()] });
+    const caretIn = (block: string) => act(() => handle().focus({ block, region: 'cell:1:1', offset: 0 }));
+    caretIn('a');
+    const left = shell('a').querySelector<HTMLElement>('[data-quoin-table-controls]')!;
+    expect(within(left).getByRole('toolbar', { name: 'Table controls' })).toBeInTheDocument();
+    const measured = vi.spyOn(left, 'getBoundingClientRect');
+    const drawnInto = vi.spyOn(left, 'appendChild');
+    caretIn('b');
+    expect(within(shell('b')).getByRole('toolbar', { name: 'Table controls' })).toBeInTheDocument();
+    expect(measured).not.toHaveBeenCalled();
+    expect(drawnInto).not.toHaveBeenCalled();
   });
 
   it('come back as soon as a read-only canvas turns editable again', () => {

@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
 import { onlyHost } from '../../support/block';
+import { forward } from '../../support/direction';
 import { blocks, caretSettled, openEditor } from '../../support/editor';
 
 const PARTY_POPPER = '\u{1F389}';
@@ -122,19 +123,23 @@ test('the picker a callout block menu opens writes the emoji found to its icon, 
   await expect.poll(async () => (await dataOf(page, 'c'))?.icon).toBeUndefined();
 });
 
-test('the picker grid walks with the arrows, Home and End, and Escape hands focus back to the callout', async ({ page }) => {
+test('each picker grid walks with the arrows, Home and End, Tab moves on to the next, and Escape closes', async ({ page }) => {
   const host = await openPicker(page);
   const focused = () => page.evaluate(() => document.activeElement?.getAttribute('aria-label'));
   await page.keyboard.press('Tab');
   await expect.poll(focused).toBe('grinning');
-  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press(forward());
   await expect.poll(focused).toBe('smiley');
   await page.keyboard.press('End');
-  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press(forward());
   await page.keyboard.press('Home');
   await page.keyboard.press('ArrowUp');
   await expect.poll(focused).toBe('grinning');
   await page.keyboard.press('Tab');
+  await expect(picker(page).getByRole('grid', { name: 'People and body' }).locator(':focus')).toHaveCount(1);
+  await page.keyboard.press('Shift+Tab');
+  await expect.poll(focused).toBe('grinning');
+  await page.keyboard.press('Shift+Tab');
   await expect(search(page)).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(picker(page)).toHaveCount(0);

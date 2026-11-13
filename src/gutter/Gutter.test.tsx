@@ -2,7 +2,7 @@ import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event';
 import { blockRangeSelection, textSelection } from '../engine';
 import { defineBlock } from '../registry';
-import { bookmarkBlock, mountCanvas, paragraph, testBlockTypes } from '../blocks/void/test-canvas';
+import { bookmarkBlock, mountCanvas, paragraph, testBlockTypes } from '../blocks/test-support/test-canvas';
 import { md } from '../view/react/test-harness';
 
 const hostOf = (shell: HTMLElement) => shell.querySelector<HTMLElement>('[data-quoin-host]')!;
@@ -44,6 +44,37 @@ describe('the gutter', () => {
     expect(screen.getByRole('menu')).toHaveAccessibleName('Text block menu');
   });
 
+  it('moves to the other side of its block as soon as the page around the canvas turns round', async () => {
+    const { handle, shell } = mountCanvas([paragraph('a', 'intro')]);
+    const line = { top: 0, bottom: 24, left: 48, right: 600, width: 552, height: 24, x: 48, y: 0 } as DOMRect;
+    vi.spyOn(shell('a'), 'getBoundingClientRect').mockReturnValue(line);
+    fireEvent.pointerMove(hostOf(shell('a')));
+    const gutter = handleButton().closest<HTMLElement>('[data-quoin-gutter-block]')!;
+    const x = () => /translate\((-?[\d.]+)px/.exec(gutter.style.transform)?.[1];
+    expect(x()).toBe('44');
+    act(() => void handle().controller.root!.parentElement!.style.setProperty('direction', 'rtl'));
+    await waitFor(() => expect(x()).toBe('604'));
+  });
+
+  it('names its handle for what a tap does on a touch screen, where a touch does not drag', async () => {
+    vi.stubGlobal('matchMedia', (media: string) => ({
+      media,
+      matches: media === '(pointer: coarse)',
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }));
+    try {
+      const user = userEvent.setup();
+      const { handle } = mountCanvas([paragraph('a', 'intro')]);
+      act(() => handle().focus({ block: 'a', region: 'text', offset: 0 }));
+      expect(screen.queryByRole('button', { name: 'Drag to move, click for options' })).toBeNull();
+      await user.click(screen.getByRole('button', { name: 'Block options' }));
+      expect(screen.getByRole('menu')).toHaveAccessibleName('Text block menu');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it('keeps its controls out of the tab order', () => {
     const { shell } = mountCanvas([paragraph('a', 'intro')]);
     fireEvent.pointerMove(hostOf(shell('a')));
@@ -73,6 +104,20 @@ describe('the gutter', () => {
     await user.click(addButton());
     expect(last().map((block) => block.data.markdown)).toEqual(['intro', '/']);
     expect(selection()).toEqual(textSelection({ block: 'e', region: 'text', offset: 1 }));
+    expect(screen.getByRole('listbox', { name: 'Commands' })).toBeInTheDocument();
+  });
+
+  it('adds a paragraph after an empty paragraph that holds nested blocks, rather than writing the slash in it', async () => {
+    const user = userEvent.setup();
+    const { last, selection, shell } = mountCanvas([md('e', ''), md('c', 'child', 1), md('z', 'after')]);
+    fireEvent.pointerMove(hostOf(shell('e')));
+    await user.click(addButton());
+    const added = last()[2];
+    expect(last().map((block) => block.id)).toEqual(['e', 'c', added.id, 'z']);
+    expect(last()[0].data.markdown).toBe('');
+    expect(added).toMatchObject({ type: 'MARKDOWN', data: { markdown: '/' } });
+    expect(added.indent ?? 0).toBe(0);
+    expect(selection()).toEqual(textSelection({ block: added.id, region: 'text', offset: 1 }));
     expect(screen.getByRole('listbox', { name: 'Commands' })).toBeInTheDocument();
   });
 

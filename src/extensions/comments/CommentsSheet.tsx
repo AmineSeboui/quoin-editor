@@ -1,6 +1,7 @@
 'use client';
 
 import * as DialogPrimitive from '@radix-ui/react-dialog';
+import { useDirection } from '@radix-ui/react-direction';
 import { useRef } from 'react';
 import { X } from '../../icons';
 import { Button } from '../../ui/button';
@@ -26,6 +27,7 @@ type CommentsSheetProps = {
 export function CommentsSheet({ env, entries, value, onToggle, onClose, returnFocus }: CommentsSheetProps) {
   const { labels } = env;
   const content = useRef<HTMLDivElement>(null);
+  const dir = useDirection();
   const outside = useRef(false);
   const focusOpened = (event: Event) => {
     const opened = content.current?.querySelector<HTMLElement>('[aria-expanded="true"]');
@@ -44,6 +46,7 @@ export function CommentsSheet({ env, entries, value, onToggle, onClose, returnFo
       <DialogPrimitive.Portal>
         <DialogPrimitive.Content
           ref={content}
+          dir={dir}
           aria-describedby={undefined}
           className="quoin quoin-comments-sheet"
           onOpenAutoFocus={focusOpened}
@@ -63,7 +66,7 @@ export function CommentsSheet({ env, entries, value, onToggle, onClose, returnFo
               </Button>
             </DialogPrimitive.Close>
           </div>
-          <ul aria-label={labels.comments} className="flex flex-col gap-2">
+          <ul aria-label={labels.comments} className="flex list-none flex-col gap-2">
             {entries.map((entry) => (
               <li key={entry.thread.id}>
                 <ThreadCard

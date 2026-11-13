@@ -3,8 +3,10 @@ import { useVisualViewport } from './use-visual-viewport';
 
 class FakeViewport extends EventTarget {
   offsetTop = 0;
+  offsetLeft = 0;
   height = 800;
   width = 400;
+  scale = 1;
 }
 
 function fakeViewport(): FakeViewport {
@@ -25,17 +27,17 @@ describe('useVisualViewport', () => {
   it('follows the viewport as the keyboard resizes it and the page scrolls under it', () => {
     const viewport = fakeViewport();
     const { result } = renderHook(() => useVisualViewport());
-    expect(result.current).toEqual({ offsetTop: 0, height: 800, width: 400 });
+    expect(result.current).toEqual({ offsetTop: 0, offsetLeft: 0, height: 800, width: 400, scale: 1 });
     act(() => {
       viewport.height = 460;
       viewport.dispatchEvent(new Event('resize'));
     });
-    expect(result.current).toEqual({ offsetTop: 0, height: 460, width: 400 });
+    expect(result.current).toEqual({ offsetTop: 0, offsetLeft: 0, height: 460, width: 400, scale: 1 });
     act(() => {
       viewport.offsetTop = 120;
       viewport.dispatchEvent(new Event('scroll'));
     });
-    expect(result.current).toEqual({ offsetTop: 120, height: 460, width: 400 });
+    expect(result.current).toEqual({ offsetTop: 120, offsetLeft: 0, height: 460, width: 400, scale: 1 });
   });
 
   it('draws nothing again for an event that moves nothing', () => {

@@ -2,6 +2,8 @@ import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
 import { blocks, caretSettled, openEditor } from '../../support/editor';
 import { markdownOf } from '../../support/markdown';
+import { backThroughText, backward, forward, lineEnd, onThroughText } from '../../support/direction';
+import { caretBefore, caretPoint, firstWordPoint } from '../../support/text-point';
 
 const hostOf = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
 const toolbar = (page: Page) => page.getByRole('toolbar', { name: 'Text formatting' });
@@ -18,7 +20,7 @@ const ai = {
 
 async function askAboutFirstWord(page: Page, typed: string) {
   await openEditor(page, 'ai', 'ai=1');
-  await hostOf(page, 'p').dblclick({ position: { x: 6, y: 10 } });
+  await hostOf(page, 'p').dblclick({ position: await firstWordPoint(hostOf(page, 'p')) });
   await expect(toolbar(page)).toBeVisible();
   await toolbar(page).getByRole('button', { name: 'Ask AI' }).click();
   await expect(field(page)).toBeFocused();
@@ -30,7 +32,7 @@ test('streams an answer about the selected text into the document, and Accept ap
   page,
 }) => {
   await openEditor(page, 'ai', 'ai=1');
-  await hostOf(page, 'p').dblclick({ position: { x: 6, y: 10 } });
+  await hostOf(page, 'p').dblclick({ position: await firstWordPoint(hostOf(page, 'p')) });
   await toolbar(page).getByRole('button', { name: 'Ask AI' }).click();
   await expect(page.getByRole('listbox', { name: 'AI actions' })).toBeVisible();
   expect(await axeViolations(page, 'all', '[role="dialog"]')).toEqual([]);
@@ -88,9 +90,9 @@ test('applies the answer where edits made while it streamed moved its text, incl
   await askAboutFirstWord(page, 'fix');
   await ai.push(page, 'Mke');
   await expect(ghost(page)).toHaveText('Mke');
-  await hostOf(page, 'r').click({ position: { x: 1, y: 10 } });
+  await hostOf(page, 'r').click({ position: await caretBefore(hostOf(page, 'r'), ' paragraph') });
   await caretSettled(page, hostOf(page, 'r'));
-  await page.keyboard.type('So, ');
+  await page.keyboard.type(',');
   await page.evaluate(() => window.__quoin.removeRemotely?.('q'));
   await ai.push(page, ' it');
   await ai.end(page);
@@ -99,7 +101,7 @@ test('applies the answer where edits made while it streamed moved its text, incl
   await expect(bar(page).getByRole('button', { name: 'Accept' })).toBeFocused();
   await page.keyboard.press('Enter');
   await expect.poll(() => markdownOf(page, 'p')).toBe('Mke it this sentence better.');
-  expect(await markdownOf(page, 'r')).toBe('So, Another paragraph after.');
+  expect(await markdownOf(page, 'r')).toBe('Another, paragraph after.');
 });
 
 test('shows a failed answer inline with Retry, which asks the same again', async ({ page }) => {
@@ -172,19 +174,18 @@ test('moves the caret one character a press across a word an answer would replac
   await ai.push(page, 'Get');
   await ai.end(page);
   await expect(ghost(page)).toHaveText('Get');
-  await hostOf(page, 'p').click({ position: { x: 1, y: 8 } });
+  await hostOf(page, 'p').click({ position: await caretPoint(hostOf(page, 'p'), 1) });
   await caretSettled(page, hostOf(page, 'p'));
-  expect(await caretOffset(page)).toBe(0);
-  expect(await walk(page, 'ArrowRight', 6)).toEqual([1, 2, 3, 4, 5, 6]);
-  expect(await walk(page, 'ArrowLeft', 4)).toEqual([5, 4, 3, 2]);
-  expect(await walk(page, 'Shift+ArrowRight', 4)).toEqual([3, 4, 5, 6]);
+  expect(await caretOffset(page)).toBe(1);
+  expect(await walk(page, onThroughText(), 5)).toEqual([2, 3, 4, 5, 6]);
+  expect(await walk(page, backThroughText(), 4)).toEqual([5, 4, 3, 2]);
+  expect(await walk(page, `Shift+${onThroughText(true)}`, 4)).toEqual([3, 4, 5, 6]);
 });
 
 test('moves the caret one character a press at the end of a line an answer is written below', async ({ page }) => {
   await openEditor(page, 'ai', 'ai=1');
-  await hostOf(page, 'p').click();
+  await hostOf(page, 'p').click({ position: await lineEnd(hostOf(page, 'p'), 10) });
   await caretSettled(page, hostOf(page, 'p'));
-  await page.keyboard.press('ControlOrMeta+ArrowRight');
   await page.keyboard.type(' /continue');
   await page.keyboard.press('Enter');
   await ai.push(page, 'Ghost words here');
@@ -193,8 +194,10 @@ test('moves the caret one character a press at the end of a line an answer is wr
   await caretSettled(page, hostOf(page, 'p'));
   const end = (await markdownOf(page, 'p')).replace('&#32;', ' ').length;
   await page.evaluate((offset) => window.__quoin.controller!.focus({ block: 'p', region: 'text', offset }), end);
-  expect(await walk(page, 'ArrowLeft', 2)).toEqual([end - 1, end - 2]);
-  expect(await walk(page, 'ArrowRight', 2)).toEqual([end - 1, end]);
+  // The caret is past a full stop and a space, which a right to left line draws its own way round, so every browser
+  // reads the arrows there by the line rather than by the words before them.
+  expect(await walk(page, backward(), 2)).toEqual([end - 1, end - 2]);
+  expect(await walk(page, forward(), 2)).toEqual([end - 1, end]);
   const box = await ghost(page).boundingBox();
   const text = await hostOf(page, 'p').boundingBox();
   expect(box!.y).toBeGreaterThanOrEqual(text!.y + text!.height - 1);

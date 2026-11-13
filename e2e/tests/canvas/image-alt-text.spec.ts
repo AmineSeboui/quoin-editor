@@ -95,3 +95,30 @@ test.describe('on a touch screen', () => {
     await expect(field(page)).toHaveCount(0);
   });
 });
+
+type Box = { x: number; y: number; width: number; height: number };
+
+const overlap = (a: Box, b: Box) =>
+  a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+
+for (const [where, top] of [
+  ['near the top of the window, where the toolbar flips below it', 8],
+  ['near the bottom of the window, where the alt text flips above it', 560],
+] as const) {
+  test(`the alt text of an image ${where} never covers its toolbar`, async ({ page }) => {
+    await page.setViewportSize({ width: 700, height: 800 });
+    await openEditor(page, 'image');
+    await page.addStyleTag({ content: 'body { padding: 1200px 0 1200px }' });
+    await page.evaluate((frameTop) => {
+      const frame = document.querySelector('[data-block-id="img"] .quoin-image-frame')!.getBoundingClientRect();
+      window.scrollTo({ top: window.scrollY + frame.top - frameTop, behavior: 'instant' });
+    }, top);
+    await page.getByRole('img', { name: 'A red square' }).click();
+    await toolbar(page).getByRole('button', { name: 'Alt text' }).click();
+    await expect(field(page)).toBeFocused();
+    await page.waitForTimeout(200);
+    const bar = (await toolbar(page).boundingBox())!;
+    const dialog = (await page.getByRole('dialog', { name: 'Alt text' }).boundingBox())!;
+    expect(overlap(bar, dialog)).toBe(false);
+  });
+}

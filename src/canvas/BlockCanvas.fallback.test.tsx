@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 import { axe } from 'vitest-axe';
-import { mountCanvas, paragraph } from '../blocks/void/test-canvas';
+import { mountCanvas, paragraph } from '../blocks/test-support/test-canvas';
 
 describe('a block the canvas has no definition or renderer for', () => {
   it('is named and drawn as an unsupported block, never by its raw type', () => {

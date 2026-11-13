@@ -375,7 +375,8 @@
     "test:e2e:dist": "playwright test -c playwright.dist.config.ts --project=smoke",
     "prepublishOnly": "npm run build && npm run check:css && npm run check:directives",
     "record:demo": "node scripts/record-demo.mjs",
-    "render:og": "node scripts/render-og.mjs"
+    "render:og": "node scripts/render-og.mjs",
+    "convert:markdown": "node scripts/convert-markdown.mjs"
   },
   "peerDependencies": {
     "react": "^18.2.0 || ^19.0.0",

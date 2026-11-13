@@ -3,6 +3,7 @@ import { axeViolations } from '../../support/axe';
 import { caretSettled, openEditor } from '../../support/editor';
 import { markdownOf } from '../../support/markdown';
 import { caretOf, onCharacter } from '../../support/presence';
+import { firstWordPoint } from '../../support/text-point';
 
 const hostOf = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
 const toolbar = (page: Page) => page.getByRole('toolbar', { name: 'Text formatting' });
@@ -40,7 +41,7 @@ async function twoPages(page: Page) {
 }
 
 async function selectFirstWord(page: Page, block: string) {
-  await hostOf(page, block).dblclick({ position: { x: 6, y: 10 } });
+  await hostOf(page, block).dblclick({ position: await firstWordPoint(hostOf(page, block)) });
   await caretSettled(page, hostOf(page, block));
   await expect(toolbar(page)).toBeVisible();
 }
@@ -157,7 +158,7 @@ test.describe('collaboration, presence, comments and AI together on two pages', 
     await page.keyboard.press('Escape');
     await expect(page.getByRole('combobox')).toHaveCount(0);
 
-    await hostOf(page, 'p').click();
+    await hostOf(page, 'p').click({ position: await firstWordPoint(hostOf(page, 'p')) });
     await page.keyboard.press('ControlOrMeta+/');
     await expect(page.getByRole('menuitem', { name: 'Turn into' })).toBeFocused();
     await stillShown(bea, page);
@@ -174,7 +175,7 @@ test.describe('collaboration, presence, comments and AI together on two pages', 
     const bea = await twoPages(page);
     await commentOnFirstWord(bea, 'r', 'Why another?');
     await page.setViewportSize({ width: 600, height: 800 });
-    await hostOf(page, 'p').click();
+    await hostOf(page, 'p').click({ position: await firstWordPoint(hostOf(page, 'p')) });
     await expect(caretOf(bea, 'Ada Lovelace')).toBeVisible();
     await page.locator('.quoin-comments-marker[data-block="r"]').click();
     const sheet = page.getByRole('dialog', { name: 'Comments' });

@@ -1,11 +1,13 @@
 import type { ViewController } from '../../view';
 
 // By the time a menu's close handler runs the menu is gone, and focus that was in it has fallen to the body. A press
-// on a menu button in the editor, the menu's own trigger among them, leaves focus on a button that is out of the tab
-// order and takes no typing. Anywhere else, focus stays where the press put it.
+// on one of the canvas's menu buttons in the editor, the menu's own trigger among them, leaves focus on a button that
+// is out of the tab order and takes no typing. Anywhere else, a menu button of the host's own among it, focus stays
+// where the press put it.
 function focusBelongsInText(controller: ViewController, focused: Element | null | undefined): boolean {
   if (!focused || focused === focused.ownerDocument.body) return true;
-  return focused.getAttribute('aria-haspopup') === 'menu' && controller.root?.contains(focused) === true;
+  const canvasMenuButton = focused.getAttribute('aria-haspopup') === 'menu' && (focused as HTMLElement).tabIndex < 0;
+  return canvasMenuButton && controller.root?.contains(focused) === true;
 }
 
 // Radix hands focus back to a menu's trigger on close, so focus goes back to the caret instead.

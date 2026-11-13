@@ -1,5 +1,6 @@
 import type { CommandFactories, Editor } from '../../engine';
 import type { AiRequest } from './ai-actions';
+import type { AiFailure } from './ai-failure';
 
 /** The part of an editor AI actions use, whatever commands it has. */
 export type AiEditor = Pick<Editor<CommandFactories>, 'state' | 'dispatch' | 'subscribe'>;
@@ -21,6 +22,8 @@ export type AiLink = {
   run: AiRun | null;
   last: AiRequest | null;
   report(error: Error): void;
+  /** What the bar shows of a failed answer, read from the error by the host's callbacks. */
+  failure(error: unknown): AiFailure;
   /** Says how an answer ended, given what it wrote: once, when it is complete or stopped. */
   ended(phase: 'done' | 'stopped', output: string): void;
   stopWatching: (() => void) | null;
@@ -31,7 +34,15 @@ const links = new WeakMap<object, AiLink>();
 export function linkOf(editor: object): AiLink {
   let link = links.get(editor);
   if (link === undefined) {
-    link = { mounts: 0, run: null, last: null, report: (error) => console.error(error), ended: () => {}, stopWatching: null };
+    link = {
+      mounts: 0,
+      run: null,
+      last: null,
+      report: (error) => console.error(error),
+      failure: () => ({ retryable: true }),
+      ended: () => {},
+      stopWatching: null,
+    };
     links.set(editor, link);
   }
   return link;

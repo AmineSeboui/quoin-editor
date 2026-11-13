@@ -1,9 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import { inlineLength, inlineText, text } from '../model/inline';
 import { buildState } from '../test-support/build-state';
+import { insertBlocksStep } from '../transform/block-steps';
 import * as mapping from '../transform/map-step';
+import { replaceDocStep } from '../transform/replace-doc-step';
 import { replaceInlineStep } from '../transform/replace-inline-step';
 import { splitBlockStep } from '../transform/split-join-steps';
+import type { Step } from '../transform/step';
 import { applyTransaction, getPluginState, type EditorState } from './editor-state';
 import { historyKey, historyPlugin, undoDepth } from './history';
 import { Transaction } from './transaction';
@@ -42,22 +45,34 @@ function typed(enterEvery = 0): EditorState {
   return state;
 }
 
-const streamed = (state: EditorState, id: string, time: number) =>
-  applyTransaction(
-    state,
-    new Transaction(state, time).setOrigin('ai').setMeta('addToHistory', false).step(atEnd(state, id, ' token')),
-  );
+type Unrecorded = (state: EditorState, id: string, i: number) => Step;
 
-describe('carrying the history over a stream of unrecorded text changes', () => {
+const written: Unrecorded = (state, id) => atEnd(state, id, ' token');
+
+const added: Unrecorded = (state, id, i) => {
+  const index = state.doc.index.get(id)! + 1;
+  return insertBlocksStep(index, [{ ...state.doc.blocks[index - 1], id: `added${i}`, regions: { text: [] } }]);
+};
+
+const reloaded: Unrecorded = (state, id) => replaceDocStep(written(state, id, 0).apply(state.doc).doc);
+
+const unrecorded = (state: EditorState, step: Step, time: number) =>
+  applyTransaction(state, new Transaction(state, time).setOrigin('ai').setMeta('addToHistory', false).step(step));
+
+describe('carrying the history over a stream of unrecorded changes', () => {
   it.each([
-    ['only text', 0],
-    ['an Enter every ten items', 10],
-  ])('keeps every item and rewrites only those in the block the stream writes to, with %s', (_history, enterEvery) => {
+    ['text written to it', 0, written],
+    ['text written to it', 10, written],
+    ['a block added after it', 0, added],
+    ['a block added after it', 10, added],
+    ['a new document that only changes its text', 0, reloaded],
+    ['a new document that only changes its text', 10, reloaded],
+  ])('rewrites only the items in a block with %s, with an Enter every %i items', (_change, enterEvery, change) => {
     let state = typed(enterEvery);
     const items = getPluginState(state, historyKey).done;
     const id = state.doc.blocks.find(({ regions }) => inlineText(regions.text).startsWith('block 49'))!.id;
     vi.mocked(mapping.mapStep).mockClear();
-    for (let i = 0; i < 500; i++) state = streamed(state, id, 300_000 + i * 10);
+    for (let i = 0; i < 500; i++) state = unrecorded(state, change(state, id, i), 300_000 + i * 10);
     expect(undoDepth(state)).toBe(200);
     expect(vi.mocked(mapping.mapStep).mock.calls.length).toBe(500 * 4);
     const done = getPluginState(state, historyKey).done;

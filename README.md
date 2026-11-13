@@ -125,6 +125,7 @@ Sources, checked on 2026-11-05: Tiptap [persistence][tt-store], [markdown][tt-md
 ## Learn more
 
 - [The controlled contract](https://quoincloud.com/docs/editor/contract): loading, autosave, discarding, undoing a deletion
+- [Adopting existing documents](https://quoincloud.com/docs/editor/adoption): what markdown files and HTML lose on the way in, ids that last, the way back out
 - [Theming](https://quoincloud.com/docs/editor/theming): `--quoin-` tokens, dark mode, cascade layers, Tailwind
 - [Custom blocks](https://quoincloud.com/docs/editor/custom-blocks) and [uploads](https://quoincloud.com/docs/editor/uploads)
 - [Extensions](https://quoincloud.com/docs/editor/extensions): every opt-in feature, and writing your own

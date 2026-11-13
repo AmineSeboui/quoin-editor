@@ -42,6 +42,7 @@ export const esLabels: Required<QuoinLabels> = {
   color: 'Color',
   textColor: 'Color del texto',
   backgroundColor: 'Color de fondo',
+  textColorSample: 'A',
   tone: 'Tipo',
   icon: 'Icono',
   duplicate: 'Duplicar',

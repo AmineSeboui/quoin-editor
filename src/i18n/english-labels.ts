@@ -48,6 +48,7 @@ export const englishLabels: Required<QuoinLabels> = frozen({
   color: 'Color',
   textColor: 'Text color',
   backgroundColor: 'Background color',
+  textColorSample: 'A',
   tone: 'Tone',
   icon: 'Icon',
   duplicate: 'Duplicate',

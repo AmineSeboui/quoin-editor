@@ -42,6 +42,7 @@ export const frLabels: Required<QuoinLabels> = {
   color: 'Couleur',
   textColor: 'Couleur du texte',
   backgroundColor: 'Couleur de fond',
+  textColorSample: 'A',
   tone: 'Ton',
   icon: 'Icône',
   duplicate: 'Dupliquer',

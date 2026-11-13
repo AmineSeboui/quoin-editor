@@ -42,6 +42,7 @@ export const deLabels: Required<QuoinLabels> = {
   color: 'Farbe',
   textColor: 'Textfarbe',
   backgroundColor: 'Hintergrundfarbe',
+  textColorSample: 'A',
   tone: 'Art',
   icon: 'Symbol',
   duplicate: 'Duplizieren',

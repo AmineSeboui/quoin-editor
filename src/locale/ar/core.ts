@@ -49,6 +49,7 @@ export const arLabels: Required<QuoinLabels> = {
   color: 'اللون',
   textColor: 'لون النص',
   backgroundColor: 'لون الخلفية',
+  textColorSample: '\u0623',
   tone: 'النوع',
   icon: 'الأيقونة',
   duplicate: 'تكرار',

@@ -43,6 +43,7 @@ export const ptLabels: Required<QuoinLabels> = {
   color: 'Cor',
   textColor: 'Cor do texto',
   backgroundColor: 'Cor de fundo',
+  textColorSample: 'A',
   tone: 'Tipo',
   icon: 'Ícone',
   duplicate: 'Duplicar',

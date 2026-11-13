@@ -79,6 +79,8 @@ export type QuoinLabels = {
   color: string;
   textColor: string;
   backgroundColor: string;
+  /** The letter the colour menus draw in each text colour beside its name. Optional like `blockError`. */
+  textColorSample?: string;
   /** The submenus of a callout's block menu that set its tone and its icon. */
   tone: string;
   icon: string;

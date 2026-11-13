@@ -101,6 +101,16 @@ describe('the block menu', () => {
     expect(checked).toHaveAttribute('aria-checked', 'true');
   });
 
+  it('draws the sample letter of each text colour from the labels', async () => {
+    const user = userEvent.setup();
+    const canvas = mountCanvas([paragraph('a', 'para')], { labels: { textColorSample: '\u3042' } });
+    act(() => canvas.handle().focus({ block: 'a', region: 'text', offset: 0 }));
+    fireEvent.keyDown(document.activeElement!, { key: '/', ctrlKey: true });
+    await user.click(item('Color'));
+    const red = within(screen.getByRole('group', { name: 'Text color' })).getByRole('menuitemradio', { name: 'Red' });
+    expect(red.querySelector('[data-color="red"]')).toHaveTextContent('\u3042');
+  });
+
   it('deletes the block and reports it', async () => {
     const user = userEvent.setup();
     const { last, onDelete, openMenuFromText } = setup();

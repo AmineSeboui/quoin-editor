@@ -3,6 +3,7 @@ import { arrowAsWritten, inlineDirection } from '../../ui/direction';
 import type { ViewController } from '../controller/view-controller';
 import { moveHead } from '../navigation/cross-moves';
 import { moveHorizontally } from '../navigation/horizontal';
+import { noteLineEnd } from '../navigation/line-end';
 import { moveToNeighbour, neighbourHead } from '../navigation/neighbour-block';
 import { moveVertically } from '../navigation/vertical';
 import { flipSelectedBlock } from './flip-block';
@@ -112,4 +113,5 @@ export function handleKeydown(controller: ViewController, event: KeyboardEvent):
   controller.nativeVerticalMove = false;
   for (const intercept of controller.keyInterceptors) if (intercept(event)) return;
   if (handle(controller, event)) event.preventDefault();
+  noteLineEnd(controller, event, written(controller, event.key));
 }

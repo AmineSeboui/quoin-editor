@@ -6,6 +6,9 @@ type Line = { top: number; bottom: number; right: number; end: number };
 
 const WIDTHS = [300, 320, 340, 360, 380, 400, 420, 440, 460, 480, 500];
 
+// End on a Mac scrolls the page, and Command with the arrow towards the end of the line moves the caret there.
+const LINE_END = process.platform === 'darwin' ? 'Meta+ArrowRight' : 'End';
+
 function lines(page: Page): Promise<Line[]> {
   return page.evaluate(() => {
     const text = document.querySelector('[data-block-id="p"] [data-quoin-host]')!.firstChild as Text;
@@ -87,6 +90,34 @@ test.describe('a soft wrap', () => {
       await page.keyboard.press('ControlOrMeta+z');
       await expect.poll(() => host(page, 0).textContent()).not.toContain('Z');
     });
+  });
+
+  test('the line end key leaves the caret on its line, and the next vertical arrow moves one line from there', async ({
+    page,
+  }) => {
+    let tried = 0;
+    for (const doc of ['middle', 'hyphens']) {
+      for (const width of [320, 400, 480]) {
+        await openHeadless(page, doc);
+        await page.setViewportSize({ width, height: 800 });
+        const rows = await lines(page);
+        const left = (await host(page, 0).boundingBox())!.x + 2;
+        for (let i = 1; i < Math.min(rows.length - 1, 4); i++) {
+          const label = `${doc} at width ${width}, line ${i}`;
+          // Reading the line the caret is on moves the native selection, so it is read once the arrow has moved it.
+          for (const [key, to] of [['ArrowDown', i + 1], ['ArrowUp', i - 1]] as const) {
+            await page.mouse.click(left, (rows[i].top + rows[i].bottom) / 2);
+            await page.keyboard.press(LINE_END);
+            const end = { head: { offset: rows[i].end }, assoc: -1 };
+            await expect.poll(() => modelSelection(page), label).toMatchObject(end);
+            await page.keyboard.press(key);
+            expect.soft(await caretLineEnd(page), `${label}, ${key}`).toBe(rows[to].end);
+            tried++;
+          }
+        }
+      }
+    }
+    expect(tried).toBeGreaterThanOrEqual(20);
   });
 
   test('a goal past the end of a line that wraps after a hyphen draws the caret after the hyphen', async ({

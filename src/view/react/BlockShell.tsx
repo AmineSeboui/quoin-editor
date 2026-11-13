@@ -1,7 +1,7 @@
 import { memo, useRef, type CSSProperties } from 'react';
 import type { Decoration, EngineBlock } from '../../engine';
 import { alignOrUndefined, optionalString, paletteOrUndefined } from '../../engine/blocks/data-fields';
-import { hostDecorations, sameDecorations } from '../controller/host-decorations';
+import { sameDecorations } from '../controller/host-decorations';
 import { BlockErrorBoundary } from './BlockErrorBoundary';
 import { useBlockDomId } from './block-dom-id';
 import type { BlockRenderer } from './block-renderer-types';
@@ -36,7 +36,7 @@ export const BlockShell = memo(function BlockShell({ block, renderers }: BlockSh
   const choices = useReaderChoices(controller);
   const status = useEditorState(controller, (state) => blockStatus(state, block.id, choices));
   const engaged = useEngaged(controller, status === 'selected');
-  const decorations = useEditorState(controller, () => hostDecorations(controller.editor, block.id, ''), sameDecorations);
+  const decorations = useEditorState(controller, () => controller.decorationsFor(block.id, ''), sameDecorations);
   const hidden = status === 'hidden';
 
   useIsomorphicLayoutEffect(() => {

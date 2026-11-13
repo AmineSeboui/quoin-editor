@@ -23,7 +23,9 @@ function triggerOffset(text: string, start: number, config: TriggerConfig): numb
     if (character === '\n' || character === ATOM) return null;
     if (character === char) {
       const atRegionStart = start + i === 0;
-      if (atRegionStart || (!startOfLine && i > 0 && WHITESPACE.test(text[i - 1]))) return start + i;
+      const opens = atRegionStart || (!startOfLine && i > 0 && WHITESPACE.test(text[i - 1]));
+      // A space right after the trigger character starts no query, however it got there: typed, pasted or composed.
+      if (opens) return WHITESPACE.test(text[i + 1] ?? '') ? null : start + i;
     }
     if (!allowSpaces && WHITESPACE.test(character)) return null;
   }

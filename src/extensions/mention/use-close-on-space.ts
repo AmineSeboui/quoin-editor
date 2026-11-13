@@ -9,8 +9,8 @@ import { mentionKey } from './mention-key';
 const STARTS_WITH_SPACE = /^\s/;
 
 /**
- * Closes the menu on a space typed right after the `@`, or once the host has found nothing for the query, so the words
- * written after an `@` neither keep a menu of no matches open nor keep asking the host.
+ * Closes the menu on a space typed once the host has found nothing for the query, so the words written after an `@`
+ * neither keep a menu of no matches open nor keep asking the host. A space right after the `@` opens no menu at all.
  */
 export function useCloseOnSpace(controller: ViewController, foundNothing: (query: string) => boolean): void {
   useEffect(() => {
@@ -19,7 +19,7 @@ export function useCloseOnSpace(controller: ViewController, foundNothing: (query
     const onBeforeInput = (event: InputEvent) => {
       if (event.inputType !== 'insertText' || event.isComposing || !STARTS_WITH_SPACE.test(event.data ?? '')) return;
       const query = getPluginState(controller.editor.state, mentionKey).active?.query;
-      if (query === '' || (query !== undefined && foundNothing(query))) controller.run(dismissSuggestion(mentionKey));
+      if (query && foundNothing(query)) controller.run(dismissSuggestion(mentionKey));
     };
     // Captured on the root, it closes the menu before the view, listening there too, types the space.
     root.addEventListener('beforeinput', onBeforeInput, true);

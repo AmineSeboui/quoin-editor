@@ -6,6 +6,7 @@ import { paragraph } from '../../blocks/void/test-canvas';
 import { BlockCanvas } from '../../canvas/BlockCanvas';
 import type { QuoinEditorHandle } from '../../canvas/canvas-props';
 import type { Extension } from '../../engine';
+import { clipboardEvent, fakeTransfer } from '../../view/clipboard/test-transfer';
 import { mentionExtension } from './mention-extension';
 import type { MentionResult } from './mention-feature';
 import { deferredSearch, mountMentions, waitForSearch } from './mention-test-canvas';
@@ -149,6 +150,18 @@ describe('the mention menu', () => {
     expect(canvas.menu()).toBeNull();
     expect(search).not.toHaveBeenCalled();
     expect(canvas.markdown('p')).toBe('Ask @ and more');
+  });
+
+  it('closes on pasted text that starts with a space right after the @', () => {
+    const { canvas, search } = openOn('Ask');
+    canvas.type(' @');
+    expect(canvas.menu()).not.toBeNull();
+    const { transfer } = fakeTransfer({ 'text/plain': ' and more' });
+    act(() => void document.activeElement!.dispatchEvent(clipboardEvent('paste', transfer)));
+    waitForSearch();
+    expect(canvas.markdown('p')).toBe('Ask @ and more');
+    expect(canvas.menu()).toBeNull();
+    expect(search).not.toHaveBeenCalled();
   });
 
   it('closes on a space once the host has found nothing, and stays open on one after results', async () => {

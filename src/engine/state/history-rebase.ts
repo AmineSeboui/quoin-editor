@@ -1,4 +1,6 @@
-import type { Pos } from '../model/types';
+import { blockById } from '../model/doc';
+import { sameValue } from '../model/same-value';
+import type { EngineDoc, Pos } from '../model/types';
 import { attempt, mapStep } from '../transform/map-step';
 import type { Assoc, PosMap, Step } from '../transform/step';
 import type { HistoryItem } from './history';
@@ -16,6 +18,18 @@ const blocksOf = (step: Step) => {
   const { block, created, target = null, source = target } = fields(step);
   return typeof block === 'string' ? [block, created?.id ?? block] : [target, source];
 };
+
+/**
+ * The blocks a change of the block list touched: added, removed, edited, or followed by another block than before,
+ * which a join of that block with the next depends on. Every other block holds the same positions before and after.
+ */
+function changedBlocks(before: EngineDoc, after: EngineDoc): string[] {
+  const next = (doc: EngineDoc, id: string) => doc.blocks[doc.index.get(id)! + 1]?.id;
+  return [...new Set([...before.index.keys(), ...after.index.keys()])].filter((id) => {
+    const [was, is] = [blockById(before, id), blockById(after, id)];
+    return !was || !is || !sameValue(was, is) || next(before, id) !== next(after, id);
+  });
+}
 
 /**
  * What going back through a step's inverse loses of a position in what the step leaves, kept for the way on through
@@ -70,12 +84,13 @@ const through =
  * Carries a stack of undo or redo items, newest last, over the change a transaction made. Each item applies to the
  * document its newer items leave, so the change is carried down the stack with them: from what an item leaves, back
  * through the item, over the change, and through the item as rewritten. An item that cannot be rewritten is dropped.
- * While the change and the items carried so far only edit blocks by id, an item editing only other blocks keeps its
- * steps and moves no position the rest of the walk maps, so it is kept as it is.
+ * While the items carried so far only edit blocks by id, an item editing only blocks that neither the change nor those
+ * items touched keeps its steps and moves no position the rest of the walk maps, so it is kept as it is.
  */
 export function rebaseItems(items: readonly HistoryItem[], tr: Transaction): HistoryItem[] {
   const kept: HistoryItem[] = [];
-  const touched = tr.steps.flatMap(blocksOf);
+  const named = tr.steps.flatMap(blocksOf);
+  const touched = named.includes(null) ? changedBlocks(tr.before.doc, tr.doc) : named;
   let [before, after, change] = [tr.before.doc, tr.doc, tr.maps.map((map): Link => ({ map }))];
   items: for (const item of [...items].reverse()) {
     const { selection } = item;

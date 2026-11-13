@@ -1,5 +1,5 @@
 import { crc32 } from './crc32';
-import { deflateRaw } from '../export/deflate';
+import { deflate } from '../export/deflate';
 
 export type ZipFile = { readonly path: string; readonly data: Uint8Array };
 
@@ -17,7 +17,7 @@ const DEFLATE = 8;
 const DOS_DATE = (0 << 9) | (1 << 5) | 1;
 
 async function entryOf({ path, data }: ZipFile): Promise<Entry> {
-  const deflated = await deflateRaw(data);
+  const deflated = await deflate(data, 'deflate-raw');
   const smaller = deflated !== null && deflated.length < data.length;
   return {
     name: new TextEncoder().encode(path),

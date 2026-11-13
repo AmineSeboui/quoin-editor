@@ -9,6 +9,7 @@ import { ToolbarButton } from '../menus/bubble/bubble-items';
 import { TurnIntoDropdown } from '../menus/bubble/TurnIntoDropdown';
 import { useRovingFocus } from '../menus/bubble/use-roving-focus';
 import { bubblePart } from '../menus/bubble/bubble-part';
+import { useFocusBackToText } from '../menus/bubble/use-focus-back-to-text';
 import { keepFocus } from '../menus/floating/keep-focus';
 import type { ViewController } from '../view';
 import { useEditorState, wholeState } from '../view/react/use-editor-state';
@@ -37,6 +38,7 @@ function EditingTools({ controller }: MobileToolbarProps) {
   const state = useEditorState(controller, wholeState);
   const viewport = useVisualViewport();
   const roving = useRovingFocus();
+  useFocusBackToText(controller);
   const items = useMemo(() => mobileItems(labels, () => store.set({ linkPopover: { open: true } })), [labels, store]);
 
   const onKeyDown = (event: KeyboardEvent) => {

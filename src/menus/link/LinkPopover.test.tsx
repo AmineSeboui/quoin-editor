@@ -156,7 +156,7 @@ describe('the link popover', () => {
     expect(popover()).not.toBeNull();
   });
 
-  it('stays closed after the canvas turns read-only and back, and leaves focus where it is', () => {
+  it('stays closed after the canvas turns read-only and back, and gives focus back to the text', async () => {
     const ref = createRef<QuoinEditorHandle>();
     const blocks = [paragraph('a', 'hello world')];
     const draw = (readOnly: boolean) => <BlockCanvas ref={ref} blocks={blocks} onChange={() => {}} readOnly={readOnly} />;
@@ -169,11 +169,13 @@ describe('the link popover', () => {
     fireEvent.keyDown(container.querySelector('[data-quoin-host]')!, { key: 'k', code: 'KeyK', ctrlKey: true });
     expect(field()).toHaveFocus();
     rerender(draw(true));
+    await act(async () => {});
     expect(popover()).toBeNull();
-    const focused = document.activeElement;
+    const text = container.querySelector('[data-quoin-host]');
+    expect(document.activeElement).toBe(text);
     rerender(draw(false));
     expect(popover()).toBeNull();
-    expect(document.activeElement).toBe(focused);
+    expect(document.activeElement).toBe(text);
   });
 
   it('opens from the Link button of the formatting toolbar', () => {

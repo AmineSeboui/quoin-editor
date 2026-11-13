@@ -186,6 +186,24 @@ describe('the bubble toolbar', () => {
     expect(toolbar()).toBeInTheDocument();
   });
 
+  it('gives focus back to the text, not the page, when the canvas turns read-only with focus in the toolbar', async () => {
+    const ref = createRef<QuoinEditorHandle>();
+    const blocks = [paragraph('a', 'hello world')];
+    const draw = (readOnly: boolean) => <BlockCanvas ref={ref} blocks={blocks} onChange={() => {}} readOnly={readOnly} />;
+    const { container, rerender } = render(draw(false));
+    act(() => {
+      const { controller } = ref.current!;
+      controller.focus(pos('a', 0));
+      controller.dispatch(controller.editor.createTransaction().setSelection(textSelection(pos('a', 0), pos('a', 5))));
+    });
+    fireEvent.keyDown(container.querySelector('[data-quoin-host]')!, { key: 'F10', altKey: true });
+    expect(toolbar()).toContainElement(document.activeElement as HTMLElement);
+    rerender(draw(true));
+    await act(async () => {});
+    expect(screen.queryByRole('toolbar', { name: 'Text formatting' })).toBeNull();
+    expect(document.activeElement).toBe(container.querySelector('[data-quoin-host]'));
+  });
+
   it('keeps the same toolbar while the canvas re-renders with new labels', () => {
     const ref = createRef<QuoinEditorHandle>();
     function InlineHost() {

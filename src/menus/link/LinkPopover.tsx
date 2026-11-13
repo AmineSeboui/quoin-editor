@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useMemo, useState, type ChangeEvent, type FormEvent, type KeyboardEvent } from 'react';
+import { useId, useMemo, useRef, useState, type ChangeEvent, type FormEvent, type KeyboardEvent } from 'react';
 import { unsetLink } from '../../engine/commands/marks';
 import { isCollapsed } from '../../engine/state/selection';
 import type { QuoinLabels } from '../../i18n/labels';
@@ -10,6 +10,7 @@ import { Input } from '../../ui/input';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
 import { preventDefault } from '../../ui/prevent-default';
 import type { ViewController } from '../../view';
+import { useFocusBackToText } from '../bubble/use-focus-back-to-text';
 import { rangeRect } from '../floating/range-rect';
 import { selectionRect } from '../floating/selection-rect';
 import { virtualAnchor, type VirtualAnchor } from '../floating/virtual-anchor';
@@ -50,6 +51,8 @@ export function LinkPopover({ controller, labels, onClose }: LinkPopoverProps) {
   const [invalid, setInvalid] = useState(false);
   const messageId = useId();
   const anchor = useMemo(() => ({ current: popoverAnchor(controller, link) }), [controller, link]);
+  const content = useRef<HTMLDivElement>(null);
+  useFocusBackToText(controller, (focused) => focused !== null && content.current?.contains(focused) === true);
 
   const backToText = () => {
     onClose();
@@ -94,6 +97,7 @@ export function LinkPopover({ controller, labels, onClose }: LinkPopoverProps) {
     >
       <PopoverAnchor virtualRef={anchor} />
       <PopoverContent
+        ref={content}
         aria-label={labels.link}
         side="bottom"
         align="start"

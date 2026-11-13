@@ -17,6 +17,7 @@ import { bubbleItems, ToolbarButton } from './bubble-items';
 import { bubblePart } from './bubble-part';
 import { ColorPopover } from './ColorPopover';
 import { TurnIntoDropdown } from './TurnIntoDropdown';
+import { useFocusBackToText } from './use-focus-back-to-text';
 import { useRovingFocus } from './use-roving-focus';
 
 const DIVIDER = 'mx-0.5 h-5 w-px shrink-0 bg-border';
@@ -35,6 +36,7 @@ export function BubbleToolbar({ controller, labels, store, extraItems }: BubbleT
   const roving = useRovingFocus();
   const items = useMemo(() => bubbleItems(labels, () => store.set({ linkPopover: { open: true } })), [labels, store]);
   useFocusKey(controller, roving.focusCurrent);
+  useFocusBackToText(controller);
 
   const onKeyDown = (event: KeyboardEvent) => {
     if (!roving.owns(event.target)) return;

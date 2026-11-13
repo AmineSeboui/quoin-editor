@@ -202,6 +202,19 @@ describe('the mobile toolbar', () => {
     expect(canvas.selection()).toEqual(textSelection(pos('a', 3)));
   });
 
+  it('gives focus back to the text, not the page, when the canvas turns read-only with focus in it', async () => {
+    const ref = createRef<QuoinEditorHandle>();
+    const blocks = [paragraph('a', 'hello world')];
+    const draw = (readOnly: boolean) => <BlockCanvas ref={ref} blocks={blocks} onChange={() => {}} readOnly={readOnly} />;
+    const { container, rerender } = render(draw(false));
+    act(() => ref.current!.focus(pos('a', 3)));
+    act(() => control('Bold').focus());
+    rerender(draw(true));
+    await act(async () => {});
+    expect(queryToolbar()).toBeNull();
+    expect(document.activeElement).toBe(container.querySelector('[data-quoin-host]'));
+  });
+
   it('keeps the same toolbar while the canvas re-renders with new labels', () => {
     const ref = createRef<QuoinEditorHandle>();
     function InlineHost() {

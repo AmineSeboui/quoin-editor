@@ -7,7 +7,7 @@ import { mentionExtension, type MentionResult } from 'quoin-editor/mention';
 import { statsExtension } from 'quoin-editor/stats';
 import { tableExtension } from 'quoin-editor/table';
 import { tocExtension } from 'quoin-editor/toc';
-import { aiHost } from './ai-host';
+import { aiHost, HOST_ACTIONS } from './ai-host';
 import { collaborativeCanvas } from './collab-canvas';
 import { commentHost } from './comment-host';
 
@@ -45,7 +45,7 @@ const features = () => [
   ...(params.get('emoji') === '1' ? [emojiExtension()] : []),
   ...(params.get('find') === '1' ? [findExtension()] : []),
   ...(params.has('comments') ? [commentHost()] : []),
-  ...(params.has('ai') ? [aiHost()] : []),
+  ...(params.has('ai') ? [aiHost(params.get('ai') === 'actions' ? HOST_ACTIONS : [])] : []),
   ...(params.has('collab') ? collaborativeCanvas(params) : []),
   ...(params.get('stats') === '1'
     ? [

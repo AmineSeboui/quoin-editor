@@ -1,4 +1,4 @@
-import { aiExtension, type AiRequest } from 'quoin-editor/ai';
+import { aiExtension, type AiActionDefinition, type AiRequest } from 'quoin-editor/ai';
 
 type Item = { chunk: string } | { end: true } | { error: string };
 
@@ -19,7 +19,17 @@ function channel() {
   };
 }
 
-export function aiHost() {
+// An action of the host's own, as an application registers one: in the AI menu and as a button of the toolbar.
+export const HOST_ACTIONS: readonly AiActionDefinition[] = [
+  {
+    id: 'release-note',
+    label: 'Rewrite as a release note',
+    prompt: (request) => `Rewrite this as one line of a release note, in ${request.language}.`,
+    places: ['aiMenu', 'bubbleToolbar'],
+  },
+];
+
+export function aiHost(actions: readonly AiActionDefinition[] = []) {
   const requests: AiRequest[] = [];
   let current: ReturnType<typeof channel> | null = null;
   const host = {
@@ -31,6 +41,7 @@ export function aiHost() {
   };
   window.__quoinAi = host;
   return aiExtension({
+    actions,
     async *stream(request, signal) {
       requests.push(request);
       const own = channel();

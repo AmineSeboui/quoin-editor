@@ -9,8 +9,11 @@ import { Bold, Code, Italic, Link, Strikethrough, Subscript, Superscript, Underl
 import { Button } from '../../ui/button';
 import type { ViewController } from '../../view';
 
-/** A toolbar button, which may say that it opens a dialog, as Link opens the link popover. */
-export type KitItem = ToolbarItem & { readonly opensDialog?: boolean };
+/**
+ * A toolbar button, which may say that it opens a dialog, as Link opens the link popover, and when it would do
+ * nothing, as Undo with nothing to undo: it stays in the row, marked unavailable, so the row keeps its place.
+ */
+export type KitItem = ToolbarItem & { readonly opensDialog?: boolean; enabled?(state: EditorState): boolean };
 
 export type BubbleItems = { inline: readonly KitItem[]; scripts: readonly KitItem[] };
 
@@ -59,6 +62,7 @@ type ToolbarButtonProps = {
 export function ToolbarButton({ item, state, controller, buttonRef }: ToolbarButtonProps) {
   if (item.available?.(state) === false) return null;
   const Icon = item.icon;
+  const disabled = item.enabled?.(state) === false;
   return (
     <Button
       ref={buttonRef}
@@ -68,8 +72,11 @@ export function ToolbarButton({ item, state, controller, buttonRef }: ToolbarBut
       aria-label={item.title}
       aria-pressed={item.isActive?.(state)}
       aria-haspopup={item.opensDialog ? 'dialog' : undefined}
+      aria-disabled={disabled || undefined}
       className={PRESSED}
-      onClick={() => item.run(controller)}
+      onClick={() => {
+        if (!disabled) item.run(controller);
+      }}
     >
       <Icon />
     </Button>

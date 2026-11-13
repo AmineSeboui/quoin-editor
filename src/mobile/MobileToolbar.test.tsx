@@ -126,6 +126,22 @@ describe('the mobile toolbar', () => {
     expect(indentOfB()).toBe(0);
   });
 
+  it('marks Undo, Redo, Indent and Outdent unavailable while they would do nothing, and keeps them in the row', async () => {
+    const user = userEvent.setup();
+    const canvas = editAt(pos('a', 0), [paragraph('a', 'one'), paragraph('b', 'two')]);
+    const unavailable = () =>
+      ['Undo', 'Redo', 'Indent', 'Outdent'].filter((name) => control(name).getAttribute('aria-disabled') === 'true');
+    expect(unavailable()).toEqual(['Undo', 'Redo', 'Indent', 'Outdent']);
+    fireEvent.click(control('Undo'));
+    expect(canvas.changes).toHaveLength(0);
+    act(() => canvas.handle().focus(pos('b', 0)));
+    expect(unavailable()).toEqual(['Undo', 'Redo', 'Outdent']);
+    await user.click(control('Indent'));
+    expect(unavailable()).toEqual(['Redo', 'Indent']);
+    await user.click(control('Undo'));
+    expect(unavailable()).toEqual(['Undo', 'Outdent']);
+  });
+
   it('turns the block into another type', async () => {
     const user = userEvent.setup();
     const canvas = editAt(pos('a', 3));

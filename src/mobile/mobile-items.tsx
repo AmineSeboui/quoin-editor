@@ -20,8 +20,8 @@ import type { ViewController } from '../view';
 
 export type MobileItems = { addBlock: ToolbarItem; editing: readonly KitItem[] };
 
-function commandItem(id: string, title: string, icon: ToolbarItem['icon'], command: Command): ToolbarItem {
-  return { id, title, icon, run: (controller) => void controller.run(command) };
+function commandItem(id: string, title: string, icon: ToolbarItem['icon'], command: Command): KitItem {
+  return { id, title, icon, enabled: (state) => command(state), run: (controller) => void controller.run(command) };
 }
 
 function addBlockAtCaret(controller: ViewController): void {

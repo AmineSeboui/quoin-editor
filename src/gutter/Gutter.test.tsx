@@ -76,6 +76,20 @@ describe('the gutter', () => {
     expect(screen.getByRole('listbox', { name: 'Commands' })).toBeInTheDocument();
   });
 
+  it('adds a paragraph after an empty paragraph that holds nested blocks, rather than writing the slash in it', async () => {
+    const user = userEvent.setup();
+    const { last, selection, shell } = mountCanvas([md('e', ''), md('c', 'child', 1), md('z', 'after')]);
+    fireEvent.pointerMove(hostOf(shell('e')));
+    await user.click(addButton());
+    const added = last()[2];
+    expect(last().map((block) => block.id)).toEqual(['e', 'c', added.id, 'z']);
+    expect(last()[0].data.markdown).toBe('');
+    expect(added).toMatchObject({ type: 'MARKDOWN', data: { markdown: '/' } });
+    expect(added.indent ?? 0).toBe(0);
+    expect(selection()).toEqual(textSelection({ block: added.id, region: 'text', offset: 1 }));
+    expect(screen.getByRole('listbox', { name: 'Commands' })).toBeInTheDocument();
+  });
+
   it('does not draw the blocks again while the pointer moves across them', () => {
     let drawn = 0;
     const counted = defineBlock<{ n: number }>({

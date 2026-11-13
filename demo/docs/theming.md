@@ -18,7 +18,7 @@ description: Every colour and radius comes from a --quoin- token, the stylesheet
   --quoin-popover: oklch(1 0 0);
   --quoin-popover-foreground: oklch(0.24 0.024 267);
   --quoin-border: oklch(0.927 0.01 262);
-  --quoin-input: oklch(0.62 0.02 262);
+  --quoin-input: oklch(0.927 0.01 262);
   --quoin-ring: oklch(0.533 0.221 266);
   --quoin-primary: oklch(0.24 0.024 267);
   --quoin-primary-foreground: oklch(0.985 0.003 260);
@@ -30,7 +30,7 @@ description: Every colour and radius comes from a --quoin- token, the stylesheet
   --quoin-warning: oklch(0.6 0.16 65);
   --quoin-tip: oklch(0.54 0.17 300);
   --quoin-radius: 0.625rem;
-  --quoin-shadow: oklch(0.24 0.024 267 / 14%);
+  --quoin-shadow: oklch(0.24 0.024 267 / 10%);
 }
 
 .dark {
@@ -43,7 +43,7 @@ description: Every colour and radius comes from a --quoin- token, the stylesheet
   --quoin-popover: oklch(0.225 0.019 266);
   --quoin-popover-foreground: oklch(0.965 0.005 260);
   --quoin-border: oklch(1 0 0 / 10%);
-  --quoin-input: oklch(0.6 0.02 262);
+  --quoin-input: oklch(1 0 0 / 15%);
   --quoin-ring: oklch(0.72 0.14 268);
   --quoin-primary: oklch(0.93 0.008 262);
   --quoin-primary-foreground: oklch(0.22 0.02 266);
@@ -59,7 +59,7 @@ description: Every colour and radius comes from a --quoin- token, the stylesheet
 }
 ```
 
-Out of the box that is a slate editor with a cobalt focus ring and selection that works in both modes with nothing configured. `--quoin-shadow` colours the shadow under menus, popovers and toolbars. A test holds the defaults to their contrast: the focus ring at 3:1 or more against the page, a popover and a selected block, body and muted text at 4.5:1 or more on the page, on a popover and on a highlighted row.
+Out of the box that is a slate editor with a cobalt focus ring and selection that works in both modes with nothing configured. `--quoin-shadow` colours the shadow under menus, popovers and toolbars. A test holds the defaults to their contrast: the ring colour at 3:1 or more against the page, a popover and a selected block, where a button or field draws it at full strength as its focused edge, and body and muted text at 4.5:1 or more on the page, on a popover and on a highlighted row.
 
 The other tokens each belong to one part of the editor, with a light and a dark default:
 
@@ -121,9 +121,9 @@ Point the prefixed names at your own in one block on `.quoin`. The canvas root c
 
 `--quoin-info`, `--quoin-tip`, `--quoin-success` and `--quoin-warning` are read only by the callout block, for its rule and the wash behind it, never for type. If your own theme has no equivalent, leave those four out of the block and the defaults above stand; the rest of the editor does not touch them. `--quoin-comment`, `--quoin-comment-active` and `--quoin-comment-edge` mark the text threads are anchored to; keep the two tints pale enough for your body and palette text.
 
-`--quoin-input` is the border of the outline button, the only control that uses it, and `--quoin-warning` is the rule of a warning callout. A border or rule that carries meaning needs 3:1 against what it sits on, so give `--quoin-input` a value that reaches 3:1 against `--quoin-background` and `--quoin-popover`, and `--quoin-warning` one that reaches 3:1 against its own wash (the warning colour at 15% over the page). Quoin's defaults do, and a host that sets these tokens keeps its own values.
+`--quoin-input` is the border of text fields and of the outline button. It follows shadcn's faint field border, so it is not held to 3:1; give it a stronger value if your design needs fields to stand out. `--quoin-warning` is the rule of a warning callout, which carries meaning and needs 3:1 against its own wash (the warning colour at 15% over the page). Quoin's default does, and a host that sets these tokens keeps its own values.
 
-`--quoin-ring` colours the keyboard focus outline, which is solid and drawn at full strength, so it should reach 3:1 against `--quoin-background`, `--quoin-popover` and each `--quoin-bg-*` a block can be coloured with. A pale value, such as the grey many shadcn themes keep for `--ring`, fails that, so give `--quoin-ring` a value of its own that does.
+`--quoin-ring` colours keyboard focus the way shadcn does: a 3px halo at half strength, and the border of a focused button or field at full strength. Give it a value that reaches 3:1 against `--quoin-background`, `--quoin-popover` and each `--quoin-bg-*` a block can be coloured with, so that edge stands out. A pale value, such as the grey many shadcn themes keep for `--ring`, fails that, so give `--quoin-ring` a value of its own that does.
 
 That one block covers both modes: the tokens on the right already flip with your own dark class, and each mapping beats Quoin's `:root` and `.dark` defaults alike. Write it unlayered, or in a layer that sorts after `quoin`, so it outranks those defaults.
 

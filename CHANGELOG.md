@@ -2,6 +2,16 @@
 
 Every release of `quoin-editor` is listed here, newest first, in the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). From 1.0.0 the package follows [semantic versioning](https://semver.org/): a breaking change waits for the next major version. Until then, Quoin was 0.x and a minor version could contain breaking changes; those known at release were marked "Breaking". The 0.x sections are kept as they were released, "Docs" headings included. Moving from 0.4 to 1.0, and from 1.x to 2.0, is covered step by step in [MIGRATION.md](MIGRATION.md). Review finding ids such as F-17 are those of the 0.4.0 review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73).
 
+## Unreleased
+
+### Changed
+- The editor's menus, toolbars, popovers, dialogs, buttons and fields now follow shadcn's current default style: surfaces edged with a faint ring rather than a border, rounder and denser controls (28 pixel toolbar buttons, 32 pixel buttons and fields), smaller muted group headings, and a quick zoom-in as a menu or popover opens, which a reader who asks for reduced motion does not see. Four accessibility guarantees changed with it. Keyboard focus is shadcn's ring rather than a solid outline: buttons and fields still show a focused edge in `--quoin-ring` at 3:1 or more, under a halo at half strength, but other focusable elements, such as links and scrolling regions, show the halo alone, which is under 3:1. Field borders follow shadcn's faint border and are no longer held to 3:1. A highlighted menu row is shown by its tint alone, without the bar along its edge. Under forced colours, focus and the highlighted row are still framed in a system colour.
+- `--quoin-input` defaults to shadcn's field border, `oklch(0.927 0.01 262)` in light and `oklch(1 0 0 / 15%)` in dark, and `--quoin-shadow` to 10% in light, with shadows drawn at Tailwind's own sizes. A host that sets these tokens keeps its values; one that reads them in its own CSS sees the new ones.
+
+### Added
+- Icon buttons, in the formatting toolbar, the gutter, the link card, the find panel and elsewhere, show their name in a tooltip as the pointer rests on them or keyboard focus reaches them, with the key that does the same where there is one, such as Ctrl+B or ⌘B for Bold. The tooltip adds nothing to what a screen reader announces, since the button's name already says it.
+- Shortcut hints, in the slash menu and the shortcuts dialog, are drawn as shadcn's key chips.
+
 ## 2.1.0 (2026-11-13)
 
 ### Added

@@ -46,6 +46,14 @@ describe('a file block with no file yet', () => {
     expect(sink()).toHaveFocus();
   });
 
+  it('takes the first file pasted while it is selected as a whole into itself', async () => {
+    const { last, fileData, nodeSelect, sink } = mount();
+    nodeSelect('f');
+    act(() => void sink().dispatchEvent(clipboardEvent('paste', fakeTransfer({}, [png]).transfer)));
+    await waitFor(() => expect(fileData()).toMatchObject({ storageKey: 'key/cat.png', filename: 'cat.png' }));
+    expect(last()?.map((block) => block.type)).toEqual(['MARKDOWN', 'FILE']);
+  });
+
   it('takes any file dropped on it into itself, where the canvas would add a block for it', async () => {
     const { last, fileData } = mount();
     const drop = dragEvent('drop', fakeTransfer({}, [png]).transfer);
@@ -69,7 +77,9 @@ describe('a file block with no file yet', () => {
     let fail!: (cause: Error) => void;
     mount(() => new Promise((_, reject) => (fail = reject)));
     await user.upload(picker(), pdf);
-    expect(within(area()).getByRole('status')).toHaveTextContent('Uploading...');
+    expect(within(area()).getByText('Uploading...')).toBeInTheDocument();
+    expect(screen.getAllByRole('status')).toHaveLength(1);
+    expect(screen.getByRole('status')).toHaveTextContent(/^Uploading\.\.\.$/);
     await act(async () => fail(new Error('That file is too large.')));
     expect(within(area()).getByRole('alert')).toHaveTextContent('That file is too large.');
   });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQuoin } from '../../context';
 import { englishLabels } from '../../i18n/english-labels';
 import { optionalNumber } from '../../engine/blocks/data-fields';
@@ -10,6 +10,7 @@ import { str } from '../../engine/blocks/data-fields';
 import { focusNode } from '../void/select-node';
 import { requestAlt } from './alt-request';
 import { imageSource } from './image-source';
+import { payOwedSize } from './owed-size';
 import { ResizeHandles } from './ResizeHandles';
 
 type ImageFigureProps = BlockRenderProps & { readOnly: boolean };
@@ -34,6 +35,7 @@ export function ImageFigure({ block, controller, readOnly }: ImageFigureProps) {
   const badgeText = labels.noAltBadge ?? englishLabels.noAltBadge;
   const badgeName = labels.addAltText ?? englishLabels.addAltText;
   const translatedAlone = badgeText !== englishLabels.noAltBadge && badgeName === englishLabels.addAltText;
+  useEffect(() => payOwedSize(controller, id), [controller, id, attrs.storageKey]);
 
   return (
     <>

@@ -11,6 +11,7 @@ export type CodeActionContext = {
   blockId: string;
   area: HTMLTextAreaElement;
   edit(next: CodeField): void;
+  reveal(): void;
   focusControls(): void;
 };
 
@@ -21,13 +22,16 @@ function selectAndFocus({ controller }: CodeActionContext, command: Command): tr
 }
 
 // A step of history that changed the code leaves the caret where it did; one that changed another block takes focus to it.
-function travel({ controller, blockId, area }: CodeActionContext, command: Command): true {
+function travel({ controller, blockId, area, reveal }: CodeActionContext, command: Command): true {
   const before = area.value;
   controller.run(command);
   const { selection } = controller.editor.state;
   const edit = textDiff(before, area.value);
   if (selection?.kind !== 'node' || selection.block !== blockId) controller.focus();
-  else if (edit !== null) area.setSelectionRange(edit.from + edit.insert.length, edit.from + edit.insert.length);
+  else if (edit !== null) {
+    area.setSelectionRange(edit.from + edit.insert.length, edit.from + edit.insert.length);
+    reveal();
+  }
   return true;
 }
 

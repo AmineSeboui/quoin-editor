@@ -7,6 +7,7 @@ import type { QuoinLabels } from '../i18n/labels';
 import { toError } from '../to-error';
 import type { UploadResult } from '../types';
 import { FilePickerButton } from './FilePickerButton';
+import { uploadError } from './upload-error';
 
 /** Props for `UploadField`; the upload function itself comes from the canvas, not from here. */
 export type UploadFieldProps = {
@@ -32,25 +33,31 @@ function progressText(state: UploadState, labels: QuoinLabels): string {
   return '';
 }
 
-/** A file picker wired to the canvas `upload` function, with its own busy state, success message and inline error. */
+/**
+ * A file picker wired to the canvas `upload` function, with its own busy state, success message and inline error. The
+ * progress is announced through the live region of the canvas it is drawn in, or a live region of its own outside one.
+ */
 export function UploadField({ category, label, accept, onUploaded }: UploadFieldProps) {
-  const { upload, onError } = useQuoin();
+  const { upload, onError, controller } = useQuoin();
   const labels = useLabels();
   const [state, setState] = React.useState<UploadState>({ phase: 'idle' });
 
   async function run(file: File) {
     if (!upload) return;
     setState({ phase: 'busy' });
+    controller?.announce(labels.uploading);
     let result: UploadResult;
     try {
       result = await upload(file, category);
     } catch (cause) {
-      setState({ phase: 'failed', message: (cause instanceof Error && cause.message) || labels.uploadFailed });
+      setState({ phase: 'failed', message: uploadError(cause, labels.uploadFailed).message });
       return;
     }
     try {
       await onUploaded(result);
-      setState({ phase: 'uploaded', name: result.filename || file.name });
+      const name = result.filename || file.name;
+      setState({ phase: 'uploaded', name });
+      controller?.announce(labels.uploaded(name));
     } catch (cause) {
       onError(toError(cause));
       setState({ phase: 'idle' });
@@ -73,8 +80,9 @@ export function UploadField({ category, label, accept, onUploaded }: UploadField
           {labels.uploadsUnavailable}
         </span>
       )}
-      {/* Always rendered, so a screen reader is already watching it when its first message arrives. */}
-      <span role="status" className={progress === '' ? 'sr-only' : 'text-xs text-muted-foreground'}>
+      {/* Inside a canvas its live region speaks the progress. Outside one, this is rendered always, so a screen reader
+          is already watching it when its first message arrives. */}
+      <span role={controller ? undefined : 'status'} className={progress === '' ? 'sr-only' : 'text-xs text-muted-foreground'}>
         {progress}
       </span>
       {state.phase === 'failed' && (

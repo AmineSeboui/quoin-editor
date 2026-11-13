@@ -10,7 +10,7 @@ export type FilePickerButtonProps = {
   label: string;
   /** An `accept` attribute for the file input, such as `'image/*'` or `'.pdf'`. */
   accept?: string;
-  /** Greys the button out and disables the input behind it. After a pick, focus the browser dropped while it was disabled comes back once it is enabled again. */
+  /** Greys the button out and disables the input behind it. After a pick, focus the browser dropped while it was disabled comes back once it is enabled again, unless the user pressed elsewhere meanwhile. */
   disabled?: boolean;
   /** Greys the button out and refuses picks, as `disabled` does, but leaves the input focusable, so focus stays on it while an upload runs. */
   busy?: boolean;
@@ -24,6 +24,7 @@ export type FilePickerButtonProps = {
 // wrapper paints the focus ring the invisible input cannot show.
 export function FilePickerButton({ label, accept, disabled, busy = false, onPick }: FilePickerButtonProps) {
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const wrapper = React.useRef<HTMLSpanElement>(null);
   const restoreFocus = React.useRef(false);
 
   // A browser moves focus to the body when the focused input is disabled, and does not move it back when the input is enabled again.
@@ -34,8 +35,22 @@ export function FilePickerButton({ label, accept, disabled, busy = false, onPick
     if (activeElement === null || activeElement === document.body) inputRef.current?.focus();
   }, [disabled]);
 
+  // A press anywhere else while focus waits to come back, even on blank space, which leaves it on the body, is the user
+  // choosing where it goes.
+  React.useEffect(() => {
+    const doc = wrapper.current?.ownerDocument;
+    const pressed = (event: PointerEvent) => {
+      if (!wrapper.current?.contains(event.target as Node)) restoreFocus.current = false;
+    };
+    doc?.addEventListener('pointerdown', pressed, true);
+    return () => doc?.removeEventListener('pointerdown', pressed, true);
+  }, []);
+
   return (
-    <span className="relative inline-flex rounded-md has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--quoin-ring)]">
+    <span
+      ref={wrapper}
+      className="relative inline-flex rounded-md has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--quoin-ring)]"
+    >
       <Button asChild variant="outline" size="sm">
         <span aria-hidden="true" className={disabled || busy ? 'pointer-events-none opacity-50' : undefined}>
           <Upload aria-hidden="true" />

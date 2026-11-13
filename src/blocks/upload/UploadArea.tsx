@@ -7,6 +7,7 @@ import { FilePickerButton } from '../../upload/FilePickerButton';
 import type { ViewController } from '../../view';
 import { selectHandlers } from '../void/select-handlers';
 import type { BlockUploader } from './block-upload';
+import { offerUploadTarget } from './upload-targets';
 import { useBlockUpload } from './use-block-upload';
 
 const fileIn = (transfer: DataTransfer | null, takes: (file: File) => boolean): File | undefined =>
@@ -30,7 +31,10 @@ type UploadAreaProps = {
   children?: ReactNode;
 };
 
-/** What a block with nothing uploaded yet shows: an upload button, and room to drop or paste a file. */
+/**
+ * What a block with nothing uploaded yet shows: an upload button, and room to drop or paste a file, or to paste one
+ * while the block is selected as a whole.
+ */
 export function UploadArea(props: UploadAreaProps) {
   const { blockId, controller, uploader, takes, accept, label, hint, className, onSelect, actions, children } = props;
   const { upload, labels } = useQuoin();
@@ -50,6 +54,7 @@ export function UploadArea(props: UploadAreaProps) {
     element?.addEventListener('drop', onDrop);
     return () => element?.removeEventListener('drop', onDrop);
   }, [start, takes]);
+  useEffect(() => offerUploadTarget(controller, blockId, { takes, start }), [controller, blockId, takes, start]);
 
   const onPaste = (event: ClipboardEvent) => {
     const file = fileIn(event.clipboardData, takes);
@@ -71,9 +76,7 @@ export function UploadArea(props: UploadAreaProps) {
       </div>
       {children}
       <p className="quoin-block-message">{upload ? hint : labels.uploadsUnavailable}</p>
-      <p role="status" className={busy ? 'quoin-block-message' : 'sr-only'}>
-        {busy ? labels.uploading : ''}
-      </p>
+      {busy && <p className="quoin-block-message">{labels.uploading}</p>}
       {error !== '' && (
         <p role="alert" className="quoin-block-message text-destructive">
           {error}

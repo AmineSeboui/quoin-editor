@@ -37,6 +37,14 @@ function words(text: string): Span[] {
     .map((s) => ({ start: s.index, end: s.index + s.segment.length }));
 }
 
+/** The text up to its `count`th grapheme, read no further than that, so a long text costs no more than a short one. */
+export function graphemePrefix(text: string, count: number): string {
+  if (!graphemeSegmenter) return [...text].slice(0, count).join('');
+  let seen = 0;
+  for (const { index } of graphemeSegmenter.segment(text)) if (seen++ === count) return text.slice(0, index);
+  return text;
+}
+
 export function graphemeCount(text: string): number {
   return boundaries(text).length - 1;
 }

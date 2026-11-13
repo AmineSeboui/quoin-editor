@@ -67,6 +67,22 @@ for (const { name, css, container } of layouts) {
       await staysAt(page, at, 'img');
     });
 
+    test('Shift+Tab back into an image selected as a whole leaves it where it is', async ({ page }) => {
+      const at = await openScrolledTo(page, 'img', 100);
+      await page.getByRole('img', { name: 'A red square' }).click();
+      await expect(sink(page)).toBeFocused();
+      await page.evaluate(() => {
+        const after = document.createElement('button');
+        after.textContent = 'After the editor';
+        after.style.position = 'fixed';
+        after.style.top = '300px';
+        document.querySelector('.quoin')!.after(after);
+        after.focus({ preventScroll: true });
+      });
+      await page.keyboard.press('Shift+Tab');
+      await staysAt(page, at, 'img');
+    });
+
     test('ArrowUp onto a divider in view leaves it where it is', async ({ page }) => {
       const at = await openScrolledTo(page, 'd', 150);
       const below = (await shell(page, 'q').boundingBox())!;

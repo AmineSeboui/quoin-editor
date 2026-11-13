@@ -54,3 +54,27 @@ describe('a block decoration', () => {
     expect(shell.getAttribute('data-type')).toBe('MARKDOWN');
   });
 });
+
+describe('the decorations of a state', () => {
+  it('are computed once, in the paint mode the editor draws its selection with', () => {
+    const seen: EditorState[] = [];
+    const counting = defineExtension({
+      name: 'counting',
+      decorations: (state: EditorState): Decoration[] => {
+        seen.push(state);
+        return [];
+      },
+    });
+    let controller: ViewController | null = null;
+    render(
+      <Stateful
+        blocks={[md('a', 'one'), md('b', 'two')]}
+        options={{ extensions: [...coreExtensions(), counting] }}
+        onController={(created) => (controller = created)}
+      />,
+    );
+    caretIn(controller!, 'b');
+    const { state } = controller!.editor;
+    expect(seen.filter((each) => each === state)).toHaveLength(1);
+  });
+});

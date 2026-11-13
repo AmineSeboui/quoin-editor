@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState, type RefObject } from 'react';
 import { useQuoin } from '../../context';
+import { uploadError } from '../../upload/upload-error';
 import type { ViewController } from '../../view';
 import { focusNode } from '../void/select-node';
 import type { BlockUploader } from './block-upload';
@@ -12,7 +13,7 @@ const IDLE: UploadState = { busy: false, error: '' };
 
 /**
  * Uploads a file into a block with nothing uploaded yet, with the progress and the failure of the newest upload, which
- * the block shows while it waits. Focus still in the block when the file lands, which takes the controls it was on
+ * the block shows while it waits, announcing the upload through the live region of the canvas. Focus still in the block when the file lands, which takes the controls it was on
  * away, goes to the block. With no upload function, a file dropped or pasted on the block is reported to `onError`.
  */
 export function useBlockUpload(
@@ -32,12 +33,13 @@ export function useBlockUpload(
         if (started.current === run) setState(next);
       };
       setState({ busy: true, error: '' });
+      controller.announce(labels.uploading);
       const onLand = () => {
         if (area.current?.contains(area.current.ownerDocument.activeElement)) focusNode(controller, blockId);
       };
       uploader(controller, blockId, file, { upload, resolveAssetUrl, onLand }).then(
         () => settle(IDLE),
-        (cause: unknown) => settle({ busy: false, error: (cause instanceof Error && cause.message) || labels.uploadFailed }),
+        (cause: unknown) => settle({ busy: false, error: uploadError(cause, labels.uploadFailed).message }),
       );
     },
     [controller, blockId, area, uploader, upload, resolveAssetUrl, onError, labels],

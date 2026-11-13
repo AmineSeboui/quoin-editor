@@ -83,15 +83,35 @@ describe('an image block with no picture yet', () => {
     await waitFor(() => expect(imageData()).toMatchObject({ storageKey: 'key/cat.png' }));
   });
 
+  it('takes an image pasted while it is selected as a whole, and sends what else was pasted after it', async () => {
+    const { imageData, last, nodeSelect, sink } = mount();
+    nodeSelect('i');
+    act(() => void sink().dispatchEvent(clipboardEvent('paste', fakeTransfer({}, [pdf, png]).transfer)));
+    expect(within(area()).getByText('Uploading...')).toBeInTheDocument();
+    await waitFor(() => expect(imageData()).toMatchObject({ storageKey: 'key/cat.png' }));
+    await waitFor(() => expect(last()?.map((block) => block.type)).toEqual(['MARKDOWN', 'IMAGE', 'FILE', 'MARKDOWN']));
+    expect(last()![2].data).toMatchObject({ storageKey: 'key/notes.pdf' });
+  });
+
+  it('leaves an image pasted while another block is selected to the canvas', async () => {
+    const { imageData, last, handle } = mount();
+    act(() => handle().focus({ block: 'a', region: 'text', offset: 5 }));
+    act(() => void document.activeElement!.dispatchEvent(clipboardEvent('paste', fakeTransfer({}, [png]).transfer)));
+    await waitFor(() => expect(last()?.map((block) => block.type)).toEqual(['MARKDOWN', 'IMAGE', 'MARKDOWN', 'IMAGE']));
+    expect(imageData()).toEqual({ storageKey: '', alt: '' });
+  });
+
   it('says it is uploading, and shows why an upload failed', async () => {
     const user = userEvent.setup();
     let fail!: (cause: Error) => void;
     mount(() => new Promise((_, reject) => (fail = reject)));
     await user.upload(screen.getByLabelText('Upload image'), png);
-    expect(within(area()).getByRole('status')).toHaveTextContent('Uploading...');
+    expect(within(area()).getByText('Uploading...')).toBeInTheDocument();
+    expect(within(area()).queryByRole('status')).toBeNull();
+    expect(screen.getByRole('status')).toHaveTextContent(/^Uploading\.\.\.$/);
     await act(async () => fail(new Error('That file is too large.')));
     expect(within(area()).getByRole('alert')).toHaveTextContent('That file is too large.');
-    expect(within(area()).getByRole('status')).toHaveTextContent('');
+    expect(within(area()).queryByText('Uploading...')).toBeNull();
   });
 
   it.each([undefined, {}, { storageKey: 7 }])('says the upload failed, writing nothing, when the upload resolves to %o', async (junk) => {
@@ -111,7 +131,7 @@ describe('an image block with no picture yet', () => {
     drop(png);
     drop(new File(['png'], 'dog.png', { type: 'image/png' }));
     await act(async () => pending.get('cat.png')!());
-    expect(within(area()).getByRole('status')).toHaveTextContent('Uploading...');
+    expect(within(area()).getByText('Uploading...')).toBeInTheDocument();
     await act(async () => pending.get('dog.png')!());
     expect(screen.getByRole('img')).toHaveAttribute('src', '/cdn/key/dog.png');
   });

@@ -382,7 +382,7 @@ What the editor calls a block selected as a whole, given the schema it can read 
 type BlockLabel = (block: EngineBlock, schema: Schema) => string;
 ```
 
-[BlockLabel on GitHub](src/view/selection/selection-sink.ts#L61)
+[BlockLabel on GitHub](src/view/selection/selection-sink.ts#L73)
 
 ### NodeReveal
 

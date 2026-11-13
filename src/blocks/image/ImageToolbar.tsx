@@ -12,6 +12,7 @@ import { NodeToolbar } from '../void/NodeToolbar';
 import { selectedBlock, useToolbarBlock } from '../void/use-toolbar-block';
 import { listenForAltRequests } from './alt-request';
 import { AltTextPopover } from './AltTextPopover';
+import { useAroundToolbar } from './around-toolbar';
 import { hasPicture, imageSource } from './image-source';
 import { imageToolbarItems } from './image-toolbar-items';
 import { uploadImage } from './image-upload';
@@ -63,6 +64,7 @@ function ImageToolbar({ blockId, controller, editingAlt, onEditAlt }: ImageToolb
   const picker = useReplacePicker(controller, blockId, uploadImage, 'image/*');
   const altButton = useRef<HTMLButtonElement>(null);
   const anchor = usePartAnchor(controller, blockId, '.quoin-image-frame');
+  const altAnchor = useAroundToolbar(anchor, altButton);
 
   const attrs = blockById(state.doc, blockId)?.attrs ?? {};
   const items = imageToolbarItems(blockId, labels, {
@@ -88,7 +90,7 @@ function ImageToolbar({ blockId, controller, editingAlt, onEditAlt }: ImageToolb
           <AltTextPopover
             blockId={blockId}
             controller={controller}
-            anchor={anchor}
+            anchor={altAnchor}
             opener={altButton}
             alt={str(attrs.alt)}
             decorative={attrs.decorative === true}

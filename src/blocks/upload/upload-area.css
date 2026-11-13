@@ -15,12 +15,3 @@
   align-items: center;
   gap: 0.5rem;
 }
-
-.quoin .quoin-block-message {
-  font-size: 0.75rem;
-  color: var(--quoin-muted-foreground);
-}
-
-.quoin .quoin-block-message:empty {
-  display: none;
-}

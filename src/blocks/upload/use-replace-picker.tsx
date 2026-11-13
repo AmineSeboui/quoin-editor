@@ -2,6 +2,7 @@
 
 import { useRef, type ChangeEvent } from 'react';
 import { useQuoin } from '../../context';
+import { uploadError } from '../../upload/upload-error';
 import type { ViewController } from '../../view';
 import type { BlockUploader } from './block-upload';
 
@@ -19,7 +20,7 @@ export function useReplacePicker(controller: ViewController, blockId: string, up
     if (file === undefined || !upload) return;
     controller.announce(labels.uploading);
     uploader(controller, blockId, file, { upload, resolveAssetUrl }).catch((cause: unknown) =>
-      onError(cause instanceof Error && cause.message ? cause : new Error(labels.uploadFailed)),
+      onError(uploadError(cause, labels.uploadFailed)),
     );
   };
   return {

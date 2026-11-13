@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { linkAddress } from './link-address';
 
+const bestOf = (runs: number, work: () => void) => {
+  let best = Infinity;
+  for (let run = 0; run < runs; run++) {
+    const start = performance.now();
+    work();
+    best = Math.min(best, performance.now() - start);
+  }
+  return best;
+};
+
 describe('linkAddress', () => {
   it.each([
     ['example.com', 'https://example.com'],
@@ -34,4 +44,18 @@ describe('linkAddress', () => {
       expect(linkAddress(typed)).toBeNull();
     },
   );
+
+  it.each([
+    ['an email address whose domain ends in a slash', (n: number) => `a@${'a.'.repeat(n)}/`],
+    ['an email address with a second @', (n: number) => `a@${'a.'.repeat(n)}@`],
+    ['a domain of dots', (n: number) => `a${'.'.repeat(2 * n)}`],
+  ])('reads %s pasted at many kilobytes in time that grows with its length alone', (_, pasted) => {
+    const read = (n: number) => () => {
+      for (let i = 0; i < 10; i++) linkAddress(pasted(n));
+    };
+    read(2000)();
+    const short = bestOf(5, read(2000));
+    const long = bestOf(5, read(16000));
+    expect(long / short).toBeLessThan(24);
+  });
 });

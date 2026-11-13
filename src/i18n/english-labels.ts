@@ -8,6 +8,8 @@ function frozen(labels: Required<QuoinLabels>): Required<QuoinLabels> {
   return Object.freeze(labels);
 }
 
+const TOGGLE = 'Toggle';
+
 /** Every string the canvas shows or speaks, in English. Pass `labels` to the canvas to change any of them. */
 export const englishLabels: Required<QuoinLabels> = frozen({
   document: 'Editor',
@@ -22,11 +24,8 @@ export const englishLabels: Required<QuoinLabels> = frozen({
   calloutTones: { info: 'info', tip: 'tip', success: 'success', warning: 'warning', danger: 'danger' },
   calloutIcon: 'Callout icon',
   calloutToneMenu: (tone) => `Callout tone: ${tone}`,
-  toggle: 'Toggle',
-  toggleButton: (hidden) => {
-    if (hidden === 0) return 'Toggle';
-    return `Toggle, ${hidden} ${hidden === 1 ? 'block' : 'blocks'} hidden`;
-  },
+  toggle: TOGGLE,
+  toggleButton: (hidden) => (hidden === 0 ? TOGGLE : `${TOGGLE}, ${hidden} ${hidden === 1 ? 'block' : 'blocks'} hidden`),
   placeholderEmpty: "Type '/' for commands",
   placeholderHeading: (level) => `Heading ${level}`,
   placeholderList: 'List',

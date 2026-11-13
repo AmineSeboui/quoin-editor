@@ -12,12 +12,13 @@ export const ToggleBlock: BlockRenderer = ({ block, controller }) => {
   const domId = useBlockDomId();
   const nested = useNestedBlocks(controller, block.id);
   const open = useToggleOpen(controller, block);
+  const hidden = open ? 0 : nested.length;
   return (
     <div className="quoin-toggle" data-open={open}>
       <ToggleChevron
         block={block}
         controller={controller}
-        label={labels.toggleButton(open ? 0 : nested.length)}
+        label={hidden === 0 ? labels.toggle : labels.toggleButton(hidden)}
         controls={nested.length === 0 ? undefined : nested.map(domId).join(' ')}
       />
       <EditableRegion block={block.id} region="text" label={labels.toggle} />

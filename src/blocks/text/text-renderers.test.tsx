@@ -193,6 +193,13 @@ describe('a toggle in the canvas', () => {
     expect(controlled.map((id) => document.getElementById(id)?.dataset.blockId)).toEqual(['c', 'g']);
   });
 
+  it('names its chevron by the toggle label while it hides nothing, so a renamed toggle is renamed there too', () => {
+    mountCanvas([toggle('t', 'Open', true), md('c', 'child', 1), toggle('e', 'Empty', false)], {
+      labels: { toggle: 'Ouvrable' },
+    });
+    expect(screen.getAllByRole('button', { name: 'Ouvrable' })).toHaveLength(2);
+  });
+
   it('controls nothing when no block sits under it', () => {
     mountCanvas([toggle('t', 'Alone', false), md('s', 'sibling')]);
     expect(screen.getByRole('button', { name: 'Toggle' })).not.toHaveAttribute('aria-controls');

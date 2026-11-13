@@ -67,7 +67,7 @@ export type QuoinLabels = {
   /** The name of the button that shows a callout's tone and opens the menu of tones, given the tone's name. */
   calloutToneMenu: (tone: string) => string;
   toggle: string;
-  /** The name of a toggle's chevron, given how many blocks the closed toggle hides, 0 while it is open. */
+  /** The name of a closed toggle's chevron, given how many blocks it hides. A chevron hiding none is named by `toggle`. */
   toggleButton: (hidden: number) => string;
   placeholderEmpty: string;
   placeholderHeading: (level: number) => string;

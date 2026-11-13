@@ -85,6 +85,8 @@ Shift with Ctrl+Home or Ctrl+End extends the selection to the start or the end o
 | Keyboard shortcuts | ⌘⇧/ | Ctrl+Shift+/ |
 | Close a menu | Escape | Escape |
 
+On a touch screen, Alt+F10 from a hardware keyboard moves into the editing tools held above the on-screen keyboard instead, and Escape goes back to the text.
+
 ## Opt-in features
 
 Each of these keys works once its feature's extension is in `extensions`, directly or through `catalogue()`.

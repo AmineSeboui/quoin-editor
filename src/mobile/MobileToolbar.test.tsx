@@ -215,6 +215,16 @@ describe('the mobile toolbar', () => {
     expect(document.activeElement).toBe(container.querySelector('[data-quoin-host]'));
   });
 
+  it('takes focus from the text with Alt+F10, for a hardware keyboard, and gives it back on Escape', () => {
+    const canvas = editAt(pos('a', 3));
+    const host = hostOf(canvas.shell('a'));
+    fireEvent.keyDown(host, { key: 'F10', altKey: true });
+    expect(within(toolbar()).getAllByRole('button')[0]).toHaveFocus();
+    fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+    expect(host).toHaveFocus();
+    expect(canvas.selection()).toEqual(textSelection(pos('a', 3)));
+  });
+
   it('keeps the same toolbar while the canvas re-renders with new labels', () => {
     const ref = createRef<QuoinEditorHandle>();
     function InlineHost() {

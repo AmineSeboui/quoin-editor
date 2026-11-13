@@ -44,6 +44,18 @@ test('a tap shows the editing tools on the bottom edge, and selected text no bub
   expect(await axeViolations(page, 'all', '[role="toolbar"]')).toEqual([]);
 });
 
+test('a hardware keyboard reaches the editing tools with Alt+F10 and leaves them with Escape', async ({ page }) => {
+  await openEditor(page, 'sample');
+  await tapStart(page, 'b');
+  await expect(tools(page)).toBeVisible();
+  await page.keyboard.press('Alt+F10');
+  await expect(tool(page, 'Add block below')).toBeFocused();
+  await page.keyboard.press('ArrowRight');
+  await expect(tools(page).getByRole('button', { name: 'Turn into' })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(host(page, 'b')).toBeFocused();
+});
+
 test('tapping Bold then typing writes bold text, with focus kept in the text', async ({ page }) => {
   await openEditor(page, 'sample');
   await tapStart(page, 'b');

@@ -11,6 +11,7 @@ import { useRovingFocus } from '../menus/bubble/use-roving-focus';
 import { bubblePart } from '../menus/bubble/bubble-part';
 import { useFocusBackToText } from '../menus/bubble/use-focus-back-to-text';
 import { keepFocus } from '../menus/floating/keep-focus';
+import { useFocusKey } from '../menus/floating/use-focus-key';
 import type { ViewController } from '../view';
 import { useEditorState, wholeState } from '../view/react/use-editor-state';
 import { mobileItems } from './mobile-items';
@@ -39,6 +40,7 @@ function EditingTools({ controller }: MobileToolbarProps) {
   const viewport = useVisualViewport();
   const roving = useRovingFocus();
   useFocusBackToText(controller);
+  useFocusKey(controller, roving.focusCurrent);
   const items = useMemo(() => mobileItems(labels, () => store.set({ linkPopover: { open: true } })), [labels, store]);
 
   const onKeyDown = (event: KeyboardEvent) => {
@@ -72,7 +74,10 @@ function EditingTools({ controller }: MobileToolbarProps) {
   );
 }
 
-/** On a touch screen, the tools that format and edit the text, held above the virtual keyboard while it has focus. */
+/**
+ * On a touch screen, the tools that format and edit the text, held above the virtual keyboard while it has focus. A
+ * hardware keyboard reaches them with Alt+F10, as it does the bubble toolbar, and Escape goes back to the text.
+ */
 export function MobileToolbar({ controller }: MobileToolbarProps) {
   const coarse = useCoarsePointer();
   const focused = useEditorFocus(controller);

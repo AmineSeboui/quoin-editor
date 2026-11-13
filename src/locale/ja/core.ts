@@ -114,6 +114,8 @@ export const jaLabels: Required<QuoinLabels> = {
   },
   blockMoved: (position, total) => `ブロックを ${total} 個中 ${position} 番目に移動しました`,
   blockInserted: (position, total) => `${total} 個中 ${position} 番目にブロックを挿入しました`,
+  blocksInserted: (n, position, total) =>
+    `${total} 個中 ${position} 番目に ${number(n)} 個のブロックを挿入しました`,
   blockDeleted: (n) => `${number(n)} 個のブロックを削除しました`,
   blocksSelected: (n) => `${number(n)} 個のブロックを選択中`,
   undoHint: (shortcut) => `${shortcut} を押すと元に戻せます`,

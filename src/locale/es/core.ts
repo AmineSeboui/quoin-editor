@@ -117,6 +117,8 @@ export const esLabels: Required<QuoinLabels> = {
   },
   blockMoved: (position, total) => `Bloque movido a la posición ${position} de ${total}`,
   blockInserted: (position, total) => `Bloque insertado en la posición ${position} de ${total}`,
+  blocksInserted: (n, position, total) =>
+    `${number(n)} bloques insertados en la posición ${position} de ${total}`,
   blockDeleted: (n) => (n === 1 ? 'Bloque eliminado' : `${number(n)} bloques eliminados`),
   blocksSelected: (n) => `${number(n)} ${plural(n, { one: 'bloque seleccionado', other: 'bloques seleccionados' })}`,
   undoHint: (shortcut) => `Pulsa ${shortcut} para deshacer`,

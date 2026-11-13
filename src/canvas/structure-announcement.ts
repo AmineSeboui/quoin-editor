@@ -1,21 +1,32 @@
-import type { EngineDoc, Transaction } from '../engine';
+import type { EngineBlock, EngineDoc, Transaction } from '../engine';
+import { isParagraph, regionLength } from '../engine/commands/block-helpers';
 import { LINE_JOIN } from '../engine/commands/line-join';
 import { LINE_SPLIT } from '../engine/commands/line-split';
+import { primaryRegion } from '../engine/state/selection';
 import type { QuoinLabels } from '../i18n/labels';
+import type { ViewController } from '../view';
 import { drawnBlockCount } from '../view/navigation/visible-blocks';
+import { blockRemovals } from './removed-blocks';
 
 const DELETION_STEPS: ReadonlySet<string> = new Set(['removeBlocks', 'setIndent']);
 
 type Position = readonly [position: number, total: number];
 
-function drawnPosition(doc: EngineDoc, blockId: string): Position {
-  const index = doc.index.get(blockId) ?? 0;
-  return [drawnBlockCount(doc, 0, index) + 1, drawnBlockCount(doc)];
+function drawnPosition(doc: EngineDoc, blockId: string): Position | null {
+  const index = doc.index.get(blockId);
+  return index === undefined ? null : [drawnBlockCount(doc, 0, index) + 1, drawnBlockCount(doc)];
 }
 
-/** Where a block now is among the blocks the canvas draws, and of how many. */
-export function blockMovedMessage(doc: EngineDoc, blockId: string, labels: QuoinLabels): string {
-  return labels.blockMoved(...drawnPosition(doc, blockId));
+/** Where a block now is among the blocks the canvas draws, and of how many, or null once it is gone. */
+export function blockMovedMessage(doc: EngineDoc, blockId: string, labels: QuoinLabels): string | null {
+  const position = drawnPosition(doc, blockId);
+  return position && labels.blockMoved(...position);
+}
+
+/** Says where a block now is, unless the live region already says those words of the editor's current state. */
+export function announceBlockMoved(controller: ViewController, blockId: string, labels: QuoinLabels): void {
+  const message = blockMovedMessage(controller.editor.state.doc, blockId, labels);
+  if (message !== null && controller.announcer.current()?.message !== message) controller.announce(message);
 }
 
 function movedBlock(tr: Transaction): string | null {
@@ -28,22 +39,44 @@ function movedBlock(tr: Transaction): string | null {
 // Whole blocks removed and nothing else changed but their indents: a range delete through text also edits text.
 function deletedCount(tr: Transaction): number {
   if (!tr.steps.every((step) => DELETION_STEPS.has(step.stepType))) return 0;
-  return tr.steps.reduce((deleted, step, i) => {
-    const { index, count } = step.toJSON();
-    if (step.stepType !== 'removeBlocks' || typeof index !== 'number' || typeof count !== 'number') return deleted;
-    return deleted + drawnBlockCount(tr.docs[i], index, index + count);
-  }, 0);
+  return blockRemovals(tr).reduce(
+    (deleted, { step, index, count }) => deleted + drawnBlockCount(tr.docs[step], index, index + count),
+    0,
+  );
 }
 
-// The first block the transaction inserted, when it removed none: a delete of whole blocks through text inserts the
-// empty paragraph that takes their place.
-function insertedBlock(tr: Transaction): string | null {
-  if (tr.getMeta(LINE_SPLIT) === true || tr.steps.some((step) => step.stepType === 'removeBlocks')) return null;
+function insertedIds(tr: Transaction): ReadonlySet<string> {
   const inserted = tr.steps.flatMap((step) => {
     const { blocks } = step.toJSON();
     return step.stepType === 'insertBlocks' && Array.isArray(blocks) ? (blocks as { id: string }[]) : [];
   });
-  return inserted.find((block) => tr.doc.index.has(block.id))?.id ?? null;
+  return new Set(inserted.map(({ id }) => id));
+}
+
+// The empty line a command adds after what it inserted, for the caret to go on writing, is not one of the blocks.
+function isCaretLine(tr: Transaction, block: EngineBlock): boolean {
+  const { selection } = tr;
+  const empty = isParagraph(block) && regionLength(block, primaryRegion(tr.before.schema, block) ?? '') === 0;
+  return empty && selection?.kind === 'text' && selection.head.block === block.id;
+}
+
+// The blocks the transaction inserted that the canvas draws, when it removed none: a delete of whole blocks through
+// text inserts the empty paragraph that takes their place.
+function insertedBlocks(tr: Transaction): string[] {
+  if (tr.getMeta(LINE_SPLIT) === true || tr.steps.some((step) => step.stepType === 'removeBlocks')) return [];
+  const inserted = insertedIds(tr);
+  const { doc } = tr;
+  const drawn = doc.blocks.filter((block, index) => inserted.has(block.id) && drawnBlockCount(doc, index, index + 1));
+  const last = drawn.at(-1);
+  if (drawn.length > 1 && last !== undefined && isCaretLine(tr, last)) drawn.pop();
+  return drawn.map((block) => block.id);
+}
+
+function insertedMessage(tr: Transaction, labels: QuoinLabels): string | null {
+  const [first, ...more] = insertedBlocks(tr);
+  const position = first === undefined ? null : drawnPosition(tr.doc, first);
+  if (position === null) return null;
+  return more.length === 0 ? labels.blockInserted(...position) : labels.blocksInserted(more.length + 1, ...position);
 }
 
 /**
@@ -57,6 +90,5 @@ export function structureAnnouncement(tr: Transaction, labels: QuoinLabels, undo
   if (moved !== null) return blockMovedMessage(tr.doc, moved, labels);
   const deleted = deletedCount(tr);
   if (deleted > 0) return `${labels.blockDeleted(deleted)}. ${labels.undoHint(undoKeys)}`;
-  const inserted = insertedBlock(tr);
-  return inserted === null ? null : labels.blockInserted(...drawnPosition(tr.doc, inserted));
+  return insertedMessage(tr, labels);
 }

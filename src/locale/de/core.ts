@@ -117,6 +117,7 @@ export const deLabels: Required<QuoinLabels> = {
   },
   blockMoved: (position, total) => `Block an Position ${position} von ${total} verschoben`,
   blockInserted: (position, total) => `Block an Position ${position} von ${total} eingefügt`,
+  blocksInserted: (n, position, total) => `${number(n)} Blöcke an Position ${position} von ${total} eingefügt`,
   blockDeleted: (n) => (n === 1 ? 'Block gelöscht' : `${number(n)} Blöcke gelöscht`),
   blocksSelected: (n) => `${number(n)} ${plural(n, { one: 'Block', other: 'Blöcke' })} ausgewählt`,
   undoHint: (shortcut) => `${shortcut} drücken, um rückgängig zu machen`,

@@ -132,6 +132,14 @@ export const arLabels: Required<QuoinLabels> = {
   },
   blockMoved: (position, total) => `نُقلت الكتلة إلى الموضع ${position} من ${total}`,
   blockInserted: (position, total) => `أُدرجت كتلة في الموضع ${position} من ${total}`,
+  blocksInserted: (n, position, total) =>
+    plural(n, {
+      one: `أُدرجت كتلة في الموضع ${position} من ${total}`,
+      two: `أُدرجت كتلتان في الموضع ${position} من ${total}`,
+      few: `أُدرجت ${number(n)} كتل في الموضع ${position} من ${total}`,
+      many: `أُدرجت ${number(n)} كتلة في الموضع ${position} من ${total}`,
+      other: `أُدرجت ${number(n)} كتلة في الموضع ${position} من ${total}`,
+    }),
   blockDeleted: (n) =>
     plural(n, {
       one: 'حُذفت كتلة',

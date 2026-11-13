@@ -114,6 +114,7 @@ export const zhLabels: Required<QuoinLabels> = {
   },
   blockMoved: (position, total) => `块已移动到第 ${position} 个位置，共 ${total} 个`,
   blockInserted: (position, total) => `已在第 ${position} 个位置插入块，共 ${total} 个`,
+  blocksInserted: (n, position, total) => `已在第 ${position} 个位置插入 ${number(n)} 个块，共 ${total} 个`,
   blockDeleted: (n) => `已删除 ${number(n)} 个块`,
   blocksSelected: (n) => `已选择 ${number(n)} 个块`,
   undoHint: (shortcut) => `按 ${shortcut} 撤销`,

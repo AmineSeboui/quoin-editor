@@ -124,6 +124,7 @@ export const englishLabels: Required<QuoinLabels> = frozen({
   },
   blockMoved: (position, total) => `Block moved to position ${position} of ${total}`,
   blockInserted: (position, total) => `Block inserted at position ${position} of ${total}`,
+  blocksInserted: (n, position, total) => `${n} blocks inserted at position ${position} of ${total}`,
   blockDeleted: (n) => (n === 1 ? 'Block deleted' : `${n} blocks deleted`),
   blocksSelected: (n) => `${n} ${n === 1 ? 'block' : 'blocks'} selected`,
   undoHint: (shortcut) => `Press ${shortcut} to undo`,

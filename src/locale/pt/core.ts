@@ -118,6 +118,7 @@ export const ptLabels: Required<QuoinLabels> = {
   },
   blockMoved: (position, total) => `Bloco movido para a posição ${position} de ${total}`,
   blockInserted: (position, total) => `Bloco inserido na posição ${position} de ${total}`,
+  blocksInserted: (n, position, total) => `${number(n)} blocos inseridos na posição ${position} de ${total}`,
   blockDeleted: (n) => (n === 1 ? 'Bloco excluído' : `${number(n)} blocos excluídos`),
   blocksSelected: (n) => `${number(n)} ${plural(n, { one: 'bloco selecionado', other: 'blocos selecionados' })}`,
   undoHint: (shortcut) => `Pressione ${shortcut} para desfazer`,

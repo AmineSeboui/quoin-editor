@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useMemo, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { getPluginState, type EditorState, type PluginKey } from '../../engine';
 import type { SuggestionRange } from '../../extensions/ui-types';
 import { useQuoin } from '../../context';
@@ -99,9 +99,18 @@ export function useSuggestion<T>({
   const query = trigger?.query ?? null;
   const count = ordered.length;
   const resultMessage = count === 0 ? emptyLabel : (countLabel ?? labels.resultCount)(count);
+  const said = useRef<string | null>(null);
+  // A command that opened the menu, as the gutter's + does, has its own words for the same state, which the count
+  // follows rather than replaces.
   useEffect(() => {
     if (query === null || results.pending) return;
-    const timer = setTimeout(() => controller.announce(resultMessage), SETTLE_MS);
+    const timer = setTimeout(() => {
+      const current = controller.announcer.current()?.message;
+      const own = current === undefined || current === said.current;
+      const message = own ? resultMessage : `${current}. ${resultMessage}`;
+      said.current = message;
+      controller.announce(message);
+    }, SETTLE_MS);
     return () => clearTimeout(timer);
   }, [controller, query, resultMessage, results.pending]);
 

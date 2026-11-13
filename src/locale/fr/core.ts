@@ -117,6 +117,7 @@ export const frLabels: Required<QuoinLabels> = {
   },
   blockMoved: (position, total) => `Bloc déplacé en position ${position} sur ${total}`,
   blockInserted: (position, total) => `Bloc inséré en position ${position} sur ${total}`,
+  blocksInserted: (n, position, total) => `${number(n)} blocs insérés en position ${position} sur ${total}`,
   blockDeleted: (n) => (n === 1 ? 'Bloc supprimé' : `${number(n)} blocs supprimés`),
   blocksSelected: (n) => `${number(n)} ${plural(n, { one: 'bloc sélectionné', other: 'blocs sélectionnés' })}`,
   undoHint: (shortcut) => `Appuyez sur ${shortcut} pour annuler`,

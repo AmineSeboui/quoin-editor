@@ -106,6 +106,7 @@ describe('englishLabels', () => {
   it('says where a block moved or was inserted, among how many', () => {
     expect(englishLabels.blockMoved(2, 5)).toBe('Block moved to position 2 of 5');
     expect(englishLabels.blockInserted(3, 6)).toBe('Block inserted at position 3 of 6');
+    expect(englishLabels.blocksInserted(2, 3, 6)).toBe('2 blocks inserted at position 3 of 6');
   });
 
   it('says how many blocks were deleted and how to bring them back', () => {

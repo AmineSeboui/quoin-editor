@@ -2,7 +2,7 @@
 
 Every release of `quoin-editor` is listed here, newest first, in the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). From 1.0.0 the package follows [semantic versioning](https://semver.org/): a breaking change waits for the next major version. Until then, Quoin was 0.x and a minor version could contain breaking changes; those known at release were marked "Breaking". The 0.x sections are kept as they were released, "Docs" headings included. Moving from 0.4 to 1.0, and from 1.x to 2.0, is covered step by step in [MIGRATION.md](MIGRATION.md). Review finding ids such as F-17 are those of the 0.4.0 review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73).
 
-## Unreleased
+## 2.1.0 (2026-11-13)
 
 ### Added
 - `yjsCommentThreads(doc, { currentUser })` in `quoin-editor/comments` keeps comment threads in the `Y.Doc` a canvas already syncs through, so collaborators see each other's threads, replies and resolves. It returns a store and the four callbacks `commentsExtension` takes, and `listen()`, which reads the document before following it and returns how to stop. Each comment is kept under its own id, so two replies sent to one thread at the same moment both stay, where keeping a thread as one value lost one of them, and deleting a thread takes its comments with it. The entry takes the document by its shape, so it imports nothing from `yjs`, types included, and a canvas with comments but no collaboration still needs no `yjs` installed.

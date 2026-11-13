@@ -1,6 +1,6 @@
 import { act, cleanup, screen, within } from '@testing-library/react';
 import { axe } from 'vitest-axe';
-import { paragraph } from '../../blocks/void/test-canvas';
+import { paragraph } from '../../blocks/test-support/test-canvas';
 import { defaultBlockLink } from '../../canvas/block-link';
 import { textSelection } from '../../engine';
 import { heading, mountToc, outline, tocBlock } from './toc-test-canvas';

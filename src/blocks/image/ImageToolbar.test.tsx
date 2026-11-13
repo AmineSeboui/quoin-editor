@@ -4,7 +4,7 @@ import { axe } from 'vitest-axe';
 import { nodeSelection } from '../../engine';
 import type { QuoinBlock, UploadFn } from '../../types';
 import { intrinsicSize } from '../intrinsic-size';
-import { mountCanvas, paragraph } from '../void/test-canvas';
+import { mountCanvas, paragraph } from '../test-support/test-canvas';
 
 vi.mock('../intrinsic-size');
 

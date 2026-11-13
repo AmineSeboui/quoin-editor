@@ -2,7 +2,7 @@ import { act } from '@testing-library/react';
 import { blockByType } from '../../registry';
 import { coreBlocks } from '../core';
 import { insertAfterBlock, readBlockData, writeBlockData } from './block-data';
-import { bookmarkBlock, mountCanvas, paragraph } from './test-canvas';
+import { bookmarkBlock, mountCanvas, paragraph } from '../test-support/test-canvas';
 
 const image = { id: 'i', type: 'IMAGE', data: { storageKey: 'cat.png', alt: 'A cat', caption: 'A *cat*' } };
 

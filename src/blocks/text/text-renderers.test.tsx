@@ -4,7 +4,7 @@ import { axe } from 'vitest-axe';
 import { nodeSelection } from '../../engine';
 import type { QuoinBlock } from '../../types';
 import { md } from '../../view/react/test-harness';
-import { mountCanvas } from '../void/test-canvas';
+import { mountCanvas } from '../test-support/test-canvas';
 import { textRenderers } from './text-renderers';
 
 const callout = (id: string, data: Record<string, unknown>): QuoinBlock => ({ id, type: 'CALLOUT', data });

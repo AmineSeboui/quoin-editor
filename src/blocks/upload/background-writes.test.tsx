@@ -4,7 +4,7 @@ import type { QuoinBlock, UploadFn } from '../../types';
 import { uploadFile } from '../file/file-upload';
 import { measureImage, uploadImage } from '../image/image-upload';
 import { intrinsicSize } from '../intrinsic-size';
-import { mountCanvas, paragraph } from '../void/test-canvas';
+import { mountCanvas, paragraph } from '../test-support/test-canvas';
 
 vi.mock('../intrinsic-size');
 

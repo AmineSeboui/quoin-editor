@@ -2,7 +2,7 @@ import { StrictMode, useEffect, useRef, useState } from 'react';
 import { act, cleanup, render, screen, within } from '@testing-library/react';
 import { axe } from 'vitest-axe';
 import { coreBlocks } from '../../blocks/core';
-import { paragraph } from '../../blocks/void/test-canvas';
+import { paragraph } from '../../blocks/test-support/test-canvas';
 import { BlockCanvas } from '../../canvas/BlockCanvas';
 import type { QuoinEditorHandle } from '../../canvas/canvas-props';
 import type { Extension } from '../../engine';

@@ -1,7 +1,7 @@
 import { act, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'vitest-axe';
-import { paragraph } from '../../blocks/void/test-canvas';
+import { paragraph } from '../../blocks/test-support/test-canvas';
 import { textSelection } from '../../engine';
 import { domMapOf } from '../../view';
 import { fakeRenderMath, mountMath } from './math-test-canvas';

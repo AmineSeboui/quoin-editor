@@ -2,7 +2,7 @@ import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event';
 import { blockRangeSelection, textSelection } from '../engine';
 import { defineBlock } from '../registry';
-import { bookmarkBlock, mountCanvas, paragraph, testBlockTypes } from '../blocks/void/test-canvas';
+import { bookmarkBlock, mountCanvas, paragraph, testBlockTypes } from '../blocks/test-support/test-canvas';
 import { md } from '../view/react/test-harness';
 
 const hostOf = (shell: HTMLElement) => shell.querySelector<HTMLElement>('[data-quoin-host]')!;

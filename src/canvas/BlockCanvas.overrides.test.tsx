@@ -1,6 +1,6 @@
 import { act, fireEvent, screen } from '@testing-library/react';
 import { coreBlocks } from '../blocks/core';
-import { mountCanvas, paragraph } from '../blocks/void/test-canvas';
+import { mountCanvas, paragraph } from '../blocks/test-support/test-canvas';
 import { resetDevWarnings } from '../dev-warn';
 import { nodeSelection } from '../engine';
 import { Sparkles } from '../icons';

@@ -2,7 +2,7 @@ import { createRef, StrictMode, useState } from 'react';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { axe } from 'vitest-axe';
 import { coreBlocks } from '../../blocks/core';
-import { paragraph } from '../../blocks/void/test-canvas';
+import { paragraph } from '../../blocks/test-support/test-canvas';
 import { BlockCanvas } from '../../canvas/BlockCanvas';
 import type { QuoinEditorHandle } from '../../canvas/canvas-props';
 import { mentionExtension } from '../mention/mention-extension';

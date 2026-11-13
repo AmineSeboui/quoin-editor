@@ -1,7 +1,7 @@
 import { act, fireEvent, screen, within } from '@testing-library/react';
 import { axe } from 'vitest-axe';
 import { textSelection } from '../../engine';
-import { paragraph } from '../../blocks/void/test-canvas';
+import { paragraph } from '../../blocks/test-support/test-canvas';
 import { mountEmbeds, YOUTUBE } from './embed-test-canvas';
 
 const options = () => screen.queryByRole('toolbar', { name: 'Link options' });

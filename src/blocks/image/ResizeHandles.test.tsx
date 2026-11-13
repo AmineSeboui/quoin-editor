@@ -1,7 +1,7 @@
 import { act, fireEvent, screen } from '@testing-library/react';
 import { undo } from '../../engine';
 import type { QuoinBlock } from '../../types';
-import { mountCanvas } from '../void/test-canvas';
+import { mountCanvas } from '../test-support/test-canvas';
 import { keyedWidth, snapWidth } from './resize-width';
 
 const resolveAssetUrl = (key: string) => `/cdn/${key}`;

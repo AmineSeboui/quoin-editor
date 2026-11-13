@@ -1,5 +1,5 @@
 import { act, screen } from '@testing-library/react';
-import { paragraph } from '../../blocks/void/test-canvas';
+import { paragraph } from '../../blocks/test-support/test-canvas';
 import { replaceInlineStep } from '../../engine';
 import { mountComments, span, thread } from './comments-test-canvas';
 

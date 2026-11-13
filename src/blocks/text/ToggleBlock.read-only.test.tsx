@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { BlockCanvas } from '../../canvas/BlockCanvas';
 import type { QuoinBlock } from '../../types';
 import { md } from '../../view/react/test-harness';
-import { mountCanvas } from '../void/test-canvas';
+import { mountCanvas } from '../test-support/test-canvas';
 
 const closed: QuoinBlock[] = [
   { id: 't', type: 'TOGGLE', data: { markdown: 'Summary', open: false } },

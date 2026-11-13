@@ -4,7 +4,7 @@ import { act, fireEvent, screen } from '@testing-library/react';
 import { nodeSelection } from '../../engine';
 import { Sticker } from '../../icons';
 import { defineBlock } from '../../registry';
-import { bookmarkBlock, mountCanvas, paragraph, testBlockTypes } from './test-canvas';
+import { bookmarkBlock, mountCanvas, paragraph, testBlockTypes } from '../test-support/test-canvas';
 
 const pickerNote = defineBlock({
   type: 'PICKER_NOTE',

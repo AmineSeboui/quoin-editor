@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { englishLabels } from '../../i18n/english-labels';
 import { Code, Image, Minus, Paperclip } from '../../icons';
 import { defineBlock } from '../../registry';
-import { mountCanvas, paragraph, testBlockTypes } from './test-canvas';
+import { mountCanvas, paragraph, testBlockTypes } from '../test-support/test-canvas';
 
 const ownDefinition = (type: string, label: string, icon: typeof Code) =>
   defineBlock({ type, label, icon, editor: () => <input aria-label={`${label} field`} />, preview: () => <p>{label}</p> });

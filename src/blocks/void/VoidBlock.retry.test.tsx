@@ -3,7 +3,7 @@ import { BlockCanvas } from '../../canvas/BlockCanvas';
 import { ListTodo } from '../../icons';
 import { defineBlock } from '../../registry';
 import type { QuoinBlock } from '../../types';
-import { paragraph, testBlockTypes } from './test-canvas';
+import { paragraph, testBlockTypes } from '../test-support/test-canvas';
 
 const blocks: QuoinBlock[] = [paragraph('a', 'one'), { id: 'n', type: 'NOTICE', data: { text: 'Hello' } }];
 

@@ -1,5 +1,5 @@
 import { act, fireEvent, screen } from '@testing-library/react';
-import type { mountCanvas } from '../../blocks/void/test-canvas';
+import type { mountCanvas } from '../../blocks/test-support/test-canvas';
 import { textSelection, type QuoinBlock } from '../../engine';
 import { mountTypingCanvas } from '../typing-test-canvas';
 import type { ExtensionUI } from '../ui-types';

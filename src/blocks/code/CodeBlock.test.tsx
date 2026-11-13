@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'vitest-axe';
 import { nodeSelection } from '../../engine';
 import type { QuoinBlock } from '../../types';
-import { mountCanvas, paragraph } from '../void/test-canvas';
+import { mountCanvas, paragraph } from '../test-support/test-canvas';
 import type { CodeHighlighter } from './code-highlighter';
 
 const code = (id: string, value: string, language = 'ts'): QuoinBlock => ({ id, type: 'CODE', data: { language, code: value } });

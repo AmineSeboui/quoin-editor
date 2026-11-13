@@ -2,7 +2,7 @@ import { act, fireEvent, screen, within } from '@testing-library/react';
 import { axe } from 'vitest-axe';
 import { textSelection, type QuoinBlock } from '../../engine';
 import { cellKey } from '../../engine/blocks/table-spec';
-import { mountCanvas, paragraph } from '../../blocks/void/test-canvas';
+import { mountCanvas, paragraph } from '../../blocks/test-support/test-canvas';
 import { clipboardEvent, fakeTransfer } from '../../view/clipboard/test-transfer';
 import { tableExtension } from './table-extension';
 import { tableUiStore } from './table-ui-store';

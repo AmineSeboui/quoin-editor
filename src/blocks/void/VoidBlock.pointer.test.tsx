@@ -3,7 +3,7 @@ import { nodeSelection, textSelection } from '../../engine';
 import { AppWindow } from '../../icons';
 import { defineBlock } from '../../registry';
 import { NATIVE_INTERACTION } from '../../view/selection/native-interaction';
-import { bookmarkBlock, mountCanvas, paragraph, testBlockTypes } from './test-canvas';
+import { bookmarkBlock, mountCanvas, paragraph, testBlockTypes } from '../test-support/test-canvas';
 
 const CONTROLS = ['summary', 'video', 'audio', 'editable', 'focusable', 'link', 'checkbox'];
 

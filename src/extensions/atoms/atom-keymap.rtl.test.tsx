@@ -1,4 +1,4 @@
-import { paragraph } from '../../blocks/void/test-canvas';
+import { paragraph } from '../../blocks/test-support/test-canvas';
 import { mountMath } from '../math/math-test-canvas';
 
 const TEXT = 'Area $x^2$ here';

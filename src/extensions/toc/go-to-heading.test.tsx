@@ -1,5 +1,5 @@
 import { act } from '@testing-library/react';
-import { paragraph } from '../../blocks/void/test-canvas';
+import { paragraph } from '../../blocks/test-support/test-canvas';
 import { textSelection, type QuoinBlock } from '../../engine';
 import { goToHeading } from './go-to-heading';
 import { heading, mountToc, tocBlock } from './toc-test-canvas';

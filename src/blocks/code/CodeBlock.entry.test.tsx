@@ -2,7 +2,7 @@ import { act, fireEvent, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { nodeSelection } from '../../engine';
 import type { QuoinBlock } from '../../types';
-import { mountCanvas, paragraph } from '../void/test-canvas';
+import { mountCanvas, paragraph } from '../test-support/test-canvas';
 
 const area = () => screen.getByRole<HTMLTextAreaElement>('textbox', { name: 'Code' });
 

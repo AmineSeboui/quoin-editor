@@ -2,7 +2,7 @@ import { act, fireEvent, screen, within } from '@testing-library/react';
 import { axe } from 'vitest-axe';
 import { nodeSelection, textSelection } from '../../engine';
 import type { QuoinBlock } from '../../types';
-import { mountCanvas, paragraph } from '../void/test-canvas';
+import { mountCanvas, paragraph } from '../test-support/test-canvas';
 
 const resolveAssetUrl = (key: string) => `/cdn/${key}`;
 const image = (data: Record<string, unknown> = {}): QuoinBlock => ({

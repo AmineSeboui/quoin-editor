@@ -4,7 +4,7 @@ import { setAttrs } from '../../engine/commands/block-style';
 import { onBlock } from '../../view/react/block-command';
 import type { QuoinBlock, UploadFn, UploadResult } from '../../types';
 import { intrinsicSize, type IntrinsicSize } from '../intrinsic-size';
-import { mountCanvas, paragraph } from '../void/test-canvas';
+import { mountCanvas, paragraph } from '../test-support/test-canvas';
 import { measureImage, uploadImage } from './image-upload';
 
 vi.mock('../intrinsic-size');

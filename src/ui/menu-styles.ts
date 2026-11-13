@@ -1,34 +1,44 @@
 import { TAP_TARGET_FLOOR } from './touch-target';
 
+/** shadcn's entrance and exit for anything that pops over the canvas: a quick fade with a slight zoom, sliding in from
+ *  the side it opens on. */
+export const SURFACE_MOTION =
+  'duration-100 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2';
+
+/** The panel every popover, menu and toolbar floats on. */
+export const FLOATING_SURFACE =
+  'quoin z-50 rounded-lg bg-popover text-popover-foreground shadow-md ring-1 ring-foreground/10';
+
 /** A row of buttons floating over the canvas, as the formatting toolbar and the toolbar of a selected image are. */
-export const FLOATING_TOOLBAR = 'flex w-auto items-center gap-0.5 p-1 shadow-md';
+export const FLOATING_TOOLBAR = 'flex w-auto flex-row items-center gap-0.5 p-1';
 
 /** The classes the dropdown menu and the context menu share, so the block menu reads the same opened either way. */
-export const MENU_CONTENT =
-  'quoin bg-popover text-popover-foreground z-50 max-h-(--radix-popper-available-height) min-w-[8rem] overflow-x-hidden overflow-y-auto rounded-lg border border-border p-1 shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0';
+export const MENU_CONTENT = `${FLOATING_SURFACE} max-h-(--radix-popper-available-height) min-w-32 overflow-x-hidden overflow-y-auto p-1 ${SURFACE_MOTION}`;
 
-export const MENU_SUB_CONTENT =
-  'quoin bg-popover text-popover-foreground z-50 max-h-(--radix-popper-available-height) min-w-[8rem] overflow-x-hidden overflow-y-auto rounded-lg border border-border p-1 shadow-lg';
+export const MENU_SUB_CONTENT = `${FLOATING_SURFACE} max-h-(--radix-popper-available-height) min-w-[96px] overflow-x-hidden overflow-y-auto p-1 shadow-lg ${SURFACE_MOTION}`;
+
+const ROW =
+  'group/menu-item relative flex cursor-default items-center gap-1.5 rounded-md py-1 text-sm select-none focus:bg-accent focus:text-accent-foreground focus:outline-hidden data-[disabled]:pointer-events-none data-[disabled]:opacity-50';
 
 export const MENU_ITEM = [
-  "focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm focus:outline-hidden select-none data-[inset]:ps-8 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg:not([class*='size-'])]:size-4",
+  ROW,
+  "px-1.5 data-[inset]:ps-7 [&_svg:not([class*='size-'])]:size-4",
   TAP_TARGET_FLOOR,
 ].join(' ');
 
-export const MENU_CHECKABLE_ITEM = [
-  'focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pe-2 ps-8 text-sm focus:outline-hidden select-none',
-  TAP_TARGET_FLOOR,
-].join(' ');
+export const MENU_CHECKABLE_ITEM = [ROW, 'pe-8 ps-1.5 data-[inset]:ps-7', TAP_TARGET_FLOOR].join(' ');
 
-export const MENU_ITEM_INDICATOR = 'pointer-events-none absolute start-2 flex size-3.5 items-center justify-center';
+export const MENU_ITEM_INDICATOR = 'pointer-events-none absolute end-2 flex items-center justify-center';
 
 export const MENU_SUB_TRIGGER = [
-  'focus:bg-accent data-[state=open]:bg-accent flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm focus:outline-hidden select-none data-[inset]:ps-8',
+  ROW,
+  "px-1.5 data-[inset]:ps-7 data-[state=open]:bg-accent data-[state=open]:text-accent-foreground [&_svg:not([class*='size-'])]:size-4",
   TAP_TARGET_FLOOR,
 ].join(' ');
 
-export const MENU_LABEL = 'px-2 py-1.5 text-sm font-medium data-[inset]:ps-8';
+export const MENU_LABEL = 'px-1.5 py-1 text-xs font-medium text-muted-foreground data-[inset]:ps-7';
 
 export const MENU_SEPARATOR = 'bg-border -mx-1 my-1 h-px';
 
-export const MENU_SHORTCUT = 'text-muted-foreground ms-auto text-xs tracking-widest';
+export const MENU_SHORTCUT =
+  'ms-auto text-xs tracking-widest text-muted-foreground group-focus/menu-item:text-accent-foreground';

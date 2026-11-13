@@ -44,7 +44,7 @@ export function suggestionPlugin(key: PluginKey<SuggestionState>, config: Trigge
     trigger: config,
     init: (state) => ({ active: nearest(state, findTrigger(state, config)), dismissedAt: null }),
     apply(tr, value, oldState, newState) {
-      const dismissing = tr.getMeta(DISMISS) === key.name;
+      const dismissing = tr.getMeta(DISMISS) !== undefined;
       if (!dismissing && !tr.docChanged && sameSelection(oldState.selection, newState.selection)) return value;
       const found = findTrigger(newState, config);
       let dismissedAt: SuggestionRange | null = null;
@@ -61,6 +61,10 @@ export function suggestionPlugin(key: PluginKey<SuggestionState>, config: Trigge
   };
 }
 
+/**
+ * Closes the menu of the trigger `key` names, and with it every trigger it covers at the caret, so none of them comes
+ * back while the text after them goes on.
+ */
 export function dismissSuggestion(key: PluginKey<SuggestionState>): Command {
   return (state, dispatch) => {
     if (getPluginState(state, key).active === null) return false;

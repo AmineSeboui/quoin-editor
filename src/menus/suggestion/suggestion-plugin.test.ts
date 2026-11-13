@@ -85,6 +85,12 @@ describe('suggestionPlugin', () => {
       expect(getPluginState(covered, mention).dismissedAt).toBeNull();
     });
 
+    it('keep a farther one closed once the nearer one is dismissed, while the text after them goes on', () => {
+      const dismissed = apply(typed('Ask @Ada /x'), dismissSuggestion(key));
+      expect(actives(dismissed)).toEqual([null, null, null]);
+      expect(actives(apply(dismissed, insertText(' more')))).toEqual([null, null, null]);
+    });
+
     it('keep a dismissed one dismissed while a nearer one comes and goes', () => {
       const dismissed = apply(typed('Ask @Ada'), dismissSuggestion(mention), insertText(' /x'));
       expect(actives(dismissed)).toEqual([null, 'x', null]);

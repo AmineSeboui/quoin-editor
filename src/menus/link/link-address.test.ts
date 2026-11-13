@@ -1,6 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { linkAddress } from './link-address';
 
+const timed = (work: () => void) => {
+  const start = performance.now();
+  work();
+  return performance.now() - start;
+};
+
+// The two are timed in turn and the best of each is kept, so a busy moment of the machine slows both alike.
+function bestOfEach(runs: number, short: () => void, long: () => void): [number, number] {
+  let best: [number, number] = [Infinity, Infinity];
+  for (let run = 0; run < runs; run++) best = [Math.min(best[0], timed(short)), Math.min(best[1], timed(long))];
+  return best;
+}
+
 describe('linkAddress', () => {
   it.each([
     ['example.com', 'https://example.com'],
@@ -34,4 +47,17 @@ describe('linkAddress', () => {
       expect(linkAddress(typed)).toBeNull();
     },
   );
+
+  it.each([
+    ['an email address whose domain ends in a slash', (n: number) => `a@${'a.'.repeat(n)}/`],
+    ['an email address with a second @', (n: number) => `a@${'a.'.repeat(n)}@`],
+    ['a domain of dots', (n: number) => `a${'.'.repeat(2 * n)}`],
+  ])('reads %s pasted at many kilobytes in time that grows with its length alone', (_, pasted) => {
+    const read = (n: number) => () => {
+      for (let i = 0; i < 10; i++) linkAddress(pasted(n));
+    };
+    read(2000)();
+    const [short, long] = bestOfEach(9, read(2000), read(16000));
+    expect(long / short).toBeLessThan(24);
+  });
 });

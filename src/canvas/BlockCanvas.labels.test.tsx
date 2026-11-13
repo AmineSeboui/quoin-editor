@@ -1,4 +1,8 @@
 import { render, screen } from '@testing-library/react';
+import { defineExtension } from '../engine';
+import { englishLabels } from '../i18n/english-labels';
+import type { QuoinLabels } from '../i18n/labels';
+import { useLabels } from '../i18n/use-labels';
 import type { QuoinBlock } from '../types';
 import { BlockCanvas } from './BlockCanvas';
 
@@ -27,6 +31,30 @@ describe('the labels a BlockCanvas speaks', () => {
 
   it('give way to an aria-label the host sets on the canvas', () => {
     render(<BlockCanvas blocks={blocks} onChange={noop} labels={{ document: 'Document' }} aria-label="Notes" />);
+    expect(screen.getByRole('group', { name: 'Notes' })).toBeInTheDocument();
+  });
+
+  it('stay the same object while a host passes equal labels written inline on each render', () => {
+    const seen = new Set<QuoinLabels>();
+    function LabelProbe() {
+      seen.add(useLabels());
+      return null;
+    }
+    const extensions = [defineExtension({ name: 'probe', ui: { overlays: [LabelProbe] } })];
+    const draw = (document: string) => (
+      <BlockCanvas
+        blocks={blocks}
+        onChange={noop}
+        extensions={extensions}
+        labels={{ document, blockNames: { ...englishLabels.blockNames, text: 'Texte' } }}
+      />
+    );
+    const { rerender } = render(draw('Document'));
+    rerender(draw('Document'));
+    rerender(draw('Document'));
+    expect(seen.size).toBe(1);
+    rerender(draw('Notes'));
+    expect(seen.size).toBe(2);
     expect(screen.getByRole('group', { name: 'Notes' })).toBeInTheDocument();
   });
 });

@@ -5,7 +5,7 @@ import { setAttrs } from '../../engine/commands/block-style';
 import { blockById } from '../../engine/model/doc';
 import { englishLabels } from '../../i18n/english-labels';
 import { useLabels } from '../../i18n/use-labels';
-import { bubblePart, isBubblePart } from '../../menus/bubble/bubble-part';
+import { bubblePart, isBubblePart } from '../../toolbar/bubble-part';
 import type { VirtualAnchor } from '../../menus/floating/virtual-anchor';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';

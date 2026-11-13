@@ -2,7 +2,7 @@
 
 import { useRef, type KeyboardEvent, type PointerEvent, type RefObject } from 'react';
 import { useLabels } from '../../i18n/use-labels';
-import { bubblePart } from '../../menus/bubble/bubble-part';
+import { bubblePart } from '../../toolbar/bubble-part';
 import type { ViewController } from '../../view';
 import { isComposingKey } from '../../view/input/keydown';
 import { NATIVE_INTERACTION } from '../../view/selection/native-interaction';

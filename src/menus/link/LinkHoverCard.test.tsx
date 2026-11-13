@@ -10,7 +10,7 @@ const pos = (offset: number): Pos => ({ block: 'a', region: 'text', offset });
 const host = (canvas: Canvas) => canvas.shell('a').querySelector<HTMLElement>('[data-quoin-host]')!;
 const anchor = (canvas: Canvas) => host(canvas).querySelector<HTMLAnchorElement>('a[data-quoin-link]')!;
 const markdown = (canvas: Canvas) => canvas.last()?.map((block) => block.data.markdown);
-const card = () => screen.queryByRole('dialog', { name: 'Link' });
+const card = () => screen.queryByRole('group', { name: 'Link' });
 const control = (name: string) => within(card()!).getByRole('button', { name });
 const wait = (ms: number) => act(() => void vi.advanceTimersByTime(ms));
 
@@ -48,6 +48,15 @@ describe('the link hover card at the caret', () => {
     expect(host(canvas)).toHaveFocus();
   });
 
+  it('is a group rather than a dialog, since it never takes focus, and names Mod+K as the key to edit the link', () => {
+    const canvas = mount();
+    placeCaret(canvas, 6);
+    wait(300);
+    expect(screen.queryByRole('dialog')).toBeNull();
+    const modifier = canvas.handle().controller.isMac ? 'Meta' : 'Control';
+    expect(control('Edit link')).toHaveAttribute('aria-keyshortcuts', `${modifier}+K`);
+  });
+
   it('hides as soon as the caret leaves the link', () => {
     const canvas = mount();
     placeCaret(canvas, 6);
@@ -65,6 +74,14 @@ describe('the link hover card at the caret', () => {
     });
     wait(300);
     expect(card()).toBeNull();
+  });
+
+  it('offers no Open for a link with an empty address, as the link popover does not', () => {
+    const canvas = mount('see [docs](<>) here');
+    placeCaret(canvas, 6);
+    wait(300);
+    expect(card()).not.toBeNull();
+    expect(card()!.querySelector('a[aria-label="Open link"]')).toBeNull();
   });
 
   it('middle-truncates a long address to 48 characters', () => {

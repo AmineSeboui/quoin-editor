@@ -145,7 +145,7 @@ A restored block comes back at rest, even one that was inserted moments before i
 
 ## Hoist `blockTypes` and your handlers
 
-`BlockCanvas` builds its configuration from `blockTypes`, `upload`, `resolveAssetUrl`, `onError`, `highlight` and `labels`, and memoises it on their identity. Pass a new array, object or function on every render and the memo is busted, which re-renders everything that reads the configuration. Keep `blockLink` stable for the same reason. `extensions` are read once, when the canvas mounts: remount it with a new `key` to change them.
+`BlockCanvas` builds its configuration from `blockTypes`, `upload`, `resolveAssetUrl`, `onError`, `highlight` and `labels`, and memoises it on their identity. Pass a new array, object or function on every render and the memo is busted, which re-renders everything that reads the configuration. Keep `blockLink` stable for the same reason. `labels` is the one exception: an object written inline that holds the same strings as the last one, and the same maps of names, is taken as unchanged, though a label function written inline is new each time and still busts it. `extensions` are read once, when the canvas mounts: remount it with a new `key` to change them.
 
 ```tsx
 import { BlockCanvas, coreBlocks, type QuoinBlock } from 'quoin-editor';

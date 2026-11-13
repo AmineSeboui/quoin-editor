@@ -12,7 +12,6 @@ import { coreBlockMenuActions, menuActions } from '../gutter/block-menu-items';
 import { blockMenuKeymap } from '../gutter/block-menu-keymap';
 import { ExtensionBlockNames } from '../gutter/extension-block-names';
 import { Gutter } from '../gutter/Gutter';
-import { resolveLabels } from '../i18n/resolve-labels';
 import { bubbleExtension, BubbleItemsProvider } from '../menus/bubble/bubble-extension';
 import { linkExtension } from '../menus/link/link-extension';
 import { slashExtension, SlashItemsProvider } from '../menus/slash/slash-extension';
@@ -32,6 +31,7 @@ import { CanvasUiProvider, createCanvasUiStore } from './ui-store';
 import { useBlockLinkTarget } from './use-block-link-target';
 import { useDeleteReporter } from './use-delete-reporter';
 import { uploadPastedImages } from './upload-pasted-images';
+import { useStableLabels } from './use-stable-labels';
 import { useStructureAnnouncements } from './use-structure-announcements';
 import { useDefinitionWarnings } from './use-definition-warnings';
 
@@ -76,7 +76,7 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
     shortcutsExtension(uiStore),
     ...(extensions ?? []),
   ]);
-  const labels = useMemo(() => resolveLabels(labelOverrides), [labelOverrides]);
+  const labels = useStableLabels(labelOverrides);
   const latestOnError = useRef(onError);
   latestOnError.current = onError;
   const ui = useMemo(
@@ -112,7 +112,9 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
   useStructureAnnouncements(controller, labels);
   const actions = useMemo(() => {
     const onCopied = () => controller.announce(labels.copied);
-    return menuActions(coreBlockMenuActions(labels, { blockLink, onCopied, resolveAssetUrl }), ui.blockMenuItems);
+    const onCopyFailed = () => controller.announce(labels.copyFailed);
+    const core = coreBlockMenuActions(labels, { blockLink, onCopied, onCopyFailed, resolveAssetUrl });
+    return menuActions(core, ui.blockMenuItems);
   }, [controller, labels, blockLink, resolveAssetUrl, ui.blockMenuItems]);
   const slashItems = useMemo(
     () => [shortcutsSlashItem(labels, uiStore), ...ui.slashItems],

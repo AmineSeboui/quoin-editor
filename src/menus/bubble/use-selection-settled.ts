@@ -1,6 +1,7 @@
 import { useMemo, useSyncExternalStore } from 'react';
 import type { ViewController } from '../../view';
-import { focusInEditor } from './bubble-part';
+import { listen } from '../../view/dom/listen';
+import { focusInEditor } from '../../toolbar/bubble-part';
 
 type Settled = { read(): boolean; subscribe(notify: () => void): () => void };
 
@@ -8,10 +9,13 @@ function createSettled(controller: ViewController): Settled {
   let pressed = false;
   let composing = false;
   const inEditor = (event: Event) => event.target instanceof Node && controller.root?.contains(event.target) === true;
+  const release = () => void (pressed = false);
+  // A press can end without a pointerup: in a native drag of the selection, or when the window loses focus mid-press.
   const handlers: Readonly<Record<string, (event: Event) => void>> = {
     pointerdown: (event) => void (pressed ||= inEditor(event)),
-    pointerup: () => void (pressed = false),
-    pointercancel: () => void (pressed = false),
+    pointerup: release,
+    pointercancel: release,
+    dragend: release,
     compositionstart: (event) => void (composing ||= inEditor(event)),
     compositionend: () => void (composing = false),
     focusin: () => {},
@@ -32,9 +36,29 @@ function createSettled(controller: ViewController): Settled {
         doc.addEventListener(type, listener, true);
         return () => doc.removeEventListener(type, listener, true);
       });
+      const timers = new Set<ReturnType<typeof setTimeout>>();
+      // A composition that writes the text it replaced over again brings no transaction, so the toolbar looks again once
+      // the view has settled it, which it does at the input that follows compositionend or a zero delay after it. This
+      // listener bubbles, so it runs after the root's own has queued that delay.
+      const afterView = () => {
+        const timer = setTimeout(() => {
+          timers.delete(timer);
+          notify();
+        }, 0);
+        timers.add(timer);
+      };
+      const stopDoc = listen(doc, { compositionend: afterView });
+      const onWindowBlur = () => {
+        release();
+        notify();
+      };
+      const stopWindow = doc.defaultView ? listen(doc.defaultView, { blur: onWindowBlur }) : () => {};
       const stopState = controller.editor.subscribe(() => notify());
       return () => {
         listeners.forEach((remove) => remove());
+        timers.forEach(clearTimeout);
+        stopDoc();
+        stopWindow();
         stopState();
       };
     },

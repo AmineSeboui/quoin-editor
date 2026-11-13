@@ -85,6 +85,21 @@ describe('dragging a block by its handle', () => {
     expect(screen.queryByRole('menu')).toBeNull();
   });
 
+  it('says where it went once, even when the canvas said it longer ago than the live region repeats itself', () => {
+    let now = 0;
+    vi.spyOn(Date, 'now').mockImplementation(() => (now += 1000));
+    const { handle, hover, ids } = mountRows([paragraph('a', 'one'), paragraph('b', 'two'), paragraph('c', 'three')]);
+    const said = vi.fn();
+    handle().controller.announcer.subscribe(said);
+    hover('a');
+    press(20, 10);
+    moveTo(20, 16);
+    moveTo(20, 90);
+    release(20, 90);
+    expect(ids()).toEqual(['b', 'c', 'a']);
+    expect(said).toHaveBeenCalledTimes(1);
+  });
+
   it('stays a click that opens the block menu when the press moves less than 4 px', () => {
     const { hover, ids } = mountRows([paragraph('a', 'one'), paragraph('b', 'two')]);
     hover('a');

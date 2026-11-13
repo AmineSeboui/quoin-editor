@@ -149,6 +149,32 @@ test('a right-click on the handle opens the block menu at the pointer', async ({
   await expect(host(page, 'b')).toBeFocused();
 });
 
+test('a right-click on the handle while its menu is open opens the menu again at the pointer', async ({ page }) => {
+  await openEditor(page, 'sample');
+  await host(page, 'a').hover();
+  await handle(page).click();
+  await expect(menu(page)).toHaveAccessibleName('Heading 1 block menu');
+  const grip = (await handle(page).boundingBox())!;
+  const pointer = { x: grip.x + grip.width / 2, y: grip.y + grip.height / 2 };
+  await page.mouse.click(pointer.x, pointer.y, { button: 'right' });
+  await expect(menu(page)).toHaveAccessibleName('Heading 1 block menu');
+  const opened = (await menu(page).boundingBox())!;
+  expect(Math.abs(opened.y - pointer.y)).toBeLessThanOrEqual(MENU_GAP);
+});
+
+test('a Ctrl+click on a Mac over selected blocks keeps them selected and opens their menu', async ({ page }) => {
+  test.skip(process.platform !== 'darwin', 'Control with a click is a right-click on a Mac only');
+  await openEditor(page, 'sample');
+  await host(page, 'a').click();
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('Shift+ArrowDown');
+  const selection = () => page.evaluate(() => window.__quoin.controller?.editor.state.selection);
+  await expect.poll(selection).toEqual({ kind: 'blocks', anchor: 'a', head: 'b' });
+  await host(page, 'b').click({ modifiers: ['Control'], position: { x: 20, y: 8 } });
+  await expect(menu(page)).toBeVisible();
+  expect(await selection()).toEqual({ kind: 'blocks', anchor: 'a', head: 'b' });
+});
+
 test('a right-click on a block with no text opens the block menu, and one in text leaves the browser its menu', async ({
   page,
 }) => {
@@ -202,6 +228,7 @@ test.describe('on a touch screen', () => {
   test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
 
   test('the gutter shows beside the block being edited only, as one handle with a 44 px target', async ({ page }) => {
+    const handle = (on: Page) => on.getByRole('button', { name: 'Block options' });
     await openEditor(page, 'sample');
     await expect(handle(page)).toBeHidden();
     await host(page, 'b').tap();

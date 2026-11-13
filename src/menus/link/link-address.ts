@@ -1,13 +1,18 @@
 import { sanitizeHref } from '../../engine';
 import { SCHEME } from '../../engine/markdown/urls';
 
-const BARE_DOMAIN = /^[^\s/#?.]\S*\.\S*$/;
-const EMAIL = /^[^\s@/]+@[^\s@/]+\.[^\s@/]+$/;
+const DOMAIN_START = /^[^/#?.]/;
+const EMAIL = /^[^@/]+@([^@/]+)$/;
 const WHITESPACE = /\s/;
 
+// Each test reads the address once. A pattern that searches for the dot of the domain tries every dot against the rest
+// of the address, which takes time growing with the square of a pasted value's length.
+const isEmail = (address: string): boolean => EMAIL.exec(address)?.[1].slice(1, -1).includes('.') === true;
+const isBareDomain = (address: string): boolean => DOMAIN_START.test(address) && address.includes('.', 1);
+
 function scheme(address: string): string {
-  if (EMAIL.test(address)) return `mailto:${address}`;
-  return BARE_DOMAIN.test(address) ? `https://${address}` : address;
+  if (isEmail(address)) return `mailto:${address}`;
+  return isBareDomain(address) ? `https://${address}` : address;
 }
 
 /**

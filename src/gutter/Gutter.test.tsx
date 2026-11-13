@@ -56,6 +56,25 @@ describe('the gutter', () => {
     await waitFor(() => expect(x()).toBe('604'));
   });
 
+  it('names its handle for what a tap does on a touch screen, where a touch does not drag', async () => {
+    vi.stubGlobal('matchMedia', (media: string) => ({
+      media,
+      matches: media === '(pointer: coarse)',
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }));
+    try {
+      const user = userEvent.setup();
+      const { handle } = mountCanvas([paragraph('a', 'intro')]);
+      act(() => handle().focus({ block: 'a', region: 'text', offset: 0 }));
+      expect(screen.queryByRole('button', { name: 'Drag to move, click for options' })).toBeNull();
+      await user.click(screen.getByRole('button', { name: 'Block options' }));
+      expect(screen.getByRole('menu')).toHaveAccessibleName('Text block menu');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it('keeps its controls out of the tab order', () => {
     const { shell } = mountCanvas([paragraph('a', 'intro')]);
     fireEvent.pointerMove(hostOf(shell('a')));
@@ -85,6 +104,20 @@ describe('the gutter', () => {
     await user.click(addButton());
     expect(last().map((block) => block.data.markdown)).toEqual(['intro', '/']);
     expect(selection()).toEqual(textSelection({ block: 'e', region: 'text', offset: 1 }));
+    expect(screen.getByRole('listbox', { name: 'Commands' })).toBeInTheDocument();
+  });
+
+  it('adds a paragraph after an empty paragraph that holds nested blocks, rather than writing the slash in it', async () => {
+    const user = userEvent.setup();
+    const { last, selection, shell } = mountCanvas([md('e', ''), md('c', 'child', 1), md('z', 'after')]);
+    fireEvent.pointerMove(hostOf(shell('e')));
+    await user.click(addButton());
+    const added = last()[2];
+    expect(last().map((block) => block.id)).toEqual(['e', 'c', added.id, 'z']);
+    expect(last()[0].data.markdown).toBe('');
+    expect(added).toMatchObject({ type: 'MARKDOWN', data: { markdown: '/' } });
+    expect(added.indent ?? 0).toBe(0);
+    expect(selection()).toEqual(textSelection({ block: added.id, region: 'text', offset: 1 }));
     expect(screen.getByRole('listbox', { name: 'Commands' })).toBeInTheDocument();
   });
 

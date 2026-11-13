@@ -1,4 +1,5 @@
-import { renderHook } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
+import { insertText } from '../../engine';
 import { cleanUpAfterTest, mountController } from '../../view/controller/test-controller';
 import { useComboboxHost } from './combobox-attributes';
 
@@ -17,8 +18,8 @@ function twoHosts() {
   return { controller, first: textbox(host), second };
 }
 
-const openOn = (controller: ReturnType<typeof twoHosts>['controller'], block: string) =>
-  renderHook(({ on }) => useComboboxHost(controller, on, 'text', 'menu-1', null), { initialProps: { on: block } });
+const openOn = (controller: ReturnType<typeof twoHosts>['controller'], block: string, active: string | null = null) =>
+  renderHook(({ on }) => useComboboxHost(controller, on, 'text', 'menu-1', active), { initialProps: { on: block } });
 
 describe('the host a menu makes its combobox', () => {
   it('moves to another block and gives the first its own attributes back', () => {
@@ -45,5 +46,21 @@ describe('the host a menu makes its combobox', () => {
     expect(first).toHaveAttribute('role', 'textbox');
     expect(first).toHaveAttribute('aria-multiline', 'true');
     expect(first).not.toHaveAttribute('aria-expanded');
+  });
+
+  it('follows the host React draws in place of the first one, and gives the first its attributes back', () => {
+    const { controller, first } = twoHosts();
+    openOn(controller, 'a', 'option-2');
+    const replacement = textbox(first.parentElement!.appendChild(document.createElement('div')));
+    act(() => controller.focus('start'));
+    act(() => {
+      controller.registry.register('a', 'text', replacement);
+      expect(controller.run(insertText('x'))).toBe(true);
+    });
+    expect(replacement).toHaveAttribute('role', 'combobox');
+    expect(replacement).toHaveAttribute('aria-controls', 'menu-1');
+    expect(replacement).toHaveAttribute('aria-activedescendant', 'option-2');
+    expect(first).toHaveAttribute('role', 'textbox');
+    expect(first).not.toHaveAttribute('aria-activedescendant');
   });
 });

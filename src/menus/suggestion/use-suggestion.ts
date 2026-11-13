@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useId, useMemo, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { getPluginState, type EditorState, type PluginKey } from '../../engine';
 import type { SuggestionRange } from '../../extensions/ui-types';
 import { useQuoin } from '../../context';
+import { toError } from '../../to-error';
 import type { ViewController } from '../../view';
 import { useEditorState } from '../../view/react/use-editor-state';
 import { useReadOnly } from '../../view/react/use-read-only';
@@ -23,6 +24,8 @@ export type SuggestionOptions<T> = {
   groupOf?(item: T): string | null;
   onSelect(item: T, range: SuggestionRange): void;
   emptyLabel: string;
+  /** What the live region says of the results found, the canvas's `resultCount` label unless given. */
+  countLabel?(count: number): string;
 };
 
 export type Suggestion<T> = {
@@ -48,6 +51,7 @@ export function useSuggestion<T>({
   groupOf,
   onSelect,
   emptyLabel,
+  countLabel,
 }: SuggestionOptions<T>): Suggestion<T> {
   const { labels, onError } = useQuoin();
   const readOnly = useReadOnly(controller);
@@ -77,9 +81,14 @@ export function useSuggestion<T>({
   const select = useCallback(
     (index: number) => {
       const current = getPluginState(controller.editor.state, pluginKey).active;
-      if (current !== null && index < ordered.length) onSelect(ordered[index], rangeOf(current));
+      if (current === null || index >= ordered.length) return;
+      try {
+        onSelect(ordered[index], rangeOf(current));
+      } catch (error) {
+        onError(toError(error));
+      }
     },
-    [controller, pluginKey, ordered, onSelect],
+    [controller, pluginKey, ordered, onSelect, onError],
   );
   const dismiss = useCallback(() => void controller.run(dismissSuggestion(pluginKey)), [controller, pluginKey]);
 
@@ -89,10 +98,19 @@ export function useSuggestion<T>({
 
   const query = trigger?.query ?? null;
   const count = ordered.length;
-  const resultMessage = count === 0 ? emptyLabel : labels.resultCount(count);
+  const resultMessage = count === 0 ? emptyLabel : (countLabel ?? labels.resultCount)(count);
+  const said = useRef<string | null>(null);
+  // A command that opened the menu, as the gutter's + does, has its own words for the same state, which the count
+  // follows rather than replaces.
   useEffect(() => {
     if (query === null || results.pending) return;
-    const timer = setTimeout(() => controller.announce(resultMessage), SETTLE_MS);
+    const timer = setTimeout(() => {
+      const current = controller.announcer.current()?.message;
+      const own = current === undefined || current === said.current;
+      const message = own ? resultMessage : `${current}. ${resultMessage}`;
+      said.current = message;
+      controller.announce(message);
+    }, SETTLE_MS);
     return () => clearTimeout(timer);
   }, [controller, query, resultMessage, results.pending]);
 

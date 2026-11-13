@@ -147,6 +147,6 @@ phoneTest.describe('on a phone', () => {
     await host(page, 'p').tap();
     await settle(page);
     await expect(page.getByRole('toolbar', { name: 'Editing tools' })).toHaveCount(0);
-    await expect(handle(page)).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Block options' })).toHaveCount(0);
   });
 });

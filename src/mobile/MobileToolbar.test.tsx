@@ -10,8 +10,10 @@ import { defineBlock } from '../registry';
 
 class FakeViewport extends EventTarget {
   offsetTop = 0;
+  offsetLeft = 0;
   height = 800;
   width = 400;
+  scale = 1;
 }
 
 function stubPointer(coarse: boolean): void {
@@ -126,6 +128,22 @@ describe('the mobile toolbar', () => {
     expect(indentOfB()).toBe(0);
   });
 
+  it('marks Undo, Redo, Indent and Outdent unavailable while they would do nothing, and keeps them in the row', async () => {
+    const user = userEvent.setup();
+    const canvas = editAt(pos('a', 0), [paragraph('a', 'one'), paragraph('b', 'two')]);
+    const unavailable = () =>
+      ['Undo', 'Redo', 'Indent', 'Outdent'].filter((name) => control(name).getAttribute('aria-disabled') === 'true');
+    expect(unavailable()).toEqual(['Undo', 'Redo', 'Indent', 'Outdent']);
+    fireEvent.click(control('Undo'));
+    expect(canvas.changes).toHaveLength(0);
+    act(() => canvas.handle().focus(pos('b', 0)));
+    expect(unavailable()).toEqual(['Undo', 'Redo', 'Outdent']);
+    await user.click(control('Indent'));
+    expect(unavailable()).toEqual(['Redo', 'Indent']);
+    await user.click(control('Undo'));
+    expect(unavailable()).toEqual(['Undo', 'Outdent']);
+  });
+
   it('turns the block into another type', async () => {
     const user = userEvent.setup();
     const canvas = editAt(pos('a', 3));
@@ -137,6 +155,7 @@ describe('the mobile toolbar', () => {
   it('opens the link popover from Link', async () => {
     const user = userEvent.setup();
     editAt(pos('a', 3));
+    expect(control('Link')).toHaveAttribute('aria-haspopup', 'dialog');
     await user.click(control('Link'));
     expect(screen.getByRole('textbox', { name: 'Link address' })).toBeInTheDocument();
   });
@@ -152,6 +171,27 @@ describe('the mobile toolbar', () => {
       viewport.dispatchEvent(new Event('resize'));
     });
     expect(toolbar().style).toMatchObject({ top: '580px', width: '400px' });
+  });
+
+  it('follows a pinch zoom, keeping its own size across the part of the page left visible', () => {
+    const viewport = new FakeViewport();
+    vi.stubGlobal('visualViewport', viewport);
+    editAt(pos('a', 0));
+    act(() => {
+      Object.assign(viewport, { offsetLeft: 150, offsetTop: 90, width: 200, height: 400, scale: 2 });
+      viewport.dispatchEvent(new Event('resize'));
+    });
+    expect(toolbar().style).toMatchObject({
+      left: '150px',
+      top: '490px',
+      width: '400px',
+      transform: 'scale(0.5) translateY(-100%)',
+    });
+    act(() => {
+      viewport.offsetLeft = 40;
+      viewport.dispatchEvent(new Event('scroll'));
+    });
+    expect(toolbar().style.left).toBe('40px');
   });
 
   // Where there is no visual viewport to follow, the layout viewport is the whole page and its bottom edge is the
@@ -198,6 +238,29 @@ describe('the mobile toolbar', () => {
     expect(control('Turn into')).toHaveFocus();
     fireEvent.keyDown(control('Turn into'), { key: 'Escape' });
     expect(hostOf(canvas.shell('a'))).toHaveFocus();
+    expect(canvas.selection()).toEqual(textSelection(pos('a', 3)));
+  });
+
+  it('gives focus back to the text, not the page, when the canvas turns read-only with focus in it', async () => {
+    const ref = createRef<QuoinEditorHandle>();
+    const blocks = [paragraph('a', 'hello world')];
+    const draw = (readOnly: boolean) => <BlockCanvas ref={ref} blocks={blocks} onChange={() => {}} readOnly={readOnly} />;
+    const { container, rerender } = render(draw(false));
+    act(() => ref.current!.focus(pos('a', 3)));
+    act(() => control('Bold').focus());
+    rerender(draw(true));
+    await act(async () => {});
+    expect(queryToolbar()).toBeNull();
+    expect(document.activeElement).toBe(container.querySelector('[data-quoin-host]'));
+  });
+
+  it('takes focus from the text with Alt+F10, for a hardware keyboard, and gives it back on Escape', () => {
+    const canvas = editAt(pos('a', 3));
+    const host = hostOf(canvas.shell('a'));
+    fireEvent.keyDown(host, { key: 'F10', altKey: true });
+    expect(within(toolbar()).getAllByRole('button')[0]).toHaveFocus();
+    fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+    expect(host).toHaveFocus();
     expect(canvas.selection()).toEqual(textSelection(pos('a', 3)));
   });
 

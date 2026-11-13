@@ -24,6 +24,21 @@ describe('copying from the block menu', () => {
     expect(await screen.findByText('Copied')).toBeInTheDocument();
   });
 
+  it('says the copy failed when neither the clipboard nor the browser copy takes the text', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(navigator.clipboard, 'writeText').mockRejectedValue(new Error('denied'));
+    const execCommand = vi.fn(() => false);
+    Object.defineProperty(document, 'execCommand', { value: execCommand, configurable: true });
+    try {
+      const canvas = mountCanvas([paragraph('a', 'one')]);
+      await user.click(within(openMenu(canvas, 'a')).getByRole('menuitem', { name: 'Copy' }));
+      await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Could not copy'));
+      expect(execCommand).toHaveBeenCalledWith('copy');
+    } finally {
+      Reflect.deleteProperty(document, 'execCommand');
+    }
+  });
+
   it('copies the text of a commented block without its comment markup, as a copy of the text does', async () => {
     const user = userEvent.setup();
     const canvas = mountCanvas([paragraph('a', 'a <span data-comment="c1">noted</span> word')]);

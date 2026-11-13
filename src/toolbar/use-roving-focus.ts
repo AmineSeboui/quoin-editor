@@ -1,6 +1,6 @@
 import { useCallback, useRef, type FocusEvent, type KeyboardEvent, type RefCallback } from 'react';
-import { arrowAsWritten, inlineDirection } from '../../ui/direction';
-import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
+import { arrowAsWritten, inlineDirection } from '../ui/direction';
+import { useIsomorphicLayoutEffect } from '../view/react/use-isomorphic-layout-effect';
 
 type RovingFocus = {
   ref: RefCallback<HTMLDivElement>;

@@ -25,6 +25,7 @@ export type SuggestionMenuProps<T> = {
   onSelect(item: T, range: SuggestionRange): void;
   label: string;
   emptyLabel: string;
+  countLabel?(count: number): string;
   /** What the menu shows while the items it waits for are pending, for a source that answers late. */
   pendingLabel?: string;
 };

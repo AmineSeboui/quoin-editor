@@ -10,6 +10,7 @@ import { SuggestionMenu } from '../suggestion/SuggestionMenu';
 import { chooseSlashItem } from './choose-slash-item';
 import { fuzzyFilter } from './fuzzy';
 import { slashKey } from './slash-key';
+import { Kbd } from '../../ui/kbd';
 
 const itemKey = (item: SlashItem) => item.id;
 
@@ -27,9 +28,9 @@ function SlashRow({ item, isMac, labels }: SlashRowProps) {
         )}
       </span>
       {hint !== null && (
-        <kbd aria-hidden="true" className="ml-auto font-sans text-xs tracking-widest text-muted-foreground pointer-coarse:hidden">
+        <Kbd aria-hidden="true" className="ms-auto pointer-coarse:hidden">
           {hint.text}
-        </kbd>
+        </Kbd>
       )}
     </>
   );

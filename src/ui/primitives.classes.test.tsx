@@ -42,6 +42,7 @@ import {
   DropdownMenuTrigger,
 } from './dropdown-menu';
 import { Input } from './input';
+import { Kbd, KbdGroup } from './kbd';
 import { Popover, PopoverAnchor, PopoverContent } from './popover';
 import { classLists } from './test-class-lists';
 
@@ -148,6 +149,15 @@ const families: Family[] = [
     ),
   ],
   ['dialog', dialog],
+  [
+    'key',
+    (className) => (
+      <KbdGroup className={className}>
+        <Kbd className={className}>⌘</Kbd>
+        <Kbd className={className}>B</Kbd>
+      </KbdGroup>
+    ),
+  ],
   ['dropdown menu', dropdown],
   ['context menu', contextMenu],
 ];

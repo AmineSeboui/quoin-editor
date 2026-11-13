@@ -11,7 +11,6 @@ import type { TableLabels } from './table-labels';
 import { useWidthPreview } from './table-ui-store';
 import { useCellPress } from './use-cell-press';
 import { useRevealCell } from './use-reveal-cell';
-import { useTableKeys } from './use-table-keys';
 
 const indexes = (from: number, to: number) => Array.from({ length: Math.max(to - from, 0) }, (_, i) => from + i);
 
@@ -30,7 +29,6 @@ export function TableBlock({ block, controller, labels }: TableBlockProps) {
   const aligns = columnAligns(block, cols);
   const preview = useWidthPreview(controller, block.id);
   const widths = preview?.length === cols ? preview : storedWidths(block, cols);
-  useTableKeys(controller, block.id, !readOnly);
   useCellPress(controller, block.id, table, !readOnly);
   useRevealCell(controller, block.id);
 

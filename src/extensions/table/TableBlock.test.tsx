@@ -1,4 +1,4 @@
-import { act, fireEvent, screen, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, screen, within } from '@testing-library/react';
 import { axe } from 'vitest-axe';
 import { textSelection, type QuoinBlock } from '../../engine';
 import { cellKey } from '../../engine/blocks/table-spec';
@@ -145,6 +145,17 @@ describe('keys in a table block', () => {
     act(() => void fireEvent.keyDown(document.activeElement!, { key: 'ArrowDown', shiftKey: true }));
     expect(selection()).toEqual(textSelection(at(0, 0), at(1, 0)));
     expect(shell('t').querySelectorAll('[data-in-range]')).toHaveLength(2);
+  });
+
+  it('are listened for once on a canvas, however many tables it holds', () => {
+    const interceptors = (count: number) => {
+      const tables = Array.from({ length: count }, (_, i) => ({ ...table(), id: `t${i}` }));
+      const { handle } = mountCanvas([paragraph('p', ''), ...tables], { extensions: [tableExtension()] });
+      const { size } = handle().controller.keyInterceptors;
+      cleanup();
+      return size;
+    };
+    expect(interceptors(3)).toBe(interceptors(1));
   });
 
   it('put the caret at the end of a cell pressed outside its text', () => {

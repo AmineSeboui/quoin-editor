@@ -12,27 +12,24 @@ const printable = (event: KeyboardEvent): boolean => [...event.key].length === 1
 
 // A cell range is held by the selection sink, so a key typed over it reaches the editor only as keydown, where the
 // text would otherwise replace the cells in reading order rather than as a rectangle.
-function typeOver(controller: ViewController, blockId: string, event: KeyboardEvent): boolean {
-  if (cellSelection(controller.editor.state)?.block !== blockId || !printable(event)) return false;
+function typeOver(controller: ViewController, event: KeyboardEvent): boolean {
+  if (cellSelection(controller.editor.state) === null || !printable(event)) return false;
   return controller.run(typeOverCells(event.key));
 }
 
 /**
- * The keys of a table that need its layout: the arrows between its rows and into it from the blocks around it, and a
- * key typed over a cell range.
+ * The keys of the tables of a canvas that need their layout: the arrows between the rows of a table and into one from
+ * the blocks around it, and a key typed over a cell range.
  */
-export function useTableKeys(controller: ViewController, blockId: string, editable: boolean): void {
+export function useTableKeys(controller: ViewController, editable: boolean): void {
   useEffect(() => {
     if (!editable) return;
     const intercept: KeyInterceptor = (event) => {
       if (isComposingKey(controller, event)) return false;
-      const handled =
-        typeOver(controller, blockId, event) ||
-        moveBetweenRows(controller, blockId, event) ||
-        enterTable(controller, blockId, event);
+      const handled = typeOver(controller, event) || moveBetweenRows(controller, event) || enterTable(controller, event);
       if (handled) event.preventDefault();
       return handled;
     };
     return interceptKeys(controller, intercept);
-  }, [controller, blockId, editable]);
+  }, [controller, editable]);
 }

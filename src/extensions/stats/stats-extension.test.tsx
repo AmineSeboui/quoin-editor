@@ -209,6 +209,17 @@ describe('typography', () => {
     expect(handle().editor.getBlocks()[0].data.markdown).toBe(markdown);
   });
 
+  it.each([
+    ['`a$b` -> c', '`a$b` \u2192 c'],
+    ['`$x` costs... -> c', '`$x` costs\u2026 \u2192 c'],
+  ])('reads a closed code span whole, so what it holds opens nothing, in %j', (typed, markdown) => {
+    const extensions = [statsExtension({ typography: true, footer: false }), mathExtension()];
+    const { caret, type, handle } = mountTypingCanvas([md('a', '')], { extensions });
+    caret('a', 0);
+    type(typed);
+    expect(handle().editor.getBlocks()[0].data.markdown).toBe(markdown);
+  });
+
   it('reads a dollar before a number as a price, which opens no formula', () => {
     const { caret, type, handle } = mountStats([md('a', '')], { typography: true, footer: false });
     caret('a', 0);

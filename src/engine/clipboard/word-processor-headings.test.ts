@@ -28,8 +28,13 @@ describe('fromHTML headings written as styled runs', () => {
   const body = (size: string) => `<p style="font-size:${size}">Body text that most of the paste is written in.</p>`;
 
   it('reads a level from how much larger a paragraph is than the body text', () => {
-    const html = ['24pt', '18pt', '14pt', '13pt'].map((size) => `<p><span style="font-size:${size}">${size}</span></p>`).join('') + body('12pt');
-    expect(markdownOf(html)).toEqual(['# 24pt', '## 18pt', '### 14pt', '13pt', 'Body text that most of the paste is written in.']);
+    const html = ['24pt', '18pt', '14pt', '13pt'].map((size) => `<p><b style="font-size:${size}">${size}</b></p>`).join('') + body('12pt');
+    expect(markdownOf(html)).toEqual(['# 24pt', '## 18pt', '### 14pt', '**13pt**', 'Body text that most of the paste is written in.']);
+  });
+
+  it('takes a larger line short of a title for a heading only when it is bold', () => {
+    const html = `<p style="font-size:30pt">Title</p><p style="font-size:21px">A lede</p><p style="font-size:21px"><b>Bold</b> lede</p>${body('18px')}`;
+    expect(markdownOf(html)).toEqual(['# Title', 'A lede', '**Bold** lede', 'Body text that most of the paste is written in.']);
   });
 
   it('reads points, pixels and the font shorthand, and a size inherited from a wrapper', () => {

@@ -1,4 +1,4 @@
-import { inlineLength, removeMarkRange } from '../model/inline';
+import { inlineLength, rangeHasMark, removeMarkRange } from '../model/inline';
 import type { BlockAttrs, EngineBlock, Inline } from '../model/types';
 import { inlineClassRules } from './html-class-rules';
 import { codeBlock } from './html-code';
@@ -46,6 +46,13 @@ function styledContext(element: Element, outer: Context): { ctx: Context; code: 
   return { ctx, code: keeps === true && isMonospace(styles) };
 }
 
+// Short of a title's size, a larger line is a heading only when it is bold, since the lede or the pull quote of a page
+// copied from a browser is larger too.
+function isBold(element: Element, ctx: Context): boolean {
+  const inline = inlineFromNodes(element.childNodes, ctx);
+  return rangeHasMark(inline, 0, inlineLength(inline), 'bold');
+}
+
 function headingLevel(element: Element, tag: string, ctx: Context, sink: Sink): number | null {
   const named = HEADING.exec(tag);
   if (named) return Number(named[1]);
@@ -53,7 +60,8 @@ function headingLevel(element: Element, tag: string, ctx: Context, sink: Sink): 
     return Math.min(6, Math.max(1, Math.trunc(Number(element.getAttribute('aria-level'))) || 2));
   }
   const paragraph = (tag === 'p' || tag === 'div') && ctx.run.kind === 'paragraph' && !hasBlockDescendant(element);
-  return paragraph ? sink.sizedHeading(element) : null;
+  const level = paragraph ? sink.sizedHeading(element) : null;
+  return level === 1 || (level !== null && isBold(element, ctx)) ? level : null;
 }
 
 function handleBlock(element: Element, outer: Context, sink: Sink): void {

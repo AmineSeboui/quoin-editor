@@ -106,7 +106,9 @@ export const BlockCanvas = forwardRef<QuoinEditorHandle, BlockCanvasProps>(funct
   useStructureAnnouncements(controller, labels);
   const actions = useMemo(() => {
     const onCopied = () => controller.announce(labels.copied);
-    return menuActions(coreBlockMenuActions(labels, { blockLink, onCopied, resolveAssetUrl }), ui.blockMenuItems);
+    const onCopyFailed = () => controller.announce(labels.copyFailed);
+    const core = coreBlockMenuActions(labels, { blockLink, onCopied, onCopyFailed, resolveAssetUrl });
+    return menuActions(core, ui.blockMenuItems);
   }, [controller, labels, blockLink, resolveAssetUrl, ui.blockMenuItems]);
   const slashItems = useMemo(
     () => [shortcutsSlashItem(labels, uiStore), ...ui.slashItems],

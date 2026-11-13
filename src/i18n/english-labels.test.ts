@@ -215,6 +215,7 @@ describe('englishLabels', () => {
     expect(englishLabels.plainText).toBe('Plain text');
     expect(englishLabels.copyCode).toBe('Copy code');
     expect(englishLabels.copied).toBe('Copied');
+    expect(englishLabels.copyFailed).toBe('Could not copy');
   });
 
   it('writes no empty label and no em or en dash', () => {

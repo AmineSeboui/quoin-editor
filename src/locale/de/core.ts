@@ -48,6 +48,7 @@ export const deLabels: Required<QuoinLabels> = {
   copy: 'Kopieren',
   copyLink: 'Link zum Block kopieren',
   copied: 'Kopiert',
+  copyFailed: 'Kopieren fehlgeschlagen',
   moveUp: 'Nach oben',
   moveDown: 'Nach unten',
   delete: 'Löschen',

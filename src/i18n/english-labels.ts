@@ -55,6 +55,7 @@ export const englishLabels: Required<QuoinLabels> = frozen({
   copy: 'Copy',
   copyLink: 'Copy link to block',
   copied: 'Copied',
+  copyFailed: 'Could not copy',
   moveUp: 'Move up',
   moveDown: 'Move down',
   delete: 'Delete',

@@ -27,6 +27,7 @@ export type BlockMenuAction = {
 export type CoreBlockMenuOptions = {
   blockLink: (id: string) => string;
   onCopied?: () => void;
+  onCopyFailed?: () => void;
   resolveAssetUrl?: (storageKey: string) => string;
 };
 
@@ -71,8 +72,8 @@ const applies = (command: Command) => (state: EditorState, blockIds: string[]) =
 
 export function coreBlockMenuActions(labels: QuoinLabels, options: CoreBlockMenuOptions): BlockMenuAction[] {
   const copy = (controller: ViewController, blockIds: string[], text: string) => {
-    void copyText(text).then((copied) => {
-      if (copied) options.onCopied?.();
+    void copyText(text, controller.root?.ownerDocument).then((copied) => {
+      (copied ? options.onCopied : options.onCopyFailed)?.();
     });
     runOnBlocks(controller, blockIds, noChange);
   };

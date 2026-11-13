@@ -48,6 +48,7 @@ export const frLabels: Required<QuoinLabels> = {
   copy: 'Copier',
   copyLink: 'Copier le lien vers le bloc',
   copied: 'Copié',
+  copyFailed: 'Impossible de copier',
   moveUp: 'Monter',
   moveDown: 'Descendre',
   delete: 'Supprimer',

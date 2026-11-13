@@ -48,6 +48,7 @@ export const esLabels: Required<QuoinLabels> = {
   copy: 'Copiar',
   copyLink: 'Copiar el enlace al bloque',
   copied: 'Copiado',
+  copyFailed: 'No se pudo copiar',
   moveUp: 'Subir',
   moveDown: 'Bajar',
   delete: 'Eliminar',

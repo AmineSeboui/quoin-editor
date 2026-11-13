@@ -45,6 +45,7 @@ export const jaLabels: Required<QuoinLabels> = {
   copy: 'コピー',
   copyLink: 'ブロックへのリンクをコピー',
   copied: 'コピーしました',
+  copyFailed: 'コピーできませんでした',
   moveUp: '上へ移動',
   moveDown: '下へ移動',
   delete: '削除',

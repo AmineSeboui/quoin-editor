@@ -55,6 +55,7 @@ export const arLabels: Required<QuoinLabels> = {
   copy: 'نسخ',
   copyLink: 'نسخ رابط الكتلة',
   copied: 'تم النسخ',
+  copyFailed: 'تعذّر النسخ',
   moveUp: 'تحريك لأعلى',
   moveDown: 'تحريك لأسفل',
   delete: 'حذف',

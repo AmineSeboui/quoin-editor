@@ -49,6 +49,7 @@ export const ptLabels: Required<QuoinLabels> = {
   copy: 'Copiar',
   copyLink: 'Copiar o link do bloco',
   copied: 'Copiado',
+  copyFailed: 'Não foi possível copiar',
   moveUp: 'Mover para cima',
   moveDown: 'Mover para baixo',
   delete: 'Excluir',

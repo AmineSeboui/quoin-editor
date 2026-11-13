@@ -45,6 +45,7 @@ export const zhLabels: Required<QuoinLabels> = {
   copy: '复制',
   copyLink: '复制该块的链接',
   copied: '已复制',
+  copyFailed: '无法复制',
   moveUp: '上移',
   moveDown: '下移',
   delete: '删除',

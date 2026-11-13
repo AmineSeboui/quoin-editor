@@ -86,6 +86,7 @@ export type QuoinLabels = {
   copy: string;
   copyLink: string;
   copied: string;
+  copyFailed: string;
   moveUp: string;
   moveDown: string;
   delete: string;

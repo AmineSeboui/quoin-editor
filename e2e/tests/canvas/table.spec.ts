@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
 import { onlyHost } from '../../support/block';
-import { edgeX, onward, rightToLeft } from '../../support/direction';
+import { edgeX, onward } from '../../support/direction';
 import { blocks, openEditor } from '../../support/editor';
 import { cutEvent, pasteEvent } from '../../support/synthetic-events';
 
@@ -11,12 +11,6 @@ const cell = (page: Page, row: number, col: number) =>
 const tableData = async (page: Page) => (await blocks(page)).find((block) => block.type === 'TABLE')?.data;
 const rowsOf = async (page: Page) => (await tableData(page))?.rows as string[][] | undefined;
 const changes = (page: Page) => page.evaluate(() => window.__quoin.changes);
-
-// Known wrong on a right to left page, where the first column is on the right: the table finds the column under the
-// pointer and the edge between two columns as if they ran left to right, an arrow from the line below lands in a column
-// found the same way, a column's border grows the column when dragged away from it, and the handles and insert
-// buttons of the rows stay on the left.
-const COLUMNS_LEFT_TO_RIGHT = 'the table places its controls and measures its columns as if they ran left to right';
 
 async function box(page: Page, row: number, col: number) {
   const found = await cell(page, row, col).locator('xpath=..').boundingBox();
@@ -55,7 +49,6 @@ test('/table inserts a 3 by 3 table, and Tab types across its cells, adding a ro
 });
 
 test('the arrows move between rows, and Enter in an empty cell of the last row adds a row', async ({ page }) => {
-  test.fixme(rightToLeft(), COLUMNS_LEFT_TO_RIGHT);
   await openEditor(page, 'table', 'table=1');
   await caretIn(page, 1, 2);
   await page.keyboard.press('ArrowDown');
@@ -73,7 +66,6 @@ test('the arrows move between rows, and Enter in an empty cell of the last row a
 });
 
 test('the + on the edge between two columns inserts a column there', async ({ page }) => {
-  test.fixme(rightToLeft(), COLUMNS_LEFT_TO_RIGHT);
   await openEditor(page, 'table', 'table=1');
   const second = await box(page, 1, 2);
   await page.mouse.move(edgeX(second, 1), second.y + 2);
@@ -88,8 +80,7 @@ test('the + on the edge between two columns inserts a column there', async ({ pa
 // The pointer rests on the + after the last column or row while the keyboard deletes that column or row.
 for (const axis of ['column', 'row'] as const) {
   test(`deleting the last ${axis} under a pointer resting on the + after it keeps the canvas`, async ({ page }) => {
-    test.fixme(rightToLeft(), COLUMNS_LEFT_TO_RIGHT);
-    const errors: string[] = [];
+      const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
     await openEditor(page, 'table', 'table=1');
     await caretIn(page, axis === 'column' ? 2 : 3, axis === 'column' ? 3 : 1);
@@ -112,7 +103,6 @@ for (const axis of ['column', 'row'] as const) {
 }
 
 test('dragging the border of a column resizes it, written once when the drag ends', async ({ page }) => {
-  test.fixme(rightToLeft(), COLUMNS_LEFT_TO_RIGHT);
   await openEditor(page, 'table', 'table=1');
   const first = await box(page, 2, 1);
   await page.mouse.move(first.x + first.width / 2, first.y + first.height / 2);

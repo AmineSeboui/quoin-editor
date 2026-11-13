@@ -1,13 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { watchDirection } from '../../ui/watch-direction';
 import type { ViewController } from '../../view';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
 import { measureTable, sameGeometry, type TableGeometry } from './table-geometry';
 
 /**
  * Where the table of the block is drawn, from the slot its controls are drawn in. Both scroll together, so the measure
- * holds while the table scrolls, and it is taken again once an edit or a resize has been drawn.
+ * holds while the table scrolls, and it is taken again once an edit, a resize or a change of direction has been drawn.
  */
 export function useTableGeometry(controller: ViewController, blockId: string, slot: HTMLElement): TableGeometry | null {
   const [geometry, setGeometry] = useState<TableGeometry | null>(null);
@@ -27,12 +28,14 @@ export function useTableGeometry(controller: ViewController, blockId: string, sl
       frame = view.requestAnimationFrame(measure);
     };
     const unsubscribe = controller.editor.subscribe(later);
+    const unwatch = watchDirection(table, later);
     const observer = new ResizeObserver(later);
     observer.observe(table);
     view.addEventListener('resize', later);
     return () => {
       view.cancelAnimationFrame(frame);
       unsubscribe();
+      unwatch();
       observer.disconnect();
       view.removeEventListener('resize', later);
     };

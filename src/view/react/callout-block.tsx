@@ -1,5 +1,5 @@
 import type { BlockRenderer } from './block-renderer-types';
-import { calloutTone } from './callout-tones';
+import { calloutTone } from '../../engine/blocks/callout-tones';
 import { EditableRegion } from './EditableRegion';
 
 export const CalloutBlock: BlockRenderer = ({ block }) => {

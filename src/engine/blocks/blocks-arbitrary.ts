@@ -5,6 +5,7 @@ import { normalizeInline, text } from '../model/inline';
 import type { QuoinBlock } from '../model/quoin-block';
 import type { BlockAttrs, EngineBlock, Inline, InlineNode } from '../model/types';
 import { createSchema } from '../schema/create-schema';
+import { CALLOUT_TONES } from './callout-tones';
 import { createBlockCodec } from './codec';
 import { cellKey } from './table-spec';
 
@@ -13,7 +14,7 @@ type Draft = Pick<EngineBlock, 'type' | 'attrs' | 'regions'>;
 const LANGUAGES = ['', 'ts', 'c++', 'py'];
 const CODE_LINES = ['', 'a', '  b', '\tc', '```', '~~~', '$$', '---', '# h', '- x', '<!-- quoin:toc -->', '</details>'];
 const LATEX = ['x', 'x^2', 'a\\\\b', 'a\nb', '\\frac{1}{2}', 'x_{i}', ''];
-const TONES = ['info', 'tip', 'success', 'warning', 'danger', 'custom'];
+const TONES = [...CALLOUT_TONES, 'custom'];
 const KEYS = ['a', 'b', '-->', 'c--d', ''];
 const STRINGS = ['a', '', '-->', '--', '---', '<!--', '\u2028', '\u2029', '\n', 'x"y', '\\', '\u00E9', '\uD83D\uDC4D'];
 const FIRST_NUMBERS = [0, 1, 1, 2, 7, 8, 9, 10, 99, 999_999_990];

@@ -6,6 +6,7 @@ import type { BlockPreviewProps } from '../types';
 import { captionText } from './caption-markdown';
 import { HighlightOverlay } from './code/HighlightOverlay';
 import { imageSource } from './image/image-source';
+import { calloutTone, type CalloutTone } from '../engine/blocks/callout-tones';
 import { str } from '../engine/blocks/data-fields';
 
 const HINT = 'text-sm text-muted-foreground';
@@ -19,7 +20,7 @@ const HINT = 'text-sm text-muted-foreground';
  * The wash is 15% of a mid-lightness colour, which is light enough to keep body copy
  * on it and saturated enough to read as the tone rather than as grey.
  */
-export const TONE: Record<string, string> = {
+export const TONE: Readonly<Record<CalloutTone, string>> = {
   info: 'border-info bg-info/15',
   tip: 'border-tip bg-tip/15',
   warning: 'border-warning bg-warning/15',
@@ -66,10 +67,9 @@ export function CalloutPreview({ data }: BlockPreviewProps) {
   const labels = useLabels();
   const body = str(data.body);
   if (body.trim() === '') return <p className={HINT}>{labels.emptyCallout}</p>;
-  const tone = str(data.tone) || 'info';
-  const paint = TONE[tone] ?? 'border-border bg-muted/50';
+  const tone = calloutTone(data.tone);
   return (
-    <div data-tone={tone} className={`rounded-md border-l-4 ${paint} p-3 text-sm`}>
+    <div data-tone={tone} className={`rounded-md border-l-4 ${TONE[tone]} p-3 text-sm`}>
       {body}
     </div>
   );

@@ -1,8 +1,9 @@
 import type { PaletteName } from '../engine';
+import type { CalloutTone } from '../engine/blocks/callout-tones';
 
 export type SlashGroup = 'basic' | 'lists' | 'media' | 'advanced' | 'embeds' | 'ai' | 'custom';
 
-export type CalloutTone = 'info' | 'tip' | 'success' | 'warning' | 'danger';
+export type { CalloutTone };
 
 /** The block types the menus name. Headings are named by `heading`. */
 export type BlockName =

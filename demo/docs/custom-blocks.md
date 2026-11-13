@@ -177,7 +177,7 @@ Each core block keeps its content under its own keys. A host that persists block
 
 Two of these are worth saying out loud, because both have been guessed wrong:
 
-- **The callout's prose is `body`, not `text`.** It is typed in place, as inline markdown, like a paragraph. `tone` is one of `info`, `tip`, `warning`, `success` or `danger`, each drawn in its own colour; anything else falls back to the neutral border and fill.
+- **The callout's prose is `body`, not `text`.** It is typed in place, as inline markdown, like a paragraph. `tone` is one of `info`, `tip`, `warning`, `success` or `danger`, each drawn in its own colour; anything else is drawn, named and exported to Word as `info`.
 - **Markdown blocks store markdown source, not rendered HTML.** Each holds one line: a paragraph, a heading, a list item, a task or a quote. The canvas draws it formatted and writes the source back only for the blocks the author edited. Once the author sets them, a text block also keeps `align`, `color` and `background`.
 
 The optional fields are written after a block's first save, and only once set: an image's `caption` when the author types one, its `width` and `height` once the uploaded bytes have been measured, its `url`, `align` and `widthPercent` when the author links, aligns or resizes it, a file's `size` when the upload reports it and its `mime` when the file declares a type. Tests hold the table above to the declared types and to the keys a file upload writes, and check the exact data each control of the image and file blocks writes.

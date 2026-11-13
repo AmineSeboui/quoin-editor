@@ -1,7 +1,8 @@
+import type { CalloutTone } from '../../blocks/callout-tones';
 import { joinLines, type BlockNode, type QuoteNode } from './block-tree';
 
 const ALERT_LINE = /^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*$/;
-export const ALERT_TONES: Readonly<Record<string, string>> = {
+export const ALERT_TONES: Readonly<Record<string, CalloutTone>> = {
   NOTE: 'info',
   TIP: 'tip',
   IMPORTANT: 'success',

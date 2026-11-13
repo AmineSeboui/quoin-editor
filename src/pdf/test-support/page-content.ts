@@ -189,16 +189,13 @@ export function pageContent(file: PdfFile, index: number): PageContent {
   return content;
 }
 
-/** The text of a page, line by line from the top, each line's shows from the left. */
+/** The text of a page, line by line from the top, each line's shows from the left; a raised or lowered show joins its line. */
 export function pageText(file: PdfFile, index: number): string {
-  const shows = pageContent(file, index).shows;
-  const lines = new Map<number, TextShow[]>();
-  for (const show of shows) {
-    const key = Math.round(show.y - show.rise);
-    lines.set(key, [...(lines.get(key) ?? []), show]);
+  const lines: TextShow[][] = [];
+  for (const show of [...pageContent(file, index).shows].sort((a, b) => b.y - a.y)) {
+    const line = lines[lines.length - 1];
+    if (line && Math.abs(line[0].y - show.y) < Math.max(line[0].size, show.size) * 0.5) line.push(show);
+    else lines.push([show]);
   }
-  return [...lines.entries()]
-    .sort(([a], [b]) => b - a)
-    .map(([, line]) => line.sort((a, b) => a.x - b.x).map(({ text }) => text).join(''))
-    .join('\n');
+  return lines.map((line) => line.sort((a, b) => a.x - b.x).map(({ text }) => text).join('')).join('\n');
 }

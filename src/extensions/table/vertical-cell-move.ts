@@ -7,6 +7,7 @@ import { domToPos, posToDom } from '../../view/controller/dom-selection';
 import { caretFromPoint } from '../../view/navigation/caret-from-point';
 import { caretClientRect, isOnFirstLine, isOnLastLine, lineEdgeRect } from '../../view/navigation/line-edges';
 import { neighbourBlock } from '../../view/navigation/neighbour-block';
+import { spanAt } from './table-geometry';
 import { cellPos, headCell } from './table-keys';
 
 const VERTICAL: Readonly<Record<string, -1 | 1>> = { ArrowUp: -1, ArrowDown: 1 };
@@ -38,8 +39,11 @@ function caretOnEdgeLine(controller: ViewController, head: Pos, direction: -1 | 
 
 function columnAt(controller: ViewController, blockId: string, row: number, x: number): number {
   const cells = Array.from(controller.blockElement(blockId)?.querySelector('table')?.rows[row]?.cells ?? []);
-  const index = cells.findIndex((cell) => x < cell.getBoundingClientRect().right);
-  return index === -1 ? Math.max(cells.length - 1, 0) : index;
+  const spans = cells.map((cell) => {
+    const { left, width } = cell.getBoundingClientRect();
+    return { start: left, size: width };
+  });
+  return Math.max(spanAt(spans, x), 0);
 }
 
 /**

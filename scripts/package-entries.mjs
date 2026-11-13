@@ -22,7 +22,7 @@ export const incrementalBudget = (measured) => Math.max(Math.round(measured * 1.
  * @type {PackageEntry[]}
  */
 export const featureEntries = [
-  { name: 'table', source: 'src/table.ts', client: true, added: incrementalBudget(9_461) },
+  { name: 'table', source: 'src/table.ts', client: true, added: incrementalBudget(10_017) },
   { name: 'embed', source: 'src/embed.ts', client: true, added: incrementalBudget(4_499) },
   { name: 'math', source: 'src/math.ts', client: true, added: incrementalBudget(4_421) },
   { name: 'diagram', source: 'src/diagram.ts', client: true, added: incrementalBudget(562) },
@@ -85,5 +85,5 @@ export const packageEntries = [
   // The pane reads the document through the markdown serialiser the main entry already holds.
   { name: 'source', source: 'src/source.ts', client: true, added: incrementalBudget(770) },
   ...featureEntries,
-  { name: 'catalogue', source: 'src/catalogue.ts', client: true, added: incrementalBudget(28_820) },
+  { name: 'catalogue', source: 'src/catalogue.ts', client: true, added: incrementalBudget(30_078) },
 ];

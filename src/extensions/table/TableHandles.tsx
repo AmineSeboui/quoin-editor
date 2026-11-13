@@ -18,10 +18,9 @@ import { isComposingKey } from '../../view/input/keydown';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
 import { ColumnResizer } from './ColumnResizer';
 import { HandleMenu } from './HandleMenu';
-import { edgeAt, type TableGeometry, type Span } from './table-geometry';
+import { edgeAt, trailingEdge, type TableGeometry, type Span } from './table-geometry';
 import type { TableLabels } from './table-labels';
 import { alignItems, columnMenuItems, rowMenuItems } from './table-menu-items';
-import { inlineDirection } from '../../ui/direction';
 import type { TableTarget } from './use-table-target';
 
 export type OpenMenu = 'row' | 'column' | null;
@@ -40,10 +39,11 @@ export type TableHandlesProps = {
   onFocused(): void;
 };
 
-// The controls of the rows sit just before the table's left border, clear of the text of its first column.
+// The controls of the rows sit just outside the border the rows start from, clear of the text of the first column.
 const BESIDE = 4;
 
-const end = (span: Span) => span.start + span.size;
+const besideRows = ({ left, width, direction }: TableGeometry) =>
+  direction === 'rtl' ? left + width + BESIDE : left - BESIDE;
 
 const middle = (span: Span) => span.start + span.size / 2;
 
@@ -56,8 +56,7 @@ const isTab = (event: KeyboardEvent) => event.key === 'Tab' && !event.altKey && 
  */
 export function TableHandles(props: TableHandlesProps) {
   const { controller, labels, block, target, geometry, menu, onMenu, onHold, focusRequested, onFocused } = props;
-  // The columns are drawn the other way round on a right to left page, so the menu that names their sides needs it.
-  const direction = controller.root === null ? 'ltr' : inlineDirection(controller.root);
+  const { direction } = geometry;
   const rowHandle = useRef<HTMLButtonElement>(null);
   const columnHandle = useRef<HTMLButtonElement>(null);
   const resizer = useRef<HTMLDivElement>(null);
@@ -68,7 +67,7 @@ export function TableHandles(props: TableHandlesProps) {
   const drawn = geometry.cols.map((span) => span.size);
   const { rowEdge, colEdge } = target;
   const rowInsertAt = edgeAt(geometry.rows, rowEdge);
-  const columnInsertAt = edgeAt(geometry.cols, colEdge);
+  const columnInsertAt = edgeAt(geometry.cols, colEdge, direction);
 
   useIsomorphicLayoutEffect(() => {
     if (!focusRequested) return;
@@ -102,7 +101,8 @@ export function TableHandles(props: TableHandlesProps) {
           blockId={block.id}
           col={index}
           drawn={drawn}
-          style={{ left: end(span), top: geometry.top, height: geometry.height }}
+          direction={direction}
+          style={{ left: trailingEdge(span, direction), top: geometry.top, height: geometry.height }}
           resizerRef={index === col ? resizer : undefined}
           onHold={onHold}
           onBack={() => (columnHandle.current ?? rowHandle.current)?.focus()}
@@ -114,7 +114,7 @@ export function TableHandles(props: TableHandlesProps) {
             controller={controller}
             axis="row"
             label={labels.rowOptions(row + 1)}
-            style={place(geometry.left - BESIDE, middle(geometry.rows[row]))}
+            style={place(besideRows(geometry), middle(geometry.rows[row]))}
             items={rowMenuItems(labels, block.id, row, shape)}
             open={menu === 'row'}
             onOpenChange={opener('row')}
@@ -168,7 +168,7 @@ export function TableHandles(props: TableHandlesProps) {
           aria-label={labels.insertRowAt(rowEdge + 1)}
           data-axis="row"
           className="quoin-table-insert"
-          style={place(geometry.left - BESIDE, rowInsertAt)}
+          style={place(besideRows(geometry), rowInsertAt)}
           onPointerDown={keepFocus}
           onMouseDown={keepFocus}
           onClick={() => run(addRow(block.id, rowEdge), labels.rowInserted)}

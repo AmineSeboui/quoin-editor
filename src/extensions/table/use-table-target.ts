@@ -6,7 +6,7 @@ import { tableBlock, tableShape } from '../../engine/commands/table-shape';
 import type { ViewController } from '../../view';
 import { useEditorState } from '../../view/react/use-editor-state';
 import { CONTROLS_SLOT } from './controls-slot';
-import { edgeNear, measureTable, spanAt } from './table-geometry';
+import { edgeNear, measureTable, spanAt, type TableGeometry } from './table-geometry';
 import { headCell } from './table-keys';
 
 /** The table the controls are drawn for, the row and column they act on, and the edge an insert button sits on. */
@@ -18,8 +18,8 @@ export type TableTarget = {
   readonly colEdge: number | null;
 };
 
-// The insert buttons offer themselves along the left and top edges of a table, within this many pixels of the line
-// between two rows or two columns.
+// The insert buttons offer themselves along the top of a table and the side its rows start from, within this many
+// pixels of the line between two rows or two columns.
 const EDGE_ZONE = 24;
 const EDGE_REACH = 8;
 const VIEWPORT = { left: 0, top: 0 } as DOMRect;
@@ -42,6 +42,9 @@ export function caretTarget(state: EditorState): TableTarget | null {
   return caret && { block: caret.block.id, row: caret.cell[0], col: caret.cell[1], rowEdge: null, colEdge: null };
 }
 
+const nearRowStarts = ({ left, width, direction }: TableGeometry, x: number) =>
+  direction === 'rtl' ? x > left + width - EDGE_ZONE : x < left + EDGE_ZONE;
+
 function pointerTarget(controller: ViewController, event: PointerEvent): TableTarget | null {
   const blockId = controller.blockAt(event.target as Node);
   const block = blockId === undefined ? null : tableBlock(controller.editor.state.doc, blockId);
@@ -52,8 +55,8 @@ function pointerTarget(controller: ViewController, event: PointerEvent): TableTa
   const row = spanAt(geometry.rows, y);
   const col = spanAt(geometry.cols, x);
   if (row < 0 || col < 0) return null;
-  const rowEdge = x < geometry.left + EDGE_ZONE ? edgeNear(geometry.rows, y, EDGE_REACH) : null;
-  const colEdge = y < geometry.top + EDGE_ZONE ? edgeNear(geometry.cols, x, EDGE_REACH) : null;
+  const rowEdge = nearRowStarts(geometry, x) ? edgeNear(geometry.rows, y, EDGE_REACH) : null;
+  const colEdge = y < geometry.top + EDGE_ZONE ? edgeNear(geometry.cols, x, EDGE_REACH, geometry.direction) : null;
   return { block: block.id, row, col, rowEdge, colEdge };
 }
 

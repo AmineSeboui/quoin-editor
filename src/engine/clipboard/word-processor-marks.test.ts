@@ -30,6 +30,22 @@ describe('fromHTML word processor marks', () => {
   ])('maps %s', (html, expected) => expect(markdownOf(`<p>${html}</p>`)).toEqual([expected]));
 });
 
+describe('fromHTML code shading and links into the source', () => {
+  it('reads the grey a word processor shades code with as part of the code', () => {
+    const html = '<style>span.CodeChar {font-family:Consolas; background:#F0F0F0}</style><p><span class=CodeChar>x^2</span></p>';
+    expect(markdownOf(html)).toEqual(['`x^2`']);
+    expect(markdownOf('<p><span style="font-family:Consolas;background:yellow">x</span></p>')).toEqual([
+      '<span data-bg="yellow">`x`</span>',
+    ]);
+    expect(markdownOf('<p><span style="background:#F0F0F0">x</span></p>')).toEqual(['<span data-bg="gray">x</span>']);
+  });
+
+  it('keeps the words of a link to a place in the document it was copied from, and drops the link', () => {
+    const html = '<p><a href="#_q1">Catalogue</a>, <a href="#top">top</a> and <a href="https://quoin.dev/docs#install">install</a></p>';
+    expect(markdownOf(html)).toEqual(['Catalogue, top and [install](https://quoin.dev/docs#install)']);
+  });
+});
+
 describe('fromHTML page fonts', () => {
   it('keeps the typeface of the page a selection was copied from out of the marks', () => {
     expect(markdownOf('<div style="font-family: monospace"><p>a <span style="font-family: monospace">b</span></p></div>')).toEqual([

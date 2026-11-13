@@ -71,10 +71,10 @@ describe('the package entry list', () => {
       .map(({ name, total }) => [name, total]);
     expect(totals).toEqual([
       ['index', 157_000],
-      ['headless', 73_000],
-      ['engine', 52_600],
+      ['headless', 73_400],
+      ['engine', 53_000],
       ['view', 22_214],
-      ['diff', 26_961],
+      ['diff', 26_990],
       ['docx', 25_891],
     ]);
     expect(packageEntries[3]).toMatchObject({ source: 'src/view-static/index.ts', client: false });

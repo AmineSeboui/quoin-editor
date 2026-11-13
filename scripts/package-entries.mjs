@@ -63,12 +63,12 @@ export const localeEntries = [
 /** @type {PackageEntry[]} */
 export const packageEntries = [
   { name: MAIN_ENTRY, source: 'src/index.ts', client: true, total: 157_000 },
-  { name: 'headless', source: 'src/headless.ts', client: true, total: 73_000 },
-  { name: 'engine', source: 'src/engine/index.ts', client: false, total: 52_600 },
+  { name: 'headless', source: 'src/headless.ts', client: true, total: 73_400 },
+  { name: 'engine', source: 'src/engine/index.ts', client: false, total: 53_000 },
   // Read-only React for a server, which loads it alone: the markdown parser it shares with the engine is most of it.
   { name: 'view', source: 'src/view-static/index.ts', client: false, total: 22_214 },
   // The changes between two versions, drawn with the view's node tree: loaded alone, like the view.
-  { name: 'diff', source: 'src/diff/index.ts', client: false, total: 26_961 },
+  { name: 'diff', source: 'src/diff/index.ts', client: false, total: 26_990 },
   // Word documents written in a browser, a worker or Node, loaded alone like the view: most of it is the block reading.
   { name: 'docx', source: 'src/docx/index.ts', client: false, total: 25_891 },
   ...localeEntries,

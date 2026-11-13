@@ -3,7 +3,6 @@ import { axe } from 'vitest-axe';
 import { textSelection, type QuoinBlock } from '../../engine';
 import { cellKey } from '../../engine/blocks/table-spec';
 import { mountCanvas, paragraph } from '../../blocks/void/test-canvas';
-import { clipboardEvent, fakeTransfer } from '../../view/clipboard/test-transfer';
 import { tableExtension } from './table-extension';
 import { tableUiStore } from './table-ui-store';
 
@@ -153,28 +152,5 @@ describe('keys in a table block', () => {
     const cell = shell('t').querySelector('td[data-row="2"][data-col="0"]')!;
     act(() => void cell.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0 })));
     expect(selection()).toEqual(textSelection(at(2, 0, 1)));
-  });
-});
-
-describe('the clipboard over a cell range', () => {
-  const wide = { rows: [['a', 'b', 'c'], ['d', 'e', 'f']], align: [null, null, null] };
-
-  it('cuts the cells of the range and nothing else, as one step of history', () => {
-    const { select, rows, handle } = mount(wide);
-    select(at(0, 1), at(1, 0));
-    const { transfer, store } = fakeTransfer();
-    act(() => void document.activeElement!.dispatchEvent(clipboardEvent('cut', transfer)));
-    expect(store.get('text/plain')).toBeDefined();
-    expect(rows()).toEqual([['', '', 'c'], ['', '', 'f']]);
-    act(() => void handle().editor.commands.undo());
-    expect(rows()).toEqual(wide.rows);
-  });
-
-  it('pastes text over the range into its first cell', () => {
-    const { select, rows } = mount(wide);
-    select(at(1, 2), at(0, 1));
-    const { transfer } = fakeTransfer({ 'text/plain': 'x\r\ny' });
-    act(() => void document.activeElement!.dispatchEvent(clipboardEvent('paste', transfer)));
-    expect(rows()).toEqual([['a', 'x<br>y', ''], ['d', '', '']]);
   });
 });

@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { axeViolations } from '../../support/axe';
 import { onlyHost } from '../../support/block';
 import { blocks, openEditor } from '../../support/editor';
+import { cutEvent, pasteEvent } from '../../support/synthetic-events';
 
 const cell = (page: Page, row: number, col: number) =>
   page.getByRole('textbox', { name: `Row ${row}, column ${col}`, exact: true });
@@ -160,6 +161,22 @@ test('a composition over a cell range replaces the range from its first cell', a
   await cdp.send('Input.imeSetComposition', { text: '\u306b\u307b', selectionStart: 2, selectionEnd: 2 });
   await cdp.send('Input.insertText', { text: '\u65e5\u672c' });
   await expect.poll(() => rowsOf(page)).toEqual([['r0c0', 'r0c1', 'r0c2'], ['\u65e5\u672c', '', 'r1c2'], ['', '', 'r2c2']]);
+});
+
+test('a cell range cuts only its cells, which a paste puts back where they were', async ({ page }) => {
+  await openEditor(page, 'table', 'table=1');
+  await dragRange(page);
+  const cut = await cutEvent(page);
+  expect(cut.plain).toBe('r1c0\tr1c1\nr2c0\tr2c1');
+  await expect.poll(() => rowsOf(page)).toEqual(EMPTIED);
+  await expect(cell(page, 2, 1)).toBeFocused();
+  await pasteEvent(page);
+  await expect.poll(() => rowsOf(page)).toEqual([
+    ['r0c0', 'r0c1', 'r0c2'],
+    ['r1c0', 'r1c1', 'r1c2'],
+    ['r2c0', 'r2c1', 'r2c2'],
+  ]);
+  expect((await blocks(page)).filter((block) => block.type === 'TABLE')).toHaveLength(1);
 });
 
 test('Alt+F10 reaches the handles, whose menus work from the keyboard and give focus back to the caret', async ({ page }) => {

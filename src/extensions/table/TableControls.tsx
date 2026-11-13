@@ -16,7 +16,6 @@ import { sameMenuCells } from './menu-cells';
 import type { TableLabels } from './table-labels';
 import { TableHandles, type OpenMenu, type TableHandlesProps } from './TableHandles';
 import { useTableGeometry } from './use-table-geometry';
-import { useCutCells } from './use-cut-cells';
 import { caretTarget, useTableTarget, type TableTarget } from './use-table-target';
 import { interceptKeys } from '../../view/input/intercept-keys';
 
@@ -38,7 +37,6 @@ export function TableControls({ controller, labels }: { controller: ViewControll
   const [focusFor, setFocusFor] = useState<string | null>(null);
   const [slot, setSlot] = useState<HTMLElement | null>(null);
   const target = useTableTarget(controller, held?.target ?? null);
-  useCutCells(controller);
   const blockId = target?.block ?? null;
   const block = useEditorState(
     controller,

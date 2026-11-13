@@ -105,6 +105,17 @@ describe('clipboard through the editor', () => {
     editor.paste(pasted);
     expect(match).toHaveBeenCalledWith('y', before, pasted);
   });
+
+  it('copies the cells of a cell range alone: a table of them as json and html, their text separated by tabs', () => {
+    const table = { id: 't', type: 'TABLE', data: { rows: [['a', 'b', 'c'], ['d', 'e', 'f']], header: true, align: [null, null, null] } };
+    const { editor } = startEditor([table]);
+    const cell = (region: string) => ({ block: 't', region, offset: 0 });
+    editor.commands.setSelection({ kind: 'text', anchor: cell('cell:1:2'), head: cell('cell:0:1') });
+    const copied = editor.copy()!;
+    expect(JSON.parse(copied.json).slice.blocks[0].data).toEqual({ rows: [['b', 'c'], ['e', 'f']], header: true, align: [null, null] });
+    expect(copied.html).toBe('<table><thead><tr><th>b</th><th>c</th></tr></thead><tbody><tr><td>e</td><td>f</td></tr></tbody></table>');
+    expect(copied.text).toBe('b\tc\ne\tf');
+  });
 });
 
 describe('queries through the editor', () => {

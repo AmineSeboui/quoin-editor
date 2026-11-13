@@ -2,7 +2,7 @@ import { createBlockCodec } from '../blocks/codec';
 import { isTextFlow } from '../commands/block-helpers';
 import { toMarkdown } from '../markdown/document/to-markdown';
 import { stripComments } from '../markdown/document/strip-comments';
-import { inlinePlainText } from '../render/block-plain-text';
+import { blockPlainText, inlinePlainText } from '../render/block-plain-text';
 import { toHTML, type HTMLOptions } from '../render/to-html';
 import { createSchema } from '../schema/create-schema';
 import { primaryRegion } from '../state/selection';
@@ -15,6 +15,7 @@ function sliceText(slice: Slice, options: HTMLOptions): string {
     const block = pieces.length === 1 ? stripComments(pieces[0]) : null;
     const region = block === null || !isTextFlow(schema, block) ? null : primaryRegion(schema, block);
     if (block !== null && region !== null) return inlinePlainText(block.regions[region] ?? [], schema);
+    if (block?.type === 'TABLE') return blockPlainText(block, schema);
   }
   const markdown = toMarkdown(slice.blocks, { schema, resolveAssetUrl: options.resolveAssetUrl, comments: false });
   return markdown.replace(/\n$/, '');

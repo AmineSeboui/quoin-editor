@@ -18,10 +18,10 @@ const VARIANTS = {
 
 const SIZES = {
   default: `h-8 gap-1.5 px-2.5 ${TAP_TARGET_FLOOR}`,
-  xs: `h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs [&_svg:not([class*='size-'])]:size-3 ${TAP_TARGET_FLOOR}`,
-  sm: `h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] [&_svg:not([class*='size-'])]:size-3.5 ${TAP_TARGET_FLOOR}`,
-  "icon-xs": `size-6 rounded-[min(var(--radius-md),10px)] [&_svg:not([class*='size-'])]:size-3 ${SQUARE_TAP_TARGET_FLOOR}`,
-  "icon-sm": `size-7 rounded-[min(var(--radius-md),12px)] ${SQUARE_TAP_TARGET_FLOOR}`,
+  xs: `h-6 gap-1 rounded-[min(calc(var(--quoin-radius)-2px),10px)] px-2 text-xs [&_svg:not([class*='size-'])]:size-3 ${TAP_TARGET_FLOOR}`,
+  sm: `h-7 gap-1 rounded-[min(calc(var(--quoin-radius)-2px),12px)] px-2.5 text-[0.8rem] [&_svg:not([class*='size-'])]:size-3.5 ${TAP_TARGET_FLOOR}`,
+  "icon-xs": `size-6 rounded-[min(calc(var(--quoin-radius)-2px),10px)] [&_svg:not([class*='size-'])]:size-3 ${SQUARE_TAP_TARGET_FLOOR}`,
+  "icon-sm": `size-7 rounded-[min(calc(var(--quoin-radius)-2px),12px)] ${SQUARE_TAP_TARGET_FLOOR}`,
 };
 
 type ButtonVariants = { variant?: keyof typeof VARIANTS | null; size?: keyof typeof SIZES | null };

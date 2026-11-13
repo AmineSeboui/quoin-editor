@@ -39,6 +39,27 @@ const lateNote = defineBlock({
   preview: () => <p>Late note</p>,
 });
 
+const overlayNote = (role: string) =>
+  defineBlock({
+    type: 'OVERLAY_NOTE',
+    label: 'Overlay note',
+    icon: Sticker,
+    editor: () => (
+      <div>
+        <input aria-label="Overlay field" />
+        {createPortal(
+          <div role={role} aria-label="Opened">
+            <button type="button" role={role === 'listbox' ? 'option' : undefined} aria-selected="false" tabIndex={0}>
+              Inside
+            </button>
+          </div>,
+          document.body,
+        )}
+      </div>
+    ),
+    preview: () => <p>Overlay note</p>,
+  });
+
 function pageOverlay(role: string) {
   const overlay = document.body.appendChild(document.createElement('div'));
   overlay.setAttribute('role', role);
@@ -93,6 +114,17 @@ describe('VoidBlock editing ends', () => {
     fireEvent.pointerDown(screen.getByTestId('picker'));
     act(() => screen.getByRole('button', { name: 'Pick' }).focus());
     expect(screen.queryByRole('textbox', { name: 'Note field' })).not.toBeNull();
+  });
+
+  it.each(['alertdialog', 'listbox'])('not on a press or focus inside a portalled %s the editor opened', (role) => {
+    const blocks = [paragraph('a', 'above'), { id: 'n', type: 'OVERLAY_NOTE', data: {} }];
+    const { nodeSelect, press } = mountCanvas(blocks, { blockTypes: [...testBlockTypes, overlayNote(role)] });
+    nodeSelect('n');
+    press('Enter');
+    const inside = screen.getByText('Inside');
+    fireEvent.pointerDown(inside);
+    act(() => inside.focus());
+    expect(screen.queryByRole('textbox', { name: 'Overlay field' })).not.toBeNull();
   });
 
   it.each(['dialog', 'menu'])('when the pointer goes down in a %s another part of the page opened', (role) => {

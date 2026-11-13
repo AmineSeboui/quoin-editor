@@ -9,8 +9,7 @@ const dropLine = (page: Page) => page.locator('[data-quoin-drop-line]');
 const box = async (locator: Locator) => (await locator.boundingBox())!;
 
 // The project turns the harness round, so the canvas mounts on a right to left page rather than being flipped under
-// one that has already mounted. The menus read the direction as they mount and do not follow a later flip, so a page
-// turned round afterwards would leave them resolving against a left to right default and prove nothing.
+// one that has already mounted.
 const openRightToLeft = (page: Page, doc: string, extra = '') => openEditor(page, doc, extra);
 
 test('on a right-to-left page the gutter sits on screen at the right of the block, and its handle opens the menu', async ({ page }) => {
@@ -75,6 +74,18 @@ test('on a right-to-left page the block menu stays on the screen', async ({ page
   const placed = await box(await openBlockMenu(page));
   expect(placed.x).toBeGreaterThanOrEqual(0);
   expect(placed.x + placed.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+});
+
+test('a page turned round under the gutter moves it to the other side at once, and the menus follow', async ({ page }) => {
+  await openRightToLeft(page, 'sample');
+  await host(page, 'b').hover();
+  await expect(handle(page)).toBeVisible();
+  await page.evaluate(() => document.documentElement.setAttribute('dir', 'ltr'));
+  const line = await box(shell(page, 'b'));
+  await expect.poll(async () => (await box(handle(page))).x + (await box(handle(page))).width).toBeLessThanOrEqual(line.x);
+  await handle(page).click();
+  await expect(page.getByRole('menu')).toHaveAttribute('dir', 'ltr');
+  expect(await alignedEdge(handle(page), page.getByRole('menu'))).toBe('left');
 });
 
 test('on a right-to-left page the slash menu opens from the inline start too', async ({ page }) => {

@@ -1,12 +1,13 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { mountCanvas, paragraph } from '../blocks/void/test-canvas';
 
 const hostOf = (shell: HTMLElement) => shell.querySelector<HTMLElement>('[data-quoin-host]')!;
 
-async function openBlockMenu() {
+async function openBlockMenu(afterMount = () => {}) {
   const user = userEvent.setup();
   const { shell } = mountCanvas([paragraph('a', 'intro')]);
+  await act(async () => afterMount());
   fireEvent.pointerMove(hostOf(shell('a')));
   await user.click(screen.getByRole('button', { name: 'Drag to move, click for options' }));
   return screen.getByRole('menu');
@@ -29,6 +30,10 @@ describe('the direction a canvas reports to its menus', () => {
   it('is right to left for a canvas the page turns round with CSS alone, carrying no dir attribute', async () => {
     document.documentElement.style.direction = 'rtl';
     expect(await openBlockMenu()).toHaveAttribute('dir', 'rtl');
+  });
+
+  it('follows a page that turns round while the canvas is mounted', async () => {
+    expect(await openBlockMenu(() => document.documentElement.setAttribute('dir', 'rtl'))).toHaveAttribute('dir', 'rtl');
   });
 
   it('is left to right for a canvas on an ordinary page', async () => {

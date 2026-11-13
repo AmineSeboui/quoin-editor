@@ -1,8 +1,9 @@
 'use client';
 
-import { Fragment } from 'react';
+import { Fragment, useRef } from 'react';
 import { cn } from '../../ui/cn';
 import { MENU_ITEM } from '../../ui/menu-styles';
+import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
 import type { AiChoice } from './ai-choices';
 
 type Row = { readonly choice: AiChoice; readonly index: number };
@@ -38,6 +39,10 @@ export const choiceId = (listId: string, index: number) => `${listId}-${index}`;
 
 /** The AI menu's listbox: the built-in actions, then the host's in a group under a heading of their own. */
 export function AiChoiceList({ id, label, hostLabel, choices, current, onChoose }: AiChoiceListProps) {
+  const list = useRef<HTMLDivElement>(null);
+  useIsomorphicLayoutEffect(() => {
+    list.current?.querySelector('[aria-selected="true"]')?.scrollIntoView?.({ block: 'nearest' });
+  }, [current, choices.length]);
   const option = ({ choice, index }: Row) => (
     <div
       key={choice.key}
@@ -52,7 +57,7 @@ export function AiChoiceList({ id, label, hostLabel, choices, current, onChoose 
     </div>
   );
   return (
-    <div id={id} role="listbox" aria-label={label} className="mt-1 max-h-72 overflow-y-auto">
+    <div ref={list} id={id} role="listbox" aria-label={label} className="mt-1 max-h-72 overflow-y-auto">
       {runsOf(choices).map(({ host, rows }, run) =>
         host ? (
           <div key={run} role="group" aria-labelledby={`${id}-host`} className={SET_APART}>

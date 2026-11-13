@@ -5,11 +5,16 @@ import { forward } from '../../support/direction';
 import { blocks, openEditor } from '../../support/editor';
 import { allMarkdown } from '../../support/markdown';
 import { selectFromStart } from '../../support/select-start';
+import { settled } from '../../support/settle';
 import { firstWordPoint, textPoint } from '../../support/text-point';
 
 const toolbar = (page: Page) => page.getByRole('toolbar', { name: 'Text formatting' });
 const control = (page: Page, name: string) => toolbar(page).getByRole('button', { name, exact: true });
-const box = async (locator: Locator) => (await locator.boundingBox())!;
+// A box is read once the toolbar's entrance has ended, since it slides in from the selection.
+const box = async (locator: Locator) => {
+  await settled(locator);
+  return (await locator.boundingBox())!;
+};
 
 const selectionBox = (page: Page) =>
   page.evaluate(() => {

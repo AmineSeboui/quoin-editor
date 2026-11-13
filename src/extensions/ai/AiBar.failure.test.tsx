@@ -1,6 +1,6 @@
 import { act, cleanup, screen } from '@testing-library/react';
 import { axe } from 'vitest-axe';
-import { paragraph } from '../../blocks/void/test-canvas';
+import { paragraph } from '../../blocks/test-support/test-canvas';
 import type { AiOptions } from './ai-extension';
 import { mountAi } from './ai-test-canvas';
 

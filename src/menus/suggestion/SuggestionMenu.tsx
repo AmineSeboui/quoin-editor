@@ -3,7 +3,7 @@
 import { useRef, type ReactNode } from 'react';
 import type { PluginKey } from '../../engine';
 import type { SuggestionRange } from '../../extensions/ui-types';
-import { MENU_CONTENT } from '../../ui/menu-styles';
+import { LIST_GROUP_LABEL, MENU_CONTENT } from '../../ui/menu-styles';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
 import { cn } from '../../ui/cn';
 import { preventDefault } from '../../ui/prevent-default';
@@ -34,10 +34,9 @@ export type SuggestionMenuProps<T> = {
 // options the arrows reach while focus stays in the text.
 const CONTENT = cn(
   MENU_CONTENT,
-  'flex w-72 max-h-[min(22rem,var(--radix-popper-available-height))] flex-col overflow-y-hidden',
+  'flex w-72 max-h-[min(22rem,var(--radix-popper-available-height))] flex-col gap-0 overflow-y-hidden rounded-xl',
 );
 const LISTBOX = 'min-h-0 overflow-y-auto';
-const GROUP_LABEL = 'px-2 pt-2 pb-1 text-xs font-medium text-muted-foreground';
 type SectionProps<T> = {
   section: SuggestionSection<T>;
   labelId: string;
@@ -63,7 +62,7 @@ function SuggestionGroup<T>({ section, labelId, activeIndex, optionId, renderIte
   if (section.label === null) return <>{options}</>;
   return (
     <div role="group" aria-labelledby={labelId}>
-      <div role="presentation" id={labelId} className={GROUP_LABEL}>
+      <div role="presentation" id={labelId} className={LIST_GROUP_LABEL}>
         {section.label}
       </div>
       {options}

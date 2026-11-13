@@ -14,7 +14,7 @@ import type { PickerSection } from './picker-layout';
 type Props = { section: PickerSection; onPick(emoji: string): void };
 
 const CELL = cn(
-  'flex size-8 shrink-0 cursor-default items-center justify-center rounded-sm text-xl hover:bg-accent',
+  'flex size-8 shrink-0 cursor-default items-center justify-center rounded-md text-xl hover:bg-accent',
   FOCUS_RING,
 );
 const HEADING = 'px-1 pt-2 pb-1 text-xs font-medium text-muted-foreground';

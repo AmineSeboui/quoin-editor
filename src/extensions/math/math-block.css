@@ -60,12 +60,17 @@
 .quoin .quoin-math-field {
   width: 100%;
   resize: vertical;
-  padding: 0.375rem 0.75rem;
-  border: 1px solid var(--quoin-muted-foreground);
-  border-radius: calc(var(--quoin-radius) - 2px);
+  padding: 0.375rem 0.625rem;
+  border: 1px solid var(--quoin-input);
+  border-radius: var(--quoin-radius);
   background: transparent;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-size: 0.875rem;
+}
+
+.dark .quoin .quoin-math-field,
+.quoin.dark .quoin-math-field {
+  background: color-mix(in oklab, var(--quoin-input) 30%, transparent);
 }
 
 .quoin .quoin-math-field:focus-visible {

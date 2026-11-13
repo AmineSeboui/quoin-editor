@@ -40,5 +40,14 @@ export const MENU_LABEL = 'px-1.5 py-1 text-xs font-medium text-muted-foreground
 
 export const MENU_SEPARATOR = 'bg-border -mx-1 my-1 h-px';
 
+/** A row of a listbox that a combobox drives, as the slash menu's are: shadcn's command item. */
+export const LIST_OPTION = [
+  "relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1.5 text-sm data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground [&_svg:not([class*='size-'])]:size-4",
+  TAP_TARGET_FLOOR,
+].join(' ');
+
+/** The heading of a group of such rows. */
+export const LIST_GROUP_LABEL = 'px-2 py-1.5 text-xs font-medium text-muted-foreground';
+
 export const MENU_SHORTCUT =
   'ms-auto text-xs tracking-widest text-muted-foreground group-focus/menu-item:text-accent-foreground';

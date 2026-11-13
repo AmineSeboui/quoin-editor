@@ -26,7 +26,7 @@ import { dispatchSelection } from '../../view/controller/dispatch-selection';
 const REST_MS = 300;
 const OPEN_POPOVER = 'Mod-k';
 const URL_LENGTH = 48;
-const CARD = 'flex w-auto items-center gap-0.5 py-1 ps-3 pe-1 shadow-md';
+const CARD = 'flex w-auto flex-row items-center gap-0.5 py-1 ps-3 pe-1';
 const ADDRESS = 'me-1 whitespace-nowrap text-sm text-muted-foreground';
 
 type LinkHoverCardProps = { controller: ViewController; labels: QuoinLabels; store: CanvasUiStore };

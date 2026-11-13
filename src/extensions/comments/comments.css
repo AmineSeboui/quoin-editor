@@ -158,13 +158,18 @@
   flex: 1;
   min-width: 0;
   resize: vertical;
-  padding: 4px 8px;
-  border: 1px solid var(--quoin-muted-foreground);
-  border-radius: calc(var(--quoin-radius) - 4px);
+  padding: 4px 10px;
+  border: 1px solid var(--quoin-input);
+  border-radius: var(--quoin-radius);
   background: transparent;
   color: inherit;
   font: inherit;
   font-size: 0.875rem;
+}
+
+.dark .quoin .quoin-comments-field,
+.quoin.dark .quoin-comments-field {
+  background: color-mix(in oklab, var(--quoin-input) 30%, transparent);
 }
 
 .quoin .quoin-comments-field:focus-visible,

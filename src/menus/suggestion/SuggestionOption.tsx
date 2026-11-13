@@ -1,15 +1,8 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { cn } from '../../ui/cn';
-import { TAP_TARGET_FLOOR } from '../../ui/touch-target';
+import { LIST_OPTION } from '../../ui/menu-styles';
 import { keepFocus } from '../floating/keep-focus';
-
-const OPTION = cn(
-  'relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm',
-  'data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground',
-  TAP_TARGET_FLOOR,
-);
 
 type OptionProps = { id: string; active: boolean; onHighlight(): void; onChoose(): void; children: ReactNode };
 
@@ -21,7 +14,7 @@ export function SuggestionOption({ id, active, onHighlight, onChoose, children }
       id={id}
       aria-selected={active}
       data-highlighted={active ? '' : undefined}
-      className={OPTION}
+      className={LIST_OPTION}
       onPointerDown={keepFocus}
       onMouseDown={keepFocus}
       onPointerMove={onHighlight}

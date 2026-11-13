@@ -1,6 +1,7 @@
 import { act, cleanup, fireEvent, screen } from '@testing-library/react';
 import type { QuoinBlock } from '../../engine';
 import { mathExtension } from '../math/math-extension';
+import { portalledMenu } from '../test-support/portalled-menu';
 import { mountTypingCanvas } from '../typing-test-canvas';
 import { countWriting } from './count-writing';
 import { statsExtension, type StatsOptions } from './stats-extension';
@@ -162,6 +163,21 @@ describe('focus mode', () => {
     expect(dimmed(container)).toEqual(['a', 'b']);
     expect(handle().controller.root!.hasAttribute('data-quoin-focus-mode')).toBe(true);
     expect(container.querySelector('[aria-hidden="true"][data-quoin-block], [inert]')).toBeNull();
+  });
+
+  it('holds while focus is in the canvas or a menu it portals out, and only then', () => {
+    const extensions = [statsExtension({ focusMode: true }), portalledMenu('Menu')];
+    const { caret, handle } = mountTypingCanvas([md('a', 'one'), md('b', 'two')], { extensions });
+    const outside = document.body.appendChild(document.createElement('button'));
+    onTestFinished(() => outside.remove());
+    const root = handle().controller.root!;
+    expect(root).not.toHaveAttribute('data-quoin-focused');
+    caret('b', 0);
+    expect(root).toHaveAttribute('data-quoin-focused');
+    act(() => screen.getByRole('button', { name: 'Menu' }).focus());
+    expect(root).toHaveAttribute('data-quoin-focused');
+    act(() => outside.focus());
+    expect(root).not.toHaveAttribute('data-quoin-focused');
   });
 
   it('is off while the canvas is read-only, and by default', () => {

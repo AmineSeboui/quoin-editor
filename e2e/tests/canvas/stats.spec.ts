@@ -61,7 +61,7 @@ test.describe('a composition past the limit', () => {
   });
 });
 
-test('focus mode dims every other block while the canvas holds focus', async ({ page }) => {
+test('focus mode dims every other block while the canvas or a menu it opened holds focus', async ({ page }) => {
   await openStats(page, '&focus=1', 'large', 'p1');
   const opacity = (id: string) =>
     page.locator(`[data-block-id="${id}"]`).evaluate((shell) => Number(getComputedStyle(shell).opacity));
@@ -72,6 +72,12 @@ test('focus mode dims every other block while the canvas holds focus', async ({ 
   await page.keyboard.press('ArrowDown');
   await expect(page.locator('[data-block-id="p2"]')).not.toHaveAttribute('data-quoin-dimmed');
   await expect(page.locator('[data-block-id="p1"]')).toHaveAttribute('data-quoin-dimmed', '');
+  await page.keyboard.press('ControlOrMeta+/');
+  await expect(page.getByRole('menu').getByRole('menuitem').first()).toBeFocused();
+  await page.evaluate(() => Promise.allSettled(document.getAnimations().map((animation) => animation.finished)));
+  expect(await opacity('p0')).toBeCloseTo(0.4);
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('menu')).toHaveCount(0);
   await page.getByRole('textbox', { name: 'After the editor' }).focus();
   await expect.poll(() => opacity('p0')).toBe(1);
 });

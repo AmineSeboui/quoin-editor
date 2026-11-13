@@ -18,14 +18,10 @@ function textCaretRect(text: Text, offset: number): DOMRect | null {
   const range = (text.ownerDocument as Document).createRange();
   range.setStart(text, offset);
   const rect = range.getClientRects()[0];
-  if (hasSize(rect)) return rect;
-  if (offset === 0) return null;
-  const surrogate = offset >= 2 && /[\uDC00-\uDFFF]/.test(text.data[offset - 1]);
-  range.setStart(text, offset - (surrogate ? 2 : 1));
-  range.setEnd(text, offset);
-  const drawn = range.getClientRects();
-  const before = drawn[drawn.length - 1];
-  return hasSize(before) ? edgeOf(before, inlineDirection(text.parentElement ?? text.ownerDocument.body) === 'ltr') : null;
+  if (hasSize(rect) || offset === 0) return hasSize(rect) ? rect : null;
+  range.setStart(text, offset - (/[\uDC00-\uDFFF]/.test(text.data[offset - 1]) ? 2 : 1));
+  const before = [...range.getClientRects()].pop();
+  return hasSize(before) ? edgeOf(before, inlineDirection(text.parentElement!) === 'ltr') : null;
 }
 
 function besideNode(node: Node, before: boolean): DOMRect | null {

@@ -53,4 +53,42 @@ describe('cn', () => {
   it('keeps the last of a repeated class', () => {
     expect(cn('quoin rounded-md', 'quoin shadow-md rounded-md')).toBe('quoin shadow-md rounded-md');
   });
+
+  it('lets a later radius replace an earlier one', () => {
+    expect(cn('rounded-lg', 'rounded-xl')).toBe('rounded-xl');
+  });
+
+  it('lets a later ring width replace an earlier one and keeps the colour', () => {
+    expect(cn('ring-1 ring-foreground/10', 'ring-0')).toBe('ring-foreground/10 ring-0');
+  });
+
+  it('merges ring widths under the same variant', () => {
+    expect(cn('focus-visible:ring-3 focus-visible:ring-ring/50', 'focus-visible:ring-0')).toBe(
+      'focus-visible:ring-ring/50 focus-visible:ring-0',
+    );
+  });
+
+  it('lets a later background colour replace an earlier one', () => {
+    expect(cn('bg-popover', 'bg-transparent')).toBe('bg-transparent');
+  });
+
+  it('keeps a background clip beside a background colour', () => {
+    expect(cn('bg-popover', 'bg-clip-padding')).toBe('bg-popover bg-clip-padding');
+  });
+
+  it('lets a later shadow replace an earlier one', () => {
+    expect(cn('shadow-md', 'shadow-none')).toBe('shadow-none');
+  });
+
+  it('lets a later flex direction replace an earlier one', () => {
+    expect(cn('flex flex-col', 'flex-row')).toBe('flex flex-row');
+  });
+
+  it('reads an arbitrary length as a font size', () => {
+    expect(cn('text-sm', 'text-[0.8rem]')).toBe('text-[0.8rem]');
+  });
+
+  it('keeps an arbitrary colour beside a font size', () => {
+    expect(cn('text-sm', 'text-[#fff]')).toBe('text-sm text-[#fff]');
+  });
 });

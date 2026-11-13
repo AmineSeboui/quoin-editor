@@ -5,9 +5,15 @@ import { segAt } from './text-steps';
 
 export type HeldSelection = { anchor: Y.RelativePosition; head: Y.RelativePosition } | null;
 
-export function relative(text: Y.Text, layout: Layout, pos: Pos): Y.RelativePosition {
+type Place = { index: number; beforeText: boolean };
+
+function placeOf(layout: Layout, pos: Pos): Place {
   const { seg, rel } = pointOf(regionOf(layout, pos.block, pos.region), pos.offset);
-  return Y.createRelativePositionFromTypeIndex(text, spanStart(layout, seg.host) + rel, -1);
+  return { index: spanStart(layout, seg.host) + rel, beforeText: rel < seg.at + seg.length };
+}
+
+export function relative(text: Y.Text, layout: Layout, pos: Pos): Y.RelativePosition {
+  return Y.createRelativePositionFromTypeIndex(text, placeOf(layout, pos).index, -1);
 }
 
 export function absolute(text: Y.Text, layout: Layout, held: Y.RelativePosition): Pos | null {
@@ -20,13 +26,17 @@ export function absolute(text: Y.Text, layout: Layout, held: Y.RelativePosition)
 }
 
 /**
- * A text selection held by the characters before its ends, so it can be put back where those characters are after
- * a change that moves them to another block.
+ * A text selection held by the characters next to its ends, so it can be put back where those characters are after
+ * a change that moves them to another block: a caret and the end of a range by the character before, and the start of
+ * a range by its first character where it has one, so that text put in at either end stays outside the range.
  */
 export function holdSelection(text: Y.Text, layout: Layout, selection: Selection | null): HeldSelection {
   if (selection?.kind !== 'text') return null;
   try {
-    return { anchor: relative(text, layout, selection.anchor), head: relative(text, layout, selection.head) };
+    const [anchor, head] = [placeOf(layout, selection.anchor), placeOf(layout, selection.head)];
+    const hold = (place: Place, other: Place) =>
+      Y.createRelativePositionFromTypeIndex(text, place.index, place.index < other.index && place.beforeText ? 0 : -1);
+    return { anchor: hold(anchor, head), head: hold(head, anchor) };
   } catch {
     return null;
   }

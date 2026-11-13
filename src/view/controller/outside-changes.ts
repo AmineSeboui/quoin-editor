@@ -1,5 +1,5 @@
 import type { Selection, Transaction } from '../../engine';
-import { mapSelection } from '../../engine/state/selection';
+import { carrySelection } from '../../engine/state/carry-selection';
 
 export type OutsideChanges = {
   inside(change: () => void): void;
@@ -43,7 +43,7 @@ export function createOutsideChanges(
       }
       const from = moved ?? (outside && !settled ? movedFrom(tr.before.selection) : null);
       settled ||= outside;
-      moved = from && mapSelection(from, (pos, assoc) => tr.mapPos(pos, assoc), tr.before.doc);
+      moved = from && carrySelection(from, (pos, assoc) => tr.mapPos(pos, assoc), tr.before.doc, tr.doc, tr.origin);
     },
     takeFocused() {
       const value = focused;

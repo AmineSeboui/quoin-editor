@@ -236,6 +236,13 @@ describe('insertAtom and insertMention', () => {
     expect(after.doc.blocks[0].regions.text[1]).toEqual(atom('math', { latex: 'x' }));
   });
 
+  it('refuses, rather than throws on, attributes that are not text from code without types', () => {
+    const state = buildState(['x'], { block: 0, offset: 1 });
+    const untyped = [{ id: '1', label: 'Ada', kind: 7 }, { id: '1', label: 'Ada', kind: null }, { id: 1, label: 'Ada' }, { id: '1' }];
+    for (const mention of untyped) expect(run(state, insertMention(mention as never)).ok).toBe(false);
+    expect(run(state, insertAtom('math', { latex: 5 } as never)).ok).toBe(false);
+  });
+
   it('needs a text selection', () => {
     expect(run(buildState([DIVIDER_FIXTURE], { node: 0 }), insertMention({ id: '1', label: 'Ada' })).ok).toBe(false);
     expect(run(buildState([], null), insertMention({ id: '1', label: 'Ada' })).ok).toBe(false);

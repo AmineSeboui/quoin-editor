@@ -122,7 +122,7 @@ test('the picker a callout block menu opens writes the emoji found to its icon, 
   await expect.poll(async () => (await dataOf(page, 'c'))?.icon).toBeUndefined();
 });
 
-test('the picker grid walks with the arrows, Home and End, and Escape hands focus back to the callout', async ({ page }) => {
+test('each picker grid walks with the arrows, Home and End, Tab moves on to the next, and Escape closes', async ({ page }) => {
   const host = await openPicker(page);
   const focused = () => page.evaluate(() => document.activeElement?.getAttribute('aria-label'));
   await page.keyboard.press('Tab');
@@ -135,6 +135,10 @@ test('the picker grid walks with the arrows, Home and End, and Escape hands focu
   await page.keyboard.press('ArrowUp');
   await expect.poll(focused).toBe('grinning');
   await page.keyboard.press('Tab');
+  await expect(picker(page).getByRole('grid', { name: 'People and body' }).locator(':focus')).toHaveCount(1);
+  await page.keyboard.press('Shift+Tab');
+  await expect.poll(focused).toBe('grinning');
+  await page.keyboard.press('Shift+Tab');
   await expect(search(page)).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(picker(page)).toHaveCount(0);

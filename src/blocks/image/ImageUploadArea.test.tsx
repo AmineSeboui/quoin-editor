@@ -106,10 +106,12 @@ describe('an image block with no picture yet', () => {
     let fail!: (cause: Error) => void;
     mount(() => new Promise((_, reject) => (fail = reject)));
     await user.upload(screen.getByLabelText('Upload image'), png);
-    expect(within(area()).getByRole('status')).toHaveTextContent('Uploading...');
+    expect(within(area()).getByText('Uploading...')).toBeInTheDocument();
+    expect(within(area()).queryByRole('status')).toBeNull();
+    expect(screen.getByRole('status')).toHaveTextContent(/^Uploading\.\.\.$/);
     await act(async () => fail(new Error('That file is too large.')));
     expect(within(area()).getByRole('alert')).toHaveTextContent('That file is too large.');
-    expect(within(area()).getByRole('status')).toHaveTextContent('');
+    expect(within(area()).queryByText('Uploading...')).toBeNull();
   });
 
   it.each([undefined, {}, { storageKey: 7 }])('says the upload failed, writing nothing, when the upload resolves to %o', async (junk) => {
@@ -129,7 +131,7 @@ describe('an image block with no picture yet', () => {
     drop(png);
     drop(new File(['png'], 'dog.png', { type: 'image/png' }));
     await act(async () => pending.get('cat.png')!());
-    expect(within(area()).getByRole('status')).toHaveTextContent('Uploading...');
+    expect(within(area()).getByText('Uploading...')).toBeInTheDocument();
     await act(async () => pending.get('dog.png')!());
     expect(screen.getByRole('img')).toHaveAttribute('src', '/cdn/key/dog.png');
   });

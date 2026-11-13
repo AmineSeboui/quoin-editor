@@ -76,9 +76,7 @@ export function UploadArea(props: UploadAreaProps) {
       </div>
       {children}
       <p className="quoin-block-message">{upload ? hint : labels.uploadsUnavailable}</p>
-      <p role="status" className={busy ? 'quoin-block-message' : 'sr-only'}>
-        {busy ? labels.uploading : ''}
-      </p>
+      {busy && <p className="quoin-block-message">{labels.uploading}</p>}
       {error !== '' && (
         <p role="alert" className="quoin-block-message text-destructive">
           {error}

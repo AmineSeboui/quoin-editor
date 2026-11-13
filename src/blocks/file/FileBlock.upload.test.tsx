@@ -77,7 +77,9 @@ describe('a file block with no file yet', () => {
     let fail!: (cause: Error) => void;
     mount(() => new Promise((_, reject) => (fail = reject)));
     await user.upload(picker(), pdf);
-    expect(within(area()).getByRole('status')).toHaveTextContent('Uploading...');
+    expect(within(area()).getByText('Uploading...')).toBeInTheDocument();
+    expect(screen.getAllByRole('status')).toHaveLength(1);
+    expect(screen.getByRole('status')).toHaveTextContent(/^Uploading\.\.\.$/);
     await act(async () => fail(new Error('That file is too large.')));
     expect(within(area()).getByRole('alert')).toHaveTextContent('That file is too large.');
   });

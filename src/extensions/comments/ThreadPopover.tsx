@@ -4,6 +4,7 @@ import { useMemo, useRef } from 'react';
 import type { EditorState } from '../../engine';
 import { rangeRect } from '../../menus/floating/range-rect';
 import { virtualAnchor } from '../../menus/floating/virtual-anchor';
+import { escapeWithin } from '../../ui/escape-within';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
 import { useEditorState } from '../../view/react/use-editor-state';
 import type { ViewController } from '../../view';
@@ -79,14 +80,20 @@ export function ThreadPopover({ env, open, threads, onChoose, onClose }: ThreadP
     event.preventDefault();
     if (open.focus) focusField();
   };
-  const onEscape = (event: KeyboardEvent) => {
-    event.preventDefault();
-    // Not handed on to the canvas, whose Escape would select the block: this Escape closes the popover alone.
-    event.stopPropagation();
-    const inside = content.current?.contains(content.current.ownerDocument.activeElement) ?? false;
-    onClose();
-    if (inside) backToText();
-  };
+  const escape = escapeWithin(
+    content,
+    (event) => {
+      event.stopPropagation();
+      onClose();
+      backToText();
+    },
+    (event) => {
+      event.preventDefault();
+      // Not handed on to the canvas, whose Escape would select the block: this Escape closes the popover alone.
+      event.stopPropagation();
+      onClose();
+    },
+  );
   const choices = ids.map((id) => ({ id, anchorText: textOf(id), preview: threads.find(id)?.comments[0]?.body ?? '' }));
 
   return (
@@ -107,7 +114,8 @@ export function ThreadPopover({ env, open, threads, onChoose, onClose }: ThreadP
         className="w-80 p-3"
         onOpenAutoFocus={focusInside}
         onCloseAutoFocus={(event) => event.preventDefault()}
-        onEscapeKeyDown={onEscape}
+        onEscapeKeyDown={escape.onEscapeKeyDown}
+        onKeyDownCapture={escape.onKeyDownCapture}
       >
         {gone && <p className="mb-2 text-xs text-muted-foreground italic">{labels.textRemoved}</p>}
         {single ? (

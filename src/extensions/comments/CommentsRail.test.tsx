@@ -142,4 +142,19 @@ describe('a narrow canvas', () => {
     expect(screen.queryByRole('dialog', { name: 'Comments' })).toBeNull();
     expect(document.activeElement).toBe(marker);
   });
+
+  it('closes the sheet on one Escape from its Close button while that button shows its tooltip', async () => {
+    const canvas = mountComments(blocks(), threads());
+    const marker = canvas.container.querySelector<HTMLElement>('.quoin-comments-marker[data-block="b"]')!;
+    marker.focus();
+    act(() => void fireEvent.click(marker));
+    await canvas.settle();
+    const close = within(screen.getByRole('dialog', { name: 'Comments' })).getByRole('button', { name: 'Close' });
+    act(() => close.focus());
+    await screen.findByRole('tooltip');
+    act(() => void fireEvent.keyDown(close, { key: 'Escape' }));
+    await canvas.settle();
+    expect(screen.queryByRole('dialog', { name: 'Comments' })).toBeNull();
+    expect(document.activeElement).toBe(marker);
+  });
 });

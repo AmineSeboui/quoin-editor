@@ -49,7 +49,7 @@ export function FilePickerButton({ label, accept, disabled, busy = false, onPick
   return (
     <span
       ref={wrapper}
-      className="relative inline-flex rounded-lg has-[:focus-visible]:border-ring has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50"
+      className="relative inline-flex rounded-lg has-[:focus-visible]:border-ring has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50 has-[:focus-visible]:outline-hidden"
     >
       <Button asChild variant="outline" size="sm">
         <span aria-hidden="true" className={disabled || busy ? 'pointer-events-none opacity-50' : undefined}>

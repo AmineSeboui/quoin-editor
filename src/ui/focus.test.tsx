@@ -98,8 +98,10 @@ describe("keyboard focus is shadcn's ring", () => {
         'has-[:focus-visible]:border-ring',
         'has-[:focus-visible]:ring-3',
         'has-[:focus-visible]:ring-ring/50',
+        `has-[:focus-visible]:${FORCED_COLORS_FRAME}`,
       ]),
     );
+    expect(classes).not.toContain(FORCED_COLORS_FRAME);
     expect(classes.some((c) => c.includes('outline-[var(--quoin-ring)]'))).toBe(false);
   });
 });

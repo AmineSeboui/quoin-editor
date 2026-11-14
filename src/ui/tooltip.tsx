@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import { useDirection } from "@radix-ui/react-direction";
 import { cn } from "./cn";
 
 const MOTION =
@@ -29,10 +30,12 @@ const TooltipContent = /* @__PURE__ */ React.forwardRef<
   React.ComponentRef<typeof TooltipPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
 >(function TooltipContent({ className, sideOffset = 4, children, ...props }, ref) {
+  const dir = useDirection();
   return (
     <TooltipPrimitive.Portal>
       <TooltipPrimitive.Content
         ref={ref}
+        dir={dir}
         data-slot="tooltip-content"
         sideOffset={sideOffset}
         className={cn(

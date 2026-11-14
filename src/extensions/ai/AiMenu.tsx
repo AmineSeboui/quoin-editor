@@ -105,7 +105,7 @@ export function AiMenu({ env, target, fromSpace }: AiMenuProps) {
           close(fromSpace);
         }}
       >
-        <InputGroup className="h-8 border-input/30 bg-input/30 shadow-none">
+        <InputGroup className="h-8 border-input/30 bg-input/30 shadow-none has-[[data-slot=input-group-control]:focus-visible]:border-input/30 has-[[data-slot=input-group-control]:focus-visible]:ring-0">
           <InputGroupAddon>
             <Sparkles />
           </InputGroupAddon>

@@ -11,6 +11,9 @@ Every release of `quoin-editor` is listed here, newest first, in the spirit of [
 ### Added
 - Icon buttons, in the formatting toolbar, the gutter, the link card, the find panel and elsewhere, show their name in a tooltip as the pointer rests on them or keyboard focus reaches them, with the key that does the same where there is one, such as Ctrl+B or ⌘B for Bold. The tooltip adds nothing to what a screen reader announces, since the button's name already says it.
 - Shortcut hints, in the slash menu and the shortcuts dialog, are drawn as shadcn's key chips.
+- The AI menu follows AI Elements: its field has a send button that asks exactly what was typed (Enter still runs the highlighted action), and its actions are listed under Write and Edit, each with an icon. Write comes first, so Continue writing is still the action Enter runs when nothing is typed.
+- The bar under an AI answer follows AI Elements too: Writing shimmers while the answer streams (plain text when the reader asks for reduced motion), Discard and Retry are icon buttons with tooltips, and the follow-up field takes several lines, sending on Enter and breaking the line on Shift+Enter, with a send button of its own.
+- Three optional AI labels, `send`, `editGroup` and `writeGroup`, English where missing and translated in every locale pack, so a complete `AiLabels` translation written before them still compiles.
 
 ## 2.1.0 (2026-11-13)
 

@@ -79,7 +79,7 @@ export const packageEntries = [
   // Threads the host keeps, which no catalogue option could carry, so it stays out of the catalogue as presence does.
   { name: 'comments', source: 'src/comments.ts', client: true, added: incrementalBudget(6_872) },
   // The host's model streams through a callback no catalogue option could carry, so it stays out as comments do.
-  { name: 'ai', source: 'src/ai.ts', client: true, added: incrementalBudget(8_769) },
+  { name: 'ai', source: 'src/ai.ts', client: true, added: incrementalBudget(10_937) },
   // The hook alone: the grammars it loads build into the prism-grammars chunk, which it leaves out of its measure.
   { name: 'highlight', source: 'src/highlight.ts', client: true, added: incrementalBudget(612) },
   // The pane reads the document through the markdown serialiser the main entry already holds.

@@ -52,6 +52,15 @@ describe('the AI menu', () => {
     expect(within(edit).getAllByRole('option')).toHaveLength(7);
   });
 
+  it("draws its field as shadcn's command input, with no focus ring of its own inside the menu", () => {
+    const canvas = mountAi([paragraph('a', 'Say a word here')]);
+    canvas.select('a', 4, 10);
+    canvas.askAi();
+    const group = canvas.field().closest('[data-slot="input-group"]')!;
+    expect(group.className.split(' ')).toContain('has-[[data-slot=input-group-control]:focus-visible]:ring-0');
+    expect(group.className.split(' ')).not.toContain('has-[[data-slot=input-group-control]:focus-visible]:ring-3');
+  });
+
   it('keeps Send unavailable until something is typed', () => {
     const canvas = mountAi([paragraph('a', 'Say a word here')]);
     canvas.select('a', 4, 10);

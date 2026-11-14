@@ -42,6 +42,8 @@ import {
   DropdownMenuTrigger,
 } from './dropdown-menu';
 import { Input } from './input';
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput, InputGroupTextarea } from './input-group';
+import { Kbd, KbdGroup } from './kbd';
 import { Popover, PopoverAnchor, PopoverContent } from './popover';
 import { classLists } from './test-class-lists';
 
@@ -148,6 +150,35 @@ const families: Family[] = [
     ),
   ],
   ['dialog', dialog],
+  [
+    'input group',
+    (className) => (
+      <>
+        <InputGroup className={className}>
+          <InputGroupAddon className={className}>A</InputGroupAddon>
+          <InputGroupInput aria-label="Ask" className={className} />
+          <InputGroupAddon align="inline-end">
+            <InputGroupButton aria-label="Send" size="icon-xs" variant="default" className={className} />
+          </InputGroupAddon>
+        </InputGroup>
+        <InputGroup>
+          <InputGroupTextarea aria-label="Next" className={className} />
+          <InputGroupAddon align="block-end">
+            <InputGroupButton className={className}>Send</InputGroupButton>
+          </InputGroupAddon>
+        </InputGroup>
+      </>
+    ),
+  ],
+  [
+    'key',
+    (className) => (
+      <KbdGroup className={className}>
+        <Kbd className={className}>⌘</Kbd>
+        <Kbd className={className}>B</Kbd>
+      </KbdGroup>
+    ),
+  ],
   ['dropdown menu', dropdown],
   ['context menu', contextMenu],
 ];

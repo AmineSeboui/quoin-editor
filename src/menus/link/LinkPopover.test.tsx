@@ -38,6 +38,15 @@ async function enter(address: string) {
 }
 
 describe('the link popover', () => {
+  it('closes on one Escape from Apply while Apply shows its tooltip, giving focus back to the text', async () => {
+    const canvas = openPopover([paragraph('a', 'hello world')], pos(0), pos(5));
+    act(() => control('Apply link').focus());
+    await screen.findByRole('tooltip');
+    fireEvent.keyDown(control('Apply link'), { key: 'Escape' });
+    expect(popover()).toBeNull();
+    expect(document.activeElement).toBe(host(canvas));
+  });
+
   it('opens on Mod+K with focus in an empty address field', () => {
     openPopover([paragraph('a', 'hello world')], pos(0), pos(5));
     expect(field()).toHaveFocus();

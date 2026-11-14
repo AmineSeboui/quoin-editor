@@ -112,25 +112,6 @@ async function openSlashMenu(page: Page) {
   return menu;
 }
 
-// The highlighted row of a menu is marked with a bar, an inset shadow whose offset says which side it is on.
-const barSide = (row: Locator) =>
-  row.evaluate((element) => {
-    const offset = parseFloat(/(-?[\d.]+)px 0px 0px 0px inset/.exec(getComputedStyle(element).boxShadow)?.[1] ?? '0');
-    return offset < 0 ? 'right' : offset > 0 ? 'left' : 'none';
-  });
-
-test('on a right-to-left page the highlighted row of a menu is marked on the right, where its text starts', async ({ page }) => {
-  await openRightToLeft(page, 'rich');
-  const row = (await openBlockMenu(page)).getByRole('menuitem').first();
-  await row.hover();
-  await expect(row).toHaveAttribute('data-highlighted', '');
-  expect(await barSide(row)).toBe('right');
-  await page.keyboard.press('Escape');
-  const option = (await openSlashMenu(page)).getByRole('option').first();
-  await expect(option).toHaveAttribute('aria-selected', 'true');
-  expect(await barSide(option)).toBe('right');
-});
-
 test('on a right-to-left page a menu row ends on the left, with its shortcut and a chevron pointing that way', async ({ page }) => {
   await openRightToLeft(page, 'rich');
   const menu = await openBlockMenu(page);

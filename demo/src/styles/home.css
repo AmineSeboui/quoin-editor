@@ -53,7 +53,7 @@
   border: 1px solid var(--site-hairline);
   border-radius: 1rem;
   background: var(--site-surface);
-  box-shadow: 0 1px 2px var(--quoin-shadow), 0 32px 64px -32px var(--quoin-shadow);
+  box-shadow: 0 1px 2px var(--site-shadow), 0 32px 64px -32px var(--site-shadow);
   overflow: hidden;
 }
 
@@ -133,7 +133,7 @@
 
 .features h3 a {
   color: inherit;
-  text-decoration-color: var(--quoin-input);
+  text-decoration-color: var(--site-field-edge);
 }
 
 .features h3 a:hover {

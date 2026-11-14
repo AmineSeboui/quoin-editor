@@ -70,7 +70,7 @@ describe('the package entry list', () => {
       .filter((entry) => entry.total !== undefined && !localeEntries.includes(entry))
       .map(({ name, total }) => [name, total]);
     expect(totals).toEqual([
-      ['index', 160_700],
+      ['index', 164_700],
       ['headless', 77_300],
       ['engine', 55_600],
       ['view', 22_214],

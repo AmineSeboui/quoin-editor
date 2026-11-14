@@ -1,73 +1,70 @@
 'use client';
 
-import { Fragment, useRef } from 'react';
-import { cn } from '../../ui/cn';
-import { MENU_ITEM } from '../../ui/menu-styles';
+import { useRef } from 'react';
+import { Sparkles } from '../../icons';
+import { LIST_GROUP_LABEL, LIST_OPTION } from '../../ui/menu-styles';
 import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layout-effect';
+import { ACTION_ICONS } from './ai-action-icons';
 import type { AiChoice } from './ai-choices';
-
-type Row = { readonly choice: AiChoice; readonly index: number };
-
-type Run = { readonly host: boolean; readonly rows: Row[] };
-
-function runsOf(choices: readonly AiChoice[]): Run[] {
-  const runs: Run[] = [];
-  choices.forEach((choice, index) => {
-    const host = choice.host !== undefined;
-    const last = runs[runs.length - 1];
-    if (last?.host === host) last.rows.push({ choice, index });
-    else runs.push({ host, rows: [{ choice, index }] });
-  });
-  return runs;
-}
+import type { AiLabels } from './ai-labels';
+import { menuSections, type ChoiceRow } from './ai-menu-sections';
 
 type AiChoiceListProps = {
   id: string;
-  label: string;
-  hostLabel: string;
+  labels: AiLabels;
   choices: readonly AiChoice[];
   current: number;
+  onHighlight(index: number): void;
   onChoose(choice: AiChoice): void;
 };
 
-const GROUP_HEADING = 'px-2 pt-2 pb-1 text-xs font-medium text-muted-foreground';
-
-// The typed request can follow the host's group, and a line keeps it from reading as one of them.
-const SET_APART = 'not-last:mb-1 not-last:border-b not-last:border-border not-last:pb-1';
+// The typed request can follow a group, and a line keeps it from reading as one of that group's actions.
+const SET_APART = 'not-first:mt-1 not-first:border-t not-first:border-border not-first:pt-1';
 
 export const choiceId = (listId: string, index: number) => `${listId}-${index}`;
 
-/** The AI menu's listbox: the built-in actions, then the host's in a group under a heading of their own. */
-export function AiChoiceList({ id, label, hostLabel, choices, current, onChoose }: AiChoiceListProps) {
+const iconOf = (choice: AiChoice) => (choice.host === undefined ? ACTION_ICONS[choice.action] : (choice.host.icon ?? Sparkles));
+
+/** The AI menu's listbox: the actions that write, those that edit and the host's own, each under its heading, then
+ *  the typed request. */
+export function AiChoiceList({ id, labels, choices, current, onHighlight, onChoose }: AiChoiceListProps) {
   const list = useRef<HTMLDivElement>(null);
   useIsomorphicLayoutEffect(() => {
     list.current?.querySelector('[aria-selected="true"]')?.scrollIntoView?.({ block: 'nearest' });
   }, [current, choices.length]);
-  const option = ({ choice, index }: Row) => (
-    <div
-      key={choice.key}
-      id={choiceId(id, index)}
-      role="option"
-      aria-selected={index === current}
-      className={cn(MENU_ITEM, index === current && 'bg-accent text-accent-foreground')}
-      onMouseDown={(event) => event.preventDefault()}
-      onClick={() => onChoose(choice)}
-    >
-      {choice.label}
-    </div>
-  );
+  const option = ({ choice, index }: ChoiceRow) => {
+    const Icon = iconOf(choice);
+    return (
+      <div
+        key={choice.key}
+        id={choiceId(id, index)}
+        role="option"
+        aria-selected={index === current}
+        data-highlighted={index === current ? '' : undefined}
+        className={LIST_OPTION}
+        onMouseDown={(event) => event.preventDefault()}
+        onPointerMove={() => onHighlight(index)}
+        onClick={() => onChoose(choice)}
+      >
+        <Icon aria-hidden="true" className="text-muted-foreground" />
+        {choice.label}
+      </div>
+    );
+  };
   return (
-    <div ref={list} id={id} role="listbox" aria-label={label} className="mt-1 max-h-72 overflow-y-auto">
-      {runsOf(choices).map(({ host, rows }, run) =>
-        host ? (
-          <div key={run} role="group" aria-labelledby={`${id}-host`} className={SET_APART}>
-            <div role="presentation" id={`${id}-host`} className={GROUP_HEADING}>
-              {hostLabel}
-            </div>
-            {rows.map(option)}
+    <div ref={list} id={id} role="listbox" aria-label={labels.menu} className="mt-1 max-h-72 overflow-y-auto">
+      {menuSections(choices, labels).map((section) =>
+        section.label === undefined ? (
+          <div key={section.id} role="presentation" className={SET_APART}>
+            {section.rows.map(option)}
           </div>
         ) : (
-          <Fragment key={run}>{rows.map(option)}</Fragment>
+          <div key={section.id} role="group" aria-labelledby={`${id}-${section.id}`}>
+            <div id={`${id}-${section.id}`} role="presentation" className={LIST_GROUP_LABEL}>
+              {section.label}
+            </div>
+            {section.rows.map(option)}
+          </div>
         ),
       )}
     </div>

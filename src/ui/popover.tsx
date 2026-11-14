@@ -2,6 +2,7 @@ import * as React from "react";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { useDirection } from "@radix-ui/react-direction";
 import { cn } from "./cn";
+import { FLOATING_SURFACE, SURFACE_MOTION } from "./menu-styles";
 
 function Popover(props: React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Root>) {
   return <PopoverPrimitive.Root {...props} />;
@@ -35,7 +36,9 @@ const PopoverContent = /* @__PURE__ */ React.forwardRef<
         align={align}
         sideOffset={sideOffset}
         className={cn(
-          "quoin bg-popover text-popover-foreground z-50 w-72 origin-(--radix-popover-content-transform-origin) rounded-lg border p-4 shadow-md focus:outline-hidden",
+          FLOATING_SURFACE,
+          "flex w-72 origin-(--radix-popover-content-transform-origin) flex-col gap-2.5 p-2.5 text-sm focus:outline-hidden",
+          SURFACE_MOTION,
           className,
         )}
         {...props}

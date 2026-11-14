@@ -7,7 +7,7 @@ import { ColorGroups, type ColorKey } from '../../gutter/ColorMenu';
 import { DROPDOWN_KIT } from '../../gutter/menu-kit';
 import { useLabels } from '../../i18n/use-labels';
 import { Baseline } from '../../icons';
-import { Button } from '../../ui/button';
+import { IconButton } from '../../ui/icon-button';
 import type { ViewController } from '../../view';
 import { ToolbarMenu } from '../../toolbar/ToolbarMenu';
 
@@ -35,9 +35,9 @@ export function ColorPopover({ controller, state }: ColorPopoverProps) {
   const labels = useLabels();
   const value = { color: selectionColor(state, MARKS.color), background: selectionColor(state, MARKS.background) };
   const trigger = (
-    <Button type="button" variant="ghost" size="icon-sm" aria-label={labels.color}>
+    <IconButton type="button" variant="ghost" size="icon-sm" label={labels.color}>
       <Baseline />
-    </Button>
+    </IconButton>
   );
   return (
     <ToolbarMenu controller={controller} trigger={trigger}>

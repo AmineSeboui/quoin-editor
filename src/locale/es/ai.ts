@@ -35,4 +35,7 @@ export const esAiLabels: Required<AiLabels> = {
   written: (text) => `Respuesta de la IA lista: ${text}`,
   halted: (text) => `Detenida. Respuesta de la IA hasta ahora: ${text}`,
   targetGone: 'El texto al que se refería se ha eliminado, así que Aceptar la insertará donde estaba',
+  send: 'Enviar',
+  editGroup: 'Editar',
+  writeGroup: 'Escribir',
 };

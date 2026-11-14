@@ -1,7 +1,7 @@
 'use client';
 
 import { useLabels } from '../../i18n/use-labels';
-import { Button } from '../../ui/button';
+import { IconButton } from '../../ui/icon-button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../../ui/dropdown-menu';
 import type { ViewController } from '../../view';
 import { CALLOUT_ICONS } from './callout-tone';
@@ -15,16 +15,16 @@ export function CalloutIconMenu({ blockId, controller, icon }: CalloutIconMenuPr
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
+        <IconButton
           type="button"
           variant="ghost"
           size="icon-xs"
           tabIndex={-1}
-          aria-label={labels.calloutIcon}
+          label={labels.calloutIcon}
           className="text-base"
         >
           <span aria-hidden="true">{icon}</span>
-        </Button>
+        </IconButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="min-w-0" onCloseAutoFocus={returnFocusToText(controller)}>
         {CALLOUT_ICONS.map((choice) => (

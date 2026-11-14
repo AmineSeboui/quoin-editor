@@ -51,8 +51,8 @@
 }
 
 .quoin .quoin-file-download:focus-visible {
-  outline: 2px solid var(--quoin-ring);
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--quoin-ring) 50%, transparent);
 }
 
 .quoin .quoin-file-download > svg {

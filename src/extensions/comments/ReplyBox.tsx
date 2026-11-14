@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { SendHorizontal } from '../../icons';
-import { Button } from '../../ui/button';
+import { IconButton } from '../../ui/icon-button';
 import { sendReply } from './comment-actions';
 import { CommentAvatar } from './CommentAvatar';
 import type { CommentsEnv } from './comments-env';
@@ -58,15 +58,15 @@ export function ReplyBox({ env, threadId, first }: ReplyBoxProps) {
         onKeyDown={onKeyDown}
         className="quoin-comments-field"
       />
-      <Button
+      <IconButton
         type="submit"
         variant="ghost"
         size="icon-sm"
-        aria-label={labels.send}
+        label={labels.send}
         aria-disabled={text === '' || sending || undefined}
       >
         <SendHorizontal />
-      </Button>
+      </IconButton>
     </form>
   );
 }

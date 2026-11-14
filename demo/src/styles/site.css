@@ -7,10 +7,14 @@
   --site-header-offset: var(--site-header);
   --site-surface: var(--quoin-muted);
   --site-hairline: var(--quoin-border);
+  --site-field-edge: oklch(0.62 0.02 262);
+  --site-shadow: oklch(0.24 0.024 267 / 14%);
   color-scheme: light;
 }
 
 :root.dark {
+  --site-field-edge: oklch(0.6 0.02 262);
+  --site-shadow: oklch(0 0 0 / 45%);
   color-scheme: dark;
 }
 
@@ -284,7 +288,7 @@ a {
 .text-link {
   color: var(--quoin-foreground);
   font-weight: 550;
-  text-decoration-color: var(--quoin-input);
+  text-decoration-color: var(--site-field-edge);
 }
 
 .text-link:hover {

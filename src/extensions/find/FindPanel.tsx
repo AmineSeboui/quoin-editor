@@ -5,6 +5,7 @@ import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type M
 import { keyName, normalizeKey, redo, undo, type Command } from '../../engine';
 import { ChevronDown, ChevronUp, X } from '../../icons';
 import { Button } from '../../ui/button';
+import { IconButton } from '../../ui/icon-button';
 import { Input } from '../../ui/input';
 import type { ViewController } from '../../view';
 import { findActions } from './find-actions';
@@ -88,7 +89,7 @@ export function FindPanel({ controller, labels, value, readOnly }: Props) {
       dir={dir}
       role="search"
       aria-label={labels.findAndReplace}
-      className="quoin quoin-find-panel bg-popover fixed top-4 end-4 z-50 max-w-[calc(100vw-2rem)] text-popover-foreground flex flex-col gap-1.5 rounded-lg border p-2 shadow-md"
+      className="quoin quoin-find-panel bg-popover fixed top-4 end-4 z-50 max-w-[calc(100vw-2rem)] text-popover-foreground flex flex-col gap-1.5 rounded-lg p-2 shadow-md ring-1 ring-foreground/10"
       onKeyDown={onPanelKeyDown}
       onClick={onPanelClick}
     >
@@ -106,36 +107,33 @@ export function FindPanel({ controller, labels, value, readOnly }: Props) {
         />
         <FindStatus id={statusId} labels={labels} value={value} />
         <FindToggles labels={labels} options={value.search} onToggle={actions.toggle} />
-        <Button
+        <IconButton
           type="button"
           variant="ghost"
           size="icon-sm"
-          aria-label={labels.previousMatch}
-          title={labels.previousMatch}
+          label={labels.previousMatch}
           onClick={() => actions.step(-1)}
         >
           <ChevronUp aria-hidden />
-        </Button>
-        <Button
+        </IconButton>
+        <IconButton
           type="button"
           variant="ghost"
           size="icon-sm"
-          aria-label={labels.nextMatch}
-          title={labels.nextMatch}
+          label={labels.nextMatch}
           onClick={() => actions.step(1)}
         >
           <ChevronDown aria-hidden />
-        </Button>
-        <Button
+        </IconButton>
+        <IconButton
           type="button"
           variant="ghost"
           size="icon-sm"
-          aria-label={labels.close}
-          title={labels.close}
+          label={labels.close}
           onClick={actions.close}
         >
           <X aria-hidden />
-        </Button>
+        </IconButton>
       </div>
       {!readOnly && (
         <div className="flex flex-wrap items-center gap-1">

@@ -6,7 +6,7 @@
   --quoin-popover: oklch(1 0 0);
   --quoin-popover-foreground: oklch(0.24 0.024 267);
   --quoin-border: oklch(0.927 0.01 262);
-  --quoin-input: oklch(0.62 0.02 262);
+  --quoin-input: oklch(0.927 0.01 262);
   --quoin-ring: oklch(0.533 0.221 266);
   --quoin-primary: oklch(0.24 0.024 267);
   --quoin-primary-foreground: oklch(0.985 0.003 260);
@@ -39,7 +39,7 @@
   --quoin-comment-active: oklch(0.98 0.06 85);
   --quoin-comment-edge: oklch(0.62 0.14 70);
   --quoin-radius: 0.625rem;
-  --quoin-shadow: oklch(0.24 0.024 267 / 14%);
+  --quoin-shadow: oklch(0.24 0.024 267 / 10%);
   /* The palette a writer colours text and backgrounds with. Each text colour reaches 4.5:1 on the page, and body text
      reaches 4.5:1 on each background. */
   --quoin-color-default: oklch(0.24 0.024 267);
@@ -77,7 +77,7 @@
   --quoin-popover: oklch(0.225 0.019 266);
   --quoin-popover-foreground: oklch(0.965 0.005 260);
   --quoin-border: oklch(1 0 0 / 10%);
-  --quoin-input: oklch(0.6 0.02 262);
+  --quoin-input: oklch(1 0 0 / 15%);
   --quoin-ring: oklch(0.72 0.14 268);
   --quoin-primary: oklch(0.93 0.008 262);
   --quoin-primary-foreground: oklch(0.22 0.02 266);

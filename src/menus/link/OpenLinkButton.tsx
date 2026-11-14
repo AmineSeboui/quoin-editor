@@ -2,7 +2,7 @@
 
 import { sanitizeHref } from '../../engine';
 import { ExternalLink } from '../../icons';
-import { Button } from '../../ui/button';
+import { IconButton } from '../../ui/icon-button';
 
 type OpenLinkButtonProps = { href: string; label: string };
 
@@ -11,10 +11,10 @@ export function OpenLinkButton({ href, label }: OpenLinkButtonProps) {
   const safe = sanitizeHref(href);
   if (!safe) return null;
   return (
-    <Button asChild variant="ghost" size="icon-sm">
-      <a href={safe} target="_blank" rel="noopener noreferrer" aria-label={label}>
+    <IconButton asChild label={label}>
+      <a href={safe} target="_blank" rel="noopener noreferrer">
         <ExternalLink />
       </a>
-    </Button>
+    </IconButton>
   );
 }

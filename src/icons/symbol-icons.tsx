@@ -85,3 +85,54 @@ export const Sticker = (props: IconProps) => (
     <path d="M10 16s.8 1 2 1c1.3 0 2-1 2-1" />
   </Icon>
 );
+
+export const AudioLines = (props: IconProps) => (
+  <Icon name="audio-lines" {...props}>
+    <path d="M2 10v3" />
+    <path d="M6 6v11" />
+    <path d="M10 3v18" />
+    <path d="M14 8v7" />
+    <path d="M18 5v13" />
+    <path d="M22 10v3" />
+  </Icon>
+);
+
+export const Feather = (props: IconProps) => (
+  <Icon name="feather" {...props}>
+    <path d="M12.67 19a2 2 0 0 0 1.416-.588l6.154-6.172a6 6 0 0 0-8.49-8.49L5.586 9.914A2 2 0 0 0 5 11.328V18a1 1 0 0 0 1 1z" />
+    <path d="M16 8 2 22" />
+    <path d="M17.5 15H9" />
+  </Icon>
+);
+
+export const Languages = (props: IconProps) => (
+  <Icon name="languages" {...props}>
+    <path d="m5 8 6 6" />
+    <path d="m4 14 6-6 2-3" />
+    <path d="M2 5h12" />
+    <path d="M7 2h1" />
+    <path d="m22 22-5-10-5 10" />
+    <path d="M14 18h6" />
+  </Icon>
+);
+
+export const SpellCheck = (props: IconProps) => (
+  <Icon name="spell-check" {...props}>
+    <path d="m6 16 6-12 6 12" />
+    <path d="M8 12h8" />
+    <path d="m16 20 2 2 4-4" />
+  </Icon>
+);
+
+export const WandSparkles = (props: IconProps) => (
+  <Icon name="wand-sparkles" {...props}>
+    <path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72" />
+    <path d="m14 7 3 3" />
+    <path d="M5 6v4" />
+    <path d="M19 14v4" />
+    <path d="M10 2v2" />
+    <path d="M7 8H3" />
+    <path d="M21 16h-4" />
+    <path d="M11 3H9" />
+  </Icon>
+);

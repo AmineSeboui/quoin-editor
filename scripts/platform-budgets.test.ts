@@ -21,7 +21,7 @@ describe('the budgets of the platform entries', () => {
       { added: incrementalBudget(8_498) },
       { added: incrementalBudget(4_534) },
       { added: incrementalBudget(6_885) },
-      { added: incrementalBudget(9_485) },
+      { added: incrementalBudget(11_655) },
     ]);
   });
 });

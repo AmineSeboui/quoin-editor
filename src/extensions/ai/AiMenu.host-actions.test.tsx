@@ -33,7 +33,7 @@ describe("the host's actions in the AI menu", () => {
     askingAbout([releaseNote, styleCheck]);
     const list = screen.getByRole('listbox', { name: 'AI actions' });
     expect(optionNames(list).slice(-3)).toEqual([
-      'Explain',
+      'Translate',
       'Rewrite as a release note',
       'Check against our style guide',
     ]);
@@ -50,9 +50,9 @@ describe("the host's actions in the AI menu", () => {
     ]);
   });
 
-  it('leave the menu without a group when the host gives none', () => {
+  it('leave the menu without their group when the host gives none', () => {
     askingAbout([]);
-    expect(within(screen.getByRole('listbox', { name: 'AI actions' })).queryByRole('group')).toBeNull();
+    expect(within(screen.getByRole('listbox', { name: 'AI actions' })).queryByRole('group', { name: 'More actions' })).toBeNull();
   });
 
   it("send the action's prompt as a custom request carrying its id, which replaces the selected text", async () => {

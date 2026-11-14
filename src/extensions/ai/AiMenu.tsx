@@ -1,7 +1,8 @@
 'use client';
 
 import { useId, useRef, useState, type KeyboardEvent } from 'react';
-import { Input } from '../../ui/input';
+import { ArrowUp, Sparkles } from '../../icons';
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '../../ui/input-group';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
 import { ASKS_FOR_PROMPT, type AiAction } from './ai-actions';
 import { choicesFor, type AiChoice } from './ai-choices';
@@ -29,6 +30,7 @@ export function AiMenu({ env, target, fromSpace }: AiMenuProps) {
   const choices = asking === null ? choicesFor(env, target, query) : [];
   const current = Math.min(active, choices.length - 1);
   const listId = `${id}-list`;
+  const typed = query.trim();
 
   const close = (typeSpace: boolean) => {
     closeMenu(controller.editor);
@@ -58,7 +60,6 @@ export function AiMenu({ env, target, fromSpace }: AiMenuProps) {
     }
   };
   const fieldLabel = asking === 'tone' ? labels.tonePrompt : asking === 'translate' ? labels.translatePrompt : labels.prompt;
-
   return (
     <Popover
       open
@@ -72,7 +73,7 @@ export function AiMenu({ env, target, fromSpace }: AiMenuProps) {
         aria-label={labels.askAi}
         side="bottom"
         align="start"
-        className="w-80 p-1"
+        className="w-80 gap-0 rounded-xl p-1"
         onOpenAutoFocus={(event) => {
           event.preventDefault();
           field.current?.focus();
@@ -83,29 +84,45 @@ export function AiMenu({ env, target, fromSpace }: AiMenuProps) {
           close(fromSpace);
         }}
       >
-        <Input
-          ref={field}
-          role="combobox"
-          aria-label={fieldLabel}
-          placeholder={fieldLabel}
-          aria-expanded={choices.length > 0}
-          aria-controls={choices.length > 0 ? listId : undefined}
-          aria-autocomplete="list"
-          aria-activedescendant={choices.length > 0 ? choiceId(listId, current) : undefined}
-          value={query}
-          onChange={(event) => {
-            setQuery(event.target.value);
-            setActive(0);
-          }}
-          onKeyDown={onKeyDown}
-        />
+        <InputGroup className="h-8 border-input/30 bg-input/30 shadow-none has-[[data-slot=input-group-control]:focus-visible]:border-input/30 has-[[data-slot=input-group-control]:focus-visible]:ring-0">
+          <InputGroupAddon>
+            <Sparkles />
+          </InputGroupAddon>
+          <InputGroupInput
+            ref={field}
+            role="combobox"
+            aria-label={fieldLabel}
+            placeholder={fieldLabel}
+            aria-expanded={choices.length > 0}
+            aria-controls={choices.length > 0 ? listId : undefined}
+            aria-autocomplete="list"
+            aria-activedescendant={choices.length > 0 ? choiceId(listId, current) : undefined}
+            value={query}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setActive(0);
+            }}
+            onKeyDown={onKeyDown}
+          />
+          <InputGroupAddon align="inline-end">
+            <InputGroupButton
+              variant="default"
+              size="icon-xs"
+              aria-label={labels.send ?? englishAiLabels.send}
+              disabled={typed === ''}
+              onClick={() => askFrom(env, asking ?? 'custom', typed)}
+            >
+              <ArrowUp />
+            </InputGroupButton>
+          </InputGroupAddon>
+        </InputGroup>
         {choices.length > 0 && (
           <AiChoiceList
             id={listId}
-            label={labels.menu}
-            hostLabel={labels.moreActions ?? englishAiLabels.moreActions}
+            labels={labels}
             choices={choices}
             current={current}
+            onHighlight={setActive}
             onChoose={choose}
           />
         )}

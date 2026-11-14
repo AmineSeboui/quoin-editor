@@ -1,4 +1,4 @@
-import { shell } from '../../support/block';
+import { host, shell } from '../../support/block';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { openEditor } from '../../support/editor';
 
@@ -53,3 +53,30 @@ test.describe('the toggle chevron', () => {
     expect(await turn(page)).toBe('0s');
   });
 });
+
+test.describe("a menu's entrance", () => {
+  const openBlockMenu = async (page: Page) => {
+    await openEditor(page, 'text');
+    await host(page, 'q').hover();
+    await page.getByRole('button', { name: 'Drag to move, click for options' }).click();
+    const menu = page.getByRole('menu');
+    await expect(menu).toBeVisible();
+    return menu;
+  };
+  const entrance = (menu: Locator) =>
+    menu.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { name: style.animationName, scale: Number(style.getPropertyValue('--tw-enter-scale')) };
+    });
+
+  test('zooms in by default', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    expect(await entrance(await openBlockMenu(page))).toEqual({ name: 'enter', scale: 0.95 });
+  });
+
+  test('does not move when the reader asks for reduced motion', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    expect((await entrance(await openBlockMenu(page))).name).toBe('none');
+  });
+});
+

@@ -9,7 +9,7 @@ import { useLabels } from '../i18n/use-labels';
 import { GripVertical, Plus } from '../icons';
 import { keepFocus } from '../menus/floating/keep-focus';
 import { useCoarsePointer } from '../mobile/use-coarse-pointer';
-import { Button } from '../ui/button';
+import { IconButton } from '../ui/icon-button';
 import { cn } from '../ui/cn';
 import { SQUARE_TAP_TARGET_FLOOR } from '../ui/touch-target';
 import type { ViewController } from '../view';
@@ -58,25 +58,25 @@ export function Gutter({ controller, store, actions }: GutterProps) {
         data-current={focused || menuOpen ? '' : undefined}
         {...{ [GUTTER_BLOCK]: target ?? undefined }}
       >
-        <Button
+        <IconButton
           type="button"
           variant="ghost"
           size="icon-xs"
           tabIndex={-1}
-          aria-label={labels.addBelow}
+          label={labels.addBelow}
           className={ADD_BELOW}
           onPointerDown={keepFocus}
           onClick={addBelow}
         >
           <Plus />
-        </Button>
+        </IconButton>
         <BlockMenu controller={controller} store={store} actions={actions} onOpen={openMenu}>
-          <Button
+          <IconButton
             type="button"
             variant="ghost"
             size={null}
             tabIndex={-1}
-            aria-label={coarse ? (labels.blockOptions ?? englishLabels.blockOptions) : labels.dragHandle}
+            label={coarse ? (labels.blockOptions ?? englishLabels.blockOptions) : labels.dragHandle}
             className={cn('text-muted-foreground h-6 w-4 cursor-grab rounded-md', SQUARE_TAP_TARGET_FLOOR)}
             onPointerDown={(event) => {
               // The press closes an open menu as a press outside it, before its click arrives, so that click must not
@@ -94,7 +94,7 @@ export function Gutter({ controller, store, actions }: GutterProps) {
             }}
           >
             <GripVertical />
-          </Button>
+          </IconButton>
         </BlockMenu>
       </div>
       <DragOverlay ref={overlay} />

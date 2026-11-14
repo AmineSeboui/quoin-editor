@@ -16,7 +16,7 @@ import { languageId, languageName, languageOptions } from './code-languages';
 const FIELD = `quoin-code-language quoin-code-control ${FOCUS_RING}`;
 // The listbox scrolls rather than the popover around it, as the combobox's own popup, which the arrows walk while focus
 // stays in the field.
-const CONTENT = `${MENU_CONTENT} flex max-h-64 w-48 flex-col overflow-y-hidden`;
+const CONTENT = `${MENU_CONTENT} flex max-h-64 w-48 flex-col gap-0 overflow-y-hidden rounded-xl`;
 
 type LanguageComboboxProps = {
   blockId: string;

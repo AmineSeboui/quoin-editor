@@ -5,7 +5,8 @@ import { unsetLink } from '../../engine/commands/marks';
 import { isCollapsed } from '../../engine/state/selection';
 import type { QuoinLabels } from '../../i18n/labels';
 import { Check, Unlink } from '../../icons';
-import { Button } from '../../ui/button';
+import { escapeWithin } from '../../ui/escape-within';
+import { IconButton } from '../../ui/icon-button';
 import { Input } from '../../ui/input';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
 import { preventDefault } from '../../ui/prevent-default';
@@ -86,6 +87,10 @@ export function LinkPopover({ controller, labels, onClose }: LinkPopoverProps) {
     event.preventDefault();
     backToText();
   };
+  const escape = escapeWithin(content, backToText, (event) => {
+    event.preventDefault();
+    backToText();
+  });
 
   return (
     <Popover
@@ -103,10 +108,8 @@ export function LinkPopover({ controller, labels, onClose }: LinkPopoverProps) {
         align="start"
         className={CONTENT}
         onCloseAutoFocus={preventDefault}
-        onEscapeKeyDown={(event) => {
-          event.preventDefault();
-          backToText();
-        }}
+        onEscapeKeyDown={escape.onEscapeKeyDown}
+        onKeyDownCapture={escape.onKeyDownCapture}
         onKeyDown={tabOut}
       >
         <form noValidate className="flex items-center gap-0.5" onSubmit={apply}>
@@ -119,14 +122,14 @@ export function LinkPopover({ controller, labels, onClose }: LinkPopoverProps) {
             value={address}
             onChange={onChange}
           />
-          <Button type="submit" variant="ghost" size="icon-sm" aria-label={labels.linkApply}>
+          <IconButton type="submit" variant="ghost" size="icon-sm" label={labels.linkApply}>
             <Check />
-          </Button>
+          </IconButton>
           {link !== null && <OpenLinkButton href={link.href} label={labels.linkOpen} />}
           {link !== null && (
-            <Button type="button" variant="ghost" size="icon-sm" aria-label={labels.linkRemove} onClick={remove}>
+            <IconButton type="button" variant="ghost" size="icon-sm" label={labels.linkRemove} onClick={remove}>
               <Unlink />
-            </Button>
+            </IconButton>
           )}
         </form>
         {invalid && (

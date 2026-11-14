@@ -35,4 +35,7 @@ export const deAiLabels: Required<AiLabels> = {
   written: (text) => `Antwort der KI bereit: ${text}`,
   halted: (text) => `Gestoppt. Antwort der KI bisher: ${text}`,
   targetGone: 'Der gemeinte Text wurde entfernt; Übernehmen fügt die Antwort dort ein, wo er stand',
+  send: 'Senden',
+  editGroup: 'Bearbeiten',
+  writeGroup: 'Schreiben',
 };

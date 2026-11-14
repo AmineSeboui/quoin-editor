@@ -18,6 +18,7 @@ import {
 import type { KitItem } from '../toolbar/toolbar-button';
 import { linkItem, markItem } from '../toolbar/toolbar-items';
 import type { ViewController } from '../view';
+import { MARK_SHORTCUTS } from '../shortcuts/mark-shortcuts';
 
 export type MobileItems = { addBlock: ToolbarItem; editing: readonly KitItem[] };
 
@@ -35,10 +36,10 @@ export function mobileItems(labels: QuoinLabels, openLink: () => void): MobileIt
   return {
     addBlock: { id: 'add-block', title: labels.addBelow, icon: Plus, run: addBlockAtCaret },
     editing: [
-      markItem('bold', labels.bold, Bold),
-      markItem('italic', labels.italic, Italic),
-      markItem('strike', labels.strike, Strikethrough),
-      markItem('code', labels.code, Code),
+      markItem('bold', labels.bold, Bold, MARK_SHORTCUTS.bold),
+      markItem('italic', labels.italic, Italic, MARK_SHORTCUTS.italic),
+      markItem('strike', labels.strike, Strikethrough, MARK_SHORTCUTS.strike),
+      markItem('code', labels.code, Code, MARK_SHORTCUTS.code),
       linkItem(labels, openLink),
       commandItem('indent', labels.indent, ListIndentIncrease, indent),
       commandItem('outdent', labels.outdent, ListIndentDecrease, outdent),

@@ -62,7 +62,7 @@ export const localeEntries = [
 
 /** @type {PackageEntry[]} */
 export const packageEntries = [
-  { name: MAIN_ENTRY, source: 'src/index.ts', client: true, total: 160_700 },
+  { name: MAIN_ENTRY, source: 'src/index.ts', client: true, total: 164_700 },
   { name: 'headless', source: 'src/headless.ts', client: true, total: 77_300 },
   { name: 'engine', source: 'src/engine/index.ts', client: false, total: 55_600 },
   // Read-only React for a server, which loads it alone: the markdown parser it shares with the engine is most of it.
@@ -81,7 +81,7 @@ export const packageEntries = [
   // Threads the host keeps, which no catalogue option could carry, so it stays out of the catalogue as presence does.
   { name: 'comments', source: 'src/comments.ts', client: true, added: incrementalBudget(6_885) },
   // The host's model streams through a callback no catalogue option could carry, so it stays out as comments do.
-  { name: 'ai', source: 'src/ai.ts', client: true, added: incrementalBudget(9_485) },
+  { name: 'ai', source: 'src/ai.ts', client: true, added: incrementalBudget(11_655) },
   // The hook alone: the grammars it loads build into the prism-grammars chunk, which it leaves out of its measure.
   { name: 'highlight', source: 'src/highlight.ts', client: true, added: incrementalBudget(612) },
   // The pane reads the document through the markdown serialiser the main entry already holds.

@@ -4,7 +4,7 @@ import { useId, useState, type FormEvent } from 'react';
 import { useLabels } from '../../i18n/use-labels';
 import { Check } from '../../icons';
 import { linkAddress } from '../../menus/link/link-address';
-import { Button } from '../../ui/button';
+import { IconButton } from '../../ui/icon-button';
 import { Input } from '../../ui/input';
 import type { ViewController } from '../../view';
 import { setBlockAttrs } from '../text/set-block-attrs';
@@ -43,9 +43,9 @@ export function EmbedLinkForm({ blockId, controller }: { blockId: string; contro
           setInvalid(false);
         }}
       />
-      <Button type="submit" variant="ghost" size="icon-sm" aria-label={labels.linkApply}>
+      <IconButton type="submit" variant="ghost" size="icon-sm" label={labels.linkApply}>
         <Check />
-      </Button>
+      </IconButton>
       {invalid && (
         <p id={messageId} role="alert" className="quoin-block-message">
           {labels.invalidLink}

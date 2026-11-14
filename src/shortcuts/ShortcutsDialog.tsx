@@ -3,9 +3,8 @@
 import { useId, useMemo } from 'react';
 import type { QuoinLabels } from '../i18n/labels';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Kbd } from '../ui/kbd';
 import { shortcutGroups, type ShortcutGroup } from './shortcut-groups';
-
-const KEYS = 'rounded border bg-muted px-1.5 py-0.5 font-sans text-xs whitespace-nowrap';
 
 function ShortcutSection({ group }: { group: ShortcutGroup }) {
   const titleId = useId();
@@ -19,7 +18,7 @@ function ShortcutSection({ group }: { group: ShortcutGroup }) {
           <div key={`${label} ${keys}`} className="flex items-center justify-between gap-4">
             <dt>{label}</dt>
             <dd>
-              <kbd className={KEYS}>{keys}</kbd>
+              <Kbd>{keys}</Kbd>
             </dd>
           </div>
         ))}

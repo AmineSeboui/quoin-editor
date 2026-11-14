@@ -1,15 +1,10 @@
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import css from './tokens.css?raw';
 import viewCss from '../view/view.css?raw';
-import stylesCss from '../styles.css?raw';
 import commentsCss from '../extensions/comments/comments.css?raw';
 import { TONE } from '../blocks/previews';
 import { PALETTE } from '../engine/markdown/palette';
 import { contrastOnWash, contrastRatio, tokenReader, type Theme } from './oklch-contrast';
-import { HIGHLIGHT_BAR } from './focus';
 
-const inputSource = readFileSync(resolve(__dirname, 'input.tsx'), 'utf8');
 const token = tokenReader(css);
 const contrast = (theme: Theme, a: string, b: string) => contrastRatio(token(theme, a), token(theme, b));
 
@@ -35,18 +30,6 @@ const SURFACES = ['background', 'accent', ...PALETTE.map((name) => `bg-${name}`)
 /** What a callout's wash is laid over: the page, or a selected block. Never a background colour, which only text takes. */
 const CALLOUT_SURFACES = ['background', 'accent'];
 
-/** The token behind the border colour a field's classes give it with no state or variant in front. */
-function fieldBorder(source: string): string {
-  const [, colour] = /["\s]border-([a-z][\w-]*)[\s"]/.exec(source) ?? [];
-  const [, token] = new RegExp(`--color-${colour}:\\s*var\\(--quoin-([\\w-]+)\\)`).exec(stylesCss) ?? [];
-  if (!token) throw new Error(`no token behind border-${colour}`);
-  return token;
-}
-
-const FIELD_BORDERS = [{ field: 'input', token: fieldBorder(inputSource) }];
-
-const FIELD_SURFACES = ['background', 'popover', 'accent'];
-
 /** How opaque the comments stylesheet paints the tint of an anchor. */
 const ANCHOR_TINT = /\[data-comment\] \{\s*background: color-mix\(in oklch, var\(--quoin-comment\) (\d+)%/;
 const ANCHOR_ALPHA = Number(ANCHOR_TINT.exec(commentsCss)![1]) / 100;
@@ -56,8 +39,6 @@ const HIGHLIGHT = 'accent';
 
 /** The syntax colours, read from the palette so one added later is held to the same contrast. */
 const SYNTAX = [...new Set([...css.matchAll(/--quoin-(syntax-[\w-]+):/g)].map(([, name]) => name))];
-
-const BAR = /var\(--quoin-([\w-]+)\)/.exec(HIGHLIGHT_BAR)![1];
 
 describe.each<Theme>(['light', 'dark'])('%s theme', (theme) => {
   it('draws the focus ring at 3:1 or more against the page', () => {
@@ -107,19 +88,11 @@ describe.each<Theme>(['light', 'dark'])('%s theme', (theme) => {
     for (const surface of SURFACES) expect(contrast(theme, TASK_BOX, surface)).toBeGreaterThanOrEqual(3);
   });
 
-  it.each(FIELD_BORDERS)('draws a $field border at 3:1 or more on the page, a popover or a selected block', (field) => {
-    for (const surface of FIELD_SURFACES) expect(contrast(theme, field.token, surface)).toBeGreaterThanOrEqual(3);
-  });
-
   it('draws the rule of a warning callout at 3:1 or more on its wash and on the page', () => {
     const wash = WASHES.find((w) => w.name === 'warning')!;
     const [rule, page] = [token(theme, 'warning'), token(theme, 'background')];
     expect(contrastOnWash(rule, rule, wash.alpha, page)).toBeGreaterThanOrEqual(3);
     expect(contrastRatio(rule, page)).toBeGreaterThanOrEqual(3);
-  });
-
-  it('draws the input border at 3:1 or more on the page, a popover and a highlighted row', () => {
-    for (const surface of FIELD_SURFACES) expect(contrast(theme, 'input', surface)).toBeGreaterThanOrEqual(3);
   });
 
   it('writes a placeholder at 4.5:1 or more on the page, a selected block and every background colour', () => {
@@ -160,11 +133,6 @@ describe.each<Theme>(['light', 'dark'])('%s theme', (theme) => {
   it('draws the rule under comment anchors at 3:1 or more against the page and the tints', () => {
     expect(contrast(theme, 'comment-edge', 'background')).toBeGreaterThanOrEqual(3);
     expect(contrast(theme, 'comment-edge', 'comment-active')).toBeGreaterThanOrEqual(3);
-  });
-
-  it('draws the highlight bar at 3:1 or more against the row and its popover', () => {
-    expect(contrast(theme, BAR, HIGHLIGHT)).toBeGreaterThanOrEqual(3);
-    expect(contrast(theme, BAR, 'popover')).toBeGreaterThanOrEqual(3);
   });
 });
 

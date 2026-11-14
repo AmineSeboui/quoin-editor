@@ -35,4 +35,7 @@ export const zhAiLabels: Required<AiLabels> = {
   written: (text) => `AI 回复已就绪：${text}`,
   halted: (text) => `已停止。AI 目前的回复：${text}`,
   targetGone: '对应的文字已被删除，采用会把回复插入到它原来的位置',
+  send: '发送',
+  editGroup: '编辑',
+  writeGroup: '写作',
 };

@@ -39,6 +39,12 @@ export type AiLabels = {
   halted(text: string): string;
   /** Shown when the text the answer was for was deleted meanwhile. */
   targetGone: string;
+  /** The button that sends what was typed, in the menu and in the follow-up field. English where missing. */
+  send?: string;
+  /** The heading over the actions that rewrite the selected text. English where missing. */
+  editGroup?: string;
+  /** The heading over the actions that write something new. English where missing. */
+  writeGroup?: string;
 };
 
 export const englishAiLabels: Required<AiLabels> = {
@@ -75,6 +81,9 @@ export const englishAiLabels: Required<AiLabels> = {
   written: (text) => `AI response ready: ${text}`,
   halted: (text) => `Stopped. AI response so far: ${text}`,
   targetGone: 'The text this was for was removed, so Accept inserts it where that text was',
+  send: 'Send',
+  editGroup: 'Edit',
+  writeGroup: 'Write',
 };
 
 /** The English labels with the host's overrides on top. A key left out, or passed as undefined, stays English. */

@@ -4,7 +4,8 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { useDirection } from '@radix-ui/react-direction';
 import { useRef } from 'react';
 import { X } from '../../icons';
-import { Button } from '../../ui/button';
+import { escapeWithin } from '../../ui/escape-within';
+import { IconButton } from '../../ui/icon-button';
 import type { CommentsEnv } from './comments-env';
 import type { CommentsState } from './comments-plugin';
 import type { RailEntry } from './rail-entries';
@@ -29,6 +30,7 @@ export function CommentsSheet({ env, entries, value, onToggle, onClose, returnFo
   const content = useRef<HTMLDivElement>(null);
   const dir = useDirection();
   const outside = useRef(false);
+  const escape = escapeWithin(content, onClose);
   const focusOpened = (event: Event) => {
     const opened = content.current?.querySelector<HTMLElement>('[aria-expanded="true"]');
     if (!opened) return;
@@ -50,6 +52,8 @@ export function CommentsSheet({ env, entries, value, onToggle, onClose, returnFo
           aria-describedby={undefined}
           className="quoin quoin-comments-sheet"
           onOpenAutoFocus={focusOpened}
+          onEscapeKeyDown={escape.onEscapeKeyDown}
+          onKeyDownCapture={escape.onKeyDownCapture}
           onInteractOutside={() => {
             outside.current = true;
           }}
@@ -61,9 +65,9 @@ export function CommentsSheet({ env, entries, value, onToggle, onClose, returnFo
           <div className="flex items-center justify-between gap-2">
             <DialogPrimitive.Title className="text-sm font-semibold">{labels.comments}</DialogPrimitive.Title>
             <DialogPrimitive.Close asChild>
-              <Button type="button" variant="ghost" size="icon-sm" aria-label={labels.close}>
+              <IconButton type="button" variant="ghost" size="icon-sm" label={labels.close}>
                 <X />
-              </Button>
+              </IconButton>
             </DialogPrimitive.Close>
           </div>
           <ul aria-label={labels.comments} className="flex list-none flex-col gap-2">

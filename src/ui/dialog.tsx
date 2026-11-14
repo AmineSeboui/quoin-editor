@@ -5,7 +5,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useDirection } from "@radix-ui/react-direction";
 import { X } from "../icons";
 import { cn } from "./cn";
-import { FOCUS_RING } from "./focus";
+import { Button } from "./button";
 import { ICON_TAP_TARGET_FLOOR } from "./touch-target";
 
 function Dialog(props: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Root>) {
@@ -39,7 +39,7 @@ const DialogOverlay = /* @__PURE__ */ React.forwardRef<
       ref={ref}
       data-slot="dialog-overlay"
       className={cn(
-        "quoin fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+        "quoin fixed inset-0 isolate z-50 bg-black/10 duration-100 backdrop-blur-xs data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         className,
       )}
       {...props}
@@ -60,21 +60,21 @@ const DialogContent = /* @__PURE__ */ React.forwardRef<
         dir={dir}
         data-slot="dialog-content"
         className={cn(
-          "quoin bg-popover fixed top-[50%] left-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 rounded-xl border p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+          "quoin fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:max-w-sm",
           className,
         )}
         {...props}
       >
         {children}
-        <DialogPrimitive.Close
-          className={cn(
-            "absolute top-4 end-4 rounded-xs opacity-70 transition-opacity hover:opacity-100",
-            FOCUS_RING,
-            ICON_TAP_TARGET_FLOOR,
-          )}
-        >
-          <X />
-          <span className="sr-only">{closeLabel}</span>
+        <DialogPrimitive.Close asChild>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className={cn("absolute top-2 end-2 pointer-coarse:min-h-0 pointer-coarse:min-w-0", ICON_TAP_TARGET_FLOOR)}
+          >
+            <X />
+            <span className="sr-only">{closeLabel}</span>
+          </Button>
         </DialogPrimitive.Close>
       </DialogPrimitive.Content>
     </DialogPortal>
@@ -89,7 +89,7 @@ const DialogHeader = /* @__PURE__ */ React.forwardRef<HTMLDivElement, React.Comp
     <div
       ref={ref}
       data-slot="dialog-header"
-      className={cn("flex flex-col gap-2 text-center sm:text-left", className)}
+      className={cn("flex flex-col gap-2", className)}
       {...props}
     />
   );
@@ -103,7 +103,7 @@ const DialogFooter = /* @__PURE__ */ React.forwardRef<HTMLDivElement, React.Comp
     <div
       ref={ref}
       data-slot="dialog-footer"
-      className={cn("flex flex-col-reverse gap-2 sm:flex-row sm:justify-end", className)}
+      className={cn("-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t bg-muted/50 p-4 sm:flex-row sm:justify-end", className)}
       {...props}
     />
   );
@@ -117,7 +117,7 @@ const DialogTitle = /* @__PURE__ */ React.forwardRef<
     <DialogPrimitive.Title
       ref={ref}
       data-slot="dialog-title"
-      className={cn("text-lg leading-none font-semibold", className)}
+      className={cn("text-base leading-none font-medium", className)}
       {...props}
     />
   );

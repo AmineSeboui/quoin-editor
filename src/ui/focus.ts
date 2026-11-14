@@ -1,15 +1,4 @@
-/** A solid 2px keyboard focus outline in --quoin-ring. An outline rather than a ring, because forced-colors mode drops
- *  box-shadow and repaints an outline in a system colour. The outline is deliberately not suppressed at rest with
- *  Tailwind's forced-colors aware utility: applied unconditionally, it draws a 2px outline round every control in
- *  forced-colors mode, so the focused one no longer stands out. */
-export const FOCUS_RING = [
-  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid',
-  'focus-visible:outline-[var(--quoin-ring)]',
-].join(' ');
-
-/** An inset bar that marks the highlighted row of a Radix menu or select, so the row is not
- *  told apart from its neighbours by background colour alone. It sits on the side the row's text starts from. */
-export const HIGHLIGHT_BAR = [
-  'data-[highlighted]:shadow-[inset_2px_0_0_var(--quoin-ring)]',
-  'rtl:data-[highlighted]:shadow-[inset_-2px_0_0_var(--quoin-ring)]',
-].join(' ');
+/** shadcn's keyboard focus: a 3px halo of --quoin-ring at half strength, and the border in --quoin-ring where the
+ *  control has one. Forced-colors mode drops the halo, so the base layer in styles.css draws a system-colour outline
+ *  on every focused element there. */
+export const FOCUS_RING = 'outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50';

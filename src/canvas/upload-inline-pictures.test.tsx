@@ -34,8 +34,9 @@ describe('pictures a paste carries inline', () => {
     const picture = { type: 'IMAGE', storageKey: 'key/image.png', alt: 'Cat', width: 40, height: 30 };
     await waitFor(() => expect(shape(last())).toEqual(['Above', picture, 'Below']));
     expect(upload).toHaveBeenCalledTimes(1);
-    expect(upload.mock.calls[0][0]).toMatchObject({ name: 'image.png', type: 'image/png', size: 8 });
-    expect(upload.mock.calls[0][1]).toBe('image');
+    const [file, kind] = upload.mock.calls[0];
+    expect([file.name, file.type, file.size]).toEqual(['image.png', 'image/png', 8]);
+    expect(kind).toBe('image');
     expect(JSON.stringify([changes, committed.map((tr) => tr.steps)])).not.toContain('base64');
   });
 

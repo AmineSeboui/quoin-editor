@@ -1,6 +1,6 @@
 import { paletteOrUndefined } from '../engine/blocks/data-fields';
 
-// The light theme's palette tokens, written as the sRGB hex Word takes.
+// The light theme's palette tokens, written as sRGB hex.
 const TEXT: Readonly<Record<string, string>> = {
   default: '0A0A0A',
   gray: '6C6C6C',

@@ -1,6 +1,7 @@
 import { createBlockCodec, textSelection, toMarkdown, type EditorState, type Pos, type QuoinBlock } from '../../engine';
 import { sliceFromSelection } from '../../engine/clipboard/extract-slice';
 import type { AiAction, AiRequest } from './ai-actions';
+import type { AiActionDefinition } from './ai-host-actions';
 import type { AiTarget } from './ai-target';
 
 export const CONTEXT_LIMIT = 8_000;
@@ -56,12 +57,19 @@ function documentContext(state: EditorState, target: AiTarget, selection: string
   return aroundSelection(full, start, start + selection.length);
 }
 
-export type RequestInput = { action: AiAction; prompt?: string; language?: string };
+export type RequestInput = {
+  action: AiAction;
+  prompt?: AiActionDefinition['prompt'];
+  language?: string;
+  actionId?: string;
+};
 
 export function buildRequest(state: EditorState, target: AiTarget, input: RequestInput): AiRequest {
   const selection = plain(rangeMarkdown(state, target.from, target.to));
   const request: AiRequest = { action: input.action, selection, context: documentContext(state, target, selection) };
-  if (input.prompt !== undefined) request.prompt = input.prompt;
   if (input.language !== undefined) request.language = input.language;
+  if (input.actionId !== undefined) request.actionId = input.actionId;
+  const { prompt } = input;
+  if (prompt !== undefined) request.prompt = typeof prompt === 'string' ? prompt : prompt({ ...request });
   return request;
 }

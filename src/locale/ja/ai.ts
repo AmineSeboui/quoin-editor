@@ -1,7 +1,7 @@
 import type { AiLabels } from '../../extensions/ai/ai-labels';
 
 /** Every string AI actions show or speak, in Japanese. */
-export const jaAiLabels: AiLabels = {
+export const jaAiLabels: Required<AiLabels> = {
   askAi: 'AI に依頼',
   askAiDescription: 'AI で書く、または直す',
   actions: {
@@ -18,6 +18,7 @@ export const jaAiLabels: AiLabels = {
     custom: 'AI に依頼',
   },
   menu: 'AI の操作',
+  moreActions: 'その他の操作',
   prompt: 'AI に書くことや直すことを頼む',
   tonePrompt: '求める調子、たとえば親しみやすく',
   translatePrompt: '翻訳したい言語',

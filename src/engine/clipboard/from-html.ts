@@ -14,10 +14,15 @@ export function availableParser(parser?: DOMParserLike): DOMParserLike | null {
 }
 
 export function fromHTML(html: string, options: FromHTMLOptions = {}): QuoinBlock[] {
+  return readHTML(html, options);
+}
+
+/** Reads HTML into blocks, and given `pictures` keeps a place for each picture it carries inline, as a paste does. */
+export function readHTML(html: string, options: FromHTMLOptions, pictures?: string[]): QuoinBlock[] {
   const parser = availableParser(options.parser);
   if (parser === null) throw new Error('fromHTML needs a DOMParser');
   const makeId = options.newId ?? newId;
   const codec = createBlockCodec(createSchema(), { newId: makeId });
   const { body } = parser.parseFromString(html, 'text/html');
-  return blocksFromBody(body as Element, makeId).map((block) => codec.toQuoin(block));
+  return blocksFromBody(body as Element, makeId, pictures).map((block) => codec.toQuoin(block));
 }

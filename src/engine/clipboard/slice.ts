@@ -8,8 +8,11 @@ export type Slice = {
   readonly plainText?: boolean;
 };
 
-/** A slice the clipboard gave as HTML from another document, which the canvas may hold pictures of its own for. */
-export type PastedSlice = Slice & { readonly fromHTML?: boolean };
+/**
+ * A slice the clipboard gave as HTML from another document, which the canvas may hold pictures of its own for, with the
+ * data addresses of the pictures it carried inline, each standing in its blocks as an empty image block.
+ */
+export type PastedSlice = Slice & { readonly fromHTML?: boolean; readonly pictures?: readonly string[] };
 
 /** The meta of a transaction that pastes HTML from another document. */
 export const PASTED_HTML = 'pastedHTML';

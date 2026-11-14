@@ -20,6 +20,7 @@ describe('the AI labels', () => {
       custom: 'Ask AI',
     });
     expect(labels.menu).toBe('AI actions');
+    expect(labels.moreActions).toBe('More actions');
     expect(labels.prompt).toBe('Ask AI to write or edit');
     expect(labels.tonePrompt).toBe('Tone to take, such as friendly');
     expect(labels.translatePrompt).toBe('Language to translate to');
@@ -46,6 +47,13 @@ describe('the AI labels', () => {
     const translation: AiLabels = { ...before, accept: 'Accepter' };
     const labels = resolveAiLabels(translation);
     expect([labels.send, labels.editGroup, labels.writeGroup]).toEqual(['Send', 'Edit', 'Write']);
+  });
+
+  it('still take a complete translation written before the optional labels were added', () => {
+    const { moreActions, ...translation } = englishAiLabels;
+    const labels: AiLabels = translation;
+    expect(moreActions).toBe('More actions');
+    expect(resolveAiLabels(labels).moreActions).toBe('More actions');
   });
 
   it('take the host overrides, and keep English for a key left out or undefined', () => {

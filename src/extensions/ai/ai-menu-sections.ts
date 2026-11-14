@@ -1,26 +1,37 @@
-import { EDIT_ACTIONS, EMPTY_LINE_ACTIONS, WRITE_ACTIONS, type AiAction } from './ai-actions';
-import type { AiEnv } from './ai-env';
-import { englishAiLabels } from './ai-labels';
-import type { AiTarget } from './ai-target';
+import { WRITE_ACTIONS } from './ai-actions';
+import type { AiChoice } from './ai-choices';
+import { englishAiLabels, type AiLabels } from './ai-labels';
 
-export type Choice = { readonly action: AiAction; readonly label: string };
+export type ChoiceRow = { readonly choice: AiChoice; readonly index: number };
 
-/** A run of the menu's choices: the actions that write, those that edit, and the typed request on its own. */
-export type ChoiceSection = { readonly id: 'write' | 'edit' | 'ask'; readonly label?: string; readonly choices: readonly Choice[] };
+/** A run of the menu's choices under its heading: the actions that write, those that edit, the host's own, and the
+ *  typed request, which has none. */
+export type ChoiceSection = {
+  readonly id: 'write' | 'edit' | 'host' | 'ask';
+  readonly label?: string;
+  readonly rows: ChoiceRow[];
+};
 
-/** The menu's choices for what is typed, by section, leaving out a section nothing in it matches. Their order,
- *  section after section, is the order the arrows walk. */
-export function menuSections({ labels }: AiEnv, target: AiTarget, query: string): ChoiceSection[] {
-  const emptyLine = !target.selected && target.to.offset === 0;
-  const wanted = query.trim().toLowerCase();
-  const matching = (actions: readonly AiAction[]) =>
-    actions
-      .filter((action) => labels.actions[action].toLowerCase().includes(wanted))
-      .map((action) => ({ action, label: labels.actions[action] }));
-  const sections: ChoiceSection[] = [
-    { id: 'write', label: labels.writeGroup ?? englishAiLabels.writeGroup, choices: matching(emptyLine ? EMPTY_LINE_ACTIONS : WRITE_ACTIONS) },
-    { id: 'edit', label: labels.editGroup ?? englishAiLabels.editGroup, choices: emptyLine ? [] : matching(EDIT_ACTIONS) },
-  ];
-  if (wanted !== '') sections.push({ id: 'ask', choices: [{ action: 'custom', label: labels.ask(query.trim()) }] });
-  return sections.filter((section) => section.choices.length > 0);
+const sectionOf = (choice: AiChoice): ChoiceSection['id'] => {
+  if (choice.host !== undefined) return 'host';
+  if (choice.action === 'custom') return 'ask';
+  return WRITE_ACTIONS.includes(choice.action) ? 'write' : 'edit';
+};
+
+/** The choices in their order, as runs under the heading each run takes; `index` is a row's place in `choices`. */
+export function menuSections(choices: readonly AiChoice[], labels: AiLabels): ChoiceSection[] {
+  const headings = {
+    write: labels.writeGroup ?? englishAiLabels.writeGroup,
+    edit: labels.editGroup ?? englishAiLabels.editGroup,
+    host: labels.moreActions ?? englishAiLabels.moreActions,
+    ask: undefined,
+  };
+  const sections: ChoiceSection[] = [];
+  choices.forEach((choice, index) => {
+    const id = sectionOf(choice);
+    const last = sections.at(-1);
+    if (last?.id === id) last.rows.push({ choice, index });
+    else sections.push({ id, label: headings[id], rows: [{ choice, index }] });
+  });
+  return sections;
 }

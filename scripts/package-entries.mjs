@@ -29,7 +29,7 @@ export const featureEntries = [
   { name: 'toc', source: 'src/toc.ts', client: true, added: incrementalBudget(1_803) },
   { name: 'mention', source: 'src/mention.ts', client: true, added: incrementalBudget(2_837) },
   { name: 'emoji', source: 'src/emoji.ts', client: true, added: incrementalBudget(3_149) },
-  { name: 'find', source: 'src/find.ts', client: true, added: incrementalBudget(4_351) },
+  { name: 'find', source: 'src/find.ts', client: true, added: incrementalBudget(4_341) },
   { name: 'stats', source: 'src/stats.ts', client: true, added: incrementalBudget(1_742) },
 ];
 
@@ -62,9 +62,9 @@ export const localeEntries = [
 
 /** @type {PackageEntry[]} */
 export const packageEntries = [
-  { name: MAIN_ENTRY, source: 'src/index.ts', client: true, total: 163_400 },
-  { name: 'headless', source: 'src/headless.ts', client: true, total: 76_600 },
-  { name: 'engine', source: 'src/engine/index.ts', client: false, total: 54_900 },
+  { name: MAIN_ENTRY, source: 'src/index.ts', client: true, total: 164_700 },
+  { name: 'headless', source: 'src/headless.ts', client: true, total: 77_300 },
+  { name: 'engine', source: 'src/engine/index.ts', client: false, total: 55_600 },
   // Read-only React for a server, which loads it alone: the markdown parser it shares with the engine is most of it.
   { name: 'view', source: 'src/view-static/index.ts', client: false, total: 22_214 },
   // The changes between two versions, drawn with the view's node tree: loaded alone, like the view.
@@ -72,14 +72,16 @@ export const packageEntries = [
   // Word documents written in a browser, a worker or Node, loaded alone like the view: most of it is the block reading.
   { name: 'docx', source: 'src/docx/index.ts', client: false, total: 25_891 },
   ...localeEntries,
+  // PDF files written in a browser, a worker or Node, loaded alone like the Word export, which shares its block reading.
+  { name: 'pdf', source: 'src/pdf/index.ts', client: false, total: incrementalBudget(32_870) },
   // Measured as what it adds to the main entry, like a feature: the engine entry it loads is a part of the main entry.
   { name: 'yjs', source: 'src/yjs.ts', client: false, added: incrementalBudget(8_498) },
   // Collaborators drawn in the canvas: a client entry, apart from the adapter, which a worker or a server can load alone.
   { name: 'presence', source: 'src/presence.ts', client: true, added: incrementalBudget(4_534) },
   // Threads the host keeps, which no catalogue option could carry, so it stays out of the catalogue as presence does.
-  { name: 'comments', source: 'src/comments.ts', client: true, added: incrementalBudget(6_872) },
+  { name: 'comments', source: 'src/comments.ts', client: true, added: incrementalBudget(6_885) },
   // The host's model streams through a callback no catalogue option could carry, so it stays out as comments do.
-  { name: 'ai', source: 'src/ai.ts', client: true, added: incrementalBudget(10_937) },
+  { name: 'ai', source: 'src/ai.ts', client: true, added: incrementalBudget(11_655) },
   // The hook alone: the grammars it loads build into the prism-grammars chunk, which it leaves out of its measure.
   { name: 'highlight', source: 'src/highlight.ts', client: true, added: incrementalBudget(612) },
   // The pane reads the document through the markdown serialiser the main entry already holds.

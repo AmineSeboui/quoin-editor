@@ -65,21 +65,23 @@ describe('the package entry list', () => {
     expect(lazyChunks.every(({ total }) => Number.isInteger(total) && total > 0)).toBe(true);
   });
 
-  it('keeps the absolute budgets of the main, headless and engine entries, and of the view, diff and docx a server loads alone', () => {
+  it('keeps the absolute budgets of the main, headless and engine entries, and of the view, diff, docx and pdf a server loads alone', () => {
     const totals = packageEntries
       .filter((entry) => entry.total !== undefined && !localeEntries.includes(entry))
       .map(({ name, total }) => [name, total]);
     expect(totals).toEqual([
-      ['index', 163_400],
-      ['headless', 76_600],
-      ['engine', 54_900],
+      ['index', 164_700],
+      ['headless', 77_300],
+      ['engine', 55_600],
       ['view', 22_214],
       ['diff', 26_990],
       ['docx', 25_891],
+      ['pdf', incrementalBudget(32_870)],
     ]);
     expect(packageEntries[3]).toMatchObject({ source: 'src/view-static/index.ts', client: false });
     expect(packageEntries[4]).toMatchObject({ source: 'src/diff/index.ts', client: false });
     expect(packageEntries[5]).toMatchObject({ source: 'src/docx/index.ts', client: false });
+    expect(packageEntries[6 + localeEntries.length]).toMatchObject({ source: 'src/pdf/index.ts', client: false });
   });
 
   it('sets an incremental budget at the measure plus 4 percent, and never less than 256 B above it', () => {

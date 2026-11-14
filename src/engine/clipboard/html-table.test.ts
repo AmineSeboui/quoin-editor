@@ -18,6 +18,17 @@ describe('fromHTML merged table cells', () => {
     ]);
   });
 
+  it('reads the bold of a header row as how the header is drawn, and keeps bold in the body', () => {
+    const word = '<table><thead><tr><td><b>Name</b></td><td><b>Role</b> held</td></tr></thead><tr><td><b>Ada</b></td><td>Author</td></tr></table>';
+    expect(rowsOf(word)).toEqual([
+      [
+        ['Name', 'Role held'],
+        ['**Ada**', 'Author'],
+      ],
+    ]);
+    expect(rowsOf('<table><tr><th><strong>a</strong></th></tr><tr><td>b</td></tr></table>')).toEqual([[['a'], ['b']]]);
+  });
+
   it('stops a row span at the last row and reads a bad span as one', () => {
     expect(rowsOf('<table><tr><td rowspan="9">a</td><td colspan="0">b</td><td colspan="x">c</td></tr><tr><td>d</td></tr></table>')).toEqual([
       [

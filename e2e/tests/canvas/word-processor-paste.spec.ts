@@ -11,12 +11,31 @@ const fixture = (name: string) => readFileSync(new URL(`../../../src/engine/clip
 const GOOGLE_PICTURE = 'https://lh7-rt.googleusercontent.com/docsz/AD_4nXdQ0quoinFixture?key=q8mPk0Example';
 
 // A word processor puts its own plain text beside the HTML, which the editor reads only when there is no HTML.
-async function pasteFixture(page: Page, name: string, extra = '') {
-  await openEditor(page, 'empty', extra);
+async function pasteInto(page: Page, name: string) {
   const host = onlyHost(page);
   await host.click();
   await caretSettled(page, host);
   await pasteEvent(page, { 'text/html': fixture(name), 'text/plain': 'Quarterly plan' });
+}
+
+async function pasteFixture(page: Page, name: string, extra = '') {
+  await openEditor(page, 'empty', extra);
+  await pasteInto(page, name);
+}
+
+type InlineDataWatch = { changes: number; holding: number };
+
+// Counts the changes of the editor from here on, and those whose document or steps hold a picture's data.
+async function watchInlineData(page: Page) {
+  await page.evaluate(() => {
+    const watch: InlineDataWatch = { changes: 0, holding: 0 };
+    Object.assign(window, { inlineDataWatch: watch });
+    window.__quoin.controller!.editor.subscribe((state, tr) => {
+      watch.changes += 1;
+      if (JSON.stringify([state.doc.blocks, tr?.steps ?? []]).includes('data:image')) watch.holding += 1;
+    });
+  });
+  return () => page.evaluate(() => (window as Window & { inlineDataWatch?: InlineDataWatch }).inlineDataWatch);
 }
 
 const shape = async (page: Page) => (await blocks(page)).map(pasteShape);
@@ -42,4 +61,17 @@ test('a picture in a paste from Google Docs is uploaded when the page can read i
     .poll(async () => (await blocks(page)).find((block) => block.type === 'IMAGE')?.data)
     .toEqual({ storageKey: 'key-AD_4nXdQ0quoinFixture', alt: '', width: FIXTURE_PNG.width, height: FIXTURE_PNG.height });
   await expect(page.locator('.quoin-image img')).toHaveAttribute('src', /^blob:/);
+});
+
+test('a picture Word carries inline is uploaded and put in where it was, and never held as its data', async ({ page }) => {
+  await openEditor(page, 'empty', 'upload=0');
+  const inlineData = await watchInlineData(page);
+  await pasteInto(page, 'word-mac-real.html');
+  const [, , pasted] = WORD_PROCESSOR_PASTES.find(([, name]) => name === 'word-mac-real.html')!;
+  const at = pasted.indexOf('Line 11') + 1;
+  const picture = { type: 'IMAGE', storageKey: 'key-image.png', alt: 'A red square', width: 227, height: 177 };
+  await expect.poll(() => shape(page)).toEqual([...pasted.slice(0, at), picture, ...pasted.slice(at)]);
+  await expect(page.locator('.quoin-image img')).toHaveAttribute('src', /^blob:/);
+  expect(await inlineData()).toEqual({ changes: expect.any(Number), holding: 0 });
+  expect((await inlineData())!.changes).toBeGreaterThan(1);
 });

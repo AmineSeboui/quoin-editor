@@ -1,7 +1,7 @@
 import type { AiLabels } from '../../extensions/ai/ai-labels';
 
 /** Every string AI actions show or speak, in French. */
-export const frAiLabels: AiLabels = {
+export const frAiLabels: Required<AiLabels> = {
   askAi: 'Demander à l’IA',
   askAiDescription: 'Écrire ou modifier avec l’IA',
   actions: {
@@ -18,6 +18,7 @@ export const frAiLabels: AiLabels = {
     custom: 'Demander à l’IA',
   },
   menu: 'Actions de l’IA',
+  moreActions: 'Autres actions',
   prompt: 'Demandez à l’IA d’écrire ou de modifier',
   tonePrompt: 'Ton à prendre, par exemple amical',
   translatePrompt: 'Langue vers laquelle traduire',

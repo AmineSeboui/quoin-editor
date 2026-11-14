@@ -1,6 +1,6 @@
 # Third-party notices
 
-Quoin's icons are drawings from [Lucide](https://lucide.dev), copied into the package so that it needs no icon library. Its code highlighting is [Prism](https://prismjs.com), built into the chunk that `quoin-editor/highlight` loads on demand. They are used under the licences below.
+Quoin's icons are drawings from [Lucide](https://lucide.dev), copied into the package so that it needs no icon library. Its code highlighting is [Prism](https://prismjs.com), built into the chunk that `quoin-editor/highlight` loads on demand. The PDF export measures text in Helvetica and Courier with the glyph widths of Adobe's metrics for those fonts. They are used under the licences and notices below.
 
 ## Prism
 
@@ -69,3 +69,11 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+## Adobe font metrics
+
+The advance widths `quoin-editor/pdf` lays out Helvetica, Helvetica Bold and Courier with are taken from Adobe's AFM files for the standard PDF fonts, version 002.000 for Helvetica and 003.000 for Courier.
+
+Copyright (c) 1985, 1987, 1989, 1990, 1997 Adobe Systems Incorporated. All Rights Reserved. Helvetica is a trademark of Linotype-Hell AG and/or its subsidiaries.
+
+Copyright (c) 1989, 1990, 1991, 1992, 1993, 1997 Adobe Systems Incorporated. All Rights Reserved.

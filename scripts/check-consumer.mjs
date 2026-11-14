@@ -72,8 +72,8 @@ run(process.execPath, ['-e', probe], work);
 cpSync(join(root, 'consumer-check', 'server-entries.mjs'), join(work, 'server-entries.mjs'));
 run(process.execPath, ['server-entries.mjs', ...packageEntries.filter(({ client }) => !client).map(specifier)], work);
 
-// The view and diff render, and docx writes a file, in a plain Node process with no DOM, on either React.
-for (const script of ['server-view.mjs', 'server-diff.mjs', 'server-docx.mjs']) {
+// The view and diff render, and docx and pdf write a file, in a plain Node process with no DOM, on either React.
+for (const script of ['server-view.mjs', 'server-diff.mjs', 'server-docx.mjs', 'server-pdf.mjs']) {
   cpSync(join(root, 'consumer-check', script), join(work, script));
   run(process.execPath, [script], work);
 }

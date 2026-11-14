@@ -18,6 +18,8 @@ export type AiRequest = {
   selection: string;
   context: string;
   language?: string;
+  /** The `id` of the host's own action that asked, whose prompt `prompt` is; `action` is then `custom`. */
+  actionId?: string;
 };
 
 /** The host's model, answering a request as markdown in chunks, and stopping when `signal` aborts. */

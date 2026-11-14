@@ -3,15 +3,14 @@
 import { useId, useRef, useState, type KeyboardEvent } from 'react';
 import { ArrowUp, Sparkles } from '../../icons';
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '../../ui/input-group';
-import { LIST_GROUP_LABEL, LIST_OPTION } from '../../ui/menu-styles';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
-import { ACTION_ICONS } from './ai-action-icons';
 import { ASKS_FOR_PROMPT, type AiAction } from './ai-actions';
-import { askFrom, type AiEnv } from './ai-env';
+import { choicesFor, type AiChoice } from './ai-choices';
+import { askFrom, askHost, type AiEnv } from './ai-env';
 import { closeMenu } from './ai-flow';
 import { englishAiLabels } from './ai-labels';
-import { menuSections, type Choice } from './ai-menu-sections';
 import type { AiTarget } from './ai-target';
+import { AiChoiceList, choiceId } from './AiChoiceList';
 import { useTargetAnchor } from './use-target-anchor';
 
 type AiMenuProps = { env: AiEnv; target: AiTarget; fromSpace: boolean };
@@ -28,10 +27,9 @@ export function AiMenu({ env, target, fromSpace }: AiMenuProps) {
   const field = useRef<HTMLInputElement>(null);
   const anchor = useTargetAnchor(controller, target);
   const id = useId();
-  const sections = asking === null ? menuSections(env, target, query) : [];
-  const choices = sections.flatMap((section) => section.choices);
+  const choices = asking === null ? choicesFor(env, target, query) : [];
   const current = Math.min(active, choices.length - 1);
-  const optionId = (index: number) => `${id}-${index}`;
+  const listId = `${id}-list`;
   const typed = query.trim();
 
   const close = (typeSpace: boolean) => {
@@ -39,7 +37,9 @@ export function AiMenu({ env, target, fromSpace }: AiMenuProps) {
     controller.focus();
     if (typeSpace) controller.edit(() => controller.editor.insertText(' '));
   };
-  const choose = ({ action }: Choice) => {
+  const choose = (choice: AiChoice) => {
+    if (choice.host !== undefined) return askHost(env, choice.host);
+    const { action } = choice;
     if (!ASKS_FOR_PROMPT.has(action)) return askFrom(env, action, action === 'custom' ? query.trim() : undefined);
     setAsking(action);
     setQuery('');
@@ -60,27 +60,6 @@ export function AiMenu({ env, target, fromSpace }: AiMenuProps) {
     }
   };
   const fieldLabel = asking === 'tone' ? labels.tonePrompt : asking === 'translate' ? labels.translatePrompt : labels.prompt;
-  const option = (choice: Choice) => {
-    const index = choices.indexOf(choice);
-    const Icon = ACTION_ICONS[choice.action];
-    return (
-      <div
-        key={choice.action}
-        id={optionId(index)}
-        role="option"
-        aria-selected={index === current}
-        data-highlighted={index === current ? '' : undefined}
-        className={LIST_OPTION}
-        onMouseDown={(event) => event.preventDefault()}
-        onPointerMove={() => setActive(index)}
-        onClick={() => choose(choice)}
-      >
-        <Icon aria-hidden="true" className="text-muted-foreground" />
-        {choice.label}
-      </div>
-    );
-  };
-
   return (
     <Popover
       open
@@ -115,9 +94,9 @@ export function AiMenu({ env, target, fromSpace }: AiMenuProps) {
             aria-label={fieldLabel}
             placeholder={fieldLabel}
             aria-expanded={choices.length > 0}
-            aria-controls={choices.length > 0 ? `${id}-list` : undefined}
+            aria-controls={choices.length > 0 ? listId : undefined}
             aria-autocomplete="list"
-            aria-activedescendant={choices.length > 0 ? optionId(current) : undefined}
+            aria-activedescendant={choices.length > 0 ? choiceId(listId, current) : undefined}
             value={query}
             onChange={(event) => {
               setQuery(event.target.value);
@@ -138,20 +117,14 @@ export function AiMenu({ env, target, fromSpace }: AiMenuProps) {
           </InputGroupAddon>
         </InputGroup>
         {choices.length > 0 && (
-          <div id={`${id}-list`} role="listbox" aria-label={labels.menu} className="mt-1 max-h-72 overflow-y-auto">
-            {sections.map((section) =>
-              section.label === undefined ? (
-                section.choices.map(option)
-              ) : (
-                <div key={section.id} role="group" aria-labelledby={`${id}-${section.id}`}>
-                  <div id={`${id}-${section.id}`} role="presentation" className={LIST_GROUP_LABEL}>
-                    {section.label}
-                  </div>
-                  {section.choices.map(option)}
-                </div>
-              ),
-            )}
-          </div>
+          <AiChoiceList
+            id={listId}
+            labels={labels}
+            choices={choices}
+            current={current}
+            onHighlight={setActive}
+            onChoose={choose}
+          />
         )}
       </PopoverContent>
     </Popover>

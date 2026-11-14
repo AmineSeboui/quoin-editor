@@ -1,7 +1,7 @@
 import type { EngineBlock } from '../engine/model/types';
 import { headingLevel } from '../engine/render/headings';
 import type { DocxContext } from './docx-context';
-import { backgroundHex, textHex } from './palette-hex';
+import { backgroundHex, textHex } from '../export/palette-hex';
 import { indentOf, paragraphXml, type ParagraphProps } from './paragraph-xml';
 import { runsXml, runXml } from './runs-xml';
 import { xmlElement } from './xml';

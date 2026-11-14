@@ -11,6 +11,8 @@ export type AiLabels = {
   actions: Record<AiAction, string>;
   /** The name of the list of actions. */
   menu: string;
+  /** The heading over the host's own actions in that list, after the built-in ones. */
+  moreActions?: string;
   /** The field the writer types a request in. */
   prompt: string;
   /** The field once Change tone is chosen. */
@@ -62,6 +64,7 @@ export const englishAiLabels: Required<AiLabels> = {
     custom: 'Ask AI',
   },
   menu: 'AI actions',
+  moreActions: 'More actions',
   prompt: 'Ask AI to write or edit',
   tonePrompt: 'Tone to take, such as friendly',
   translatePrompt: 'Language to translate to',

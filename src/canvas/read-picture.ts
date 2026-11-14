@@ -3,5 +3,5 @@ export async function readPicture(url: string, name: (type: string) => string): 
   const response = await fetch(url).catch(() => null);
   const picture = response?.ok ? await response.blob().catch(() => null) : null;
   if (!picture?.type.startsWith('image/')) return null;
-  return new File([picture], name(picture.type), { type: picture.type });
+  return new File([await picture.arrayBuffer()], name(picture.type), { type: picture.type });
 }

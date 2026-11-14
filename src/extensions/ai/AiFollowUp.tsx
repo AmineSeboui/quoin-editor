@@ -28,7 +28,9 @@ export function AiFollowUp({ labels, onSend }: AiFollowUpProps) {
           value={next}
           onChange={(event) => setNext(event.target.value)}
           onKeyDown={(event) => {
-            if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing) return;
+            // Safari reports the Enter that ends a composition as key 229 with isComposing already false.
+            const composing = event.nativeEvent.isComposing || event.keyCode === 229;
+            if (event.key !== 'Enter' || event.shiftKey || composing) return;
             event.preventDefault();
             event.currentTarget.form?.requestSubmit();
           }}

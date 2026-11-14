@@ -16,7 +16,7 @@ const InputGroup = /* @__PURE__ */ React.forwardRef<HTMLDivElement, React.Compon
         role="group"
         data-slot="input-group"
         className={cn(
-          "group/input-group relative flex h-8 w-full min-w-0 items-center rounded-lg border border-input transition-colors outline-none has-[>textarea]:h-auto dark:bg-input/30",
+          "group/input-group relative flex h-8 w-full min-w-0 items-center rounded-lg border border-input transition-colors outline-none has-[>textarea]:h-auto pointer-coarse:h-auto pointer-coarse:min-h-11 dark:bg-input/30",
           "has-[[data-slot=input-group-control]:focus-visible]:border-ring has-[[data-slot=input-group-control]:focus-visible]:ring-3 has-[[data-slot=input-group-control]:focus-visible]:ring-ring/50",
           "has-[[data-slot][aria-invalid=true]]:border-destructive has-[[data-slot][aria-invalid=true]]:ring-3 has-[[data-slot][aria-invalid=true]]:ring-destructive/20 has-disabled:opacity-50",
           "has-[>[data-align=block-end]]:h-auto has-[>[data-align=block-end]]:flex-col has-[>[data-align=block-start]]:h-auto has-[>[data-align=block-start]]:flex-col",
@@ -112,6 +112,7 @@ const InputGroupTextarea = /* @__PURE__ */ React.forwardRef<HTMLTextAreaElement,
         data-slot="input-group-control"
         className={cn(
           "field-sizing-content max-h-32 min-h-9 w-full min-w-0 flex-1 resize-none rounded-none border-0 bg-transparent px-2.5 py-2 text-base outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed md:text-sm",
+          TAP_TARGET_FLOOR,
           className,
         )}
         {...props}

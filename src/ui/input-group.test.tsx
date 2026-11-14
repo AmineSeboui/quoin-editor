@@ -60,4 +60,16 @@ describe('an input group', () => {
     render(<InputGroupButton aria-label="Send" />);
     expect(screen.getByRole('button', { name: 'Send' })).toHaveAttribute('type', 'button');
   });
+
+  it('grows to a finger on a coarse pointer, with room for its controls', () => {
+    render(
+      <InputGroup data-testid="group">
+        <InputGroupTextarea aria-label="Next" />
+      </InputGroup>,
+    );
+    expect(classesOf(screen.getByTestId('group'))).toEqual(
+      expect.arrayContaining(['pointer-coarse:h-auto', 'pointer-coarse:min-h-11']),
+    );
+    expect(classesOf(screen.getByLabelText('Next'))).toContain('pointer-coarse:min-h-11');
+  });
 });

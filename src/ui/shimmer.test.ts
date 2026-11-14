@@ -27,4 +27,11 @@ describe('the shimmer', () => {
   it('runs the other way on a right-to-left page', () => {
     expect(css).toMatch(/\.quoin-shimmer:dir\(rtl\)\s*\{\s*animation-direction: reverse;/);
   });
+
+  it('leaves the text plain where the browser cannot mix a colour from the text', () => {
+    const supported = css.indexOf('@supports (color: oklch(from red l c h))');
+    expect(supported).toBeGreaterThan(-1);
+    expect(css.indexOf('-webkit-text-fill-color: transparent')).toBeGreaterThan(supported);
+    expect(css.indexOf('background-clip: text')).toBeGreaterThan(supported);
+  });
 });

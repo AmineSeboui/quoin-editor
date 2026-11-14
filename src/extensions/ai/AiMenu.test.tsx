@@ -59,6 +59,7 @@ describe('the AI menu', () => {
     const group = canvas.field().closest('[data-slot="input-group"]')!;
     expect(group.className.split(' ')).toContain('has-[[data-slot=input-group-control]:focus-visible]:ring-0');
     expect(group.className.split(' ')).not.toContain('has-[[data-slot=input-group-control]:focus-visible]:ring-3');
+    expect(group.className.split(' ')).toEqual(expect.arrayContaining(['pointer-coarse:h-auto', 'pointer-coarse:min-h-11']));
   });
 
   it('keeps Send unavailable until something is typed', () => {

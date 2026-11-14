@@ -119,6 +119,17 @@ describe('an answer streaming into the document', () => {
     expect(canvas.last().request).toMatchObject({ action: 'custom', prompt: 'shorter', selection: 'one term' });
   });
 
+  it('does not send the follow-up on the Enter that ends a composition in Safari', async () => {
+    const canvas = improving();
+    canvas.last().push('one term');
+    canvas.last().end();
+    await canvas.frame();
+    const field = screen.getByRole('textbox', { name: 'Tell AI what to do next' });
+    act(() => void fireEvent.change(field, { target: { value: 'みじかく' } }));
+    act(() => void fireEvent.keyDown(field, { key: 'Enter', keyCode: 229 }));
+    expect(canvas.stream).toHaveBeenCalledTimes(1);
+  });
+
   it("keeps the follow-up's Send unavailable until something is typed", async () => {
     const canvas = improving();
     canvas.last().push('one term');

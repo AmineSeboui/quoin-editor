@@ -53,6 +53,24 @@ describe('the AI menu', () => {
     expect(screen.queryByRole('combobox')).toBeNull();
   });
 
+  it('scrolls the action the arrows reach into view, Explain below the fold among them', () => {
+    const scrolled: Element[] = [];
+    const scrollIntoView = vi.fn(function (this: Element) {
+      scrolled.push(this);
+    });
+    Object.defineProperty(Element.prototype, 'scrollIntoView', { configurable: true, value: scrollIntoView });
+    try {
+      const canvas = mountAi([paragraph('a', 'Say a word here')]);
+      canvas.select('a', 4, 10);
+      canvas.askAi();
+      canvas.press('ArrowUp');
+      expect(scrolled.at(-1)).toBe(screen.getByRole('option', { name: 'Explain' }));
+      expect(scrollIntoView).toHaveBeenLastCalledWith({ block: 'nearest' });
+    } finally {
+      delete (Element.prototype as Partial<Element>).scrollIntoView;
+    }
+  });
+
   it('sends what was typed as a request of its own', () => {
     const canvas = mountAi([paragraph('a', 'Say a word here')]);
     canvas.select('a', 4, 10);

@@ -210,6 +210,7 @@ export const arLabels: Required<QuoinLabels> = {
   uploaded: (name) => `تم رفع ${name}`,
   uploadFailed: 'فشل الرفع.',
   uploadsUnavailable: 'الرفع غير مُهيأ في هذا المحرر.',
+  pastedPictureTooLarge: 'صورة ملصقة أكبر من أن تُرفع.',
   uploadImage: 'رفع صورة',
   embedLink: 'تضمين رابط',
   imageLink: 'رابط الصورة',

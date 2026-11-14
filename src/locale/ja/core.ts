@@ -171,6 +171,7 @@ export const jaLabels: Required<QuoinLabels> = {
   uploaded: (name) => `${name} をアップロードしました`,
   uploadFailed: 'アップロードに失敗しました。',
   uploadsUnavailable: 'このエディターではアップロードが設定されていません。',
+  pastedPictureTooLarge: '貼り付けた画像が大きすぎるため、アップロードできません。',
   uploadImage: '画像をアップロード',
   embedLink: 'リンクを埋め込む',
   imageLink: '画像のリンク',

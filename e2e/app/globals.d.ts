@@ -19,6 +19,8 @@ declare global {
     __quoinLeave?: () => void;
     /** Exports the every-block document to Word in the page and reads the file back. */
     __quoinDocx?: () => Promise<{ size: number; type: string; head: number[]; bytes: number[] }>;
+    /** Exports the every-block document to PDF in the page, with the problems it reported. */
+    __quoinPdf?: () => Promise<{ size: number; type: string; bytes: number[]; problems: unknown[] }>;
     /** Lets every answer the harness's comments host is holding go. */
     __quoinAnswerComments?: () => void;
     /** The harness's AI host: what it was asked, how many streams were aborted, and the means to answer the last. */

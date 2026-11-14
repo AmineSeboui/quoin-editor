@@ -1,7 +1,7 @@
 import type { AiLabels } from '../../extensions/ai/ai-labels';
 
 /** Every string AI actions show or speak, in Arabic. */
-export const arAiLabels: AiLabels = {
+export const arAiLabels: Required<AiLabels> = {
   askAi: 'اسأل الذكاء الاصطناعي',
   askAiDescription: 'اكتب أو عدّل بالذكاء الاصطناعي',
   actions: {
@@ -18,6 +18,7 @@ export const arAiLabels: AiLabels = {
     custom: 'اسأل الذكاء الاصطناعي',
   },
   menu: 'إجراءات الذكاء الاصطناعي',
+  moreActions: 'إجراءات أخرى',
   prompt: 'اطلب من الذكاء الاصطناعي أن يكتب أو يعدّل',
   tonePrompt: 'الأسلوب المطلوب، ودود مثلًا',
   translatePrompt: 'اللغة المراد الترجمة إليها',

@@ -193,6 +193,16 @@
         "default": "./dist/locale-zh.cjs"
       }
     },
+    "./pdf": {
+      "import": {
+        "types": "./dist/pdf.d.ts",
+        "default": "./dist/pdf.js"
+      },
+      "require": {
+        "types": "./dist/pdf.d.cts",
+        "default": "./dist/pdf.cjs"
+      }
+    },
     "./yjs": {
       "import": {
         "types": "./dist/yjs.d.ts",

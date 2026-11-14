@@ -122,20 +122,22 @@ const DARK_SURFACE = 128;
 // rather than a tint, and by distance alone it would land on the darkest pastel, brown.
 const PASTEL_FLOOR = 233;
 
+const isNeutral = (rgb: Rgb): boolean => Math.max(...rgb) - Math.min(...rgb) <= NEUTRAL_CHROMA;
+
 // Page surfaces: light text on a dark page, and white or dark grey backgrounds. Every palette value sits outside
 // them, so palette colours still map to themselves.
-function isSurface([r, g, b]: Rgb, kind: PaletteKind): boolean {
-  const high = Math.max(r, g, b);
-  const low = Math.min(r, g, b);
-  const neutral = high - low <= NEUTRAL_CHROMA;
-  if (kind === 'text') return neutral && (high + low) / 2 > LIGHT_TEXT;
-  return low >= WHITE_SURFACE || (neutral && (high + low) / 2 < DARK_SURFACE);
+function isSurface(rgb: Rgb, kind: PaletteKind): boolean {
+  const high = Math.max(...rgb);
+  const low = Math.min(...rgb);
+  if (kind === 'text') return isNeutral(rgb) && (high + low) / 2 > LIGHT_TEXT;
+  return low >= WHITE_SURFACE || (isNeutral(rgb) && (high + low) / 2 < DARK_SURFACE);
 }
 
-function isGreyBackground([r, g, b]: Rgb): boolean {
-  const high = Math.max(r, g, b);
-  return high - Math.min(r, g, b) <= NEUTRAL_CHROMA && high < PASTEL_FLOOR;
-}
+const isGreyBackground = (rgb: Rgb): boolean => isNeutral(rgb) && Math.max(...rgb) < PASTEL_FLOOR;
+
+// A dark grey text, such as the one Word gives a quote, lies nearer the darker brown than the gray, so a grey text is
+// matched only with the plain text colour and the gray. The palette's backgrounds are all pale enough to count as grey.
+const GREYS: readonly PaletteName[] = ['default', 'gray'];
 
 export function nearestPaletteColor(css: string, kind: PaletteKind): string | null {
   const rgb = parseColor(css);
@@ -144,7 +146,7 @@ export function nearestPaletteColor(css: string, kind: PaletteKind): string | nu
   const table = PALETTE_RGB[kind];
   let best: PaletteName = 'default';
   let least = Infinity;
-  for (const name of PALETTE) {
+  for (const name of kind === 'text' && isNeutral(rgb) ? GREYS : PALETTE) {
     for (const reference of table[name]) {
       const gap = distance(rgb, reference);
       if (gap < least) {

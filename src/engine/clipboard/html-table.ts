@@ -3,6 +3,7 @@ import type { Inline } from '../model/types';
 import { emit, type Context, type Sink } from './html-context';
 import { tagName } from './html-dom';
 import { inlineFromNodes } from './html-inline';
+import { withoutBold } from './without-bold';
 
 type Row = { readonly cells: readonly Element[]; readonly head: boolean };
 
@@ -52,13 +53,14 @@ export function tableBlock(table: Element, ctx: Context, sink: Sink): void {
   const slots = grid(rows);
   const cols = slots.reduce((widest, row) => Math.max(widest, row.length), 0);
   if (rows.length === 0 || cols === 0) return;
+  const header = rows[0].head || rows[0].cells.some((cell) => tagName(cell) === 'th');
   const regions: Record<string, Inline> = {};
   slots.forEach((row, r) => {
     for (let c = 0; c < cols; c++) {
       const cell = row[c];
-      regions[cellKey(r, c)] = cell ? inlineFromNodes(cell.childNodes, ctx) : [];
+      const content = cell ? inlineFromNodes(cell.childNodes, ctx) : [];
+      regions[cellKey(r, c)] = header && r === 0 ? withoutBold(content) : content;
     }
   });
-  const header = rows[0].head || rows[0].cells.some((cell) => tagName(cell) === 'th');
   emit(sink, 'TABLE', ctx.indent, { header, align: Array<null>(cols).fill(null), rows: rows.length, cols }, regions);
 }

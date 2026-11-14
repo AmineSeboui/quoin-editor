@@ -173,6 +173,7 @@ export const frLabels: Required<QuoinLabels> = {
   uploaded: (name) => `${name} envoyé`,
   uploadFailed: 'L’envoi a échoué.',
   uploadsUnavailable: 'Les envois ne sont pas configurés pour cet éditeur.',
+  pastedPictureTooLarge: 'Une image collée est trop volumineuse pour être envoyée.',
   uploadImage: 'Envoyer une image',
   embedLink: 'Intégrer un lien',
   imageLink: 'Lien de l’image',

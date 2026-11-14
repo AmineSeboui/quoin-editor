@@ -169,6 +169,7 @@ export const englishLabels: Required<QuoinLabels> = frozen({
   uploaded: (name) => `Uploaded ${name}`,
   uploadFailed: 'Upload failed.',
   uploadsUnavailable: 'Uploads are not configured for this editor.',
+  pastedPictureTooLarge: 'A pasted picture is too large to upload.',
   uploadImage: 'Upload image',
   embedLink: 'Embed link',
   imageLink: 'Image link',

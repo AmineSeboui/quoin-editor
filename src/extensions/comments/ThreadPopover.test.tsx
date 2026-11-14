@@ -15,6 +15,18 @@ const threads = () => [
 const wordOne = textSelection({ block: 'p', region: 'text', offset: 0 }, { block: 'p', region: 'text', offset: 5 });
 
 describe('the thread popover', () => {
+  it('closes on one Escape from Send while Send shows its tooltip, giving focus back to the text', async () => {
+    const canvas = mountComments(blocks(), threads());
+    canvas.caret('a', 6);
+    canvas.commentKey();
+    const send = within(canvas.popover('Comment on "hello"')!).getByRole('button', { name: 'Send' });
+    act(() => send.focus());
+    await screen.findByRole('tooltip');
+    act(() => void fireEvent.keyDown(send, { key: 'Escape' }));
+    expect(canvas.popover('Comment on "hello"')).toBeNull();
+    expect(document.activeElement).toBe(canvas.host('a'));
+  });
+
   it('opens on a click on an anchor, drawing bodies as plain text, and leaves focus in the text', async () => {
     const canvas = mountComments(blocks(), threads());
     canvas.caret('a', 6);

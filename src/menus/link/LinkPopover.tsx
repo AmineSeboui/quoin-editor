@@ -5,6 +5,7 @@ import { unsetLink } from '../../engine/commands/marks';
 import { isCollapsed } from '../../engine/state/selection';
 import type { QuoinLabels } from '../../i18n/labels';
 import { Check, Unlink } from '../../icons';
+import { escapeWithin } from '../../ui/escape-within';
 import { IconButton } from '../../ui/icon-button';
 import { Input } from '../../ui/input';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
@@ -86,6 +87,10 @@ export function LinkPopover({ controller, labels, onClose }: LinkPopoverProps) {
     event.preventDefault();
     backToText();
   };
+  const escape = escapeWithin(content, backToText, (event) => {
+    event.preventDefault();
+    backToText();
+  });
 
   return (
     <Popover
@@ -103,10 +108,8 @@ export function LinkPopover({ controller, labels, onClose }: LinkPopoverProps) {
         align="start"
         className={CONTENT}
         onCloseAutoFocus={preventDefault}
-        onEscapeKeyDown={(event) => {
-          event.preventDefault();
-          backToText();
-        }}
+        onEscapeKeyDown={escape.onEscapeKeyDown}
+        onKeyDownCapture={escape.onKeyDownCapture}
         onKeyDown={tabOut}
       >
         <form noValidate className="flex items-center gap-0.5" onSubmit={apply}>

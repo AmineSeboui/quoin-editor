@@ -3,6 +3,7 @@ import { axeViolations } from '../../support/axe';
 import { openEditor } from '../../support/editor';
 import { inlineX } from '../../support/direction';
 import { markdownOf } from '../../support/markdown';
+import { settled } from '../../support/settle';
 import { firstWordPoint } from '../../support/text-point';
 
 const hostOf = (page: Page, id: string) => page.locator(`[data-block-id="${id}"] [data-quoin-host]`);
@@ -33,6 +34,7 @@ test("lists the host's action after the built-in ones and sends what it asks to 
   await toolbar(page).getByRole('button', { name: 'Ask AI' }).click();
   const group = menu(page).getByRole('group', { name: 'More actions' });
   await expect(group.getByRole('option')).toHaveText(['Rewrite as a release note']);
+  await settled(page.getByRole('dialog', { name: 'Ask AI' }));
   const explain = (await menu(page).getByRole('option', { name: 'Explain' }).boundingBox())!;
   const release = (await group.getByRole('option').boundingBox())!;
   expect(release.y).toBeGreaterThan(explain.y + explain.height);

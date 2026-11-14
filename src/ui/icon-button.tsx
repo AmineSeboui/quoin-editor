@@ -35,12 +35,18 @@ const IconButton = /* @__PURE__ */ React.forwardRef<HTMLButtonElement, IconButto
     size = "icon-sm",
     "aria-describedby": ownDescription,
     "data-slot": ownSlot,
+    onPointerDown,
+    onPointerLeave,
     ...props
   },
   ref,
 ) {
+  const [open, setOpen] = React.useState(false);
+  // Radix closes an open tooltip on a press but lets one already waiting for its delay open after it, over the menu
+  // or the drag the press began; a press holds the tooltip shut until the pointer leaves.
+  const pressed = React.useRef(false);
   return (
-    <Tooltip>
+    <Tooltip open={open} onOpenChange={(next) => setOpen(next && !pressed.current)}>
       <TooltipTrigger asChild>
         <UndescribedButton
           ref={ref}
@@ -49,6 +55,15 @@ const IconButton = /* @__PURE__ */ React.forwardRef<HTMLButtonElement, IconButto
           aria-label={label}
           ownDescription={ownDescription}
           ownSlot={ownSlot}
+          onPointerDown={(event) => {
+            pressed.current = true;
+            setOpen(false);
+            onPointerDown?.(event);
+          }}
+          onPointerLeave={(event) => {
+            pressed.current = false;
+            onPointerLeave?.(event);
+          }}
           {...props}
         />
       </TooltipTrigger>

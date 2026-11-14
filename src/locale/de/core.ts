@@ -173,6 +173,7 @@ export const deLabels: Required<QuoinLabels> = {
   uploaded: (name) => `${name} hochgeladen`,
   uploadFailed: 'Hochladen fehlgeschlagen.',
   uploadsUnavailable: 'Für diesen Editor ist kein Hochladen eingerichtet.',
+  pastedPictureTooLarge: 'Ein eingefügtes Bild ist zu groß zum Hochladen.',
   uploadImage: 'Bild hochladen',
   embedLink: 'Link einbetten',
   imageLink: 'Bildlink',

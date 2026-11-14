@@ -8,18 +8,18 @@ import { engineBlocksOf } from '../engine/render/engine-blocks';
 import { collectHeadings } from '../engine/render/toc-node';
 import { createSchema } from '../engine/schema/create-schema';
 import type { Schema } from '../engine/schema/types';
-import { pictureUrl } from './asset-source';
+import { pictureUrl } from '../export/asset-source';
 import { createContext } from './docx-context';
 import { documentXml } from './document-xml';
-import type { FetchAsset } from './fetch-asset';
-import { loadImages } from './images';
+import type { FetchAsset } from '../export/fetch-asset';
+import { loadImages } from '../export/images';
 import { numberingXml } from './numbering-xml';
 import { contentTypesXml, corePropertiesXml, documentRelationshipsXml, packageRelationshipsXml } from './package-xml';
 import { stylesXml } from './styles-xml';
-import { webBase } from './word-link';
+import { webBase } from '../export/link-target';
 import { zipArchive } from './zip';
 
-export type { FetchAsset } from './fetch-asset';
+export type { FetchAsset } from '../export/fetch-asset';
 
 export type DocxOptions = {
   schema?: Schema;

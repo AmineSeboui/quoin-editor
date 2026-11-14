@@ -174,6 +174,7 @@ export const ptLabels: Required<QuoinLabels> = {
   uploaded: (name) => `${name} enviado`,
   uploadFailed: 'Falha no envio.',
   uploadsUnavailable: 'Este editor não tem envios configurados.',
+  pastedPictureTooLarge: 'Uma imagem colada é grande demais para ser enviada.',
   uploadImage: 'Enviar uma imagem',
   embedLink: 'Incorporar um link',
   imageLink: 'Link da imagem',

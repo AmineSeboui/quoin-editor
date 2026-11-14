@@ -4,6 +4,7 @@ import type { EditorState, Transaction } from '../engine';
 import { str } from '../engine/blocks/data-fields';
 import { PASTED_HTML } from '../engine/clipboard/slice';
 import type { ViewController } from '../view';
+import { readPicture } from './read-picture';
 
 export type PastedImagesHost = BlockUploadHost & { onError: (error: Error) => void; failed: string };
 
@@ -18,12 +19,8 @@ function pastedPictures(tr: Transaction, state: EditorState): { id: string; url:
   });
 }
 
-async function pictureAt(url: string): Promise<File | null> {
-  const response = await fetch(url).catch(() => null);
-  const picture = response?.ok ? await response.blob().catch(() => null) : null;
-  if (!picture?.type.startsWith('image/')) return null;
-  return new File([picture], url.split(/[?#]/)[0].split('/').pop() || 'image', { type: picture.type });
-}
+const pictureAt = (url: string): Promise<File | null> =>
+  readPicture(url, () => url.split(/[?#]/)[0].split('/').pop() || 'image');
 
 /**
  * Reads each picture that HTML pasted from another document links to and uploads it into its image block, so the

@@ -42,7 +42,7 @@ export default defineConfig(({ mode }) => {
       minify: false,
       sourcemap: true,
       rollupOptions: {
-        input: [here('./app/index.html'), here('./app/docx.html')],
+        input: [here('./app/index.html'), here('./app/docx.html'), here('./app/pdf.html')],
         // A spec intercepts the emoji dataset by name, so it is held in a chunk named here rather than by the
         // bundler, whose names differ between platforms, and no cache-busting hash stands in the way.
         output: {

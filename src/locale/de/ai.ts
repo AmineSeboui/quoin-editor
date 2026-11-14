@@ -1,7 +1,7 @@
 import type { AiLabels } from '../../extensions/ai/ai-labels';
 
 /** Every string AI actions show or speak, in German. */
-export const deAiLabels: AiLabels = {
+export const deAiLabels: Required<AiLabels> = {
   askAi: 'KI fragen',
   askAiDescription: 'Mit KI schreiben oder bearbeiten',
   actions: {
@@ -18,6 +18,7 @@ export const deAiLabels: AiLabels = {
     custom: 'KI fragen',
   },
   menu: 'KI-Aktionen',
+  moreActions: 'Weitere Aktionen',
   prompt: 'Bitten Sie die KI zu schreiben oder zu bearbeiten',
   tonePrompt: 'Gewünschter Ton, etwa freundlich',
   translatePrompt: 'Sprache, in die übersetzt wird',

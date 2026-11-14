@@ -20,8 +20,8 @@ describe('the budgets of the platform entries', () => {
     expect(['yjs', 'presence', 'comments', 'ai'].map(budgetOf)).toEqual([
       { added: incrementalBudget(8_498) },
       { added: incrementalBudget(4_534) },
-      { added: incrementalBudget(6_872) },
-      { added: incrementalBudget(8_769) },
+      { added: incrementalBudget(6_885) },
+      { added: incrementalBudget(9_485) },
     ]);
   });
 });

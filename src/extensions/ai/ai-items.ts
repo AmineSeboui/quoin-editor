@@ -1,21 +1,13 @@
 import type { BlockMenuAction } from '../../gutter/block-menu-items';
 import { PenLine, Sparkles } from '../../icons';
-import type { ViewController } from '../../view';
 import type { SlashItem, ToolbarItem } from '../ui-types';
 import type { AiStream } from './ai-actions';
 import { askFrom } from './ai-env';
-import { openMenu } from './ai-flow';
 import type { AiLabels } from './ai-labels';
+import { blocksHaveTarget, openForBlocks, openForSelection } from './ai-open';
 import { aiState } from './ai-plugin';
-import { targetOfBlocks, targetOfSelection } from './ai-target';
 
-function openFor(controller: ViewController): boolean {
-  const target = targetOfSelection(controller.editor.state);
-  if (target !== null) openMenu(controller.editor, target, false);
-  return target !== null;
-}
-
-const KEYWORDS = ['ai', 'assistant', 'write', 'generate'];
+export const AI_KEYWORDS = ['ai', 'assistant', 'write', 'generate'];
 
 export function aiSlashItems(labels: AiLabels, stream: AiStream): SlashItem[] {
   return [
@@ -25,17 +17,17 @@ export function aiSlashItems(labels: AiLabels, stream: AiStream): SlashItem[] {
       description: labels.askAiDescription,
       group: 'ai',
       icon: Sparkles,
-      keywords: KEYWORDS,
-      run: ({ controller }) => void openFor(controller),
+      keywords: AI_KEYWORDS,
+      run: ({ controller }) => void openForSelection(controller),
     },
     {
       id: 'ai-continue',
       title: labels.actions.continue,
       group: 'ai',
       icon: PenLine,
-      keywords: [...KEYWORDS, 'continue'],
+      keywords: [...AI_KEYWORDS, 'continue'],
       run: ({ controller }) => {
-        if (openFor(controller)) askFrom({ controller, stream, labels }, 'continue');
+        if (openForSelection(controller)) askFrom({ controller, stream }, 'continue');
       },
     },
   ];
@@ -46,16 +38,13 @@ export const aiBubbleItem = (labels: AiLabels): ToolbarItem => ({
   title: labels.askAi,
   icon: Sparkles,
   available: (state) => aiState(state).ghost === null,
-  run: (controller) => void openFor(controller),
+  run: (controller) => void openForSelection(controller),
 });
 
 export const aiBlockMenuItem = (labels: AiLabels): BlockMenuAction => ({
   id: 'ai',
   label: labels.askAi,
   icon: Sparkles,
-  available: (state, blockIds) => targetOfBlocks(state, blockIds) !== null,
-  run: (controller, blockIds) => {
-    const target = targetOfBlocks(controller.editor.state, blockIds);
-    if (target !== null) openMenu(controller.editor, target, false);
-  },
+  available: blocksHaveTarget,
+  run: (controller, blockIds) => void openForBlocks(controller, blockIds),
 });

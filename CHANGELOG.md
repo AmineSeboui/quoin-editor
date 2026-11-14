@@ -2,7 +2,7 @@
 
 Every release of `quoin-editor` is listed here, newest first, in the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). From 1.0.0 the package follows [semantic versioning](https://semver.org/): a breaking change waits for the next major version. Until then, Quoin was 0.x and a minor version could contain breaking changes; those known at release were marked "Breaking". The 0.x sections are kept as they were released, "Docs" headings included. Moving from 0.4 to 1.0, and from 1.x to 2.0, is covered step by step in [MIGRATION.md](MIGRATION.md). Review finding ids such as F-17 are those of the 0.4.0 review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73).
 
-## Unreleased
+## 2.2.0 (2026-11-14)
 
 ### Added
 - `toPdf(blocks, options)` in a new `quoin-editor/pdf` entry writes a document as a PDF, in a browser, a worker or Node 18 and later, with no DOM and no dependency, and loads alone as `quoin-editor/docx` does. Every block type is drawn: headings, which also make the outline a reader lists beside the pages and which the table of contents links to; bullets, numbers and checkboxes; quotes beside a bar; code and callouts on their grounds; dividers; toggles; tables with wrapped cells and a shaded header row; pictures; files, embeds and bookmarks as links; and math as its source. Marks are drawn as the canvas draws them and links become link annotations under the Word export's rule for which addresses a file may open. Pages are A4 or Letter (`pageSize`) with `margin` points of margin, and break between lines, never inside one. The same blocks and options always give the same file. Until now the only export was a Word file, while PDF is what people usually ask for.

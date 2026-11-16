@@ -9,6 +9,7 @@ import { loadEmojiData } from './emoji-data';
 import { englishEmojiLabels } from './emoji-labels';
 import { heldEmojiData } from './emoji-test-canvas';
 import { EmojiPicker } from './EmojiPicker';
+import { LIST_EMPTY } from '../../ui/menu-styles';
 
 const GRINNING = '\u{1F600}';
 const SMILEY = '\u{1F603}';
@@ -61,6 +62,7 @@ describe('the emoji picker', () => {
     await user.type(field, 'zzz');
     expect(grids()).toHaveLength(0);
     expect(screen.getByRole('status')).toHaveTextContent('No emoji found');
+    expect(screen.getByRole('status').className.split(' ')).toEqual(expect.arrayContaining(LIST_EMPTY.split(' ')));
   });
 
   it('walks the grid the other way on a right to left page, where the next cell is to the left', async () => {

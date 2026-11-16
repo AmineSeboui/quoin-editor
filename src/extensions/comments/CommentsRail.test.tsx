@@ -134,6 +134,8 @@ describe('a narrow canvas', () => {
     act(() => void fireEvent.click(marker));
     await canvas.settle();
     const sheet = screen.getByRole('dialog', { name: 'Comments' });
+    expect(sheet).toHaveAttribute('data-slot', 'sheet-content');
+    expect(sheet).toHaveAttribute('data-side', 'bottom');
     const opened = within(sheet).getByRole('button', { name: /^late/ });
     expect(opened).toHaveAttribute('aria-expanded', 'true');
     expect(document.activeElement).toBe(opened);

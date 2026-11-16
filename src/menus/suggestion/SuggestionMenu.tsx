@@ -3,7 +3,7 @@
 import { useRef, type ReactNode } from 'react';
 import type { PluginKey } from '../../engine';
 import type { SuggestionRange } from '../../extensions/ui-types';
-import { LIST_GROUP_LABEL, MENU_CONTENT } from '../../ui/menu-styles';
+import { LIST_EMPTY, LIST_GROUP_LABEL, MENU_CONTENT } from '../../ui/menu-styles';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
 import { cn } from '../../ui/cn';
 import { preventDefault } from '../../ui/prevent-default';
@@ -128,7 +128,7 @@ export function SuggestionMenu<T>(props: SuggestionMenuProps<T>) {
             />
           ))}
         </div>
-        {status && <p className="px-2 py-1.5 text-sm text-muted-foreground">{status}</p>}
+        {status && <p className={LIST_EMPTY}>{status}</p>}
       </PopoverContent>
     </Popover>
   );

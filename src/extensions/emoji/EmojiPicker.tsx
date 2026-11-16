@@ -7,6 +7,7 @@ import type { EmojiLabels } from './emoji-labels';
 import { EmojiGrids } from './EmojiGrids';
 import { pickerLayout } from './picker-layout';
 import { useEmojiData } from './use-emoji-data';
+import { LIST_EMPTY } from '../../ui/menu-styles';
 
 type Props = { labels: EmojiLabels; onPick(emoji: string): void };
 
@@ -66,7 +67,7 @@ export function EmojiPicker({ labels, onPick }: Props) {
         onChange={(event) => setQuery(event.target.value)}
         onKeyDown={onFieldKeyDown}
       />
-      <p role="status" className="px-1 text-sm text-muted-foreground empty:hidden">
+      <p role="status" className={`${LIST_EMPTY} empty:hidden`}>
         {status}
       </p>
       {shown && <EmojiGrids ref={grids} layout={layout} onPick={onPick} />}

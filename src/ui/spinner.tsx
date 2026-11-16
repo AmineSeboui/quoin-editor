@@ -1,4 +1,5 @@
-import { LoaderCircle, type IconProps } from "../icons";
+import { LoaderCircle } from "../icons";
+import type { IconProps } from "../icons/Icon";
 import { cn } from "./cn";
 
 /** shadcn's spinner, decorative: the words beside it, or the canvas live region, say what is happening. */

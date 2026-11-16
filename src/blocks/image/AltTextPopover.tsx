@@ -8,6 +8,8 @@ import { useLabels } from '../../i18n/use-labels';
 import { bubblePart, isBubblePart } from '../../toolbar/bubble-part';
 import type { VirtualAnchor } from '../../menus/floating/virtual-anchor';
 import { Button } from '../../ui/button';
+import { Checkbox } from '../../ui/checkbox';
+import { Field, FieldDescription, FieldLabel } from '../../ui/field';
 import { Input } from '../../ui/input';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
 import { preventDefault } from '../../ui/prevent-default';
@@ -59,6 +61,7 @@ export function AltTextPopover({ blockId, controller, anchor, opener, alt, decor
   const [marked, setMarked] = useState(decorative);
   const fieldId = useId();
   const hintId = `${fieldId}-hint`;
+  const decorativeId = `${fieldId}-decorative`;
   const { finish, close } = useClosing(controller, {
     store() {
       if (draft !== alt || marked !== decorative) {
@@ -115,33 +118,35 @@ export function AltTextPopover({ blockId, controller, anchor, opener, alt, decor
         {...bubblePart(controller)}
       >
         <form noValidate className="quoin-image-alt" onSubmit={save} onKeyDown={onKeyDown}>
-          <label htmlFor={fieldId} className="text-sm font-medium">
-            {labels.altText}
-          </label>
-          <Input
-            id={fieldId}
-            required={!marked}
-            aria-describedby={marked ? undefined : hintId}
-            value={draft}
-            onChange={(event) => {
-              setDraft(event.target.value);
-              setMarked(false);
-            }}
-          />
-          <p id={hintId} className={marked ? 'quoin-block-message invisible' : 'quoin-block-message'}>
-            {labels.altTextHint}
-          </p>
-          <label className="quoin-image-decorative text-sm">
-            <input
-              type="checkbox"
+          <Field>
+            <FieldLabel htmlFor={fieldId}>{labels.altText}</FieldLabel>
+            <Input
+              id={fieldId}
+              required={!marked}
+              aria-describedby={marked ? undefined : hintId}
+              value={draft}
+              onChange={(event) => {
+                setDraft(event.target.value);
+                setMarked(false);
+              }}
+            />
+            <FieldDescription id={hintId} className={marked ? 'invisible' : undefined}>
+              {labels.altTextHint}
+            </FieldDescription>
+          </Field>
+          <Field orientation="horizontal">
+            <Checkbox
+              id={decorativeId}
               checked={marked}
               onChange={(event) => {
                 setMarked(event.target.checked);
                 if (event.target.checked) setDraft('');
               }}
             />
-            {labels.decorativeImage ?? englishLabels.decorativeImage}
-          </label>
+            <FieldLabel htmlFor={decorativeId} className="font-normal">
+              {labels.decorativeImage ?? englishLabels.decorativeImage}
+            </FieldLabel>
+          </Field>
           <Button type="submit" size="sm">
             {labels.save}
           </Button>

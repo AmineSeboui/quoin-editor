@@ -161,6 +161,17 @@ describe('an image block with no picture yet', () => {
     expect(selection()).toEqual(nodeSelection('i'));
   });
 
+  it('names its link field with a visible label, and ties the refusal to the field', async () => {
+    const user = userEvent.setup();
+    mount();
+    await user.click(screen.getByRole('button', { name: 'Embed link' }));
+    const field = screen.getByLabelText('Image link');
+    expect(screen.getByText('Image link', { selector: 'label' })).not.toHaveClass('sr-only');
+    await user.type(field, 'javascript:alert(1){Enter}');
+    expect(screen.getByRole('alert')).toHaveAttribute('data-slot', 'field-error');
+    expect(field).toHaveAccessibleDescription(/^Enter a valid link/);
+  });
+
   it('selects the block on Escape, and when the space around its controls is clicked', async () => {
     const user = userEvent.setup();
     const { selection, handle, sink } = mount();

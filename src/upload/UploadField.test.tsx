@@ -41,6 +41,7 @@ describe('UploadField', () => {
     setup(upload);
     await user.upload(screen.getByLabelText('Upload image'), file());
     expect(await screen.findByRole('alert')).toHaveTextContent(/^Images must be under 5 MB\.$/);
+    expect(screen.getByRole('alert')).toHaveAttribute('data-slot', 'field-error');
   });
 
   it('disables itself with an explanation when no upload function is configured', () => {

@@ -88,6 +88,7 @@ describe('the math editor and its keys', () => {
     expect(field()).toHaveAttribute('data-slot', 'textarea');
     expect(field()).toHaveAttribute('dir', 'ltr');
     expect(field()).toHaveClass('quoin-math-field');
+    expect(screen.getByText('LaTeX', { selector: 'label' })).toHaveAttribute('data-slot', 'field-label');
   });
 
   it('stores nothing on Enter while an input method composes', async () => {

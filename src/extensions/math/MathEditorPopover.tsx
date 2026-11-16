@@ -6,6 +6,7 @@ import { useOutsidePress } from '../../blocks/image/use-outside-press';
 import { bubblePart } from '../../toolbar/bubble-part';
 import type { MenuSide, VirtualAnchor } from '../../menus/floating/virtual-anchor';
 import { Button } from '../../ui/button';
+import { FieldLabel } from '../../ui/field';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
 import { Textarea } from '../../ui/textarea';
 import { preventDefault } from '../../ui/prevent-default';
@@ -104,9 +105,7 @@ export function MathEditorPopover(props: MathEditorPopoverProps) {
         {...bubblePart(controller)}
       >
         <form noValidate className="quoin-math-editor" onSubmit={save} onKeyDown={onKeyDown}>
-          <label htmlFor={fieldId} className="text-sm font-medium">
-            {labels.latex}
-          </label>
+          <FieldLabel htmlFor={fieldId}>{labels.latex}</FieldLabel>
           <Textarea
             ref={field}
             id={fieldId}

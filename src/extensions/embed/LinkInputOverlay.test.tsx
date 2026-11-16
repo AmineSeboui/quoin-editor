@@ -54,6 +54,7 @@ describe('the Embed command of the slash menu', () => {
     const { user, lines } = asked('/embed');
     await user.type(field('Link to embed')!, 'not a link{Enter}');
     expect(screen.getByRole('alert')).toHaveTextContent('Enter a web address');
+    expect(screen.getByRole('alert')).toHaveAttribute('data-slot', 'field-error');
     expect(field('Link to embed')).toHaveAttribute('aria-invalid', 'true');
     expect(lines()).not.toContain('EMBED');
   });

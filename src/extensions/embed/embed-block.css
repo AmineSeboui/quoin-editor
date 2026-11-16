@@ -98,6 +98,4 @@
 .quoin .quoin-embed-ask-message {
   flex-basis: 100%;
   padding-inline: 0.25rem;
-  color: var(--quoin-destructive);
-  font-size: 0.875rem;
 }

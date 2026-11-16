@@ -89,11 +89,6 @@
   width: min(100%, 24rem);
 }
 
-.quoin .quoin-image-link > input {
-  flex: 1;
-  width: auto;
-}
-
 .quoin .quoin-image-alt {
   display: flex;
   flex-direction: column;
@@ -117,10 +112,4 @@
 .quoin .quoin-image-no-alt:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--quoin-ring) 50%, transparent);
-}
-
-.quoin .quoin-image-decorative {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }

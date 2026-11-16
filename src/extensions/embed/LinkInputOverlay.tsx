@@ -6,6 +6,7 @@ import { insertBlockToWrite, type NewBlock } from '../../blocks/insert-blocks';
 import { bubblePart } from '../../toolbar/bubble-part';
 import { useRangeAnchor } from '../../menus/floating/use-range-anchor';
 import { Button } from '../../ui/button';
+import { FieldError } from '../../ui/field';
 import { Input } from '../../ui/input';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
 import { preventDefault } from '../../ui/prevent-default';
@@ -108,11 +109,9 @@ function LinkInputPopover({ controller, feature: { labels, providers }, request,
           <Button type="submit" size="sm">
             {request.kind === 'embed' ? labels.embed : labels.bookmark}
           </Button>
-          {problem !== null && (
-            <p id={messageId} role="alert" className="quoin-embed-ask-message">
-              {labels[problem]}
-            </p>
-          )}
+          <FieldError id={messageId} className="quoin-embed-ask-message">
+            {problem !== null ? labels[problem] : null}
+          </FieldError>
           {problem === 'cannotEmbed' && (
             <Button type="button" variant="outline" size="sm" onClick={bookmarkInstead}>
               {labels.bookmarkInstead}

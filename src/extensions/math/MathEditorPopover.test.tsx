@@ -83,6 +83,13 @@ describe('the math editor and its keys', () => {
     expect(sink()).toHaveFocus();
   });
 
+  it("edits the LaTeX in shadcn's Textarea, left to right in a monospace face", async () => {
+    await editing('x');
+    expect(field()).toHaveAttribute('data-slot', 'textarea');
+    expect(field()).toHaveAttribute('dir', 'ltr');
+    expect(field()).toHaveClass('quoin-math-field');
+  });
+
   it('stores nothing on Enter while an input method composes', async () => {
     const { changes, mod } = await editing('b');
     fireEvent.keyDown(field()!, { key: 'Enter', ...mod(), isComposing: true });

@@ -53,6 +53,13 @@ describe('the thread popover', () => {
     expect(canvas.handle().editor.state.selection).toMatchObject({ head: { block: 'a', offset: 6 } });
   });
 
+  it("writes a reply in shadcn's Textarea, the field every other one matches", () => {
+    const canvas = mountComments(blocks(), threads());
+    canvas.caret('a', 6);
+    canvas.commentKey();
+    expect(screen.getByRole('textbox', { name: 'Reply' })).toHaveAttribute('data-slot', 'textarea');
+  });
+
   it('takes focus into a thread a click opened once Mod+Alt+M is pressed', () => {
     const canvas = mountComments(blocks(), threads());
     canvas.caret('a', 6);

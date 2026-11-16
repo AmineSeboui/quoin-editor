@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { Button } from './button';
 import { Input } from './input';
+import { Textarea } from './textarea';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from './dialog';
 import {
   DropdownMenu,
@@ -75,6 +76,11 @@ describe("keyboard focus is shadcn's ring", () => {
   it('on an input', () => {
     render(<Input aria-label="Name" />);
     expectFocusRing(screen.getByLabelText('Name'));
+  });
+
+  it('on a textarea', () => {
+    render(<Textarea aria-label="Note" />);
+    expectFocusRing(screen.getByLabelText('Note'));
   });
 
   it('on the dialog close button', () => {

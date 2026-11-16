@@ -7,6 +7,7 @@ import { bubblePart } from '../../toolbar/bubble-part';
 import type { MenuSide, VirtualAnchor } from '../../menus/floating/virtual-anchor';
 import { Button } from '../../ui/button';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
+import { Textarea } from '../../ui/textarea';
 import { preventDefault } from '../../ui/prevent-default';
 import type { ViewController } from '../../view';
 import { isComposingKey } from '../../view/input/keydown';
@@ -106,7 +107,7 @@ export function MathEditorPopover(props: MathEditorPopoverProps) {
           <label htmlFor={fieldId} className="text-sm font-medium">
             {labels.latex}
           </label>
-          <textarea
+          <Textarea
             ref={field}
             id={fieldId}
             dir="ltr"
@@ -115,7 +116,7 @@ export function MathEditorPopover(props: MathEditorPopoverProps) {
             autoCapitalize="off"
             autoComplete="off"
             autoCorrect="off"
-            className="quoin-math-field"
+            className={displayMode ? 'quoin-math-field min-h-24 resize-y' : 'quoin-math-field resize-y'}
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
           />

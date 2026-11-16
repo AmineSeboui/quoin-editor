@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { SendHorizontal } from '../../icons';
 import { IconButton } from '../../ui/icon-button';
+import { Textarea } from '../../ui/textarea';
 import { sendReply } from './comment-actions';
 import { CommentAvatar } from './CommentAvatar';
 import type { CommentsEnv } from './comments-env';
@@ -48,7 +49,7 @@ export function ReplyBox({ env, threadId, first }: ReplyBoxProps) {
   return (
     <form className="flex items-start gap-2" onSubmit={onSubmit}>
       <CommentAvatar author={host.currentUser} />
-      <textarea
+      <Textarea
         {...{ [REPLY_FIELD]: '' }}
         aria-label={label}
         placeholder={label}
@@ -56,7 +57,7 @@ export function ReplyBox({ env, threadId, first }: ReplyBoxProps) {
         value={body}
         onChange={(event) => setBody(event.target.value)}
         onKeyDown={onKeyDown}
-        className="quoin-comments-field"
+        className="quoin-comments-field min-w-0 flex-1 resize-y"
       />
       <IconButton
         type="submit"

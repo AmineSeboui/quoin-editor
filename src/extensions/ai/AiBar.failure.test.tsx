@@ -21,6 +21,7 @@ describe('a failed answer', () => {
   it('keeps the reason hidden when the host describes none', async () => {
     const canvas = await failing(keyMissing);
     expect(screen.getByRole('alert')).toHaveTextContent('AI could not answer');
+    expect(screen.getByRole('alert')).toHaveAttribute('data-slot', 'alert');
     expect(canvas.bar()).not.toHaveTextContent('GEMINI');
     expect(canvas.button('Retry')).toBeInTheDocument();
   });

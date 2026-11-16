@@ -111,6 +111,7 @@ describe('an image block with no picture yet', () => {
     expect(screen.getByRole('status')).toHaveTextContent(/^Uploading\.\.\.$/);
     await act(async () => fail(new Error('That file is too large.')));
     expect(within(area()).getByRole('alert')).toHaveTextContent('That file is too large.');
+    expect(within(area()).getByRole('alert')).toHaveAttribute('data-slot', 'alert');
     expect(within(area()).queryByText('Uploading...')).toBeNull();
   });
 

@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { Upload } from '../icons';
 import { Button } from '../ui/button';
+import { Spinner } from '../ui/spinner';
 
 /** Props for `FilePickerButton`. */
 export type FilePickerButtonProps = {
@@ -53,7 +54,7 @@ export function FilePickerButton({ label, accept, disabled, busy = false, onPick
     >
       <Button asChild variant="outline" size="sm">
         <span aria-hidden="true" className={disabled || busy ? 'pointer-events-none opacity-50' : undefined}>
-          <Upload aria-hidden="true" />
+          {busy ? <Spinner /> : <Upload aria-hidden="true" />}
           {label}
         </span>
       </Button>

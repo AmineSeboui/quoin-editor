@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, type ClipboardEvent, type ReactNode } from 'react';
 import { useQuoin } from '../../context';
+import { CircleAlert } from '../../icons';
+import { Alert, AlertDescription } from '../../ui/alert';
 import { cn } from '../../ui/cn';
 import { FilePickerButton } from '../../upload/FilePickerButton';
 import type { ViewController } from '../../view';
@@ -78,9 +80,10 @@ export function UploadArea(props: UploadAreaProps) {
       <p className="quoin-block-message">{upload ? hint : labels.uploadsUnavailable}</p>
       {busy && <p className="quoin-block-message">{labels.uploading}</p>}
       {error !== '' && (
-        <p role="alert" className="quoin-block-message text-destructive">
-          {error}
-        </p>
+        <Alert variant="destructive">
+          <CircleAlert aria-hidden="true" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
     </div>
   );

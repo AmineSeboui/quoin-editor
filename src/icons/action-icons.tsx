@@ -112,6 +112,12 @@ export const X = (props: IconProps) => (
   </Icon>
 );
 
+export const LoaderCircle = (props: IconProps) => (
+  <Icon name="loader-circle" {...props}>
+    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+  </Icon>
+);
+
 export const CircleAlert = (props: IconProps) => (
   <Icon name="circle-alert" {...props}>
     <circle cx="12" cy="12" r="10" />

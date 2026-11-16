@@ -1,6 +1,7 @@
 'use client';
 
 import { CircleAlert, RotateCcw, X } from '../../icons';
+import { Alert, AlertDescription, AlertTitle } from '../../ui/alert';
 import { Button } from '../../ui/button';
 import { IconButton } from '../../ui/icon-button';
 import type { AiFailure } from './ai-failure';
@@ -20,13 +21,13 @@ export function AiBarError({ labels, failure, discardKey, primary, onRetry, onDi
   const retryable = failure?.retryable !== false;
   return (
     <>
-      <div role="alert" className="flex min-w-0 flex-1 items-start gap-2 px-1.5 text-sm">
-        <CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-destructive" />
-        <div className="min-w-0">
-          <p className="font-medium text-destructive">{labels.failed}</p>
-          {failure?.reason !== undefined && <p className="text-xs text-muted-foreground">{failure.reason}</p>}
-        </div>
-      </div>
+      <Alert variant="destructive" className="min-w-0 flex-1 border-0 bg-transparent px-1.5 py-0">
+        <CircleAlert aria-hidden="true" />
+        <AlertTitle>{labels.failed}</AlertTitle>
+        {failure?.reason !== undefined && (
+          <AlertDescription className="text-xs text-muted-foreground">{failure.reason}</AlertDescription>
+        )}
+      </Alert>
       {retryable && (
         <Button {...primary} size="sm" onClick={onRetry}>
           <RotateCcw />

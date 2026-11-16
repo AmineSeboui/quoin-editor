@@ -12,6 +12,7 @@ import { requestAlt } from './alt-request';
 import { imageSource } from './image-source';
 import { payOwedSize } from './owed-size';
 import { ResizeHandles } from './ResizeHandles';
+import { badgeVariants } from '../../ui/badge';
 
 type ImageFigureProps = BlockRenderProps & { readOnly: boolean };
 
@@ -59,7 +60,8 @@ export function ImageFigure({ block, controller, readOnly }: ImageFigureProps) {
         {flagged && (
           <button
             type="button"
-            className="quoin-image-no-alt"
+            data-slot="badge"
+            className={badgeVariants({ className: 'quoin-image-no-alt border-background' })}
             aria-label={translatedAlone ? undefined : badgeName}
             onClick={() => {
               select();

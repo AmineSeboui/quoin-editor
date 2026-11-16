@@ -100,16 +100,5 @@
   position: absolute;
   top: 0.5rem;
   inset-inline-start: 0.5rem;
-  padding: 0.125rem 0.5rem;
-  border: 1px solid var(--quoin-background);
-  border-radius: 9999px;
-  background: var(--quoin-foreground);
-  color: var(--quoin-background);
-  font-size: 0.75rem;
   cursor: pointer;
-}
-
-.quoin .quoin-image-no-alt:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px color-mix(in oklab, var(--quoin-ring) 50%, transparent);
 }

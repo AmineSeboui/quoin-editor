@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, type KeyboardEvent } from 'react';
+import { Card } from '../../ui/card';
 import { cn } from '../../ui/cn';
 import { FOCUS_RING } from '../../ui/focus';
 import type { CommentsEnv } from './comments-env';
@@ -36,7 +37,12 @@ export function ThreadCard({ env, entry, active, expanded, onToggle }: ThreadCar
   };
 
   return (
-    <div className="quoin-comments-card" data-active={active || undefined} onKeyDown={onKeyDown}>
+    <Card
+      size="sm"
+      className="quoin-comments-card gap-0 p-2 data-active:ring-indicator"
+      data-active={active || undefined}
+      onKeyDown={onKeyDown}
+    >
       <button
         ref={header}
         type="button"
@@ -59,6 +65,6 @@ export function ThreadCard({ env, entry, active, expanded, onToggle }: ThreadCar
           <ThreadView env={env} id={thread.id} thread={thread} onEnded={backToHeader} />
         </div>
       )}
-    </div>
+    </Card>
   );
 }

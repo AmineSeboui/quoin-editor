@@ -74,18 +74,6 @@
   flex-direction: column;
 }
 
-.quoin .quoin-presence-avatar {
-  width: 18px;
-  height: 18px;
-  border-radius: 9999px;
-  background: var(--quoin-presence, var(--quoin-indicator));
-  color: #fff;
-  font-size: 9px;
-  font-weight: 600;
-  line-height: 18px;
-  text-align: center;
-}
-
 /* Several people in one block overlap, so the column stays short. */
 .quoin .quoin-presence-avatar + .quoin-presence-avatar {
   margin-top: -8px;

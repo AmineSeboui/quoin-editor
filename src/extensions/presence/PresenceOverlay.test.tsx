@@ -1,5 +1,5 @@
 import { StrictMode, useState } from 'react';
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import * as Y from 'yjs';
 import { BlockCanvas } from '../../canvas/BlockCanvas';
 import { collaborationExtension } from '../../engine/collab/collaboration-extension';
@@ -79,6 +79,8 @@ describe('presence on a canvas', () => {
     );
     const avatars = screen.getByRole('img', { name: 'Ada Lovelace is here' });
     expect(avatars).toHaveTextContent('AL');
+    expect(within(avatars).getByText('AL')).toHaveAttribute('data-slot', 'avatar-fallback');
+    expect(within(avatars).getByText('AL').closest('[data-slot="avatar"]')).toHaveStyle({ '--quoin-presence': '#e11d48' });
     expect(document.querySelector('[data-quoin-host] .quoin-presence-caret')).toBeNull();
     const caret = document.querySelector('.quoin-presence-carets .quoin-presence-caret');
     expect(caret?.closest('[aria-hidden="true"]')).not.toBeNull();

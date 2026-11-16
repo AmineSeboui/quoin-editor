@@ -44,6 +44,7 @@ describe('the rail of a wide canvas', () => {
     const card = screen.getByRole('button', { name: /^Text removed/ });
     act(() => void fireEvent.click(card));
     expect(card).toHaveAttribute('aria-expanded', 'true');
+    expect(card.closest('[data-slot="card"]')).toHaveAttribute('data-active');
     const opened = screen.getByRole('group', { name: 'Text removed' });
     expect(await act(() => axe(opened))).toHaveNoViolations();
     const field = within(opened).getByRole('textbox', { name: 'Reply' });

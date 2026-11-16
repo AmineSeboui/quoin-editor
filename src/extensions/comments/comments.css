@@ -70,18 +70,6 @@
   inset-inline: 0;
 }
 
-.quoin .quoin-comments-card {
-  border: 1px solid var(--quoin-border);
-  border-radius: var(--quoin-radius);
-  background: var(--quoin-popover);
-  color: var(--quoin-popover-foreground);
-  padding: 8px;
-}
-
-.quoin .quoin-comments-card[data-active] {
-  border-color: var(--quoin-indicator);
-}
-
 .quoin .quoin-comments-marker {
   position: absolute;
   top: 0;
@@ -138,20 +126,6 @@
 .quoin .quoin-comments-body {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-}
-
-.quoin .quoin-comments-initials {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 9999px;
-  background: var(--quoin-muted);
-  color: var(--quoin-foreground);
-  font-size: 10px;
-  font-weight: 600;
 }
 
 .quoin .quoin-comments-choice:focus-visible {

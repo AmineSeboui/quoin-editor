@@ -12,6 +12,7 @@ import type { ExtensionUI, ToolbarItem } from '../../extensions/ui-types';
 import { Sparkles } from '../../icons';
 import { formatShortcut } from '../../shortcuts/format-shortcut';
 import type { QuoinBlock } from '../../types';
+import { TOGGLE_PRESSED } from '../../ui/toggle';
 
 const stores = vi.hoisted(() => [] as CanvasUiStore[]);
 
@@ -93,6 +94,7 @@ describe('the bubble toolbar', () => {
     await user.click(control('Bold'));
     expect(markdown(canvas)).toEqual(['**hello** world']);
     expect(control('Bold')).toHaveAttribute('aria-pressed', 'true');
+    expect(control('Bold').className.split(' ')).toEqual(expect.arrayContaining(TOGGLE_PRESSED.split(' ')));
     expect(canvas.selection()).toEqual(textSelection(pos('a', 0), pos('a', 5)));
     expect(canvas.shell('a').querySelector('[data-quoin-host]')).toHaveFocus();
     await user.click(control('Bold'));

@@ -5,6 +5,7 @@ import type { SearchOptions } from '../../engine/find/find-types';
 import { CaseSensitive, Regex, WholeWord } from '../../icons';
 import { IconButton } from '../../ui/icon-button';
 import type { FindLabels } from './find-labels';
+import { TOGGLE_PRESSED } from '../../ui/toggle';
 
 type Toggle = { option: keyof SearchOptions; label: keyof FindLabels; icon: ComponentType<{ className?: string }> };
 
@@ -28,7 +29,7 @@ export function FindToggles({ labels, options, onToggle }: Props) {
         size="icon-sm"
         label={name}
         aria-pressed={options[option]}
-        className="aria-pressed:bg-muted aria-pressed:text-foreground"
+        className={TOGGLE_PRESSED}
         onClick={() => onToggle(option)}
       >
         <Icon aria-hidden />

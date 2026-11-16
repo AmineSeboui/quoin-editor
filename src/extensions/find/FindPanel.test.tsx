@@ -3,6 +3,7 @@ import { axe } from 'vitest-axe';
 import { paragraph } from '../../blocks/test-support/test-canvas';
 import { textSelection } from '../../engine';
 import { mountFind } from './find-test-canvas';
+import { TOGGLE_PRESSED } from '../../ui/toggle';
 
 const DOC = [paragraph('a', 'A cat sat on a cat mat'), paragraph('b', 'The cat')];
 
@@ -81,6 +82,7 @@ describe('the find panel', () => {
     expect(matches('a')).toHaveLength(3);
     act(() => button('Match case').click());
     expect(button('Match case')).toHaveAttribute('aria-pressed', 'true');
+    expect(button('Match case').className.split(' ')).toEqual(expect.arrayContaining(TOGGLE_PRESSED.split(' ')));
     expect(matches('a')).toEqual(['cat', 'cat']);
     act(() => button('Whole word').click());
     expect(matches('a')).toEqual(['cat']);

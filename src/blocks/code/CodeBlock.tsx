@@ -24,7 +24,7 @@ export const CodeBlock: BlockRenderer = ({ block, controller }) => {
     <div role="group" aria-label={labels.blockNames.code} contentEditable={false} className="quoin-code">
       <div className="quoin-code-header">
         {readOnly ? (
-          <span className="quoin-code-language quoin-code-control">
+          <span className="quoin-code-language quoin-code-control px-1.5 text-xs">
             {name || labels.plainText}
           </span>
         ) : (

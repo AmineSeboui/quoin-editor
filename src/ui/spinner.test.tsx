@@ -7,6 +7,6 @@ describe("shadcn's Spinner", () => {
     const spinner = container.querySelector('[data-slot="spinner"]')!;
     expect(spinner).toHaveAttribute('aria-hidden', 'true');
     expect(spinner).not.toHaveAttribute('role');
-    expect(spinner).toHaveClass('animate-spin');
+    expect(spinner).toHaveClass('animate-spin', 'motion-reduce:animate-none');
   });
 });

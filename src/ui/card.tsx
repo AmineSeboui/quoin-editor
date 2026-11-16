@@ -16,7 +16,7 @@ const Card = /* @__PURE__ */ React.forwardRef<HTMLDivElement, CardProps>(functio
       data-slot="card"
       data-size={size}
       className={cn(
-        "group/card flex flex-col rounded-xl bg-popover text-sm text-popover-foreground ring-1 ring-foreground/10 has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl",
+        "group/card flex flex-col rounded-xl bg-popover text-sm text-popover-foreground ring-1 ring-foreground/10 forced-colors:border has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl",
         SIZES[size],
         className,
       )}

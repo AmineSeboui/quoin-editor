@@ -112,6 +112,14 @@ describe("keyboard focus is shadcn's ring", () => {
   });
 });
 
+describe('under forced colours', () => {
+  it('frames every focused element inside the editor in a system colour, fields and checkboxes included', () => {
+    const styles = readFileSync(join(SRC, 'styles.css'), 'utf8');
+    const forced = styles.slice(styles.indexOf('@media (forced-colors: active)'));
+    expect(forced).toMatch(/\.quoin:focus-visible,\s*\.quoin :focus-visible \{\s*outline: 2px solid CanvasText !important;/);
+  });
+});
+
 describe('a highlighted row is a background tint', () => {
   it('in a menu', () => {
     render(

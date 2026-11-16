@@ -155,6 +155,18 @@ describe('the thread popover', () => {
     expect(field.value).toBe('');
   });
 
+  it('sends nothing on Mod+Enter while an input method composes', async () => {
+    const canvas = mountComments(blocks(), threads());
+    canvas.caret('a', 6);
+    canvas.commentKey();
+    const field = screen.getByRole<HTMLTextAreaElement>('textbox', { name: 'Reply' });
+    act(() => void fireEvent.change(field, { target: { value: 'にほん' } }));
+    act(() => void fireEvent.keyDown(field, { key: 'Enter', ...canvas.mod(), isComposing: true }));
+    await canvas.settle();
+    expect(canvas.calls.onReply).not.toHaveBeenCalled();
+    expect(field.value).toBe('にほん');
+  });
+
   it('keeps a reply the host failed to take, and tells onError why', async () => {
     const canvas = mountComments(blocks(), threads(), { onReply: () => Promise.reject(new Error('offline')) });
     canvas.caret('a', 6);

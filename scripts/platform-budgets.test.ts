@@ -12,22 +12,22 @@ const budgetOf = (name: string) => {
 };
 
 // The collaboration adapter and the presence drawn with it, which a host loads together: about 2 percent above the
-// 12,450 B they added together after 2.0.5.
-const COLLABORATION = 12_700;
+// 12,734 B they added together once presence drew shadcn's Avatar.
+const COLLABORATION = 13_000;
 
 describe('the budgets of the platform entries', () => {
   it('hold the collaboration, comments and AI entries to what each added to the main entry when it landed', () => {
     expect(['yjs', 'presence', 'comments', 'ai'].map(budgetOf)).toEqual([
       { added: incrementalBudget(8_498) },
-      { added: incrementalBudget(4_534) },
-      { added: incrementalBudget(6_885) },
+      { added: incrementalBudget(4_870) },
+      { added: incrementalBudget(7_770) },
       { added: incrementalBudget(11_655) },
     ]);
   });
 });
 
 describeBuilt('the built collaboration entries', ['index.js', 'yjs.js', 'presence.js'], () => {
-  it('add no more than 12.7 KB to the main entry together', async () => {
+  it('add no more than 13 KB to the main entry together', async () => {
     expect(await addedGzip(root, ['yjs', 'presence'])).toBeLessThanOrEqual(COLLABORATION);
   });
 });

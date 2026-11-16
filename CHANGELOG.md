@@ -2,6 +2,17 @@
 
 Every release of `quoin-editor` is listed here, newest first, in the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). From 1.0.0 the package follows [semantic versioning](https://semver.org/): a breaking change waits for the next major version. Until then, Quoin was 0.x and a minor version could contain breaking changes; those known at release were marked "Breaking". The 0.x sections are kept as they were released, "Docs" headings included. Moving from 0.4 to 1.0, and from 1.x to 2.0, is covered step by step in [MIGRATION.md](MIGRATION.md). Review finding ids such as F-17 are those of the 0.4.0 review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73).
 
+## Unreleased
+
+### Added
+- `--quoin-indicator`, the colour of what marks a place rather than focus: the selected block and atom, the current find match, the drop line, the table's column resizer, the rule beside an AI answer, an open comment card and a pending comment, and a collaborator's caret and avatar when the host gives them no colour. It defaults to the indigo `--quoin-ring` had.
+
+### Changed
+- Keyboard focus is gray. `--quoin-ring` defaults to `oklch(0.61 0.022 261)` in light and `oklch(0.6 0.027 264)` in dark: shadcn's gray, darkened until the focused edge of a button or field still reaches 3:1 against the page, a popover, a selected block, a callout and every background a block can be coloured. A host that set `--quoin-ring` to recolour selection, the drop line or find matches sets `--quoin-indicator` now.
+- Every text field looks and takes focus the same way, as shadcn's input does. The AI menu's prompt now shows its border and the focus ring like the other fields, and the comment reply, the LaTeX source and the code block's language field use shadcn's Textarea and Input instead of styles of their own. The language field still shows only while its block is hovered, focused or selected.
+- More of the editor is drawn with shadcn's elements: the alt text, image link and LaTeX forms with Field, where the image link field now has a visible label; the decorative image box with Checkbox's look, on a native checkbox that forced colours draw as the platform's own; a failed AI answer and a failed upload with Alert; a busy upload button with Spinner; comment and collaborator avatars with Avatar; the missing alt text marker with Badge; comment thread cards with Card; the comments sheet with Sheet; and the "no results" rows of the slash menu and the emoji picker with Command's empty row.
+- The npm tarball is about 1 MB packed and about 5 MB unpacked, just over the 5 MB the README gave before.
+
 ## 2.3.0 (2026-11-14)
 
 ### Added

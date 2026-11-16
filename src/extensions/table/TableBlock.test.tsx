@@ -98,6 +98,7 @@ describe('a table block on a read-only canvas', () => {
     const { container, shell } = mount({}, { readOnly: true });
     const region = screen.getByRole('region', { name: 'Table' });
     expect(region).toHaveAttribute('tabindex', '0');
+    expect(region.className.split(' ')).toEqual(expect.arrayContaining(['focus-visible:inset-ring-1', 'focus-visible:inset-ring-ring']));
     expect(within(region).getByRole('table')).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Row 1, column 1' })).toHaveAttribute('aria-readonly', 'true');
     expect(shell('t').querySelector('[data-quoin-table-controls]')).toBeNull();

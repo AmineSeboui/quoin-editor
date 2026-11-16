@@ -3,7 +3,7 @@
 import type { RefObject } from 'react';
 import { MessageSquare } from '../../icons';
 import { cn } from '../../ui/cn';
-import { FOCUS_RING } from '../../ui/focus';
+import { FOCUS_RING_BORDERLESS } from '../../ui/focus';
 import type { CommentsEnv } from './comments-env';
 import type { RailEntry } from './rail-entries';
 import { useBlockAligned } from './use-block-aligned';
@@ -43,7 +43,7 @@ export function CommentMarkers({ env, box, entries, onOpen }: CommentMarkersProp
           data-rail-item=""
           data-block={block}
           aria-label={env.labels.showComments(ids.length)}
-          className={cn('quoin-comments-marker', FOCUS_RING)}
+          className={cn('quoin-comments-marker', FOCUS_RING_BORDERLESS)}
           onClick={(event) => onOpen(ids[0], event.currentTarget)}
         >
           <MessageSquare aria-hidden="true" />

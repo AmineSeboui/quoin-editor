@@ -29,6 +29,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import { FilePickerButton } from '../upload/FilePickerButton';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { FOCUS_RING_BORDERLESS } from './focus';
 
 const SRC = resolve(__dirname, '..');
 
@@ -46,6 +47,7 @@ const OLD_FOCUS_OUTLINE = /outline-\[var\(--quoin-ring\)\]|outline:\s*2px solid 
 /** Unconditional, this utility draws a 2px outline round every control at rest in forced-colors mode, so the one with
  *  focus no longer stands out. Scoped to :focus it frames only the focused control. */
 const FORCED_COLORS_FRAME = 'outline-hidden';
+const BORDERLESS_EDGE = ['focus-visible:inset-ring-1', 'focus-visible:inset-ring-ring'];
 
 function classesOf(el: Element | null): string[] {
   if (!el) throw new Error('element not rendered');
@@ -95,6 +97,10 @@ describe("keyboard focus is shadcn's ring", () => {
     expectFocusRing(screen.getByRole('button', { name: 'Close' }));
   });
 
+  it('with a full-strength edge drawn inside it on a control that has no border to colour', () => {
+    expect(FOCUS_RING_BORDERLESS.split(' ')).toEqual(expect.arrayContaining([...RING_CLASSES, ...BORDERLESS_EDGE]));
+  });
+
   it('around the file picker, which paints it on a wrapper because the input is invisible', () => {
     render(<FilePickerButton label="Upload file" onPick={() => {}} />);
     const wrapper = screen.getByLabelText('Upload file').parentElement;
@@ -105,6 +111,8 @@ describe("keyboard focus is shadcn's ring", () => {
         'has-[:focus-visible]:ring-3',
         'has-[:focus-visible]:ring-ring/50',
         `has-[:focus-visible]:${FORCED_COLORS_FRAME}`,
+        'has-[:focus-visible]:inset-ring-1',
+        'has-[:focus-visible]:inset-ring-ring',
       ]),
     );
     expect(classes).not.toContain(FORCED_COLORS_FRAME);

@@ -46,6 +46,7 @@ describe('the emoji picker', () => {
     expect(cells).toHaveLength(searchEmoji('').length);
     expect(within(grids()[0]).getAllByRole('row')[0].children).toHaveLength(COLUMNS);
     const party = screen.getByRole('gridcell', { name: 'tada' });
+    expect(party.className.split(' ')).toEqual(expect.arrayContaining(['focus-visible:inset-ring-1', 'focus-visible:inset-ring-ring']));
     expect(party).toHaveTextContent(PARTY_POPPER);
     expect(within(grids()[5]).getByRole('gridcell', { name: 'tada' })).toBe(party);
     const unnamed = searchEmoji('').find(({ shortcodes }) => shortcodes.length === 0)!;

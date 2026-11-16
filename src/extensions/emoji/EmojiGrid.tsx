@@ -4,7 +4,7 @@ import { memo, useId, useState, type FocusEvent, type KeyboardEvent } from 'reac
 import type { Emoji } from '../../emoji/emoji-types';
 import { cn } from '../../ui/cn';
 import { arrowAsWritten, inlineDirection } from '../../ui/direction';
-import { FOCUS_RING } from '../../ui/focus';
+import { FOCUS_RING_BORDERLESS } from '../../ui/focus';
 import { isComposing } from './composing-key';
 import { emojiAt } from './emoji-at';
 import { emojiName } from './emoji-name';
@@ -15,7 +15,7 @@ type Props = { section: PickerSection; onPick(emoji: string): void };
 
 const CELL = cn(
   'flex size-8 shrink-0 cursor-default items-center justify-center rounded-md text-xl hover:bg-accent',
-  FOCUS_RING,
+  FOCUS_RING_BORDERLESS,
 );
 const HEADING = 'px-1 pt-2 pb-1 text-xs font-medium text-muted-foreground';
 const FIRST: GridCell = { row: 0, col: 0 };

@@ -6,6 +6,8 @@ const SOURCES = import.meta.glob<string>(['/src/**/*.{ts,tsx}', '!/src/**/*.test
 });
 
 const READS_RING = /var\(--quoin-ring\)/;
+const HALO = /0 0 0 3px color-mix\(in oklab, var\(--quoin-ring\) 50%, transparent\)/;
+const EDGE = /inset 0 0 0 1px var\(--quoin-ring\)|border-color: var\(--quoin-ring\)/;
 const RING_UTILITY = /[\w:[\]=()-]*\b(?:border|bg|outline|fill|stroke|text|ring|decoration)-ring\b/g;
 
 function ringRulesWithoutFocus(): string[] {
@@ -23,6 +25,16 @@ function ringRulesWithoutFocus(): string[] {
   );
 }
 
+function halosWithoutEdge(): string[] {
+  return Object.entries(STYLESHEETS).flatMap(([file, css]) =>
+    css.split('}').flatMap((chunk) => {
+      const parts = chunk.split('{');
+      const body = parts.at(-1)!;
+      return parts.length > 1 && HALO.test(body) && !EDGE.test(body) ? [`${file}: ${parts.at(-2)!.trim()}`] : [];
+    }),
+  );
+}
+
 function ringUtilitiesWithoutFocus(): string[] {
   return Object.entries(SOURCES).flatMap(([file, source]) =>
     [...source.matchAll(RING_UTILITY)]
@@ -35,6 +47,10 @@ function ringUtilitiesWithoutFocus(): string[] {
 describe('the ring colour', () => {
   it('is read only by focus rules in the stylesheets', () => {
     expect(ringRulesWithoutFocus()).toEqual([]);
+  });
+
+  it('draws a full-strength edge at 3:1 wherever a stylesheet draws its half-strength halo', () => {
+    expect(halosWithoutEdge()).toEqual([]);
   });
 
   it('is used only under a focus variant in class lists', () => {

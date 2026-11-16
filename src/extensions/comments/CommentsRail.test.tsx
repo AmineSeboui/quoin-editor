@@ -28,6 +28,7 @@ describe('the rail of a wide canvas', () => {
     const canvas = mountComments(blocks(), threads());
     const rail = screen.getByRole('list', { name: 'Comments' });
     const cards = within(rail).getAllByRole('button');
+    for (const card of cards) expect(card.className.split(' ')).toEqual(expect.arrayContaining(['focus-visible:inset-ring-1', 'focus-visible:inset-ring-ring']));
     expect(cards.map((card) => card.textContent)).toEqual([
       'earlyAda Lovelace On early1 comment',
       'lateAda Lovelace On late1 comment',
@@ -119,6 +120,7 @@ describe('a narrow canvas', () => {
     const canvas = mountComments(blocks(), threads());
     expect(screen.queryByRole('list', { name: 'Comments' })).toBeNull();
     const markers = Array.from(canvas.container.querySelectorAll('.quoin-comments-marker'));
+    for (const marker of markers) expect(marker.className.split(' ')).toEqual(expect.arrayContaining(['focus-visible:inset-ring-1', 'focus-visible:inset-ring-ring']));
     expect(markers.map((marker) => [marker.getAttribute('data-block'), marker.getAttribute('aria-label')])).toEqual([
       ['a', '1 comment'],
       ['b', '1 comment'],

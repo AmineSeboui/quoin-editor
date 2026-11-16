@@ -3,7 +3,7 @@
 import { useRef } from 'react';
 import { useLabels } from '../../i18n/use-labels';
 import type { BlockRenderer } from '../../view';
-import { FOCUS_RING } from '../../ui/focus';
+import { FOCUS_RING_BORDERLESS } from '../../ui/focus';
 import { useReadOnly } from '../../view/react/use-read-only';
 import { str } from '../../engine/blocks/data-fields';
 import { languageName } from './code-languages';
@@ -39,7 +39,7 @@ export const CodeBlock: BlockRenderer = ({ block, controller }) => {
         <CopyCodeButton code={code} controller={controller} />
       </div>
       {readOnly ? (
-        <div dir="ltr" role="region" aria-label={name || labels.codeText} tabIndex={0} className={`quoin-code-scroll ${FOCUS_RING}`}>
+        <div dir="ltr" role="region" aria-label={name || labels.codeText} tabIndex={0} className={`quoin-code-scroll ${FOCUS_RING_BORDERLESS}`}>
           <HighlightOverlay code={code} language={language} />
         </div>
       ) : (

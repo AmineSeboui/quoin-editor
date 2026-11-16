@@ -76,7 +76,7 @@ export const DragOverlay = forwardRef<DragOverlayHandle>(function DragOverlay(_p
         hidden
         aria-hidden="true"
         data-quoin-drop-line=""
-        className="pointer-events-none absolute z-20 h-0 border-t-2 border-ring"
+        className="pointer-events-none absolute z-20 h-0 border-t-2 border-indicator"
       />
     </>
   );

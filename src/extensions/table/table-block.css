@@ -106,7 +106,7 @@
   inset-block: 0;
   inset-inline-start: calc(50% - 1px);
   width: 2px;
-  background: var(--quoin-ring);
+  background: var(--quoin-indicator);
   opacity: 0;
 }
 

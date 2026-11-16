@@ -44,7 +44,7 @@
 
 .quoin [data-quoin-block][data-selected="true"] {
   background: var(--quoin-accent);
-  box-shadow: 0 0 0 2px var(--quoin-ring);
+  box-shadow: 0 0 0 2px var(--quoin-indicator);
   outline: 2px solid transparent;
 }
 

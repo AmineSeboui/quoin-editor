@@ -17,7 +17,7 @@
 
 .quoin .quoin-comment-pending {
   background: color-mix(in oklch, var(--quoin-comment) 30%, transparent);
-  text-decoration: underline dashed var(--quoin-ring);
+  text-decoration: underline dashed var(--quoin-indicator);
 }
 
 /* The room the threads take is reserved at the end of every line, so they never cover the text; with presence on, the
@@ -79,7 +79,7 @@
 }
 
 .quoin .quoin-comments-card[data-active] {
-  border-color: var(--quoin-ring);
+  border-color: var(--quoin-indicator);
 }
 
 .quoin .quoin-comments-marker {
@@ -130,7 +130,7 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   padding-inline-start: 6px;
-  border-inline-start: 2px solid var(--quoin-ring);
+  border-inline-start: 2px solid var(--quoin-indicator);
   color: var(--quoin-muted-foreground);
   font-size: 0.75rem;
 }

@@ -16,7 +16,7 @@
 
 .quoin .quoin-ai-ghost {
   padding-inline-start: 0.75em;
-  border-inline-start: 2px solid var(--quoin-ring);
+  border-inline-start: 2px solid var(--quoin-indicator);
   color: var(--quoin-foreground);
   user-select: none;
   white-space: pre-wrap;

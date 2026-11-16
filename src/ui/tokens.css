@@ -7,7 +7,8 @@
   --quoin-popover-foreground: oklch(0.24 0.024 267);
   --quoin-border: oklch(0.927 0.01 262);
   --quoin-input: oklch(0.927 0.01 262);
-  --quoin-ring: oklch(0.533 0.221 266);
+  --quoin-ring: oklch(0.61 0.022 261);
+  --quoin-indicator: oklch(0.533 0.221 266);
   --quoin-primary: oklch(0.24 0.024 267);
   --quoin-primary-foreground: oklch(0.985 0.003 260);
   --quoin-accent: oklch(0.962 0.012 262);
@@ -78,7 +79,8 @@
   --quoin-popover-foreground: oklch(0.965 0.005 260);
   --quoin-border: oklch(1 0 0 / 10%);
   --quoin-input: oklch(1 0 0 / 15%);
-  --quoin-ring: oklch(0.72 0.14 268);
+  --quoin-ring: oklch(0.6 0.027 264);
+  --quoin-indicator: oklch(0.72 0.14 268);
   --quoin-primary: oklch(0.93 0.008 262);
   --quoin-primary-foreground: oklch(0.22 0.02 266);
   --quoin-accent: oklch(0.28 0.025 266);

@@ -41,6 +41,17 @@ const HIGHLIGHT = 'accent';
 const SYNTAX = [...new Set([...css.matchAll(/--quoin-(syntax-[\w-]+):/g)].map(([, name]) => name))];
 
 describe.each<Theme>(['light', 'dark'])('%s theme', (theme) => {
+  it('draws focus in gray, apart from the indicator colour', () => {
+    expect(token(theme, 'ring')[1]).toBeLessThan(0.03);
+    expect(token(theme, 'indicator')).not.toEqual(token(theme, 'ring'));
+  });
+
+  it('draws the indicator at 3:1 or more against the page, a popover and a selected block', () => {
+    expect(contrast(theme, 'indicator', 'background')).toBeGreaterThanOrEqual(3);
+    expect(contrast(theme, 'indicator', 'popover')).toBeGreaterThanOrEqual(3);
+    expect(contrast(theme, 'indicator', 'accent')).toBeGreaterThanOrEqual(3);
+  });
+
   it('draws the focus ring at 3:1 or more against the page', () => {
     expect(contrast(theme, 'ring', 'background')).toBeGreaterThanOrEqual(3);
   });

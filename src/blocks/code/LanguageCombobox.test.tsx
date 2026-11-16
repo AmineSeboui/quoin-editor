@@ -15,6 +15,22 @@ function open(language: string) {
 }
 
 describe('the language combobox', () => {
+  it('is drawn as a field like any other, shown only with its block, at the size of the code toolbar', () => {
+    mountCanvas([code('ts')]);
+    expect(field().className.split(' ')).toEqual(
+      expect.arrayContaining([
+        'border',
+        'border-input',
+        'focus-visible:border-ring',
+        'focus-visible:ring-3',
+        'focus-visible:ring-ring/50',
+        'quoin-code-control',
+        'h-6',
+        'w-32',
+      ]),
+    );
+  });
+
   it('shows the name of a known language, an unknown one as written, and plain text as its placeholder', () => {
     mountCanvas([code('ts'), { id: 'u', type: 'CODE', data: { language: 'cobol', code: '' } }, { id: 'p', type: 'CODE', data: { language: '', code: '' } }]);
     const [known, unknown, plain] = screen.getAllByRole<HTMLInputElement>('combobox', { name: 'Language' });

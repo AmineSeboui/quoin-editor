@@ -1,6 +1,6 @@
-/* A collaborator's colour comes as --quoin-presence on each element; without one the ring colour stands in. */
+/* A collaborator's colour comes as --quoin-presence on each element; without one the indicator colour stands in. */
 .quoin .quoin-presence-selection {
-  background: color-mix(in srgb, var(--quoin-presence, var(--quoin-ring)) 20%, transparent);
+  background: color-mix(in srgb, var(--quoin-presence, var(--quoin-indicator)) 20%, transparent);
 }
 
 /* Carets are drawn over the text, never in it, and take no pointer. Nothing of them, a long name near the end of a
@@ -20,7 +20,7 @@
   width: 2px;
   /* physical: half the width, to centre the caret on the boundary it marks, which is symmetric either way */
   margin-left: -1px;
-  background: var(--quoin-presence, var(--quoin-ring));
+  background: var(--quoin-presence, var(--quoin-indicator));
 }
 
 .quoin .quoin-presence-name {
@@ -31,7 +31,7 @@
   overflow: hidden;
   padding: 0 4px;
   border-radius: 3px;
-  background: var(--quoin-presence, var(--quoin-ring));
+  background: var(--quoin-presence, var(--quoin-indicator));
   color: #fff;
   font-size: 11px;
   font-weight: 500;
@@ -72,18 +72,6 @@
   inset-inline-end: 3px;
   display: flex;
   flex-direction: column;
-}
-
-.quoin .quoin-presence-avatar {
-  width: 18px;
-  height: 18px;
-  border-radius: 9999px;
-  background: var(--quoin-presence, var(--quoin-ring));
-  color: #fff;
-  font-size: 9px;
-  font-weight: 600;
-  line-height: 18px;
-  text-align: center;
 }
 
 /* Several people in one block overlap, so the column stays short. */

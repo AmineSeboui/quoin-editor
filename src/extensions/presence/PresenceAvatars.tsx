@@ -7,6 +7,9 @@ import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layou
 import { followLayout } from './follow-layout';
 import type { PresenceLabels } from './presence-labels';
 import { presenceKey, type Peer } from './presence-plugin';
+import { Avatar, AvatarFallback } from '../../ui/avatar';
+
+const PRESENCE_COLOURS: CSSProperties = { background: 'var(--quoin-presence, var(--quoin-indicator))', color: '#fff' };
 
 const initials = (name: string) =>
   name
@@ -61,13 +64,15 @@ export function PresenceAvatars({ controller, labels }: { controller: ViewContro
           className="quoin-presence-group"
         >
           {people.map(({ client, name, color }) => (
-            <span
+            <Avatar
               key={client}
-              className="quoin-presence-avatar"
+              className="quoin-presence-avatar size-[18px]"
               style={color === undefined ? undefined : ({ '--quoin-presence': color } as CSSProperties)}
             >
-              {initials(name)}
-            </span>
+              <AvatarFallback className="text-[9px] font-semibold" style={PRESENCE_COLOURS}>
+                {initials(name)}
+              </AvatarFallback>
+            </Avatar>
           ))}
         </div>
       ))}

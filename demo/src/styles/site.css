@@ -155,7 +155,7 @@ a {
 }
 
 .brand-wedge {
-  fill: var(--quoin-ring);
+  fill: var(--quoin-indicator);
 }
 
 .site-nav {
@@ -332,7 +332,7 @@ a {
 }
 
 .guide-nav a[aria-current] {
-  box-shadow: inset 2px 0 0 var(--quoin-ring);
+  box-shadow: inset 2px 0 0 var(--quoin-indicator);
   font-weight: 600;
 }
 

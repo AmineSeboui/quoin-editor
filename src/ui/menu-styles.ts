@@ -49,5 +49,8 @@ export const LIST_OPTION = [
 /** The heading of a group of such rows. */
 export const LIST_GROUP_LABEL = 'px-2 py-1.5 text-xs font-medium text-muted-foreground';
 
+/** The row a list shows when it has nothing to list: shadcn's CommandEmpty. */
+export const LIST_EMPTY = 'py-6 text-center text-sm';
+
 export const MENU_SHORTCUT =
   'ms-auto text-xs tracking-widest text-muted-foreground group-focus/menu-item:text-accent-foreground';

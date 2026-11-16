@@ -9,6 +9,7 @@ import { loadEmojiData } from './emoji-data';
 import { englishEmojiLabels } from './emoji-labels';
 import { heldEmojiData } from './emoji-test-canvas';
 import { EmojiPicker } from './EmojiPicker';
+import { LIST_EMPTY } from '../../ui/menu-styles';
 
 const GRINNING = '\u{1F600}';
 const SMILEY = '\u{1F603}';
@@ -45,6 +46,7 @@ describe('the emoji picker', () => {
     expect(cells).toHaveLength(searchEmoji('').length);
     expect(within(grids()[0]).getAllByRole('row')[0].children).toHaveLength(COLUMNS);
     const party = screen.getByRole('gridcell', { name: 'tada' });
+    expect(party.className.split(' ')).toEqual(expect.arrayContaining(['focus-visible:inset-ring-1', 'focus-visible:inset-ring-ring']));
     expect(party).toHaveTextContent(PARTY_POPPER);
     expect(within(grids()[5]).getByRole('gridcell', { name: 'tada' })).toBe(party);
     const unnamed = searchEmoji('').find(({ shortcodes }) => shortcodes.length === 0)!;
@@ -61,6 +63,7 @@ describe('the emoji picker', () => {
     await user.type(field, 'zzz');
     expect(grids()).toHaveLength(0);
     expect(screen.getByRole('status')).toHaveTextContent('No emoji found');
+    expect(screen.getByRole('status').className.split(' ')).toEqual(expect.arrayContaining(LIST_EMPTY.split(' ')));
   });
 
   it('walks the grid the other way on a right to left page, where the next cell is to the left', async () => {

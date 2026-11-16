@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { Button } from './button';
 import { Input } from './input';
+import { Textarea } from './textarea';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from './dialog';
 import {
   DropdownMenu,
@@ -28,6 +29,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import { FilePickerButton } from '../upload/FilePickerButton';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { FOCUS_RING_BORDERLESS } from './focus';
 
 const SRC = resolve(__dirname, '..');
 
@@ -45,6 +47,7 @@ const OLD_FOCUS_OUTLINE = /outline-\[var\(--quoin-ring\)\]|outline:\s*2px solid 
 /** Unconditional, this utility draws a 2px outline round every control at rest in forced-colors mode, so the one with
  *  focus no longer stands out. Scoped to :focus it frames only the focused control. */
 const FORCED_COLORS_FRAME = 'outline-hidden';
+const BORDERLESS_EDGE = ['focus-visible:inset-ring-1', 'focus-visible:inset-ring-ring'];
 
 function classesOf(el: Element | null): string[] {
   if (!el) throw new Error('element not rendered');
@@ -77,6 +80,11 @@ describe("keyboard focus is shadcn's ring", () => {
     expectFocusRing(screen.getByLabelText('Name'));
   });
 
+  it('on a textarea', () => {
+    render(<Textarea aria-label="Note" />);
+    expectFocusRing(screen.getByLabelText('Note'));
+  });
+
   it('on the dialog close button', () => {
     render(
       <Dialog open>
@@ -89,6 +97,10 @@ describe("keyboard focus is shadcn's ring", () => {
     expectFocusRing(screen.getByRole('button', { name: 'Close' }));
   });
 
+  it('with a full-strength edge drawn inside it on a control that has no border to colour', () => {
+    expect(FOCUS_RING_BORDERLESS.split(' ')).toEqual(expect.arrayContaining([...RING_CLASSES, ...BORDERLESS_EDGE]));
+  });
+
   it('around the file picker, which paints it on a wrapper because the input is invisible', () => {
     render(<FilePickerButton label="Upload file" onPick={() => {}} />);
     const wrapper = screen.getByLabelText('Upload file').parentElement;
@@ -99,10 +111,20 @@ describe("keyboard focus is shadcn's ring", () => {
         'has-[:focus-visible]:ring-3',
         'has-[:focus-visible]:ring-ring/50',
         `has-[:focus-visible]:${FORCED_COLORS_FRAME}`,
+        'has-[:focus-visible]:inset-ring-1',
+        'has-[:focus-visible]:inset-ring-ring',
       ]),
     );
     expect(classes).not.toContain(FORCED_COLORS_FRAME);
     expect(classes.some((c) => c.includes('outline-[var(--quoin-ring)]'))).toBe(false);
+  });
+});
+
+describe('under forced colours', () => {
+  it('frames every focused element inside the editor in a system colour, fields and checkboxes included', () => {
+    const styles = readFileSync(join(SRC, 'styles.css'), 'utf8');
+    const forced = styles.slice(styles.indexOf('@media (forced-colors: active)'));
+    expect(forced).toMatch(/\.quoin:focus-visible,\s*\.quoin :focus-visible \{\s*outline: 2px solid CanvasText !important;/);
   });
 });
 

@@ -7,14 +7,13 @@ import type { ToolbarItem } from '../extensions/ui-types';
 import { formatShortcut } from '../shortcuts/format-shortcut';
 import { IconButton } from '../ui/icon-button';
 import type { ViewController } from '../view';
+import { TOGGLE_PRESSED } from '../ui/toggle';
 
 /**
  * A toolbar button, which may say that it opens a dialog, as Link opens the link popover, and when it would do
  * nothing, as Undo with nothing to undo: it stays in the row, marked unavailable, so the row keeps its place.
  */
 export type KitItem = ToolbarItem & { readonly opensDialog?: boolean; enabled?(state: EditorState): boolean };
-
-const PRESSED = 'aria-pressed:bg-muted aria-pressed:text-foreground';
 
 type ToolbarButtonProps = {
   item: KitItem;
@@ -37,7 +36,7 @@ export function ToolbarButton({ item, state, controller, buttonRef }: ToolbarBut
       aria-pressed={item.isActive?.(state)}
       aria-haspopup={item.opensDialog ? 'dialog' : undefined}
       aria-disabled={disabled || undefined}
-      className={PRESSED}
+      className={TOGGLE_PRESSED}
       onClick={() => {
         if (!disabled) item.run(controller);
       }}

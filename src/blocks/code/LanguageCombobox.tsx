@@ -3,7 +3,8 @@
 import { useId, useRef, useState, type KeyboardEvent, type RefObject } from 'react';
 import { useLabels } from '../../i18n/use-labels';
 import { SuggestionOption } from '../../menus/suggestion/SuggestionOption';
-import { FOCUS_RING } from '../../ui/focus';
+import { cn } from '../../ui/cn';
+import { INPUT } from '../../ui/input';
 import { MENU_CONTENT } from '../../ui/menu-styles';
 import { Popover, PopoverAnchor, PopoverContent } from '../../ui/popover';
 import { preventDefault } from '../../ui/prevent-default';
@@ -13,7 +14,10 @@ import { useIsomorphicLayoutEffect } from '../../view/react/use-isomorphic-layou
 import { setBlockAttrs } from '../text/set-block-attrs';
 import { languageId, languageName, languageOptions } from './code-languages';
 
-const FIELD = `quoin-code-language quoin-code-control ${FOCUS_RING}`;
+const FIELD = cn(
+  INPUT,
+  'quoin-code-language quoin-code-control h-6 w-32 rounded-[calc(var(--quoin-radius)-4px)] px-1.5 text-xs md:text-xs pointer-coarse:min-h-0',
+);
 // The listbox scrolls rather than the popover around it, as the combobox's own popup, which the arrows walk while focus
 // stays in the field.
 const CONTENT = `${MENU_CONTENT} flex max-h-64 w-48 flex-col gap-0 overflow-y-hidden rounded-xl`;

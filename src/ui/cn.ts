@@ -7,6 +7,7 @@ const FAMILIES: readonly (readonly [group: string, utility: RegExp])[] = [
   ['ring-width', /^ring(-(\d+|\[.+\]))?$/],
   ['ring-color', /^ring-(?!inset$|offset-)/],
   ['shadow', /^shadow(-(none|2xs|xs|sm|md|lg|xl|2xl|\[.+\]))?$/],
+  ['font-weight', /^font-(thin|extralight|light|normal|medium|semibold|bold|extrabold|black)$/],
   ['flex-direction', /^flex-(row|col)(-reverse)?$/],
   ['border-width', /^border(-(0|2|4|8|\[.+\]))?$/],
   [
@@ -37,7 +38,7 @@ function groupOf(utility: string): string {
 
 /** Joins class names, a later utility dropping an earlier one that sets the same thing under the same variants. The
  *  groups it knows are the ones Quoin's own class lists override: display, font size, text color, radius, ring width,
- *  ring color, shadow, flex direction, border width, border color, background color, padding, width, height, size,
+ *  ring color, shadow, font weight, flex direction, border width, border color, background color, padding, width, height, size,
  *  gap, cursor and overflow, a padding shorthand also dropping the sides it sets. Any other two utilities are both
  *  kept, for the stylesheet to order. */
 export function cn(...inputs: ClassValue[]): string {

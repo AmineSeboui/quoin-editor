@@ -38,6 +38,12 @@ describe('the decorative image checkbox of the alt text popover', () => {
     expect(field()).not.toBeRequired();
   });
 
+  it("is shadcn's checkbox, beside the alt text field's own visible label", async () => {
+    await open(image());
+    expect(box()).toHaveAttribute('data-slot', 'checkbox');
+    expect(screen.getByText('Alt text', { selector: 'label' })).toHaveAttribute('data-slot', 'field-label');
+  });
+
   it('stores decorative with no alt text on Save, clearing what was there', async () => {
     const { user, data } = await open(image());
     await user.click(box());

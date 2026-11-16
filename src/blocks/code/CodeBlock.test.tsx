@@ -136,11 +136,13 @@ describe('the code block', () => {
     expect(group.querySelector('pre span')).toHaveStyle({ color: 'rgb(0, 0, 255)' });
     expect(group).toHaveTextContent('TypeScript');
     expect(within(group).getByRole('button', { name: 'Copy code' })).toBeInTheDocument();
+    expect(within(group).getByText('TypeScript')).toHaveClass('text-xs', 'px-1.5');
   });
 
   it('lets a keyboard scroll the code and reach the copy button on a read-only canvas', () => {
     mountCanvas([code('k', 'let a;'), code('p', 'x', '')], { readOnly: true });
     const [named, plain] = screen.getAllByRole('region');
+    expect(named.className.split(' ')).toEqual(expect.arrayContaining(['focus-visible:inset-ring-1', 'focus-visible:inset-ring-ring']));
     expect(named).toHaveAccessibleName('TypeScript');
     expect(plain).toHaveAccessibleName('Code');
     expect(named).toHaveAttribute('tabindex', '0');

@@ -1,8 +1,9 @@
 'use client';
 
 import { useRef, type KeyboardEvent } from 'react';
+import { Card } from '../../ui/card';
 import { cn } from '../../ui/cn';
-import { FOCUS_RING } from '../../ui/focus';
+import { FOCUS_RING_BORDERLESS } from '../../ui/focus';
 import type { CommentsEnv } from './comments-env';
 import type { RailEntry } from './rail-entries';
 import { ThreadView } from './ThreadView';
@@ -36,12 +37,17 @@ export function ThreadCard({ env, entry, active, expanded, onToggle }: ThreadCar
   };
 
   return (
-    <div className="quoin-comments-card" data-active={active || undefined} onKeyDown={onKeyDown}>
+    <Card
+      size="sm"
+      className="quoin-comments-card gap-0 p-2 data-active:ring-indicator"
+      data-active={active || undefined}
+      onKeyDown={onKeyDown}
+    >
       <button
         ref={header}
         type="button"
         aria-expanded={expanded}
-        className={cn('flex w-full flex-col items-start gap-1 rounded-sm text-start', FOCUS_RING)}
+        className={cn('flex w-full flex-col items-start gap-1 rounded-sm text-start', FOCUS_RING_BORDERLESS)}
         onClick={() => onToggle(expanded ? null : thread.id)}
       >
         <span className={removed ? 'text-xs text-muted-foreground italic' : 'quoin-comments-quote'}>
@@ -59,6 +65,6 @@ export function ThreadCard({ env, entry, active, expanded, onToggle }: ThreadCar
           <ThreadView env={env} id={thread.id} thread={thread} onEnded={backToHeader} />
         </div>
       )}
-    </div>
+    </Card>
   );
 }

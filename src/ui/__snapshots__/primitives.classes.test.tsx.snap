@@ -209,3 +209,15 @@ exports[`the classes of a primitive > in the popover family keep a class the hos
   "div[popover-content] Body: bg-popover data-[side=bottom]:slide-in-from-top-[0.5rem] data-[side=left]:slide-in-from-right-[0.5rem] data-[side=right]:slide-in-from-left-[0.5rem] data-[side=top]:slide-in-from-bottom-[0.5rem] data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 duration-100 flex flex-col focus:outline-hidden gap-2.5 host-class origin-(--radix-popover-content-transform-origin) p-2.5 quoin ring-1 ring-foreground/10 rounded-lg shadow-md text-popover-foreground text-sm w-72 z-50",
 ]
 `;
+
+exports[`the classes of a primitive > in the textarea family are those its variants give it 1`] = `
+[
+  "textarea[textarea] Note: aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 bg-transparent border border-input dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 dark:bg-input/30 dark:disabled:bg-input/80 disabled:bg-input/50 disabled:cursor-not-allowed disabled:opacity-50 field-sizing-content flex focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm min-h-16 outline-none placeholder:text-muted-foreground px-2.5 py-2 rounded-lg text-base transition-colors w-full",
+]
+`;
+
+exports[`the classes of a primitive > in the textarea family keep a class the host adds 1`] = `
+[
+  "textarea[textarea] Note: aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 bg-transparent border border-input dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 dark:bg-input/30 dark:disabled:bg-input/80 disabled:bg-input/50 disabled:cursor-not-allowed disabled:opacity-50 field-sizing-content flex focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 host-class md:text-sm min-h-16 outline-none placeholder:text-muted-foreground px-2.5 py-2 rounded-lg text-base transition-colors w-full",
+]
+`;

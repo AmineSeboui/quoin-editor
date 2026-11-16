@@ -2,7 +2,7 @@
 
 import { useRef } from 'react';
 import { columnAligns, storedWidths, tableShape } from '../../engine/commands/table-shape';
-import { FOCUS_RING } from '../../ui/focus';
+import { FOCUS_RING_BORDERLESS } from '../../ui/focus';
 import type { BlockRenderProps } from '../../view';
 import { useReadOnly } from '../../view/react/use-read-only';
 import { CONTROLS_SLOT } from './controls-slot';
@@ -52,7 +52,7 @@ export function TableBlock({ block, controller, labels }: TableBlockProps) {
 
   return (
     <div contentEditable={false} className="quoin-table" data-readonly={readOnly ? '' : undefined}>
-      <div className={`quoin-table-scroll ${readOnly ? FOCUS_RING : ''}`} {...scroller}>
+      <div className={`quoin-table-scroll ${readOnly ? FOCUS_RING_BORDERLESS : ''}`} {...scroller}>
         <table
           ref={table}
           aria-label={readOnly ? undefined : labels.table}

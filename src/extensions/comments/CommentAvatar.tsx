@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '../../ui/avatar';
 import { webAddress } from '../web-address';
 import type { CommentAuthor } from './comment-threads';
 
@@ -16,22 +17,20 @@ const initials = (name: string) =>
 export function CommentAvatar({ author }: { author: CommentAuthor }) {
   const picture = webAddress(author.avatarUrl);
   const [failed, setFailed] = useState<string | null>(null);
-  if (picture !== null && picture !== failed) {
-    return (
-      <img
-        src={picture}
-        alt=""
-        loading="lazy"
-        referrerPolicy="no-referrer"
-        draggable={false}
-        className="size-6 shrink-0 rounded-full object-cover"
-        onError={() => setFailed(picture)}
-      />
-    );
-  }
   return (
-    <span aria-hidden="true" className="quoin-comments-initials">
-      {initials(author.name)}
-    </span>
+    <Avatar size="sm">
+      {picture !== null && picture !== failed ? (
+        <AvatarImage
+          src={picture}
+          alt=""
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          draggable={false}
+          onError={() => setFailed(picture)}
+        />
+      ) : (
+        <AvatarFallback aria-hidden="true">{initials(author.name)}</AvatarFallback>
+      )}
+    </Avatar>
   );
 }

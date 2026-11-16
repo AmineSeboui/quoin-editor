@@ -44,6 +44,7 @@ import {
 import { Input } from './input';
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput, InputGroupTextarea } from './input-group';
 import { Kbd, KbdGroup } from './kbd';
+import { Textarea } from './textarea';
 import { Popover, PopoverAnchor, PopoverContent } from './popover';
 import { classLists } from './test-class-lists';
 
@@ -140,6 +141,7 @@ const families: Family[] = [
     'field',
     (className) => <Input aria-label="Name" className={className} />,
   ],
+  ['textarea', (className) => <Textarea aria-label="Note" className={className} />],
   [
     'popover',
     (className) => (

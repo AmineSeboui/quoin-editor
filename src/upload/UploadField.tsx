@@ -6,6 +6,7 @@ import { useLabels } from '../i18n/use-labels';
 import type { QuoinLabels } from '../i18n/labels';
 import { toError } from '../to-error';
 import type { UploadResult } from '../types';
+import { FieldError } from '../ui/field';
 import { FilePickerButton } from './FilePickerButton';
 import { uploadError } from './upload-error';
 
@@ -85,11 +86,7 @@ export function UploadField({ category, label, accept, onUploaded }: UploadField
       <span role={controller ? undefined : 'status'} className={progress === '' ? 'sr-only' : 'text-xs text-muted-foreground'}>
         {progress}
       </span>
-      {state.phase === 'failed' && (
-        <span role="alert" className="text-xs text-destructive">
-          {state.message}
-        </span>
-      )}
+      <FieldError className="text-xs">{state.phase === 'failed' ? state.message : null}</FieldError>
     </div>
   );
 }

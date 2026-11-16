@@ -28,6 +28,7 @@ describe('the rail of a wide canvas', () => {
     const canvas = mountComments(blocks(), threads());
     const rail = screen.getByRole('list', { name: 'Comments' });
     const cards = within(rail).getAllByRole('button');
+    for (const card of cards) expect(card.className.split(' ')).toEqual(expect.arrayContaining(['focus-visible:inset-ring-1', 'focus-visible:inset-ring-ring']));
     expect(cards.map((card) => card.textContent)).toEqual([
       'earlyAda Lovelace On early1 comment',
       'lateAda Lovelace On late1 comment',
@@ -44,6 +45,7 @@ describe('the rail of a wide canvas', () => {
     const card = screen.getByRole('button', { name: /^Text removed/ });
     act(() => void fireEvent.click(card));
     expect(card).toHaveAttribute('aria-expanded', 'true');
+    expect(card.closest('[data-slot="card"]')).toHaveAttribute('data-active');
     const opened = screen.getByRole('group', { name: 'Text removed' });
     expect(await act(() => axe(opened))).toHaveNoViolations();
     const field = within(opened).getByRole('textbox', { name: 'Reply' });
@@ -118,6 +120,7 @@ describe('a narrow canvas', () => {
     const canvas = mountComments(blocks(), threads());
     expect(screen.queryByRole('list', { name: 'Comments' })).toBeNull();
     const markers = Array.from(canvas.container.querySelectorAll('.quoin-comments-marker'));
+    for (const marker of markers) expect(marker.className.split(' ')).toEqual(expect.arrayContaining(['focus-visible:inset-ring-1', 'focus-visible:inset-ring-ring']));
     expect(markers.map((marker) => [marker.getAttribute('data-block'), marker.getAttribute('aria-label')])).toEqual([
       ['a', '1 comment'],
       ['b', '1 comment'],
@@ -133,6 +136,8 @@ describe('a narrow canvas', () => {
     act(() => void fireEvent.click(marker));
     await canvas.settle();
     const sheet = screen.getByRole('dialog', { name: 'Comments' });
+    expect(sheet).toHaveAttribute('data-slot', 'sheet-content');
+    expect(sheet).toHaveAttribute('data-side', 'bottom');
     const opened = within(sheet).getByRole('button', { name: /^late/ });
     expect(opened).toHaveAttribute('aria-expanded', 'true');
     expect(document.activeElement).toBe(opened);

@@ -7,6 +7,7 @@ import { BlockCanvas } from '../../canvas/BlockCanvas';
 import type { QuoinEditorHandle } from '../../canvas/canvas-props';
 import { defineExtension, insertText } from '../../engine';
 import type { ExtensionUI, SlashItem } from '../../extensions/ui-types';
+import { LIST_EMPTY } from '../../ui/menu-styles';
 
 function type(text: string): void {
   for (const data of text) {
@@ -223,6 +224,7 @@ describe('the slash menu', () => {
     type('zz');
     expect(within(listbox()!).queryAllByRole('option')).toEqual([]);
     expect(listbox()!.parentElement).toHaveTextContent('No results');
+    expect(screen.getByText('No results', { selector: 'p' }).className.split(' ')).toEqual(expect.arrayContaining(LIST_EMPTY.split(' ')));
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('No results'));
   });
 

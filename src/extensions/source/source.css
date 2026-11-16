@@ -7,7 +7,7 @@
 
 .quoin-source:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px color-mix(in oklab, var(--quoin-ring) 50%, transparent);
+  box-shadow: inset 0 0 0 1px var(--quoin-ring), 0 0 0 3px color-mix(in oklab, var(--quoin-ring) 50%, transparent);
 }
 
 /* The same type metrics as a code block, so a document reads the same in the pane as it does in the one it names. */

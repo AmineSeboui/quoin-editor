@@ -16,6 +16,26 @@ describe('the AI menu', () => {
     ]);
   });
 
+  it('draws its prompt like every other field, bordered and ringed in focus', () => {
+    const canvas = mountAi([paragraph('a', 'Say a word here')]);
+    canvas.select('a', 4, 10);
+    canvas.askAi();
+    const group = canvas.field().closest('[data-slot="input-group"]')!;
+    const classes = group.className.split(' ');
+    expect(classes).toEqual(
+      expect.arrayContaining([
+        'border-input',
+        'has-[[data-slot=input-group-control]:focus-visible]:border-ring',
+        'has-[[data-slot=input-group-control]:focus-visible]:ring-3',
+        'has-[[data-slot=input-group-control]:focus-visible]:ring-ring/50',
+        'pointer-coarse:h-auto',
+        'pointer-coarse:min-h-11',
+      ]),
+    );
+    expect(classes).not.toContain('has-[[data-slot=input-group-control]:focus-visible]:ring-0');
+    expect(classes).not.toContain('border-input/30');
+  });
+
   it('opens about the selected text with focus in its field, listing the actions', async () => {
     const canvas = mountAi([paragraph('a', 'Say a word here')]);
     canvas.select('a', 4, 10);
@@ -50,16 +70,6 @@ describe('the AI menu', () => {
       'Explain',
     ]);
     expect(within(edit).getAllByRole('option')).toHaveLength(7);
-  });
-
-  it("draws its field as shadcn's command input, with no focus ring of its own inside the menu", () => {
-    const canvas = mountAi([paragraph('a', 'Say a word here')]);
-    canvas.select('a', 4, 10);
-    canvas.askAi();
-    const group = canvas.field().closest('[data-slot="input-group"]')!;
-    expect(group.className.split(' ')).toContain('has-[[data-slot=input-group-control]:focus-visible]:ring-0');
-    expect(group.className.split(' ')).not.toContain('has-[[data-slot=input-group-control]:focus-visible]:ring-3');
-    expect(group.className.split(' ')).toEqual(expect.arrayContaining(['pointer-coarse:h-auto', 'pointer-coarse:min-h-11']));
   });
 
   it('keeps Send unavailable until something is typed', () => {

@@ -62,7 +62,7 @@ export const localeEntries = [
 
 /** @type {PackageEntry[]} */
 export const packageEntries = [
-  { name: MAIN_ENTRY, source: 'src/index.ts', client: true, total: 164_700 },
+  { name: MAIN_ENTRY, source: 'src/index.ts', client: true, total: 166_000 },
   { name: 'headless', source: 'src/headless.ts', client: true, total: 77_300 },
   { name: 'engine', source: 'src/engine/index.ts', client: false, total: 55_600 },
   // Read-only React for a server, which loads it alone: the markdown parser it shares with the engine is most of it.
@@ -77,9 +77,9 @@ export const packageEntries = [
   // Measured as what it adds to the main entry, like a feature: the engine entry it loads is a part of the main entry.
   { name: 'yjs', source: 'src/yjs.ts', client: false, added: incrementalBudget(8_498) },
   // Collaborators drawn in the canvas: a client entry, apart from the adapter, which a worker or a server can load alone.
-  { name: 'presence', source: 'src/presence.ts', client: true, added: incrementalBudget(4_534) },
+  { name: 'presence', source: 'src/presence.ts', client: true, added: incrementalBudget(4_870) },
   // Threads the host keeps, which no catalogue option could carry, so it stays out of the catalogue as presence does.
-  { name: 'comments', source: 'src/comments.ts', client: true, added: incrementalBudget(6_885) },
+  { name: 'comments', source: 'src/comments.ts', client: true, added: incrementalBudget(7_770) },
   // The host's model streams through a callback no catalogue option could carry, so it stays out as comments do.
   { name: 'ai', source: 'src/ai.ts', client: true, added: incrementalBudget(11_655) },
   // The hook alone: the grammars it loads build into the prism-grammars chunk, which it leaves out of its measure.

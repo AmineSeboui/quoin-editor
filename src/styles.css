@@ -157,6 +157,7 @@
   --color-border: var(--quoin-border);
   --color-input: var(--quoin-input);
   --color-ring: var(--quoin-ring);
+  --color-indicator: var(--quoin-indicator);
   --color-primary: var(--quoin-primary);
   --color-primary-foreground: var(--quoin-primary-foreground);
   --color-accent: var(--quoin-accent);

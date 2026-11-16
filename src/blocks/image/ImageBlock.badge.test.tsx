@@ -20,6 +20,11 @@ describe('the no alt text badge of an image', () => {
     expect(badge()).not.toBeNull();
   });
 
+  it("is shadcn's Badge, on a button", () => {
+    mountCanvas([image()], { resolveAssetUrl });
+    expect(badge()).toHaveAttribute('data-slot', 'badge');
+  });
+
   it('is named by its short visible text first, then by what it does', () => {
     mountCanvas([image()], { resolveAssetUrl });
     expect(badge()).toHaveTextContent(/^No alt text$/);

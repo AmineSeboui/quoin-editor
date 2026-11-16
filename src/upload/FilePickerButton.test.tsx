@@ -18,6 +18,13 @@ describe('FilePickerButton', () => {
   });
 
   describe('while busy', () => {
+    it('turns a spinner in place of its icon, which only the busy state shows', () => {
+      const view = render(<FilePickerButton label="Pick" onPick={vi.fn()} />);
+      expect(view.container.querySelector('[data-slot="spinner"]')).toBeNull();
+      view.rerender(<FilePickerButton label="Pick" onPick={vi.fn()} busy />);
+      expect(view.container.querySelector('[data-slot="spinner"]')).toHaveAttribute('aria-hidden', 'true');
+    });
+
     it('keeps focus on the input and says it is unavailable', async () => {
       const user = userEvent.setup();
       const view = render(<FilePickerButton label="Pick" onPick={vi.fn()} />);

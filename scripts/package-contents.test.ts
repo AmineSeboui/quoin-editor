@@ -8,9 +8,10 @@ import { readText, releaseHeading, root, sectionOf } from './docs-sources.mjs';
 type Packed = { size: number; unpackedSize: number; files: { path: string }[] };
 
 const DOCUMENTS = ['package.json', 'README.md', 'LICENSE', 'CHANGELOG.md', 'MIGRATION.md', 'THIRD_PARTY_NOTICES.md'];
-const STATED = 'about 1 MB packed, under 5 MB unpacked';
+const STATED = 'about 1 MB packed, about 5 MB unpacked';
+const STATED_AT_1_0 = 'about 1 MB packed, under 5 MB unpacked';
 const ABOUT_1_MB = { min: 850_000, max: 1_200_000 };
-const UNDER_5_MB = 5_000_000;
+const ABOUT_5_MB = 5_500_000;
 
 let packed: Packed | undefined;
 const pack = (): Packed =>
@@ -29,9 +30,9 @@ describeBuilt('the packed tarball', distEntries, () => {
     const { size, unpackedSize } = pack();
     expect(size).toBeGreaterThanOrEqual(ABOUT_1_MB.min);
     expect(size).toBeLessThan(ABOUT_1_MB.max);
-    expect(unpackedSize).toBeLessThan(UNDER_5_MB);
+    expect(unpackedSize).toBeLessThan(ABOUT_5_MB);
     expect(readText(join(root, 'README.md'))).toContain(STATED);
     const changelog = readText(join(root, 'CHANGELOG.md'));
-    expect(sectionOf(sectionOf(changelog, releaseHeading(changelog, '1.0.0')), '### Changed')).toContain(STATED);
+    expect(sectionOf(sectionOf(changelog, releaseHeading(changelog, '1.0.0')), '### Changed')).toContain(STATED_AT_1_0);
   }, 30_000);
 });

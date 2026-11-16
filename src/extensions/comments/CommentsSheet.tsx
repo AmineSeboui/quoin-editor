@@ -10,6 +10,7 @@ import type { CommentsEnv } from './comments-env';
 import type { CommentsState } from './comments-plugin';
 import type { RailEntry } from './rail-entries';
 import { ThreadCard } from './ThreadCard';
+import { SheetContent, SheetTitle } from '../../ui/sheet';
 
 type CommentsSheetProps = {
   env: CommentsEnv;
@@ -46,11 +47,12 @@ export function CommentsSheet({ env, entries, value, onToggle, onClose, returnFo
       }}
     >
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Content
+        <SheetContent
           ref={content}
+          side="bottom"
           dir={dir}
           aria-describedby={undefined}
-          className="quoin quoin-comments-sheet"
+          className="quoin quoin-comments-sheet max-h-[60vh] gap-2 overflow-y-auto px-4 py-3"
           onOpenAutoFocus={focusOpened}
           onEscapeKeyDown={escape.onEscapeKeyDown}
           onKeyDownCapture={escape.onKeyDownCapture}
@@ -63,7 +65,7 @@ export function CommentsSheet({ env, entries, value, onToggle, onClose, returnFo
           }}
         >
           <div className="flex items-center justify-between gap-2">
-            <DialogPrimitive.Title className="text-sm font-semibold">{labels.comments}</DialogPrimitive.Title>
+            <SheetTitle>{labels.comments}</SheetTitle>
             <DialogPrimitive.Close asChild>
               <IconButton type="button" variant="ghost" size="icon-sm" label={labels.close}>
                 <X />
@@ -83,7 +85,7 @@ export function CommentsSheet({ env, entries, value, onToggle, onClose, returnFo
               </li>
             ))}
           </ul>
-        </DialogPrimitive.Content>
+        </SheetContent>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>
   );

@@ -7,7 +7,7 @@
    writes where its bottom edge is, so a match brought into view from above stops below the panel. */
 .quoin .quoin-find-current {
   background: var(--quoin-bg-orange);
-  outline: 2px solid var(--quoin-ring);
+  outline: 2px solid var(--quoin-indicator);
   outline-offset: 1px;
   scroll-margin-top: calc(var(--quoin-find-clearance, 0px) + 0.5rem);
 }

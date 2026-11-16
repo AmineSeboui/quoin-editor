@@ -54,6 +54,11 @@ describe('cn', () => {
     expect(cn('quoin rounded-md', 'quoin shadow-md rounded-md')).toBe('quoin shadow-md rounded-md');
   });
 
+  it('lets a later font weight replace an earlier one, and keeps the family and size', () => {
+    expect(cn('font-medium text-sm', 'font-normal')).toBe('text-sm font-normal');
+    expect(cn('font-mono', 'font-bold')).toBe('font-mono font-bold');
+  });
+
   it('lets a later radius replace an earlier one', () => {
     expect(cn('rounded-lg', 'rounded-xl')).toBe('rounded-xl');
   });

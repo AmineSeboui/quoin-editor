@@ -16,10 +16,10 @@ import { commentsKey, type CommentsAction } from './comments-plugin';
 import { CommentsRail } from './CommentsRail';
 import { CommentsSheet } from './CommentsSheet';
 import { railEntries } from './rail-entries';
-import { useReaderCommentKey } from './reader-comment-key';
 import { ThreadPopover } from './ThreadPopover';
 import { useAnchorClicks } from './use-anchor-clicks';
 import { useCanvasWide } from './use-canvas-wide';
+import { useReaderCommentKey } from './use-reader-comment-key';
 import { useThreads } from './use-threads';
 
 const commentsOf = (state: EditorState) => getPluginState(state, commentsKey);

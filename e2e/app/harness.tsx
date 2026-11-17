@@ -3,6 +3,7 @@ import { BlockCanvas, coreBlocks, type QuoinBlock, type QuoinEditorHandle, type 
 import { arLabels } from 'quoin-editor/locale-ar';
 import { removeBlocksStep } from 'quoin-editor/headless';
 import { bookmarkDemo } from './bookmark-demo';
+import { READER_COMMENTS } from './comment-host';
 import { fixtureDataUrl } from './fixture-png';
 import { everyBlock } from './every-block-doc';
 import { EVERY_FEATURE, extensions } from './harness-extensions';
@@ -13,7 +14,7 @@ import { timeEdits } from './time-edits';
 const blockTypes = EVERY_FEATURE ? coreBlocks : [...coreBlocks, bookmarkDemo, noteDemo, tickDemo];
 
 const params = new URLSearchParams(location.search);
-const READ_ONLY = params.get('readonly') === '1';
+const READ_ONLY = params.get('readonly') === '1' || READER_COMMENTS;
 const UPLOAD_DELAY = params.get('upload');
 
 // Direction and language are separate switches on purpose. The canvas specs locate almost everything by its accessible

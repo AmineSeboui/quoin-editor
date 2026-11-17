@@ -7,8 +7,9 @@ import type { ToolbarItem } from '../../extensions/ui-types';
 import { useLabels } from '../../i18n/use-labels';
 import type { ViewController } from '../../view';
 import { BubbleToolbar } from './BubbleToolbar';
+import { readOnlyItems } from '../../toolbar/read-only-items';
 import { useReadOnly } from '../../view/react/use-read-only';
-import { readOnlyItems, useBubbleVisibility } from './use-bubble-visibility';
+import { useBubbleVisibility } from './use-bubble-visibility';
 
 const NO_ITEMS: readonly ToolbarItem[] = [];
 
@@ -17,9 +18,12 @@ const BubbleItemsContext = createContext<readonly ToolbarItem[]>(NO_ITEMS);
 /** The buttons the bubble toolbar shows after its built-in ones, which a canvas may change while it is open. */
 export const BubbleItemsProvider = BubbleItemsContext.Provider;
 
+/** The buttons extensions add to the bubble toolbar; the mobile toolbar of a read-only canvas shows them too. */
+export const useBubbleItems = (): readonly ToolbarItem[] => useContext(BubbleItemsContext);
+
 // One component for every toolbar, reading its labels and buttons from context: a new list never remounts it.
 function BubbleOverlay({ controller }: { controller: ViewController }) {
-  const items = useContext(BubbleItemsContext);
+  const items = useBubbleItems();
   const readOnly = useReadOnly(controller);
   const extraItems = useMemo(() => (readOnly ? readOnlyItems(items) : items), [readOnly, items]);
   const visible = useBubbleVisibility(controller, items);

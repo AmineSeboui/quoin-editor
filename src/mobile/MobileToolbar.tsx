@@ -1,20 +1,24 @@
 'use client';
 
 import { useDirection } from '@radix-ui/react-direction';
-import { useMemo, type CSSProperties, type KeyboardEvent } from 'react';
+import { useCallback, useMemo, type CSSProperties, type KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useCanvasUiStore } from '../canvas/ui-store';
 import type { ToolbarItem } from '../extensions/ui-types';
 import { useLabels } from '../i18n/use-labels';
+import { useBubbleItems } from '../menus/bubble/bubble-extension';
 import { ToolbarButton } from '../toolbar/toolbar-button';
 import { TurnIntoDropdown } from '../toolbar/TurnIntoDropdown';
 import { useRovingFocus } from '../toolbar/use-roving-focus';
 import { bubblePart } from '../toolbar/bubble-part';
+import { readOnlyItems, showsReadOnlyItems } from '../toolbar/read-only-items';
 import { useFocusBackToText } from '../toolbar/use-focus-back-to-text';
 import { keepFocus } from '../menus/floating/keep-focus';
 import { useFocusKey } from '../menus/floating/use-focus-key';
+import type { EditorState } from '../engine';
 import type { ViewController } from '../view';
 import { useEditorState, wholeState } from '../view/react/use-editor-state';
+import { useReadOnly } from '../view/react/use-read-only';
 import { mobileItems } from './mobile-items';
 import { useCoarsePointer } from './use-coarse-pointer';
 import { useEditorFocus } from './use-editor-focus';
@@ -44,7 +48,10 @@ function placement(viewport: VisualViewportBox | null): CSSProperties {
 
 type MobileToolbarProps = { controller: ViewController };
 
-function EditingTools({ controller }: MobileToolbarProps) {
+/** The toolbar's own tools, or on a read-only canvas only the `readerItems`: the extensions' items that work there. */
+type ToolsProps = MobileToolbarProps & { readerItems: readonly ToolbarItem[] | null };
+
+function EditingTools({ controller, readerItems }: ToolsProps) {
   const labels = useLabels();
   const store = useCanvasUiStore();
   const state = useEditorState(controller, wholeState);
@@ -79,9 +86,15 @@ function EditingTools({ controller }: MobileToolbarProps) {
       onKeyDown={onKeyDown}
       {...bubblePart(controller)}
     >
-      {button(items.addBlock)}
-      <TurnIntoDropdown controller={controller} state={state} />
-      {items.editing.map(button)}
+      {readerItems === null ? (
+        <>
+          {button(items.addBlock)}
+          <TurnIntoDropdown controller={controller} state={state} />
+          {items.editing.map(button)}
+        </>
+      ) : (
+        readerItems.map(button)
+      )}
     </div>,
     document.body,
   );
@@ -89,11 +102,22 @@ function EditingTools({ controller }: MobileToolbarProps) {
 
 /**
  * On a touch screen, the tools that format and edit the text, held above the virtual keyboard while it has focus. A
- * hardware keyboard reaches them with Alt+F10, as it does the bubble toolbar, and Escape goes back to the text.
+ * hardware keyboard reaches them with Alt+F10, as it does the bubble toolbar, and Escape goes back to the text. A
+ * read-only canvas shows only the items that work there, for selected text, as its bubble toolbar does.
  */
 export function MobileToolbar({ controller }: MobileToolbarProps) {
   const coarse = useCoarsePointer();
   const focused = useEditorFocus(controller);
-  if (!coarse || !focused) return null;
-  return <EditingTools controller={controller} />;
+  const readOnly = useReadOnly(controller);
+  const items = useBubbleItems();
+  const readerItems = useMemo(() => readOnlyItems(items), [items]);
+  const selector = useCallback(
+    (state: EditorState) => readOnly && showsReadOnlyItems(state, readerItems),
+    [readOnly, readerItems],
+  );
+  const readerTools = useEditorState(controller, selector);
+  if (!coarse || !focused || (readOnly && !readerTools)) return null;
+  // Keyed apart, so turning read-only remounts the toolbar and focus held on a tool that went goes back to the text.
+  if (readOnly) return <EditingTools key="reader" controller={controller} readerItems={readerItems} />;
+  return <EditingTools key="writer" controller={controller} readerItems={null} />;
 }

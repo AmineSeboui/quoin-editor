@@ -116,4 +116,34 @@ describe('comments on a read-only canvas', () => {
     expect(canvas.calls.onDelete).toHaveBeenCalledWith('mine');
     expect(canvas.markdown('a')).toBe(`one and ${span('theirs', 'two')}`);
   });
+
+  describe('on a touch screen', () => {
+    const mobileToolbar = () => screen.queryByRole('toolbar', { name: 'Editing tools' });
+    beforeEach(() =>
+      vi.stubGlobal('matchMedia', (media: string) => ({
+        media,
+        matches: media === '(pointer: coarse)',
+        addEventListener: () => {},
+        removeEventListener: () => {},
+      })),
+    );
+    afterEach(() => vi.unstubAllGlobals());
+
+    it('a reader who may comment starts a thread from the mobile toolbar', async () => {
+      const canvas = readOnlyComments(sentence());
+      canvas.select(4, 10);
+      const buttons = within(mobileToolbar()!).getAllByRole('button');
+      expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual(['Comment']);
+      canvas.click(buttons[0]);
+      await canvas.settle();
+      expect(canvas.calls.onCreate).toHaveBeenCalledWith({ anchorText: 'a word', blockId: 'a' });
+      expect(canvas.markdown('a')).toBe(`say ${span('new', 'a word')} here`);
+    });
+
+    it('without the option a read-only canvas shows no mobile toolbar', () => {
+      const canvas = readOnlyComments(sentence(), [], {});
+      canvas.select(4, 10);
+      expect(mobileToolbar()).toBeNull();
+    });
+  });
 });

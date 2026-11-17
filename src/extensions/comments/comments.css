@@ -145,6 +145,7 @@
 }
 
 .quoin .quoin-comments-author-tag {
+  border: 1px solid transparent;
   border-radius: calc(var(--quoin-radius) - 4px);
   background: var(--quoin-muted);
   color: var(--quoin-muted-foreground);

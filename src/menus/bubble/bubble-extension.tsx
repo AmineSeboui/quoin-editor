@@ -18,7 +18,7 @@ const BubbleItemsContext = createContext<readonly ToolbarItem[]>(NO_ITEMS);
 /** The buttons the bubble toolbar shows after its built-in ones, which a canvas may change while it is open. */
 export const BubbleItemsProvider = BubbleItemsContext.Provider;
 
-/** The buttons extensions add to the bubble toolbar; the mobile toolbar of a read-only canvas shows them too. */
+/** The buttons extensions add to the bubble toolbar. A read-only canvas shows those marked `whileReadOnly`. */
 export const useBubbleItems = (): readonly ToolbarItem[] => useContext(BubbleItemsContext);
 
 // One component for every toolbar, reading its labels and buttons from context: a new list never remounts it.

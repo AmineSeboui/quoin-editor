@@ -41,7 +41,7 @@ export function yjsCommentThreads(doc: YjsCommentsDoc, options: YjsCommentThread
     threads,
     async onCreate() {
       const id = newId();
-      metas.set(id, { id, resolved: false, createdAt: new Date().toISOString() });
+      metas.set(id, { id, resolved: false, createdAt: new Date().toISOString(), startedBy: currentUser });
       return id;
     },
     async onReply(threadId, body) {

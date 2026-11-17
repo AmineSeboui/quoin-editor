@@ -161,6 +161,7 @@ export const ptLabels: Required<QuoinLabels> = {
   },
   formattingToolbar: 'Formatação do texto',
   mobileToolbar: 'Ferramentas de edição',
+  readerToolbar: 'Ferramentas de comentário',
   indent: 'Aumentar o recuo',
   outdent: 'Diminuir o recuo',
   undo: 'Desfazer',

@@ -1,4 +1,4 @@
-export type CommentAuthor = { readonly name: string; readonly avatarUrl?: string };
+export type CommentAuthor = { readonly id?: string; readonly name: string; readonly avatarUrl?: string };
 
 export type CommentUser = CommentAuthor & { readonly id: string };
 
@@ -13,6 +13,11 @@ export type ThreadComment = {
 export type CommentThread = {
   readonly id: string;
   readonly resolved: boolean;
+  /**
+   * Who started the thread, which `yjsCommentThreads` records and a host keeping threads in a store of its own sets, or
+   * no reader of a read-only canvas can resolve or delete it. Threads stored before this was recorded have none.
+   */
+  readonly startedBy?: CommentUser;
   readonly comments: readonly ThreadComment[];
 };
 

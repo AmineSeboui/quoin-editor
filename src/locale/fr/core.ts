@@ -160,6 +160,7 @@ export const frLabels: Required<QuoinLabels> = {
   },
   formattingToolbar: 'Mise en forme du texte',
   mobileToolbar: 'Outils d’édition',
+  readerToolbar: 'Outils de commentaire',
   indent: 'Augmenter le retrait',
   outdent: 'Réduire le retrait',
   undo: 'Annuler',

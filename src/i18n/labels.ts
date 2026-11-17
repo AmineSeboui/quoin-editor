@@ -146,6 +146,8 @@ export type QuoinLabels = {
   namedKeys: Record<NamedKey, string>;
   formattingToolbar: string;
   mobileToolbar: string;
+  /** The name of either toolbar of a read-only canvas, holding only the items its reader can use, such as Comment. */
+  readerToolbar?: string;
   indent: string;
   outdent: string;
   undo: string;

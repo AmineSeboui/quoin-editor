@@ -197,6 +197,7 @@ export const arLabels: Required<QuoinLabels> = {
   },
   formattingToolbar: 'تنسيق النص',
   mobileToolbar: 'أدوات التحرير',
+  readerToolbar: 'أدوات التعليق',
   indent: 'زيادة الإزاحة',
   outdent: 'تقليل الإزاحة',
   undo: 'تراجع',

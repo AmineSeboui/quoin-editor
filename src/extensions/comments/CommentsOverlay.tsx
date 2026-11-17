@@ -19,6 +19,7 @@ import { railEntries } from './rail-entries';
 import { ThreadPopover } from './ThreadPopover';
 import { useAnchorClicks } from './use-anchor-clicks';
 import { useCanvasWide } from './use-canvas-wide';
+import { useReaderCommentKey } from './use-reader-comment-key';
 import { useThreads } from './use-threads';
 
 const commentsOf = (state: EditorState) => getPluginState(state, commentsKey);
@@ -34,6 +35,7 @@ export function CommentsOverlay({ controller, host, labels }: CommentsOverlayPro
     link.report = onError;
   }, [link, onError]);
   useAnchorClicks(controller, host.threads);
+  useReaderCommentKey(controller, host);
   const threads = useThreads(host.threads);
   const value = useEditorState(controller, commentsOf);
   const doc = useEditorState(controller, docOf);

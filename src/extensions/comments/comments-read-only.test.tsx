@@ -118,7 +118,7 @@ describe('comments on a read-only canvas', () => {
   });
 
   describe('on a touch screen', () => {
-    const mobileToolbar = () => screen.queryByRole('toolbar', { name: 'Editing tools' });
+    const mobileToolbar = () => screen.queryByRole('toolbar', { name: 'Comment tools' });
     beforeEach(() =>
       vi.stubGlobal('matchMedia', (media: string) => ({
         media,

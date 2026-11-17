@@ -16,6 +16,7 @@ import { AlignDropdown } from './AlignDropdown';
 import { ToolbarButton } from '../../toolbar/toolbar-button';
 import { bubbleItems } from './bubble-items';
 import { bubblePart } from '../../toolbar/bubble-part';
+import { readerToolbarName } from '../../toolbar/read-only-items';
 import { ColorPopover } from './ColorPopover';
 import { TurnIntoDropdown } from '../../toolbar/TurnIntoDropdown';
 import { useFocusBackToText } from '../../toolbar/use-focus-back-to-text';
@@ -57,7 +58,7 @@ export function BubbleToolbar({ controller, labels, store, extraItems, readOnly 
       <PopoverContent
         ref={roving.ref}
         role="toolbar"
-        aria-label={labels.formattingToolbar}
+        aria-label={readOnly ? readerToolbarName(labels) : labels.formattingToolbar}
         side={side}
         className={FLOATING_TOOLBAR}
         onOpenAutoFocus={preventDefault}

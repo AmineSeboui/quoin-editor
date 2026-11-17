@@ -156,6 +156,7 @@ export const englishLabels: Required<QuoinLabels> = frozen({
   },
   formattingToolbar: 'Text formatting',
   mobileToolbar: 'Editing tools',
+  readerToolbar: 'Comment tools',
   indent: 'Indent',
   outdent: 'Outdent',
   undo: 'Undo',

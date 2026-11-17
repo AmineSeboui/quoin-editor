@@ -53,9 +53,10 @@ describe('the bubble toolbar on a read-only canvas', () => {
     expect(screen.queryByRole('toolbar')).toBeNull();
   });
 
-  it('shows only the items that work read-only', () => {
+  it('shows only the items that work read-only, under a name of its own', () => {
     openReadOnly(item('Star', { whileReadOnly: true }), item('Moon'));
     expect(names()).toEqual(['Star']);
+    expect(screen.getByRole('toolbar', { name: 'Comment tools' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Bold' })).toBeNull();
   });
 
@@ -100,7 +101,7 @@ describe('the bubble toolbar on a read-only canvas', () => {
       extensions: extensionOf(item('Star', { whileReadOnly: true }), item('Moon')),
     });
     selectText(canvas.handle);
-    const toolbar = screen.getByRole('toolbar');
+    const toolbar = screen.getByRole('toolbar', { name: 'Text formatting' });
     for (const name of ['Bold', 'Star', 'Moon']) expect(within(toolbar).getByRole('button', { name })).toBeTruthy();
   });
 });

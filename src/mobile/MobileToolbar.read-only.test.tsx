@@ -8,9 +8,10 @@ import type { ToolbarItem } from '../extensions/ui-types';
 import { Sparkles } from '../icons';
 
 const pos = (offset: number): Pos => ({ block: 'a', region: 'text', offset });
-const queryToolbar = () => screen.queryByRole('toolbar', { name: 'Editing tools' });
-const names = () =>
-  within(queryToolbar()!)
+const queryToolbar = () => screen.queryByRole('toolbar', { name: 'Comment tools' });
+const queryEditingTools = () => screen.queryByRole('toolbar', { name: 'Editing tools' });
+const names = (toolbar = queryToolbar()) =>
+  within(toolbar!)
     .getAllByRole('button')
     .map((button) => button.getAttribute('aria-label') ?? button.textContent);
 
@@ -77,7 +78,7 @@ describe('the mobile toolbar on a read-only canvas', () => {
 
   it('keeps the tools of an editable canvas as they are, whatever works read-only', () => {
     open(false, [item('Star', { whileReadOnly: true }), item('Moon')]);
-    expect(names()).toEqual([
+    expect(names(queryEditingTools())).toEqual([
       'Add block below',
       'Turn into',
       'Bold',
@@ -105,7 +106,7 @@ describe('the mobile toolbar on a read-only canvas', () => {
       controller.focus(pos(0));
       controller.dispatch(controller.editor.createTransaction().setSelection(textSelection(pos(0), pos(5))));
     });
-    act(() => within(queryToolbar()!).getByRole('button', { name: 'Bold' }).focus());
+    act(() => within(queryEditingTools()!).getByRole('button', { name: 'Bold' }).focus());
     rerender(draw(true));
     await act(async () => {});
     expect(document.activeElement).toBe(container.querySelector('[data-quoin-host]'));

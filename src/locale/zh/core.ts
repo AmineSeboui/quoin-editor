@@ -157,6 +157,7 @@ export const zhLabels: Required<QuoinLabels> = {
   },
   formattingToolbar: '文字格式',
   mobileToolbar: '编辑工具',
+  readerToolbar: '评论工具',
   indent: '增加缩进',
   outdent: '减少缩进',
   undo: '撤销',

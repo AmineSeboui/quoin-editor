@@ -11,7 +11,7 @@ import { ToolbarButton } from '../toolbar/toolbar-button';
 import { TurnIntoDropdown } from '../toolbar/TurnIntoDropdown';
 import { useRovingFocus } from '../toolbar/use-roving-focus';
 import { bubblePart } from '../toolbar/bubble-part';
-import { readOnlyItems, showsReadOnlyItems } from '../toolbar/read-only-items';
+import { readerToolbarName, readOnlyItems, showsReadOnlyItems } from '../toolbar/read-only-items';
 import { useFocusBackToText } from '../toolbar/use-focus-back-to-text';
 import { keepFocus } from '../menus/floating/keep-focus';
 import { useFocusKey } from '../menus/floating/use-focus-key';
@@ -77,7 +77,7 @@ function EditingTools({ controller, readerItems }: ToolsProps) {
       ref={roving.ref}
       dir={dir}
       role="toolbar"
-      aria-label={labels.mobileToolbar}
+      aria-label={readerItems === null ? labels.mobileToolbar : readerToolbarName(labels)}
       className={TOOLBAR}
       style={placement(viewport)}
       onPointerDown={keepFocus}

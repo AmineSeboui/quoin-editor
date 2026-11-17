@@ -161,6 +161,7 @@ export const esLabels: Required<QuoinLabels> = {
   },
   formattingToolbar: 'Formato del texto',
   mobileToolbar: 'Herramientas de edición',
+  readerToolbar: 'Herramientas de comentarios',
   indent: 'Aumentar la sangría',
   outdent: 'Reducir la sangría',
   undo: 'Deshacer',

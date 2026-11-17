@@ -160,6 +160,7 @@ export const deLabels: Required<QuoinLabels> = {
   },
   formattingToolbar: 'Textformatierung',
   mobileToolbar: 'Bearbeitungswerkzeuge',
+  readerToolbar: 'Kommentarwerkzeuge',
   indent: 'Einrücken',
   outdent: 'Ausrücken',
   undo: 'Rückgängig',

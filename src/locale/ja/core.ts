@@ -158,6 +158,7 @@ export const jaLabels: Required<QuoinLabels> = {
   },
   formattingToolbar: '文字の書式',
   mobileToolbar: '編集ツール',
+  readerToolbar: 'コメントツール',
   indent: 'インデントを増やす',
   outdent: 'インデントを減らす',
   undo: '元に戻す',

@@ -18,7 +18,7 @@ function canvasWidth(width: number) {
 
 afterEach(() => Object.defineProperty(HTMLElement.prototype, 'offsetWidth', OFFSET_WIDTH));
 
-const comment = (id: string, author: CommentAuthor & { id: string }) => ({
+const comment = (id: string, author: CommentAuthor) => ({
   id,
   author,
   body: `Body of ${id}`,
@@ -35,10 +35,9 @@ const threads = (): CommentThread[] => [
 
 const blocks = () => [paragraph('a', `Some ${span('t1', 'marked')} text`)];
 
-const tagGuests = (author: CommentAuthor) => ('id' in author && author.id === 'guest' ? 'Guest' : undefined);
+const tagGuests = (author: CommentAuthor) => (author.id === 'guest' ? 'Guest' : undefined);
 
-const thread = (scope: HTMLElement = document.body) =>
-  Array.from(scope.querySelectorAll<HTMLElement>('ol > li'));
+const thread = (scope: HTMLElement = document.body) => Array.from(scope.querySelectorAll<HTMLElement>('ol > li'));
 
 function openThread() {
   const card = within(screen.getByRole('list', { name: 'Comments' })).getByRole('button', { name: /^marked/ });
@@ -54,15 +53,16 @@ describe('a tag beside an author name', () => {
     const items = thread();
     expect(within(items[0]!).getByText('Guest')).toBeInTheDocument();
     expect(within(items[1]!).queryByText('Guest')).toBeNull();
-    expect(items[0]!.textContent).toMatch(/^AAda\s*Guest/);
+    expect(items[0]!.textContent).toContain('Ada, Guest');
   });
 
   it('the tag is read with the name', async () => {
     mountComments(blocks(), threads(), { authorTag: tagGuests });
     openThread();
     const [first, second] = thread();
-    expect(within(first!).getByRole('group', { name: 'Ada, Guest' })).toBeInTheDocument();
-    expect(within(second!).queryByRole('group')).toBeNull();
+    expect(first!.querySelector('p')!.textContent).toMatch(/^Ada, Guest/);
+    expect(second!.querySelector('p')!.textContent).toMatch(/^Alan(?!,)/);
+    expect(document.querySelector('[aria-label*="Ada"]')).toBeNull();
     expect(await act(() => axe(screen.getByRole('list', { name: 'Comments' })))).toHaveNoViolations();
   });
 
@@ -70,7 +70,6 @@ describe('a tag beside an author name', () => {
     mountComments(blocks(), threads());
     openThread();
     expect(screen.queryByText('Guest')).toBeNull();
-    expect(screen.queryByRole('group', { name: /Ada,/ })).toBeNull();
   });
 
   it('the tag shows on the card of a thread whose first comment it tags', () => {
@@ -86,7 +85,7 @@ describe('a tag beside an author name', () => {
     await canvas.settle();
     const sheet = screen.getByRole('dialog', { name: 'Comments' });
     expect(within(sheet).getAllByText('Guest').length).toBeGreaterThan(0);
-    expect(within(sheet).getAllByRole('group', { name: 'Ada, Guest' })[0]).toBeInTheDocument();
+    expect(sheet.textContent).toContain('Ada, Guest');
     expect(await act(() => axe(sheet))).toHaveNoViolations();
   });
 });

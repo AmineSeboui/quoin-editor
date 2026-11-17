@@ -1,4 +1,4 @@
-export type CommentAuthor = { readonly name: string; readonly avatarUrl?: string };
+export type CommentAuthor = { readonly id?: string; readonly name: string; readonly avatarUrl?: string };
 
 export type CommentUser = CommentAuthor & { readonly id: string };
 

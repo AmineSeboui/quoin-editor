@@ -16,6 +16,7 @@ import { commentsKey, type CommentsAction } from './comments-plugin';
 import { CommentsRail } from './CommentsRail';
 import { CommentsSheet } from './CommentsSheet';
 import { railEntries } from './rail-entries';
+import { useReaderCommentKey } from './reader-comment-key';
 import { ThreadPopover } from './ThreadPopover';
 import { useAnchorClicks } from './use-anchor-clicks';
 import { useCanvasWide } from './use-canvas-wide';
@@ -34,6 +35,7 @@ export function CommentsOverlay({ controller, host, labels }: CommentsOverlayPro
     link.report = onError;
   }, [link, onError]);
   useAnchorClicks(controller, host.threads);
+  useReaderCommentKey(controller, host);
   const threads = useThreads(host.threads);
   const value = useEditorState(controller, commentsOf);
   const doc = useEditorState(controller, docOf);

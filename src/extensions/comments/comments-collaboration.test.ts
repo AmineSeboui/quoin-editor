@@ -1,5 +1,17 @@
+import { act, fireEvent, render } from '@testing-library/react';
+import { createElement, createRef } from 'react';
 import type * as Y from 'yjs';
-import { coreExtensions, createEditor, getPluginState, undo, type Editor, type QuoinBlock } from '../../engine';
+import { BlockCanvas } from '../../canvas/BlockCanvas';
+import type { QuoinEditorHandle } from '../../canvas/canvas-props';
+import {
+  coreExtensions,
+  createEditor,
+  getPluginState,
+  textSelection,
+  undo,
+  type Editor,
+  type QuoinBlock,
+} from '../../engine';
 import { collaborationExtension } from '../../engine/collab/collaboration-extension';
 import { range } from '../../engine/test-support/editor-fixtures';
 import { yjsCollaboration } from '../../yjs/index';
@@ -12,6 +24,7 @@ import { commentsExtension } from './comments-extension';
 import { linkOf } from './comments-link';
 import { commentsKey } from './comments-plugin';
 import { railEntries } from './rail-entries';
+import { yjsCommentThreads } from './yjs-comment-threads';
 
 function client(doc: Y.Doc, name: string, threads: CommentThreads, blocks: QuoinBlock[] = []) {
   const comments = commentsExtension({
@@ -32,8 +45,40 @@ function client(doc: Y.Doc, name: string, threads: CommentThreads, blocks: Quoin
   return editor;
 }
 
+/** A read-only canvas on `doc` whose reader may comment, keeping threads in the same document. */
+function reader(doc: Y.Doc, user: { id: string; name: string }) {
+  const shared = yjsCommentThreads(doc, { currentUser: user });
+  const stop = shared.listen();
+  const extensions = [
+    collaborationExtension(yjsCollaboration({ doc, user })),
+    commentsExtension({ ...shared, currentUser: user, canCommentWhileReadOnly: true }),
+  ];
+  const ref = createRef<QuoinEditorHandle>();
+  const props = { ref, blocks: [], onChange: () => {}, readOnly: true, extensions };
+  const { unmount } = render(createElement(BlockCanvas, props));
+  const { controller } = ref.current!;
+  const select = (block: string, from: number, to: number) =>
+    act(() => {
+      const [anchor, head] = [from, to].map((offset) => ({ block, region: 'text', offset }));
+      controller.focus(anchor);
+      controller.dispatch(controller.editor.createTransaction().setSelection(textSelection(anchor, head)));
+    });
+  const mod = controller.isMac ? { metaKey: true } : { ctrlKey: true };
+  const commentKey = () =>
+    act(() => void fireEvent.keyDown(document.activeElement!, { key: 'm', code: 'KeyM', altKey: true, ...mod }));
+  const close = () => {
+    unmount();
+    stop();
+  };
+  return { select, commentKey, close };
+}
+
 const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
 const anchored = (editor: Editor) => [...commentAnchors(editor.state.doc).keys()];
+const attributesOf = (doc: Y.Doc) =>
+  (doc.getText('quoin').toDelta() as { attributes?: Record<string, unknown> }[]).flatMap(({ attributes }) =>
+    attributes === undefined ? [] : [attributes],
+  );
 
 describe('comments between collaborators', () => {
   it('reach the other client as marks, listed once its host knows the thread, opening nothing there', async () => {
@@ -60,5 +105,25 @@ describe('comments between collaborators', () => {
     flush();
     expect(anchored(ada)).toEqual(['t1']);
     expect(anchored(bea)).toEqual(['t1']);
+  });
+
+  it('a thread started on a read-only canvas reaches the other client with its mark and startedBy', async () => {
+    const { docs, flush } = linkedDocs();
+    const bea = client(docs[1], 'bea', createCommentThreads(), [
+      { id: 'p', type: 'MARKDOWN', data: { markdown: 'say a word' } },
+    ]);
+    flush();
+    const ada = { id: 'ada', name: 'Ada' };
+    const canvas = reader(docs[0], ada);
+    flush();
+    canvas.select('p', 4, 10);
+    canvas.commentKey();
+    await act(settle);
+    flush();
+    const [id] = anchored(bea);
+    expect(id).toEqual(expect.any(String));
+    expect(attributesOf(docs[1])).toContainEqual({ [`comment:${id}`]: true });
+    expect(docs[1].getMap('comment-threads').get(id)).toMatchObject({ id, startedBy: ada });
+    canvas.close();
   });
 });

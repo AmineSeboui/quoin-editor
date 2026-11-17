@@ -7,6 +7,7 @@ import { endThread } from './comment-actions';
 import type { CommentThread } from './comment-threads';
 import { CommentItem } from './CommentItem';
 import type { CommentsEnv } from './comments-env';
+import { mayEndThread } from './may-end-thread';
 import { ReplyBox } from './ReplyBox';
 
 type ThreadViewProps = {
@@ -17,7 +18,10 @@ type ThreadViewProps = {
   onEnded(): void;
 };
 
-/** A thread's comments, a field to reply, and Resolve and Delete, which a read-only canvas leaves out. */
+/**
+ * A thread's comments, a field to reply, and Resolve and Delete, which a read-only canvas shows only on the threads its
+ * reader started, and only when they may comment there.
+ */
 export function ThreadView({ env, id, thread, onEnded }: ThreadViewProps) {
   const { controller, host, labels, link } = env;
   const readOnly = useReadOnly(controller);
@@ -31,6 +35,8 @@ export function ThreadView({ env, id, thread, onEnded }: ThreadViewProps) {
     };
   }, []);
   const comments = thread?.comments ?? [];
+  const canvas = { readOnly, canCommentWhileReadOnly: host.canCommentWhileReadOnly === true };
+  const endable = thread === undefined ? !readOnly : mayEndThread(thread, host.currentUser, canvas);
 
   const end = async (call: (threadId: string) => Promise<void>) => {
     if (busy) return;
@@ -53,7 +59,7 @@ export function ThreadView({ env, id, thread, onEnded }: ThreadViewProps) {
         </ol>
       )}
       <ReplyBox env={env} threadId={id} first={comments.length === 0} />
-      {!readOnly && (
+      {endable && (
         <div className="flex justify-end gap-1">
           <Button
             type="button"

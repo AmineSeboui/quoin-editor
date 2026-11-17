@@ -12,6 +12,7 @@ import { linkOf } from './comments-link';
 import { CommentsOverlay } from './CommentsOverlay';
 import { commentsDecorations } from './comments-decorations';
 import { commentsKey, commentsPlugin } from './comments-plugin';
+import { COMMENT_KEY } from './reader-comment-key';
 import { watchEnded } from './watch-ended';
 
 export type CommentsOptions = {
@@ -31,15 +32,22 @@ export type CommentsOptions = {
   initialLayout?: 'wide' | 'narrow';
   /** Every string comments show or speak, English by default. A key left out stays English. */
   labels?: Partial<CommentsLabels>;
+  /**
+   * Lets the reader of a read-only canvas comment: start a thread from the toolbar or Mod+Alt+M, reply, and resolve or
+   * delete a thread whose `startedBy` is them. The comment marks reach `onChange`, or the shared document, as an edit
+   * would; nothing else in the document can change. `false` by default.
+   */
+  canCommentWhileReadOnly?: boolean;
 };
 
 export type CommentsHost = Omit<CommentsOptions, 'labels'>;
 
-const commentItem = (labels: CommentsLabels): ToolbarItem => ({
+const commentItem = (labels: CommentsLabels, whileReadOnly: boolean): ToolbarItem => ({
   id: 'comment',
   title: labels.comment,
   icon: MessageSquarePlus,
-  shortcut: 'Mod-Alt-m',
+  shortcut: COMMENT_KEY,
+  whileReadOnly,
   available: (state) => hasCommentableText(state) && getPluginState(state, commentsKey).pending.length === 0,
   // Focus goes back to the text first: the button leaves the toolbar while the thread is being asked for.
   run: (controller) => {
@@ -59,12 +67,15 @@ export function commentsExtension(options: CommentsOptions): Extension {
   function Overlay({ controller }: { controller: ViewController }) {
     return <CommentsOverlay controller={controller} host={host} labels={labels} />;
   }
-  const ui: ExtensionUI = { bubbleItems: [commentItem(labels)], overlays: [Overlay] };
+  const ui: ExtensionUI = {
+    bubbleItems: [commentItem(labels, host.canCommentWhileReadOnly === true)],
+    overlays: [Overlay],
+  };
   return defineExtension({
     name: 'comments',
     plugins: [commentsPlugin],
     decorations: commentsDecorations,
-    keymap: { 'Mod-Alt-m': commentCommand(host.threads) },
+    keymap: { [COMMENT_KEY]: commentCommand(host.threads) },
     // One watcher per editor however many views mount it at once, so the host is asked once per thread.
     onMount(editor) {
       const link = linkOf(editor);

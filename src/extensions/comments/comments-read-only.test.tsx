@@ -4,6 +4,7 @@ import { textSelection, type QuoinBlock } from '../../engine';
 import { clipboardEvent, dragEvent, fakeTransfer } from '../../view/clipboard/test-transfer';
 import type { CommentThread } from './comment-threads';
 import type { CommentsOptions } from './comments-extension';
+import { selectByLongPress } from '../../mobile/test-support/long-press';
 import { mountComments, span, thread } from './comments-test-canvas';
 
 const MAY_COMMENT: Partial<CommentsOptions> = { canCommentWhileReadOnly: true };
@@ -135,6 +136,15 @@ describe('comments on a read-only canvas', () => {
       const buttons = within(mobileToolbar()!).getAllByRole('button');
       expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual(['Comment']);
       canvas.click(buttons[0]);
+      await canvas.settle();
+      expect(canvas.calls.onCreate).toHaveBeenCalledWith({ anchorText: 'a word', blockId: 'a' });
+      expect(canvas.markdown('a')).toBe(`say ${span('new', 'a word')} here`);
+    });
+
+    it('a reader starts a thread on text a long press selected, without focus in the text', async () => {
+      const canvas = readOnlyComments(sentence());
+      selectByLongPress(canvas.host('a'), 4, 10);
+      canvas.click(within(mobileToolbar()!).getByRole('button', { name: 'Comment' }));
       await canvas.settle();
       expect(canvas.calls.onCreate).toHaveBeenCalledWith({ anchorText: 'a word', blockId: 'a' });
       expect(canvas.markdown('a')).toBe(`say ${span('new', 'a word')} here`);

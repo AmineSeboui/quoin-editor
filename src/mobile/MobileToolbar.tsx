@@ -22,6 +22,7 @@ import { useReadOnly } from '../view/react/use-read-only';
 import { mobileItems } from './mobile-items';
 import { useCoarsePointer } from './use-coarse-pointer';
 import { useEditorFocus } from './use-editor-focus';
+import { useTextSelected } from './use-text-selected';
 import { useVisualViewport, type VisualViewportBox } from './use-visual-viewport';
 
 const TOOLBAR = [
@@ -100,24 +101,30 @@ function EditingTools({ controller, readerItems }: ToolsProps) {
   );
 }
 
+// The text a reader selects with a long press is not focused, so a read-only canvas shows its tools for a selection.
+function ReaderTools({ controller }: MobileToolbarProps) {
+  const focused = useEditorFocus(controller);
+  const selected = useTextSelected(controller);
+  const items = useBubbleItems();
+  const readerItems = useMemo(() => readOnlyItems(items), [items]);
+  const selector = useCallback((state: EditorState) => showsReadOnlyItems(state, readerItems), [readerItems]);
+  const shown = useEditorState(controller, selector);
+  return shown && (selected || focused) ? <EditingTools controller={controller} readerItems={readerItems} /> : null;
+}
+
+function WriterTools({ controller }: MobileToolbarProps) {
+  return useEditorFocus(controller) ? <EditingTools controller={controller} readerItems={null} /> : null;
+}
+
 /**
  * On a touch screen, the tools that format and edit the text, held above the virtual keyboard while it has focus. A
  * hardware keyboard reaches them with Alt+F10, as it does the bubble toolbar, and Escape goes back to the text. A
- * read-only canvas shows only the items that work there, for selected text, as its bubble toolbar does.
+ * read-only canvas shows only the items that work there, for text selected in it, as its bubble toolbar does.
  */
 export function MobileToolbar({ controller }: MobileToolbarProps) {
   const coarse = useCoarsePointer();
-  const focused = useEditorFocus(controller);
   const readOnly = useReadOnly(controller);
-  const items = useBubbleItems();
-  const readerItems = useMemo(() => readOnlyItems(items), [items]);
-  const selector = useCallback(
-    (state: EditorState) => readOnly && showsReadOnlyItems(state, readerItems),
-    [readOnly, readerItems],
-  );
-  const readerTools = useEditorState(controller, selector);
-  if (!coarse || !focused || (readOnly && !readerTools)) return null;
-  // Keyed apart, so turning read-only remounts the toolbar and focus held on a tool that went goes back to the text.
-  if (readOnly) return <EditingTools key="reader" controller={controller} readerItems={readerItems} />;
-  return <EditingTools key="writer" controller={controller} readerItems={null} />;
+  if (!coarse) return null;
+  // Apart, so turning read-only remounts the toolbar and focus held on a tool that went goes back to the text.
+  return readOnly ? <ReaderTools controller={controller} /> : <WriterTools controller={controller} />;
 }

@@ -6,6 +6,7 @@ import type { QuoinEditorHandle } from '../canvas/canvas-props';
 import { defineExtension, textSelection, type Pos } from '../engine';
 import type { ToolbarItem } from '../extensions/ui-types';
 import { Sparkles } from '../icons';
+import { selectByLongPress, selectOutside } from './test-support/long-press';
 
 const pos = (offset: number): Pos => ({ block: 'a', region: 'text', offset });
 const queryToolbar = () => screen.queryByRole('toolbar', { name: 'Comment tools' });
@@ -59,6 +60,28 @@ describe('the mobile toolbar on a read-only canvas', () => {
     const host = canvas.container.querySelector<HTMLElement>('[data-quoin-host]')!;
     act(() => void fireEvent.keyDown(host, { key: 'F10', altKey: true }));
     expect(within(queryToolbar()!).getByRole('button', { name: 'Star' })).toHaveFocus();
+  });
+
+  it('shows for text a long press selects, though focus stays on the page', () => {
+    const canvas = mountCanvas([paragraph('a', 'hello world')], {
+      readOnly: true,
+      extensions: extensionOf(item('Star', { whileReadOnly: true })),
+    });
+    expect(queryToolbar()).toBeNull();
+    selectByLongPress(canvas.container.querySelector<HTMLElement>('[data-quoin-host]')!, 0, 5);
+    expect(names()).toEqual(['Star']);
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it('goes once the selection leaves the canvas', () => {
+    const canvas = mountCanvas([paragraph('a', 'hello world')], {
+      readOnly: true,
+      extensions: extensionOf(item('Star', { whileReadOnly: true })),
+    });
+    selectByLongPress(canvas.container.querySelector<HTMLElement>('[data-quoin-host]')!, 0, 5);
+    expect(queryToolbar()).not.toBeNull();
+    selectOutside();
+    expect(queryToolbar()).toBeNull();
   });
 
   it('shows no toolbar when no item works read-only', () => {

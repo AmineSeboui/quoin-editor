@@ -1,4 +1,4 @@
-import { act, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { createRef } from 'react';
 import { mountCanvas, paragraph } from '../../blocks/test-support/test-canvas';
 import { BlockCanvas } from '../../canvas/BlockCanvas';
@@ -19,6 +19,11 @@ const item = (id: string, extra: Partial<ToolbarItem> = {}): ToolbarItem => ({
 
 const extensionOf = (...items: ToolbarItem[]) => [defineExtension({ name: 'extra', ui: { bubbleItems: items } })];
 
+const names = () =>
+  within(screen.getByRole('toolbar'))
+    .getAllByRole('button')
+    .map((button) => button.getAttribute('aria-label') ?? button.textContent);
+
 function selectText(handle: () => QuoinEditorHandle): void {
   act(() => {
     const { controller } = handle();
@@ -29,7 +34,7 @@ function selectText(handle: () => QuoinEditorHandle): void {
 
 function openReadOnly(...items: ToolbarItem[]) {
   const ref = createRef<QuoinEditorHandle>();
-  render(
+  const { container } = render(
     <BlockCanvas
       ref={ref}
       blocks={[paragraph('a', 'hello world')]}
@@ -39,6 +44,7 @@ function openReadOnly(...items: ToolbarItem[]) {
     />,
   );
   selectText(() => ref.current!);
+  return container.querySelector<HTMLElement>('[data-quoin-host]')!;
 }
 
 describe('the bubble toolbar on a read-only canvas', () => {
@@ -49,14 +55,28 @@ describe('the bubble toolbar on a read-only canvas', () => {
 
   it('shows only the items that work read-only', () => {
     openReadOnly(item('Star', { whileReadOnly: true }), item('Moon'));
-    const buttons = within(screen.getByRole('toolbar')).getAllByRole('button');
-    expect(buttons.map((button) => button.getAttribute('aria-label') ?? button.textContent)).toEqual(['Star']);
+    expect(names()).toEqual(['Star']);
     expect(screen.queryByRole('button', { name: 'Bold' })).toBeNull();
   });
 
   it('shows no toolbar when the read-only item is unavailable', () => {
     openReadOnly(item('Star', { whileReadOnly: true, available: () => false }));
     expect(screen.queryByRole('toolbar')).toBeNull();
+  });
+
+  it('takes focus from the text with Alt+F10 and gives it back on Escape', () => {
+    const host = openReadOnly(item('Star', { whileReadOnly: true }));
+    expect(host).toHaveFocus();
+    act(() => void fireEvent.keyDown(host, { key: 'F10', altKey: true }));
+    expect(within(screen.getByRole('toolbar')).getByRole('button', { name: 'Star' })).toHaveFocus();
+    act(() => void fireEvent.keyDown(document.activeElement!, { key: 'Escape' }));
+    expect(host).toHaveFocus();
+  });
+
+  it('leaves Alt+F10 to the page when it shows no toolbar', () => {
+    const host = openReadOnly(item('Star'));
+    expect(fireEvent.keyDown(host, { key: 'F10', altKey: true })).toBe(true);
+    expect(host).toHaveFocus();
   });
 
   it('shows every item on an editable canvas', () => {

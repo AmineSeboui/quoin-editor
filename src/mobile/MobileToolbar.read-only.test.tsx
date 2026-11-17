@@ -1,4 +1,4 @@
-import { act, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { createRef } from 'react';
 import { mountCanvas, paragraph } from '../blocks/test-support/test-canvas';
 import { BlockCanvas } from '../canvas/BlockCanvas';
@@ -51,6 +51,13 @@ describe('the mobile toolbar on a read-only canvas', () => {
     expect(names()).toEqual(['Star']);
     act(() => within(queryToolbar()!).getByRole('button', { name: 'Star' }).click());
     expect(run).toHaveBeenCalledTimes(1);
+  });
+
+  it('takes focus from the text with Alt+F10, for a hardware keyboard', () => {
+    const canvas = open(true, [item('Star', { whileReadOnly: true })]);
+    const host = canvas.container.querySelector<HTMLElement>('[data-quoin-host]')!;
+    act(() => void fireEvent.keyDown(host, { key: 'F10', altKey: true }));
+    expect(within(queryToolbar()!).getByRole('button', { name: 'Star' })).toHaveFocus();
   });
 
   it('shows no toolbar when no item works read-only', () => {

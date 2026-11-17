@@ -59,7 +59,7 @@ function EditingTools({ controller, readerItems }: ToolsProps) {
   const roving = useRovingFocus();
   const dir = useDirection();
   useFocusBackToText(controller);
-  useFocusKey(controller, roving.focusCurrent);
+  useFocusKey(controller, roving.focusCurrent, readerItems !== null);
   const items = useMemo(() => mobileItems(labels, () => store.set({ linkPopover: { open: true } })), [labels, store]);
 
   const onKeyDown = (event: KeyboardEvent) => {

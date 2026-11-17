@@ -37,7 +37,7 @@ export function BubbleToolbar({ controller, labels, store, extraItems, readOnly 
   const { anchor, side } = useSelectionAnchor(controller, state);
   const roving = useRovingFocus();
   const items = useMemo(() => bubbleItems(labels, () => store.set({ linkPopover: { open: true } })), [labels, store]);
-  useFocusKey(controller, roving.focusCurrent);
+  useFocusKey(controller, roving.focusCurrent, readOnly);
   useFocusBackToText(controller);
 
   const onKeyDown = (event: KeyboardEvent) => {

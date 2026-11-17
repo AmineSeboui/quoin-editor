@@ -34,13 +34,23 @@ export type CommentsOptions = {
   labels?: Partial<CommentsLabels>;
   /**
    * Lets the reader of a read-only canvas comment: start a thread from the toolbar or Mod+Alt+M, reply, and resolve or
-   * delete a thread whose `startedBy` is them. The comment marks reach `onChange`, or the shared document, as an edit
-   * would; nothing else in the document can change. `false` by default.
+   * delete a thread whose `startedBy.id` is the `id` of `currentUser`. The comment marks reach `onChange`, or the
+   * shared document, as an edit would; nothing else the reader does through the canvas changes the document. Code can
+   * still change a read-only canvas, so a shared document needs its server to enforce comment-only access. `false` by
+   * default.
+   *
+   * Read when the canvas mounts, so changing it means remounting the canvas with a new `key`. A host that keeps
+   * threads in a store of its own sets `startedBy` on each thread it creates, or the reader can resolve or delete none
+   * of them; with `yjsCommentThreads`, the `currentUser` it is given and this one share an `id`. A commenter's
+   * `currentUser` carries no `avatarUrl`, since `quoin-collab-server` refuses one from a connection that may only
+   * comment. The text of a read-only canvas takes no keyboard focus, so a reader selects it with a pointer or a long
+   * press, not with the keyboard.
    */
   canCommentWhileReadOnly?: boolean;
   /**
    * A short tag shown after an author's name, such as 'Guest', or `undefined` for none. The host decides it from what
-   * it knows of the author, not from the name, which a guest chooses.
+   * it knows of the author, not from the name, which a guest chooses. It is read as the comments are drawn, so to
+   * change the tag of an author already shown, set the threads again with a new array.
    */
   authorTag?(author: CommentAuthor): string | undefined;
 };

@@ -30,8 +30,10 @@ function BubbleOverlay({ controller }: { controller: ViewController }) {
   const labels = useLabels();
   const store = useCanvasUiStore();
   if (!visible) return null;
+  // Keyed apart, so turning read-only remounts the toolbar and focus held on a tool that went goes back to the text.
   return (
     <BubbleToolbar
+      key={readOnly ? 'reader' : 'writer'}
       controller={controller}
       labels={labels}
       store={store}

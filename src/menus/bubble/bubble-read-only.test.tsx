@@ -79,6 +79,22 @@ describe('the bubble toolbar on a read-only canvas', () => {
     expect(host).toHaveFocus();
   });
 
+  it('gives focus back to the text when the canvas turns read-only with focus on a tool that goes', async () => {
+    const ref = createRef<QuoinEditorHandle>();
+    const blocks = [paragraph('a', 'hello world')];
+    const extensions = extensionOf(item('Star', { whileReadOnly: true }));
+    const draw = (readOnly: boolean) => (
+      <BlockCanvas ref={ref} blocks={blocks} onChange={() => {}} readOnly={readOnly} extensions={extensions} />
+    );
+    const { container, rerender } = render(draw(false));
+    selectText(() => ref.current!);
+    act(() => within(screen.getByRole('toolbar')).getByRole('button', { name: 'Bold' }).focus());
+    rerender(draw(true));
+    await act(async () => {});
+    expect(document.activeElement).toBe(container.querySelector('[data-quoin-host]'));
+    expect(names()).toEqual(['Star']);
+  });
+
   it('shows every item on an editable canvas', () => {
     const canvas = mountCanvas([paragraph('a', 'hello world')], {
       extensions: extensionOf(item('Star', { whileReadOnly: true }), item('Moon')),

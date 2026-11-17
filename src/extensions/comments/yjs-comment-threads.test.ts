@@ -35,6 +35,7 @@ describe('comment threads kept in a Yjs document', () => {
     expect(two.threads.find(id)).toEqual({
       id,
       resolved: false,
+      startedBy: ada,
       comments: [{ id: expect.any(String), author: ada, body: 'First', createdAt: '2026-11-12T10:00:00.000Z' }],
     });
     expect(bodies(one)).toEqual(bodies(two));
@@ -63,6 +64,34 @@ describe('comment threads kept in a Yjs document', () => {
     await two.onResolve(id);
     flush();
     expect(bodies(one)).toEqual([{ id, resolved: true, bodies: ['First'] }]);
+  });
+
+  it('a new thread records who started it', async () => {
+    const { docs, one, two, flush } = clients();
+    const id = await one.onCreate({ anchorText: 'hello', blockId: 'a' });
+    flush();
+    expect(docs[0].getMap('comment-threads').get(id)).toMatchObject({ id, resolved: false, startedBy: ada });
+    expect(one.threads.get()).toEqual([{ id, resolved: false, startedBy: ada, comments: [] }]);
+    expect(two.threads.find(id)!.startedBy).toEqual(ada);
+  });
+
+  it('a thread written before startedBy existed still reads', () => {
+    const doc = new Y.Doc();
+    doc.getMap('comment-threads').set('old', { id: 'old', resolved: false, createdAt: '2026-11-01T10:00:00.000Z' });
+    const shared = yjsCommentThreads(doc, { currentUser: ada });
+    shared.listen()();
+    expect(shared.threads.find('old')).toMatchObject({ id: 'old', resolved: false });
+    expect(shared.threads.find('old')!.startedBy).toBeUndefined();
+  });
+
+  it('resolving keeps who started the thread', async () => {
+    const { docs, one, two, flush } = clients();
+    const id = await one.onCreate({ anchorText: 'hello', blockId: 'a' });
+    flush();
+    await two.onResolve(id);
+    flush();
+    expect(docs[0].getMap('comment-threads').get(id)).toMatchObject({ resolved: true, startedBy: ada });
+    expect(one.threads.find(id)!.startedBy).toEqual(ada);
   });
 
   it('takes the comments of a removed thread out of the document with it', async () => {

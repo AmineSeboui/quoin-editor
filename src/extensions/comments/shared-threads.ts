@@ -1,4 +1,4 @@
-import type { CommentThread, ThreadComment } from './comment-threads';
+import type { CommentThread, CommentUser, ThreadComment } from './comment-threads';
 
 /** The part of a `Y.Map` that comment threads read and write. */
 export type YjsCommentsMap<T> = {
@@ -11,7 +11,12 @@ export type YjsCommentsMap<T> = {
   unobserve(listener: () => void): void;
 };
 
-export type ThreadMeta = { readonly id: string; readonly resolved: boolean; readonly createdAt?: string };
+export type ThreadMeta = {
+  readonly id: string;
+  readonly resolved: boolean;
+  readonly createdAt?: string;
+  readonly startedBy?: CommentUser;
+};
 export type StoredComment = ThreadComment & { readonly threadId: string };
 
 const byTime = (a: { id: string; createdAt?: string }, b: { id: string; createdAt?: string }) =>
@@ -33,5 +38,10 @@ export function readThreads(
   }
   return [...metas.values()]
     .sort(byTime)
-    .map(({ id, resolved }) => ({ id, resolved, comments: comments.get(id) ?? [] }));
+    .map(({ id, resolved, startedBy }) => ({
+      id,
+      resolved,
+      ...(startedBy === undefined ? {} : { startedBy }),
+      comments: comments.get(id) ?? [],
+    }));
 }

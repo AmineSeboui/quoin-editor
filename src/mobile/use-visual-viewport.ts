@@ -1,18 +1,13 @@
 import { useSyncExternalStore } from 'react';
+import { listen } from '../view/dom/listen';
 
 export type VisualViewportBox = { offsetTop: number; offsetLeft: number; height: number; width: number; scale: number };
 
 const KEYS = ['offsetTop', 'offsetLeft', 'height', 'width', 'scale'] as const;
 
-const EVENTS = ['resize', 'scroll'] as const;
-
 function subscribe(notify: () => void): () => void {
   const viewport = window.visualViewport;
-  if (!viewport) return () => {};
-  for (const type of EVENTS) viewport.addEventListener(type, notify);
-  return () => {
-    for (const type of EVENTS) viewport.removeEventListener(type, notify);
-  };
+  return viewport ? listen(viewport, { resize: notify, scroll: notify }) : () => {};
 }
 
 let last: VisualViewportBox | null = null;

@@ -28,10 +28,11 @@ type BubbleToolbarProps = {
   labels: QuoinLabels;
   store: CanvasUiStore;
   extraItems: readonly ToolbarItem[];
+  readOnly?: boolean;
 };
 
 /** The formatting toolbar over selected text. Alt+F10 moves into it; Escape and Tab go back to the text. */
-export function BubbleToolbar({ controller, labels, store, extraItems }: BubbleToolbarProps) {
+export function BubbleToolbar({ controller, labels, store, extraItems, readOnly = false }: BubbleToolbarProps) {
   const state = useEditorState(controller, wholeState);
   const { anchor, side } = useSelectionAnchor(controller, state);
   const roving = useRovingFocus();
@@ -67,12 +68,16 @@ export function BubbleToolbar({ controller, labels, store, extraItems }: BubbleT
         onKeyDown={onKeyDown}
         {...bubblePart(controller)}
       >
-        <TurnIntoDropdown controller={controller} state={state} />
-        <span aria-hidden="true" className={DIVIDER} />
-        {items.inline.map(button)}
-        <ColorPopover controller={controller} state={state} />
-        <AlignDropdown controller={controller} state={state} />
-        {items.scripts.map(button)}
+        {!readOnly && (
+          <>
+            <TurnIntoDropdown controller={controller} state={state} />
+            <span aria-hidden="true" className={DIVIDER} />
+            {items.inline.map(button)}
+            <ColorPopover controller={controller} state={state} />
+            <AlignDropdown controller={controller} state={state} />
+            {items.scripts.map(button)}
+          </>
+        )}
         {extraItems.map(button)}
       </PopoverContent>
     </Popover>

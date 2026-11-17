@@ -38,6 +38,8 @@ export type ToolbarItem = {
   shortcut?: string;
   isActive?(state: EditorState): boolean;
   available?(state: EditorState): boolean;
+  /** Show this item in the bubble toolbar of a read-only canvas, which then shows only such items. */
+  whileReadOnly?: boolean;
   run(controller: ViewController): void;
 };
 

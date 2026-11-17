@@ -2,6 +2,15 @@
 
 Every release of `quoin-editor` is listed here, newest first, in the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). From 1.0.0 the package follows [semantic versioning](https://semver.org/): a breaking change waits for the next major version. Until then, Quoin was 0.x and a minor version could contain breaking changes; those known at release were marked "Breaking". The 0.x sections are kept as they were released, "Docs" headings included. Moving from 0.4 to 1.0, and from 1.x to 2.0, is covered step by step in [MIGRATION.md](MIGRATION.md). Review finding ids such as F-17 are those of the 0.4.0 review in [#73](https://github.com/AmineSeboui/quoin-editor/issues/73).
 
+## Unreleased
+
+### Added
+- `commentsExtension` takes `canCommentWhileReadOnly`, so a guest who may only comment can work on a document shared read-only. On a read-only canvas the reader can start a thread from the formatting toolbar, the mobile toolbar or Mod+Alt+M, reply to any thread, and resolve or delete only the threads they started. Typing, paste, drop, the block menu and formatting shortcuts still change nothing. Without the option a read-only canvas is exactly as before.
+- A reader's comment marks reach the host through `onChange` like any other change, so a host that ignores `onChange` on a read-only canvas loses them. The canvas limits what a reader can do through its interface; code can still change a read-only canvas as before, so a shared document needs its server to enforce comment-only access. `quoin-collab-server` 0.3 does this for a token with `readOnly: true` and `canComment: true`, and its rule matches the store and `field` of `yjsCommentThreads`.
+- `ToolbarItem.whileReadOnly`: on a read-only canvas the formatting toolbar and the mobile toolbar show for a text selection with only the items marked `whileReadOnly`. With none marked, a read-only canvas shows no toolbar, as before.
+- `CommentThread.startedBy` records who started a thread, as the `currentUser` the thread was started with, and `yjsCommentThreads` keeps it when the thread is resolved. A thread stored before this has none, and on a read-only canvas shows neither Resolve nor Delete.
+- `commentsExtension` takes `authorTag`, a function from an author to a short tag such as `Guest`, shown after the author's name in the rail, the popover and the sheet, and read once after the name by screen readers. Decide it from what the host knows of the author, such as their id, not from the name, which a guest chooses. `CommentAuthor` gains an optional `id`.
+
 ## 2.4.0 (2026-11-16)
 
 ### Added

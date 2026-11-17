@@ -4,6 +4,7 @@ import { useRef, type KeyboardEvent } from 'react';
 import { Card } from '../../ui/card';
 import { cn } from '../../ui/cn';
 import { FOCUS_RING_BORDERLESS } from '../../ui/focus';
+import { AuthorName } from './AuthorName';
 import type { CommentsEnv } from './comments-env';
 import type { RailEntry } from './rail-entries';
 import { ThreadView } from './ThreadView';
@@ -18,7 +19,7 @@ type ThreadCardProps = {
 
 /** A thread in the rail or the sheet: its anchor text and first comment, opening in place to the whole thread. */
 export function ThreadCard({ env, entry, active, expanded, onToggle }: ThreadCardProps) {
-  const { labels, controller } = env;
+  const { labels, controller, host } = env;
   const { thread, anchorText, ranges } = entry;
   const header = useRef<HTMLButtonElement>(null);
   const [first] = thread.comments;
@@ -55,7 +56,7 @@ export function ThreadCard({ env, entry, active, expanded, onToggle }: ThreadCar
         </span>
         {first !== undefined && (
           <span className="line-clamp-2 text-sm">
-            <span className="font-medium">{first.author.name}</span> {first.body}
+            <AuthorName author={first.author} tag={host.authorTag} /> {first.body}
           </span>
         )}
         <span className="text-xs text-muted-foreground">{labels.commentCount(thread.comments.length)}</span>

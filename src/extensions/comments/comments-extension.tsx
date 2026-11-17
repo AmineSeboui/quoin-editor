@@ -6,7 +6,7 @@ import type { ViewController } from '../../view';
 import type { ExtensionUI, ToolbarItem } from '../ui-types';
 import { hasCommentableText, requestComment, watchCreates, type CreateThread } from './comment-create';
 import { commentCommand } from './comment-open';
-import type { CommentThreads, CommentUser } from './comment-threads';
+import type { CommentAuthor, CommentThreads, CommentUser } from './comment-threads';
 import { resolveCommentsLabels, type CommentsLabels } from './comments-labels';
 import { linkOf } from './comments-link';
 import { CommentsOverlay } from './CommentsOverlay';
@@ -38,6 +38,11 @@ export type CommentsOptions = {
    * would; nothing else in the document can change. `false` by default.
    */
   canCommentWhileReadOnly?: boolean;
+  /**
+   * A short tag shown after an author's name, such as 'Guest', or `undefined` for none. The host decides it from what
+   * it knows of the author, not from the name, which a guest chooses.
+   */
+  authorTag?(author: CommentAuthor): string | undefined;
 };
 
 export type CommentsHost = Omit<CommentsOptions, 'labels'>;

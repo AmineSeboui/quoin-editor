@@ -143,3 +143,12 @@
     color: HighlightText;
   }
 }
+
+.quoin .quoin-comments-author-tag {
+  border-radius: calc(var(--quoin-radius) - 4px);
+  background: var(--quoin-muted);
+  color: var(--quoin-muted-foreground);
+  padding-inline: 0.25rem;
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+}

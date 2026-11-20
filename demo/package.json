@@ -22,17 +22,17 @@
     "yjs": "13.6.33"
   },
   "devDependencies": {
-    "@anthropic-ai/sdk": "1.7.0",
+    "@anthropic-ai/sdk": "1.9.0",
     "@axe-core/playwright": "4.14.0",
-    "@google/genai": "3.0.0",
-    "@playwright/test": "1.64.1",
+    "@google/genai": "3.4.0",
+    "@playwright/test": "1.65.1",
     "@types/node": "^26.6.6",
     "@types/prismjs": "^1.26.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.3.0",
     "typescript": "^7.0.2",
-    "vite": "^8.3.7"
+    "vite": "^8.3.8"
   },
   "overrides": {
     "playwright-core": "$@playwright/test"
